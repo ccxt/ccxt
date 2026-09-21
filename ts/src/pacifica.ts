@@ -2,11 +2,11 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -399,11 +399,18 @@ export default class pacifica extends Exchange {
                     '420': ExchangeError, // ENGINE_ERROR_CODE
                     '422': ExchangeError, // Business Logic Error - See below
                     '429': RateLimitExceeded, // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': ExchangeError, // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': ExchangeNotAvailable, // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': ExchangeNotAvailable, // Service Unavailable
                     '504': RequestTimeout, // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': AuthenticationError,
+                    'invalid_amount': InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': AuthenticationError,
+                    'Invalid public key': AuthenticationError,
+                    'Verification failed': AuthenticationError,
+                    'Invalid message': BadRequest, // expired or malformed signed message
                     'UNKNOWN': ExchangeError,
                     'ACCOUNT_NOT_FOUND': ExchangeError,
                     'BOOK_NOT_FOUND': ExchangeError,
@@ -595,7 +602,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetInfo (params); // meta
         // {
         //   "success": true,
@@ -648,7 +655,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const markets = await this.fetchMarkets (params);
         return this.filterBy (markets, 'type', 'swap') as Market[];
     }
@@ -799,31 +806,45 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchBalance', params);
-        const request = {
+        const request: Dict = {
             'account': userAccount,
         };
         const response = await this.publicGetAccount (this.extend (request, params));
         // {
         //   "success": true,
         //   "data": {
-        //     "balance": "2000.000000",
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
         //     "fee_level": 0,
         //     "maker_fee": "0.00015",
         //     "taker_fee": "0.0004",
-        //     "account_equity": "2150.250000",
-        //     "available_to_spend": "1800.750000",
-        //     "available_to_withdraw": "1500.850000",
-        //     "pending_balance": "0.000000",
-        //     "total_margin_used": "349.500000",
-        //     "cross_mmr": "420.690000",
-        //     "positions_count": 2,
-        //     "orders_count": 3,
-        //     "stop_orders_count": 1,
-        //     "updated_at": 1716200000000,
-        //     "use_ltp_for_stop_orders": false
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
         //   },
         //   "error": null,
         //   "code": null
@@ -832,15 +853,23 @@ export default class pacifica extends Exchange {
         const result: Dict = {
             'info': data,
         };
-        result['free'] = {};
-        result['used'] = {};
-        result['total'] = {};
-        const totalBalance = this.safeNumber (data, 'account_equity');
-        const usedMargin = this.safeNumber (data, 'total_margin_used');
-        const freeBalance = this.safeNumber (data, 'available_to_spend');
-        result['total']['USDC'] = totalBalance;
-        result['used']['USDC'] = usedMargin;
-        result['free']['USDC'] = freeBalance;
+        const usdcAccount = this.account ();
+        usdcAccount['total'] = this.safeString (data, 'balance');
+        usdcAccount['used'] = this.safeString (data, 'total_margin_used');
+        result['USDC'] = usdcAccount;
+        const spotBalances = this.safeList (data, 'spot_balances', []);
+        for (let i = 0; i < spotBalances.length; i++) {
+            const balance = spotBalances[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if ((code !== undefined) && !(code in result)) {
+                result[code] = account;
+            }
+        }
         const timestamp = this.safeInteger (data, 'updated_at');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -857,7 +886,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         await this.loadAccountSettings ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -928,7 +957,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    async fetchAccountSettings (params = {}): Promise<Dict> {
+    async fetchAccountSettings (params: Dict = {}): Promise<Dict> {
         let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchAccountSettings', params);
         const request: Dict = {
@@ -952,7 +981,7 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings (this.safeList (response, 'data', []));
     }
 
-    async loadAccountSettings (refresh: boolean = false, params = {}) {
+    async loadAccountSettings (refresh: boolean = false, params: Dict = {}) {
         let settings = this.handleOption ('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary ();
@@ -986,7 +1015,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadAccountSettings ();
         let userAccount: Str = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
@@ -1051,7 +1080,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1117,7 +1146,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         const response = await this.publicGetInfoPrices (params);
         //
         //  {
@@ -1204,7 +1233,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
         }
@@ -1304,12 +1333,12 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
@@ -1350,7 +1379,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1504,21 +1533,23 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ]);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (operationType === 'create_market_order') {
             response = await this.privatePostOrdersCreateMarket (this.extend (request, params));
         } else if (operationType === 'create_stop_order') {
@@ -1548,7 +1579,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): [Dict, Str] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): [Dict, Str] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1575,6 +1606,7 @@ export default class pacifica extends Exchange {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -1708,7 +1740,7 @@ export default class pacifica extends Exchange {
         };
     }
 
-    createOrdersRequest (orders: OrderRequest[], params = {}) {
+    createOrdersRequest (orders: OrderRequest[], params: Dict = {}): Dict {
         const actions: Dict[] = [];
         const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
@@ -1726,7 +1758,7 @@ export default class pacifica extends Exchange {
                 throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value type=' + type);
             }
             const requestList = this.createOrderRequest (symbol, type, side, amountNumber, priceNumber, orderParams);
-            const action = {
+            const action: Dict = {
                 'type': 'Create',
                 'data': requestList[0],
             };
@@ -1744,7 +1776,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1800,7 +1832,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1848,12 +1880,12 @@ export default class pacifica extends Exchange {
         return ordersToReturn as Order[];
     }
 
-    cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
+    cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params: Dict = {}): Dict {
         const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const request = this.cancelOrderRequest (id, symbol, params);
-            const action = {
+            const action: Dict = {
                 'type': 'Cancel',
                 'data': request,
             };
@@ -1863,11 +1895,11 @@ export default class pacifica extends Exchange {
         params = this.omit (params, 'clientOrderIds');
         for (let i = 0; i < clientOrderIds.length; i++) {
             const cloid = clientOrderIds[i];
-            const cloidParams = {
+            const cloidParams: Dict = {
                 'clientOrderId': cloid,
             };
             const request = this.cancelOrderRequest (cloid, symbol, this.extend (cloidParams, params));
-            const action = {
+            const action: Dict = {
                 'type': 'Cancel',
                 'data': request,
             };
@@ -1887,7 +1919,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1912,7 +1944,7 @@ export default class pacifica extends Exchange {
         ] as Order[];
     }
 
-    cancelAllOrdersRequest (symbol: Str, params = {}) {
+    cancelAllOrdersRequest (symbol: Str, params: Dict = {}): Dict {
         const operationType = 'cancel_all_orders';
         const sigPayload: Dict = { };
         const excludeReduceOnly = this.safeBool (params, 'excludeReduceOnly', false);
@@ -1942,7 +1974,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1953,7 +1985,7 @@ export default class pacifica extends Exchange {
         const request = this.cancelOrderRequest (id, symbol, params);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (isStopOrder === true) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
         } else {
@@ -1971,7 +2003,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
+    cancelOrderRequest (id: any, symbol: Str = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         let operationType: Str = undefined;
@@ -2009,7 +2041,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2030,7 +2062,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
 
-    editOrderRequest (id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: string, side: Str, amount: Num, price: Num, market: Market, params: Dict = {}): Dict {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
@@ -2074,7 +2106,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2139,7 +2171,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2223,7 +2255,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2244,7 +2276,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2265,7 +2297,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2286,7 +2318,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2344,7 +2376,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2400,7 +2432,7 @@ export default class pacifica extends Exchange {
         return orders as Order[];
     }
 
-    addPaginationCursorToResult (response: any) {
+    addPaginationCursorToResult (response: Dict): any[] {
         const data = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
@@ -2426,7 +2458,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2487,7 +2519,7 @@ export default class pacifica extends Exchange {
         // return last state
         const sorted = this.sortBy (data, 'created_at', true);
         const lastIdx = sorted.length;
-        let lastInfo = {};
+        let lastInfo: Dict = {};
         if (lastIdx > 0) {
             lastInfo = sorted[0];
         }
@@ -2678,7 +2710,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
         return this.safeDict (positions, 0, {}) as Position;
     }
@@ -2693,7 +2725,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2731,7 +2763,7 @@ export default class pacifica extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //       "symbol": "AAVE",
@@ -2794,7 +2826,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'update_margin_mode';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
@@ -2828,7 +2860,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
@@ -2863,7 +2895,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const operationType = 'withdraw';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2888,7 +2920,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2966,13 +2998,14 @@ export default class pacifica extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const swapMarkets = await this.fetchSwapMarkets ();
-        return this.parseOpenInterests (swapMarkets, symbols) as OpenInterests;
+        const response = await this.publicGetInfoPrices (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
     /**
@@ -2984,16 +3017,20 @@ export default class pacifica extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
-        symbol = this.symbol (symbol);
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        symbol = this.symbol (symbol);
         const ois = await this.fetchOpenInterests ([ symbol ], params);
-        return ois[symbol];
+        const oi = this.safeDict (ois, symbol);
+        if (oi === undefined) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        return oi as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3045,7 +3082,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3116,7 +3153,7 @@ export default class pacifica extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType: Dict = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -3151,7 +3188,7 @@ export default class pacifica extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3195,7 +3232,7 @@ export default class pacifica extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined): object {
         //
         //     {
         //       "history_id": 2287920,
@@ -3240,13 +3277,13 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         const operationType = 'transfer_funds';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'to_account': toAccount,
             'amount': this.numberToString (amount),
         };
@@ -3314,10 +3351,10 @@ export default class pacifica extends Exchange {
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    override async createSubAccount (name: string, params = {}) {
+    override async createSubAccount (name: string, params: Dict = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3336,24 +3373,25 @@ export default class pacifica extends Exchange {
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const timestamp = this.milliseconds ();
+        let timestamp: Int = undefined;
+        [ timestamp, params ] = this.handleParamInteger (params, 'timestamp', this.milliseconds ());
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
-        const subaccountSignatureHeader = {
+        const subaccountSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_initiate',
         };
-        const subSigPayload = {
+        const subSigPayload: Dict = {
             'account': originAddress,
         };
         const subaccountSignature = this.signMessage (subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
-        const mainSignatureHeader = {
+        const mainSignatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_confirm',
         };
-        const mainSigPayload = {
+        const mainSigPayload: Dict = {
             'signature': subaccountSignature,
         };
         const main_signature = this.signMessage (mainSignatureHeader, mainSigPayload, this.privateKey);
@@ -3364,7 +3402,7 @@ export default class pacifica extends Exchange {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate (request);
+        const response = await this.privatePostAccountSubaccountCreate (this.extend (request, params));
         //
         // {
         //   "success": true,
@@ -3376,41 +3414,41 @@ export default class pacifica extends Exchange {
         return response;
     }
 
-    async bindAgentWallet (agentAddress: string, params = {}) {
+    async bindAgentWallet (agentAddress: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'bind_agent_wallet';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'agent_wallet': agentAddress,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAgentBind (this.extend (request, params));
     }
 
-    async createApiKey (params = {}) {
+    async createApiKey (params: Dict = {}): Promise<Dict> {
         const operationType = 'create_api_key';
-        const sigPayload = {};
+        const sigPayload: Dict = {};
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountApiKeysCreate (this.extend (request, params));
     }
 
-    async revokeApiKey (apiKey: string, params = {}) {
+    async revokeApiKey (apiKey: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'revoke_api_key';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'api_key': apiKey,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountApiKeysRevoke (this.extend (request, params));
     }
 
-    async fetchApiKeys (params = {}) {
+    async fetchApiKeys (params: Dict = {}): Promise<Dict> {
         const operationType = 'list_api_keys';
-        const sigPayload = {};
+        const sigPayload: Dict = {};
         const request = this.postActionRequest (operationType, sigPayload, params);
         return await this.privatePostAccountApiKeys (this.extend (request, params));
     }
 
-    async approveBuilderCode (builderCode: string, maxFeeRate: string, params = {}) {
+    async approveBuilderCode (builderCode: string, maxFeeRate: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'approve_builder_code';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'builder_code': builderCode,
             'max_fee_rate': maxFeeRate,
         };
@@ -3419,15 +3457,15 @@ export default class pacifica extends Exchange {
     }
 
     async fetchBuilderApprovals (address: string) {
-        const request = {
+        const request: Dict = {
             'account': address,
         };
         return await this.publicGetAccountBuilderCodesApprovals (this.extend (request));
     }
 
-    async revokeBuilderCode (builderCode: string, params = {}) {
+    async revokeBuilderCode (builderCode: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'revoke_builder_code';
-        const sigPayload = {
+        const sigPayload: Dict = {
             'builder_code': builderCode,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
@@ -3455,11 +3493,17 @@ export default class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        const inCode = this.safeInteger (response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        const errorCode = this.safeString (response, 'code');
+        const errorId = this.safeString (response, 'error_id'); // undocumented, present on live errors and more specific than code
         const message = this.safeString (response, 'error');
         let error: Bool = undefined;
-        if (inCode === undefined || inCode === 200) {
+        if (errorCode === undefined || errorCode === '200') {
             error = false;
         } else {
             error = true;
@@ -3467,15 +3511,18 @@ export default class pacifica extends Exchange {
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (error || nonEmptyMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException (this.exceptions['exact'], inCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorId, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const codeAsString = code.toString ();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                throw new ExchangeError (feedback); // unknown message
+            }
         }
         return undefined;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
@@ -3498,7 +3545,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3577,7 +3624,7 @@ export default class pacifica extends Exchange {
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         const timestamp = this.safeInteger (params, 'timestamp', this.milliseconds ());
-        const signatureHeader = {
+        const signatureHeader: Dict = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': operationType,

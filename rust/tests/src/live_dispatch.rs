@@ -111,9 +111,19 @@ type WriteOptionsFn = fn(*mut (), Value);
 /// Writes a canned HTTP response into the cached Core's `mock_response`.
 /// Used by static *response* tests: `setFetchResponse` stashes the JSON
 /// payload on the snapshot, and the next dispatch pushes it to the Core
-/// so `fetch_typed` returns it without hitting the network. Single-use —
-/// `fetch_typed` clears `mock_response` once consumed.
+/// so every `fetch_typed` within that dispatch returns it without network I/O
+/// (including subsequent pagination requests). The next REST dispatch replaces
+/// the Core's mock with the next fixture's payload, or Null when none is set.
+///
+/// "REST dispatch" is load-bearing: the push at the `write_mock` call site sits
+/// inside `dispatch`'s `if !is_ws_method` pre-flight block, so a `watch*` /
+/// `unWatch*` dispatch neither replaces nor clears the Core's mock. That is
+/// sound today only because the WS suites never set a fixture — if a `watch*`
+/// case ever calls `setFetchResponse`, the clear has to move out of that guard,
+/// or a stale payload will leak into the following dispatch and also keep
+/// `request_typed` skipping `throttle` on that Core.
 type WriteMockFn = fn(*mut (), Value);
+type WriteMockByUrlFn = fn(*mut (), Value);
 
 /// Per-Core typed drop. Necessary because `*mut ()` erases the type, so
 /// `Box::from_raw` on a raw `*mut ()` would deallocate the bytes but
@@ -172,6 +182,7 @@ struct CoreEntry {
     read_state:    ReadStateFn,
     write_options: WriteOptionsFn,
     write_mock:    WriteMockFn,
+    write_mock_by_url: WriteMockByUrlFn,
     drop_core:     DropCoreFn,
     read_field:    ReadFieldFn,
     write_field:   WriteFieldFn,
@@ -250,8 +261,8 @@ pub async fn live_call(id: &str, method: &str, args: Vec<Value>) -> Value {
 /// the error. Mirrors Go's typed-interface dispatch through
 /// `ccxt.ICoreExchange`.
 pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
-    let id = match ccxt::get_value(ex, &Value::Str("id".to_string())) {
-        Value::Str(s) => s,
+    let id = match ccxt::get_value(ex, &Value::Str("id".into())) {
+        Value::Str(s) => s.to_string(),
         _ => return Value::Null,
     };
     let entry = {
@@ -290,7 +301,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
         } else {
             // REST replaces outright (the snapshot mirrors describe().options and
             // is reset per case).
-            let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
+            let opts = ccxt::get_value(ex, &Value::Str("options".into()));
             if matches!(opts, Value::Dict(_)) {
                 (entry.write_options)(entry.ptr.0, opts);
             }
@@ -315,7 +326,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
                 "password", "token", "login", "accountId",
                 "httpProxy", "httpsProxy", "socksProxy", "proxy",
                 "wsProxy", "wssProxy", "wsSocksProxy"] {
-        let v = ccxt::get_value(ex, &Value::Str(key.to_string()));
+        let v = ccxt::get_value(ex, &Value::Str(key.to_string().into()));
         if matches!(v, Value::Str(ref s) if !s.is_empty()) {
             (entry.write_field)(entry.ptr.0, key, v);
         }
@@ -345,11 +356,16 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // `setFetchResponse(exchange, response)` — push it to the Core so
     // `fetch_typed` returns it instead of hitting the (fake) network.
     // `Null` clears any leftover mock.
-    let mock = ccxt::get_value(ex, &Value::Str("__fetchResponse".to_string()));
+    let mock = ccxt::get_value(ex, &Value::Str("__fetchResponse".into()));
     (entry.write_mock)(entry.ptr.0, mock);
+    // same contract for the url-keyed mock, so a method that calls several
+    // endpoints gets the body matching each request's url
+    let mock_by_url = ccxt::get_value(ex, &Value::Str("__fetchResponseByUrl".into()));
+    (entry.write_mock_by_url)(entry.ptr.0, mock_by_url);
     // Clear the snapshot's mock so it doesn't leak into a subsequent
     // dispatch on the same exchange.
     if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponse"); }
+    if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponseByUrl"); }
     } // end `if !is_ws_method` pre-flight write-throughs
     let snake = camel_to_snake(method);
     let fut = (entry.call)(entry.ptr.0, &snake, args);
@@ -463,6 +479,10 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
                 core.mock_response = response;
             }
+            fn write_mock_by_url(ptr: *mut (), responses_by_url: Value) {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                core.mock_response_by_url = responses_by_url;
+            }
             fn drop_core(ptr: *mut ()) {
                 // SAFETY: `ptr` came from `Box::into_raw` of a
                 // `Box<$core>` in the same macro invocation. The
@@ -518,11 +538,11 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // markets_by_id → expired option) but clone only the one
                 // market it returns — not the whole markets map.
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                core.market(Value::Str(symbol.to_string()))
+                core.market(Value::Str(symbol.to_string().into()))
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                let key = Value::Str(symbol.to_string());
+                let key = Value::Str(symbol.to_string().into());
                 ccxt::runtime::in_op(&core.markets, &key)
                     || ccxt::runtime::in_op(&core.markets_by_id, &key)
             }
@@ -555,6 +575,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 read_state:    read_state    as ReadStateFn,
                 write_options: write_options as WriteOptionsFn,
                 write_mock:    write_mock    as WriteMockFn,
+                write_mock_by_url: write_mock_by_url as WriteMockByUrlFn,
                 drop_core:     drop_core     as DropCoreFn,
                 read_field:    read_field    as ReadFieldFn,
                 write_field:   write_field   as WriteFieldFn,

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct MudrexCore {
@@ -771,8 +775,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_955: bool = true;
-            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_958: bool = true;
+            while { if !__for_first_958 { i = add(&i, &Value::Int(1)); } __for_first_958 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut t: Value = get_value(&rows, &i);
             let mut t: Value = get_value(&rows, &i);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
@@ -874,8 +878,8 @@ impl MudrexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_956: bool = true;
-                while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &numItems) } {
+                let mut __for_first_959: bool = true;
+                while { if !__for_first_959 { i = add(&i, &Value::Int(1)); } __for_first_959 = false; is_less_than(&i, &numItems) } {
                 append_to_array(&mut aggregated, get_value(&items, &i));
             }
             }
@@ -889,8 +893,8 @@ impl MudrexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_957: bool = true;
-            while { if !__for_first_957 { i = add(&i, &Value::Int(1)); } __for_first_957 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
+            let mut __for_first_960: bool = true;
+            while { if !__for_first_960 { i = add(&i, &Value::Int(1)); } __for_first_960 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
             append_to_array(&mut result, self.parse_market(get_value(&aggregated, &i)));
         }
         }
@@ -1506,8 +1510,8 @@ impl MudrexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_958: bool = true;
-            while { if !__for_first_958 { i = add(&i, &Value::Int(1)); } __for_first_958 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_961: bool = true;
+            while { if !__for_first_961 { i = add(&i, &Value::Int(1)); } __for_first_961 = false; is_less_than(&i, &get_array_length(&rows)) } {
             append_to_array(&mut orders, self.parse_order(get_value(&rows, &i), &[market.clone()]));
         }
         }
@@ -1621,8 +1625,8 @@ impl MudrexCore {
         let mut outPos: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_959: bool = true;
-            while { if !__for_first_959 { i = add(&i, &Value::Int(1)); } __for_first_959 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_962: bool = true;
+            while { if !__for_first_962 { i = add(&i, &Value::Int(1)); } __for_first_962 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut p: Value = get_value(&rows, &i);
             let mut p: Value = get_value(&rows, &i);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
@@ -1783,8 +1787,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_960: bool = true;
-                while { if !__for_first_960 { i = add(&i, &Value::Int(1)); } __for_first_960 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_963: bool = true;
+                while { if !__for_first_963 { i = add(&i, &Value::Int(1)); } __for_first_963 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if !is_equal(&side, &Value::Null) && !is_equal(&get_value(&p, &Value::Str("side".to_string())), &side) {
@@ -1850,8 +1854,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_961: bool = true;
-                while { if !__for_first_961 { i = add(&i, &Value::Int(1)); } __for_first_961 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_964: bool = true;
+                while { if !__for_first_964 { i = add(&i, &Value::Int(1)); } __for_first_964 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&p, &Value::Str("symbol".to_string())), &symbol) {
@@ -1953,8 +1957,8 @@ impl MudrexCore {
             let mut dataLength: Value = get_array_length(&data);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_962: bool = true;
-                while { if !__for_first_962 { i = add(&i, &Value::Int(1)); } __for_first_962 = false; is_less_than(&i, &dataLength) } {
+                let mut __for_first_965: bool = true;
+                while { if !__for_first_965 { i = add(&i, &Value::Int(1)); } __for_first_965 = false; is_less_than(&i, &dataLength) } {
                 let mut entry: Value = get_value(&data, &i);
                 let mut entry: Value = get_value(&data, &i);
                 append_to_array(&mut allRows, entry.clone());
@@ -1982,8 +1986,8 @@ impl MudrexCore {
         let mut transactionKeys: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_963: bool = true;
-            while { if !__for_first_963 { i = add(&i, &Value::Int(1)); } __for_first_963 = false; is_less_than(&i, &get_array_length(&allRows)) } {
+            let mut __for_first_966: bool = true;
+            while { if !__for_first_966 { i = add(&i, &Value::Int(1)); } __for_first_966 = false; is_less_than(&i, &get_array_length(&allRows)) } {
             let mut entry: Value = get_value(&allRows, &i);
             let mut entry: Value = get_value(&allRows, &i);
             let mut feeType: Value = self.safe_string_k(entry.clone(), "fee_type", &[]);
@@ -2000,13 +2004,13 @@ impl MudrexCore {
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_965: bool = true;
-            while { if !__for_first_965 { i = add(&i, &Value::Int(1)); } __for_first_965 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_968: bool = true;
+            while { if !__for_first_968 { i = add(&i, &Value::Int(1)); } __for_first_968 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let mut rebate: Value = Value::Null;
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_964: bool = true;
-                while { if !__for_first_964 { j = add(&j, &Value::Int(1)); } __for_first_964 = false; is_less_than(&j, &get_array_length(&rebateKeys)) } {
+                let mut __for_first_967: bool = true;
+                while { if !__for_first_967 { j = add(&j, &Value::Int(1)); } __for_first_967 = false; is_less_than(&j, &get_array_length(&rebateKeys)) } {
                 if is_equal(&get_value(&rebateKeys, &j), &get_value(&transactionKeys, &i)) {
                     rebate = get_value(&rebateAmounts, &j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

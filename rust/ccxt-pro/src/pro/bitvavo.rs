@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -435,8 +439,8 @@ impl BitvavoCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_164: bool = true;
-            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
         }
@@ -528,12 +532,12 @@ impl BitvavoCore {
         //
         self.handle_bid_ask(client.clone(), message.clone());
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut tickers: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut data: Value = get_value(&tickers, &i);
             let mut data: Value = get_value(&tickers, &i);
             let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
@@ -577,12 +581,12 @@ impl BitvavoCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut event: Value = Value::Str("bidask".to_string());
-        let mut tickers: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut data: Value = get_value(&tickers, &i);
             let mut data: Value = get_value(&tickers, &i);
             let mut ticker: Value = self.parse_ws_bid_ask(data.clone(), &[]);
@@ -703,8 +707,8 @@ impl BitvavoCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_169: bool = true;
+            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
@@ -776,8 +780,8 @@ impl BitvavoCore {
         let mut subMessageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             append_to_array(&mut subMessageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
@@ -905,8 +909,8 @@ impl BitvavoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&candles)) } {
+            let mut __for_first_171: bool = true;
+            while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&candles)) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -947,8 +951,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_172: bool = true;
+            while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut market: Value = self.market(get_value(&symbolAndTimeframe, &Value::Int(0)));
@@ -967,8 +971,8 @@ impl BitvavoCore {
         let mut intervals: Value = object_keys(&marketIdsByInterval);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_171: bool = true;
-            while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&intervals)) } {
+            let mut __for_first_173: bool = true;
+            while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&intervals)) } {
             let mut interval: Value = get_value(&intervals, &i);
             let mut interval: Value = get_value(&intervals, &i);
             append_to_array(&mut channels, Value::Map({
@@ -1047,8 +1051,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_172: bool = true;
-            while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_174: bool = true;
+            while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut market: Value = self.market(get_value(&symbolAndTimeframe, &Value::Int(0)));
@@ -1069,8 +1073,8 @@ impl BitvavoCore {
         let mut intervals: Value = object_keys(&marketIdsByInterval);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_173: bool = true;
-            while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&intervals)) } {
+            let mut __for_first_175: bool = true;
+            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&intervals)) } {
             let mut interval: Value = get_value(&intervals, &i);
             let mut interval: Value = get_value(&intervals, &i);
             append_to_array(&mut channels, Value::Map({
@@ -1169,8 +1173,8 @@ impl BitvavoCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
@@ -1247,8 +1251,8 @@ impl BitvavoCore {
         let mut subMessageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             append_to_array(&mut subMessageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
@@ -1279,8 +1283,8 @@ impl BitvavoCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_178: bool = true;
+            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1425,8 +1429,8 @@ impl BitvavoCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&messages)) } {
+            let mut __for_first_179: bool = true;
+            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&messages)) } {
             let mut messageItem: Value = get_value(&messages, &i);
             let mut messageItem: Value = get_value(&messages, &i);
             self.handle_order_book_message(client.clone(), messageItem.clone(), orderbook.clone());
@@ -1459,8 +1463,8 @@ impl BitvavoCore {
         let mut name: Value = Value::Str("book".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_180: bool = true;
+            while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = self.safe_string(marketIds.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = add(&add(&name, &Value::Str("@".to_string())), &marketId);
@@ -1498,8 +1502,8 @@ impl BitvavoCore {
         let mut unsubHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_179: bool = true;
-            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&subMessageHashes)) } {
+            let mut __for_first_181: bool = true;
+            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&subMessageHashes)) } {
             append_to_array(&mut unsubHashes, add(&Value::Str("unsubscribe:".to_string()), &get_value(&subMessageHashes, &i)));
         }
         }
@@ -1528,8 +1532,8 @@ impl BitvavoCore {
         let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_180: bool = true;
-            while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_182: bool = true;
+            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &key)))) {
@@ -2540,7 +2544,7 @@ impl BitvavoCore {
         //         }
         //     }
         //
-        let mut subscriptions: Value = self.safe_value_k(message.clone(), "subscriptions", &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2552,8 +2556,8 @@ impl BitvavoCore {
         let mut names: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_181: bool = true;
-            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&names)) } {
+            let mut __for_first_183: bool = true;
+            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&names)) } {
             let mut name: Value = get_value(&names, &i);
             let mut name: Value = get_value(&names, &i);
             let mut method: Value = self.safe_value(methods.clone(), name.clone(), &[]);

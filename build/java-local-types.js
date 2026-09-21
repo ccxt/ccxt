@@ -22,11 +22,11 @@
 //
 // ===== 1. string-returning method signatures =====
 //
-// JAVA_STRING_RETURN_METHODS is a CLOSED, per-name table (84 names, ~250 generated
-// declarations). A name is listed only when a census of every generated declaration of
-// the name (BaseExchange.java suffix, exchanges/*, exchanges/pro/*,
-// exchanges/prediction/*) proved that EVERY return expression is already string-typed
-// in Java:
+// JAVA_STRING_RETURN_METHODS is a CLOSED, per-name table (99 names, ~380 generated
+// declarations together with the two sibling sets below). A name is listed only when a
+// census of every generated declaration of the name (BaseExchange.java suffix,
+// exchanges/*, exchanges/pro/*, exchanges/prediction/*) proved that EVERY return
+// expression is already string-typed in Java:
 //
 //   * `this.safeString / safeString2 / safeStringN (...)` — hand-written, declared String;
 //   * string literals and `null` (TS `undefined` prints as null for these sync methods);
@@ -37,23 +37,38 @@
 //     (the printer's own cast emits);
 //   * a ternary whose arms are all of the above (null + String unifies to String);
 //   * a `this.<listed name>(...)` or `super.<listed name>(...)` call (fixpoint), which
-//     after this retype returns the same type.
+//     after this retype returns the same type;
+//   * a local identifier whose declaration prints `String` (the local-typing machinery's
+//     own narrowing — e.g. `String suffix = "-spot";`, `String r = Precise.stringMul(...)`,
+//     or any other signature this table has already retyped).
 //
-// Four names (JAVA_STRING_RETURN_METHODS_CASE_CAST) additionally carry a small number of
-// `this.safeStringUpper/Lower (...)` return sites. The C# campaign's equivalent retype
-// (`csharp-local-types.js` CSHARP_STRING_RETURN_METHODS) was cast-free because the C#
-// base declares the case family `string?`; the Java base declares it `Object`
-// (BaseExchange.safeStringUpper/Lower*), so those ~5 sites get the same `(String)`
-// checkcast the local-typing side already uses for this family — a checkcast on a
-// String/null is free. The value on the default-taken path is the caller's raw argument
-// (same corner the C# `string?` retype accepts); every generated caller passes a
-// string-ish value.
+// SS-01 closed the gap for the four names that also carried a small number of
+// `this.safeStringUpper/Lower (...)` return sites (parseOrderStatus, parseOrderType,
+// parseTimeInForce, parseTransferType): the hand-written Java producers
+// (SafeMethods.safeStringUpper/Lower*, BaseExchange.safeStringUpper/Lower*) are declared
+// `String` now and drop a non-String default through `optString` — the same rule
+// SafeStringTyped already applies — so those return sites are plain String-declared
+// calls. All four names moved into JAVA_STRING_RETURN_METHODS and the per-name
+// `(String)` checkcast table (JAVA_STRING_RETURN_METHODS_CASE_CAST) is gone. The C#
+// campaign's equivalent retype (csharp-local-types.js CSHARP_STRING_RETURN_METHODS) had
+// declared the family `string?` from the start; this slice brings Java to the same
+// shape. The value on the default-taken path is the caller's String argument, or null
+// when the caller passed none/non-String; the generated callers are censused in the
+// SS-01 report (every one passes a string-ish value).
+//
+// Three names (JAVA_STRING_RETURN_METHODS_CAST — safeSymbol / safeCurrencyCode /
+// getExtendedCurrencyCodeById) retype the same way but keep their element-read return
+// sites behind the same free `(String)` checkcast (see the section-1b comment above the
+// table): the ~1,000 `(String) this.safeSymbol/safeCurrencyCode(...)` declaration casts
+// the local-typing side emitted are now redundant and gone.
 //
 // The decision is per NAME, so a base virtual and every override always print the same
 // return type (Java requires invariant/covariant compatible returns). Names whose census
-// found any other return shape — a local identifier, `Helpers.add(...)`, a `this.<name>`
-// that is not in the table, a `super.<name>` that is not in the table, a `Precise.string*`
-// outside the String set — stay Object; the census is in the JAVA-15 report.
+// found any other return shape — a local identifier still printed Object, `Helpers.add(...)`
+// with a non-String left operand, a `Helpers.GetValue(...)` read whose field is not a
+// string, a `this.<name>` that is not in the table, a `super.<name>` that is not in the
+// table, a `Precise.string*` outside the String set — stay Object; the census scripts are
+// build/ss11-census.py (SS-11) and the JAVA-15 report.
 //
 // ===== 2. list-returning parse families -> java.util.List<Object> =====
 //
@@ -93,11 +108,13 @@
 //
 // A later plain `x = this.<accessor>(...)` write on an already-narrowed local keeps the
 // declaration only while the value is a same-family box, and gets the same checkcast:
-// safeInteger / safeInteger2 / safeIntegerN -> (Long), safeSymbol / safeCurrencyCode and
-// the safeStringUpper/Lower family -> (String). safeTimestamp / safeTimestamp2 are
-// deliberately NOT admitted anywhere: SafeMethods.safeTimestampN hands the caller's
-// default back untouched (`if (result == null) return defaultValue;`), so its box is not
-// always a Long and a `(Long)` cast could throw where the old Object write could not.
+// safeInteger / safeInteger2 / safeIntegerN -> (Long), safeSymbol / safeCurrencyCode ->
+// (String). The safeStringUpper/Lower family (SS-01: declared `String` in the
+// hand-written base now) and the safeString family need no cast at all. safeTimestamp /
+// safeTimestamp2 are deliberately NOT admitted anywhere: SafeMethods.safeTimestampN
+// hands the caller's default back untouched (`if (result == null) return defaultValue;`),
+// so its box is not always a Long and a `(Long)` cast could throw where the old Object
+// write could not.
 //
 // CAST FAMILIES — declared `Object` in the hand-written/generated base but the runtime
 // box is the named type or null on every path:
@@ -168,38 +185,167 @@
 import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
+import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
+
+// ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
+//
+// Records, for every local whose initializer is a whole `this.safeString*` family call,
+// the FIRST pipeline rule that rejected a `String` declaration. One JSONL line per event,
+// appended per worker thread under CCXT_SS15_CENSUS_DIR (default /tmp/ss15-census);
+// aggregated into build/ss15-rejection-census.md by build/ss15-census-report.py.
+//
+// Event kinds:
+//   { k:'decl', stage:'hook',  verdict:'reject', reason, ts, line, name, call }
+//       emitted by the javaTranspiler.ts inline safeString hook (the only classifier
+//       for this family); `reason` is the first guard that declined.
+//   { k:'decl', stage:'shape', verdict:'reject', reason:'shape:...', ts, line, name, call }
+//       classifier accepted but the printed declaration did not match the rewrite shape.
+//   { k:'decl', stage:'hook',  verdict:'accept', ts, line, name, call }
+//       classifier accepted and the declaration was printed as `String` (before the
+//       post-processing passes run).
+//   { k:'module', ts, line, name, call, token }   outermost module wrapper: the token
+//       the whole in-pipeline declaration chain produced ('String' | 'Object' | 'other').
+//   { k:'ws-post-string', tier, name, call, var, line }   postPassWsJava content point:
+//       a `String <name> = this.<call>(...)` declaration is present going into the
+//       (SS-15-removed) de-typing point. In the BASELINE census (before the SS-15 fix)
+//       the same scan emitted kind 'revert' — the pass rewrote every one of them back
+//       to `Object` (pro/prediction tiers only).
+export const SS15_CENSUS = process.env.CCXT_SS15_CENSUS === '1';
+const SS15_CENSUS_DIR = process.env.CCXT_SS15_CENSUS_DIR || '/tmp/ss15-census';
+const SS15_SAFESTRING_CALL = /^safeString(2|N|Upper(2|N)?|Lower(2|N)?)?$/;
+let ss15WriterWarned = false;
+let ss15DirReady = false;
+
+export function ss15Record (record) {
+    if (!SS15_CENSUS) {
+        return;
+    }
+    try {
+        if (!ss15DirReady) {
+            fs.mkdirSync (SS15_CENSUS_DIR, { recursive: true });
+            ss15DirReady = true;
+        }
+        fs.appendFileSync (path.join (SS15_CENSUS_DIR, `census-${process.pid}-${threadId}.jsonl`),
+            JSON.stringify (record) + '\n');
+    } catch (e) {
+        if (!ss15WriterWarned) {
+            ss15WriterWarned = true;
+            process.stderr.write ('[ss15-census] write failed: ' + String (e && e.message) + '\n');
+        }
+    }
+}
+
+// source file + 1-based line of a printed declaration (shared by the hook recorder)
+export function ss15TsPosition (declaration) {
+    const sourceFile = declaration.getSourceFile ();
+    const at = sourceFile.getLineAndCharacterOfPosition (declaration.getStart (sourceFile));
+    return { ts: sourceFile.fileName, line: at.line + 1 };
+}
+
+// outermost declaration wrapper, installed last (after the numeric/literal wrappers), so
+// the token it reads is the one every earlier family wrapper produced for the statement.
+// It exists to tell an inline-hook accept (`String`) from a reject (`Object`) without
+// re-running the classifier.
+function patchJavaSs15CensusWrapper (printer) {
+    if (printer._javaSs15CensusPatched) {
+        return;
+    }
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined) {
+            return printed;
+        }
+        const initializer = unwrapParens (declaration.initializer);
+        if (initializer === undefined || !isThisCall (initializer)) {
+            return printed;
+        }
+        const call = String (initializer.expression.name.escapedText);
+        if (!SS15_SAFESTRING_CALL.test (call)) {
+            return printed;
+        }
+        const printedName = String (printer.printNode (declaration.name));
+        const at = printed.lastIndexOf (printedName + ' = ');
+        const head = at === -1 ? printed : printed.slice (0, at);
+        const token = /String\s*$/.test (head) ? 'String' : (/Object\s*$/.test (head) ? 'Object' : 'other');
+        const name = ts.isIdentifier (declaration.name) ? String (declaration.name.escapedText) : printedName;
+        const position = ss15TsPosition (declaration);
+        ss15Record ({ k: 'module', ts: position.ts, line: position.line, name, pname: printedName, call, token });
+        return printed;
+    };
+    printer._javaSs15CensusPatched = true;
+}
 
 // ===== tables =====
 
 // every name proved string-returning by the tree census (see the header)
 export const JAVA_STRING_RETURN_METHODS = new Set ([
-    'applyScale', 'convertToInstrumentType', 'convertToX18', 'costToPrecision',
-    'costToPredictionPrecision', 'createOrderNonce', 'currencyFromPrecision',
-    'encodeOrderSide', 'encodeOrderType', 'encodeTriggerPriceType', 'encodeValuesWithJson',
-    'encodeWorkingType', 'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
-    'futuresRequestId', 'getAccountTypeFromUrl', 'getDexFromHip3Symbol', 'getFutureWsCategory',
-    'getPrivateType', 'getSubAccountId', 'getTifFromRawOrderType', 'getTypeByMarket',
-    'handleTakerOrMaker', 'mapSide', 'mapTimeInForce', 'marketOutcomeToSymbol',
-    'outcomeSearchQuery', 'padHex', 'paraseTransferStatus', 'parseAccountId', 'parseAccountType',
-    'parseDepositStatus', 'parseFundingInterval', 'parseLedgerDirection',
-    'parseLedgerEntryDirection', 'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
+    'applyScale', 'calcOrderPrice', 'convertToInstrumentType', 'convertToX18',
+    'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
+    'createOrderAppendix', 'createOrderIdFromParts', 'createOrderNonce',
+    'currencyFromPrecision', 'encodeMarginMode', 'encodeOrderSide', 'encodeOrderType',
+    'encodeTriggerPriceType', 'encodeValuesWithJson', 'encodeWorkingType',
+    'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
+    'futuresRequestId', 'generateClientOrderId', 'getAccountTypeFromUrl',
+    'getDexFromHip3Symbol', 'getDexFromSymbols', 'getFutureWsCategory',
+    'getMarketIdByType', 'getMyTradesMessageHashSuffix', 'getPrivateType',
+    'getProductGroupFromMarket', 'getSeeds', 'getSubAccountId',
+    'getTifFromRawOrderType', 'getTypeByMarket', 'getWalletAddress',
+    'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
+    'mapTimeInForce', 'marketOutcomeToSymbol', 'oath', 'outcomeSearchQuery', 'padHex',
+    'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
+    'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
+    'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
     'parseMarginModeType', 'parseMarginStatus', 'parseMarginType', 'parseMarketType',
-    'parseOrderSide', 'parseOrderState', 'parseOrderTimeInForce', 'parseOrderTimeInForceInteger',
-    'parseOrderTypeByMarket', 'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker',
+    'parseOrderSide', 'parseOrderState', 'parseOrderStatus', 'parseOrderTimeInForce',
+    'parseOrderTimeInForceInteger', 'parseOrderType', 'parseOrderTypeByMarket',
+    'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker', 'parseTimeInForce',
     'parseTradeSide', 'parseTradeType', 'parseTradingOrderStatus', 'parseTransactionDepositStatus',
     'parseTransactionState', 'parseTransactionStatus', 'parseTransactionType',
-    'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseType', 'parseUnits',
-    'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide', 'parseWsOrderStatus',
-    'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'scaleNumber', 'shortenSlug',
-    'signCancelAll', 'signClobOrder', 'signOrderbookTypedData', 'symbol', 'tokenIdToSymbol',
-    'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
+    'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType',
+    'parseUnits', 'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
+    'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'pow',
+    'prepareMessage', 'scaleNumber', 'shortenSlug', 'signCancelAll', 'signClobOrder',
+    'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol', 'toOrderbookWei',
+    'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
 ]);
 
-// listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites
-export const JAVA_STRING_RETURN_METHODS_CASE_CAST = new Set ([
-    'parseOrderStatus', 'parseOrderType', 'parseTimeInForce', 'parseTransferType',
+// ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
+//
+// The three names below have the SAME retyped signature and the same call-site
+// behaviour as JAVA_STRING_RETURN_METHODS (locals fed by them need no cast), but their
+// return expressions cannot all be typed by the printer alone, so the producer return
+// sites carry the `(String)` checkcast that every call site used to carry (the local
+// machinery's cast family, see LOCAL_THIS_RETURN_TYPES):
+//
+//   * safeSymbol (1 decl, BaseExchange)      -> Helpers.GetValue(market, "symbol")
+//   * safeCurrencyCode (2 decls, base + kraken) -> Helpers.GetValue(currency, "code")
+//   * getExtendedCurrencyCodeById (1 decl, extended) -> Helpers.GetValue(currency, "code")
+//
+// Every return path of every declaration is the market/currency row's own string field
+// (`market['symbol']` / `currency['code']`) or null/undefined when the key is absent —
+// the same runtime box the callers' ~1,000 `(String) this.<name>(...)` declarations
+// already checkcast today (see the section 3 cast-family paragraph); the retype moves
+// that checkcast to the ONE producer return site.
+//   * element read       -> prints Helpers.GetValue(...) -> (String) return checkcast
+//   * kraken's `return currencyId` sits under its own `if (currencyId === undefined)`
+//     guard and hands back the null the guard matched -> (String) cast on null
+//   * every other return expression (kraken's Helpers.add chain, `super.safeCurrencyCode`,
+//     the safeString reads, the `code` local) already prints String — no cast.
+export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
+    'getExtendedCurrencyCodeById', 'safeCurrencyCode', 'safeSymbol',
 ]);
+
+// listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites:
+// SS-01 retyped the hand-written SafeMethods.safeStringUpper/Lower* producers to `String`
+// (a non-String default is dropped through `optString`, exactly like SafeStringTyped), so
+// those return sites are plain String-declared calls and their names (parseOrderStatus,
+// parseOrderType, parseTimeInForce, parseTransferType) moved into
+// JAVA_STRING_RETURN_METHODS above — no `(String)` checkcast is emitted for the family
+// anywhere any more. The table this comment used to head (JAVA_STRING_RETURN_METHODS_CASE_CAST)
+// is empty and removed; see the SS-01 report for the census.
 
 // every name proved list-returning by the tree census (see the header)
 export const JAVA_LIST_RETURN_METHODS = new Set ([
@@ -211,8 +357,16 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
 for (const name of JAVA_LIST_RETURN_METHODS) {
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         throw new Error ('java-local-types: ' + name + ' listed as both string and list returning');
+    }
+}
+// JAVA_STRING_RETURN_METHODS_CAST is a sibling set with the same retype semantics (its
+// names are listed only there — the pure table's no-cast invariant must stay true), so a
+// name in both is a config bug
+for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
+        throw new Error ('java-local-types: ' + name + ' listed as both no-cast and cast string return');
     }
 }
 
@@ -294,6 +448,10 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
+    // hx2 java-03: `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
+    // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
+    // default argument is absent or a boolean literal — see the section-7 header.
+    'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
     // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
     // declared String in Java; `cast` entries are declared Object but String-or-null on
     // every audited path. The classifier (classifyStringHelperCall) applies the
@@ -367,6 +525,197 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'market': JAVA_STRUCTURE_TYPE,
     'currency': JAVA_STRUCTURE_TYPE,
 };
+
+// ===== safeDict locals (JAVA-01) =====
+//
+// `const x = this.safeDict (container, key [, {}])` — the TS annotation is `Dict | undefined`,
+// the printer declares `Object x = this.safeDict (…)`, and the hand-written
+// `public Object safeDict (…)` (BaseExchange.java) answers a Map or the caller's default:
+//
+//     Object value = this.safeValue (dictionaryOrList, key, defaultValue);
+//     if (value == null) return defaultValue;
+//     if (isDictionary (value)) return value;      // boolean isTrue (value instanceof Map) && !isArray
+//     return defaultValue;
+//
+// so the box is a `java.util.Map<String, Object>` (or null) on every path the accessor can
+// take EXCEPT the default handed back untouched: a call may only be typed when it carries no
+// third argument (null) or an EMPTY object literal (`{}` prints
+// `new java.util.HashMap<String, Object>() {{}}`). Any other default (string / number /
+// non-empty dict / expression) could be handed back raw, so those locals keep Object.
+//
+// The declaration carries the `(java.util.Map<String, Object>)` checkcast the Object-declared
+// accessor needs (same cast family as the structure locals above); every generated consumer
+// (Helpers.GetValue / this.safeString / Helpers.addElementToObject / this.deepExtend / a
+// receiver method) takes Object or resolves against Map, so the typed local binds them exactly
+// as the Object one did. Later writes are audited by isSafeToNarrow (D2): a write of anything
+// that is not provably a structure box keeps the local Object — `x = this.safeDict (…)` is one
+// of them (safeDict is deliberately NOT in STRUCTURE_THIS_RETURN_TYPES, whose reassignment hook
+// casts without the default guard).
+const JAVA_SAFE_DICT_TYPE = 'java.util.Map<String, Object>';
+const SAFE_DICT_ACCESSORS = new Set ([ 'safeDict' ]);
+
+// the third argument, when present, must be an empty object literal — the only default that
+// prints a Map
+function safeDictDefaultIsEmptyMap (node) {
+    const unwrapped = unwrapParens (node);
+    return unwrapped !== undefined && ts.isObjectLiteralExpression (unwrapped) && unwrapped.properties.length === 0;
+}
+
+function safeDictLocalType (printer, initializer, name) {
+    if (!SAFE_DICT_ACCESSORS.has (name)) {
+        return undefined;
+    }
+    const args = initializer.arguments;
+    if (args === undefined || args.length < 2 || args.length > 3) {
+        return undefined;
+    }
+    if (args.length === 3 && !safeDictDefaultIsEmptyMap (args[2])) {
+        return undefined;
+    }
+    if (!resolvesToMethodNamed (printer, initializer, name)) {
+        return undefined;
+    }
+    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true };
+}
+
+// ===== parse* structure locals (B-10) =====
+//
+// `const x = this.parseOrder (order, market)` prints `Object x = this.parseOrder (...)`
+// because the parse* Java signature is erased (every non-boolean return annotation prints
+// Object). The signature the checker resolves declares a structure interface — Order /
+// Trade / Ticker / Position / OrderBook / Balance / Market / Currency, all dict-shaped rows
+// in ts/src/base/types.ts — or a tuple/array (OHLCV, BidAsk[]), so the box the method hands
+// back is a `java.util.Map<String, Object>` / `java.util.List<Object>` on every path a
+// census of its generated declarations can return:
+//
+//   * a fresh HashMap / ArrayList literal (parseOrderBook, parseTradingFee, parseFundingRate,
+//     parseMarginLoan, parseTransaction, parseBorrowRate, parseOrderBookBidAsk, parseOHLCV);
+//   * a row handed back unchanged by the safe* producer the body delegates to — safeOrder /
+//     safeTicker / safeTrade / safePosition return `this.extend (<fresh row>, …)` or the
+//     caller's row, safeBalance returns the row it was given (parseOrder, parseTicker,
+//     parseTrade, parsePosition, parseBalance, parseWsOrder, parseWsTicker, parseWsPosition);
+//   * a peer name in the same table, `super.<peer>` or null (census of every declaration of
+//     the name in exchanges/*, exchanges/pro/*, exchanges/prediction/*: 0 other return shape).
+//
+// NOT admitted: the names that funnel through filterByArray (parseTickers, parsePositions,
+// parseDepositAddresses, parseBorrowInterests, parseSettlements, …) — it hands back a keyed
+// dictionary when `indexed` is true, so the box is argument-dependent (same exclusion the
+// C# port recorded); the numeric/string parse* names (parseNumber, parsePrecision,
+// parse8601, parse*Status/Type, …), which are other families' declarations.
+//
+// The declaration carries the checkcast the Object-declared call needs (same cast family as
+// the structure / safeDict locals above); the cast can only fire on a box the method never
+// returns. Every later write is audited by isSafeToNarrow (D2) — a local re-written with an
+// unrelated shape keeps its Object declaration.
+const JAVA_PARSE_MAP_TYPE = 'java.util.Map<String, Object>';
+const JAVA_PARSE_LIST_TYPE = 'java.util.List<Object>';
+
+const PARSE_MAP_LOCAL_NAMES = new Set ([
+    'parseOrder', 'parseOrderBook', 'parseTicker', 'parseTrade', 'parsePosition',
+    'parseTradingFee', 'parseFundingRate', 'parseMarginLoan', 'parseTransaction',
+    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance',
+    'parseWsOrder', 'parseWsTicker', 'parseWsPosition',
+]);
+
+const PARSE_LIST_LOCAL_NAMES = new Set ([
+    'parseOHLCV', 'parseOrderBookBidAsk', 'parseOrderBookBidsAsks',
+]);
+
+// the return type the checker gives the RESOLVED declaration of the call (never a name
+// heuristic): an unannotated override falls back to the signature's inferred return type
+function callDeclarationReturnType (printer, initializer) {
+    let signature;
+    try {
+        signature = printer.getChecker ().getResolvedSignature (initializer);
+    } catch (e) {
+        return undefined;
+    }
+    const declaration = signature?.declaration;
+    if (declaration?.type !== undefined) {
+        return printer.getChecker ().getTypeAtLocation (declaration.type);
+    }
+    return typeof signature?.getReturnType === 'function' ? signature.getReturnType () : undefined;
+}
+
+// the unit's condition: the callee's declared TS return type is a structure interface —
+// either the printer's own map-structure proof (index signature / ts/src/base/types.ts) or
+// any interface / type-literal / object alias. Classes, functions, arrays, scalars, unions
+// and `any` never classify (a class instance is not a Java Map).
+function isParseStructureReturnType (printer, type) {
+    if (type === undefined) {
+        return false;
+    }
+    if (typeof printer.isJavaMapStructureType === 'function' && printer.isJavaMapStructureType (type)) {
+        return true;
+    }
+    const excluded = ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Union | ts.TypeFlags.Intersection
+        | ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional
+        | ts.TypeFlags.Never | ts.TypeFlags.StringLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BooleanLike
+        | ts.TypeFlags.ESSymbolLike | ts.TypeFlags.EnumLike;
+    if ((type.flags & excluded) !== 0 || (type.flags & ts.TypeFlags.Object) === 0) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    if (checker.isArrayType (type) || checker.isTupleType (type)) {
+        return false;
+    }
+    const symbol = type.symbol ?? type.aliasSymbol;
+    if (symbol === undefined) {
+        return false;
+    }
+    if ((symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Function | ts.SymbolFlags.Method)) !== 0) {
+        return false;
+    }
+    return (symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeLiteral | ts.SymbolFlags.TypeAlias | ts.SymbolFlags.ObjectLiteral)) !== 0;
+}
+
+// D-09: a local whose initializer is a whole call to an internal (non-override) method the
+// PRINTER itself retyped (javaTranspiler.javaNativeReturnType -> Map / String / Boolean).
+// The printed signature carries the native type, so the declaration is emitted with it and
+// needs no checkcast; the printer's printVariableDeclarationList prefix guard falls back to
+// the Object declaration whenever the printed shape is not the expected `this.<name> (`.
+function internalReturnLocalType (printer, initializer) {
+    if (typeof printer.javaNativeReturnType !== 'function' || !isThisCall (initializer)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (initializer)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const native = printer.javaNativeReturnType (declaration);
+    if (native === undefined) {
+        return undefined;
+    }
+    return { type: native, valuePrefix: 'this.', strictPlus: native === 'String' };
+}
+
+function parseStructureLocalType (printer, initializer, name) {
+    const isMap = PARSE_MAP_LOCAL_NAMES.has (name);
+    const isList = PARSE_LIST_LOCAL_NAMES.has (name);
+    if (!isMap && !isList) {
+        return undefined;
+    }
+    if (!resolvesToMethodNamed (printer, initializer, name)) {
+        return undefined;
+    }
+    const returnType = callDeclarationReturnType (printer, initializer);
+    if (isMap) {
+        if (!isParseStructureReturnType (printer, returnType)) {
+            return undefined;
+        }
+        return { type: JAVA_PARSE_MAP_TYPE, cast: '(' + JAVA_PARSE_MAP_TYPE + ')' };
+    }
+    const checker = printer.getChecker ();
+    if (returnType === undefined || !(checker.isArrayType (returnType) || checker.isTupleType (returnType))) {
+        return undefined;
+    }
+    return { type: JAVA_PARSE_LIST_TYPE, cast: '(' + JAVA_PARSE_LIST_TYPE + ')' };
+}
 
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
@@ -510,7 +859,9 @@ function receiverUseIsWrite (identifier) {
 // strings. The receiver must have exactly one binding in the enclosing function (no
 // shadowing), that binding must be a declaration BEFORE the site with a string-elements
 // producer, and every other use of the name must be a read.
-function elementAccessHasStringElements (initializer) {
+// Exported for the SS-02 reassignment acceptance (build/javaTranspiler.ts), which
+// applies the same proof to a WRITE `x = recv[key]` on a narrowed String local.
+export function elementAccessHasStringElements (initializer) {
     const site = unwrapParens (initializer);
     if (site?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return false;
@@ -716,7 +1067,8 @@ function isProvablyStringExpression (printer, node, selfName, narrowed) {
             if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
                 return true; // hand-written BaseExchange declarations, `public String`
             }
-            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+            if (JAVA_STRING_RETURN_METHODS.has (name)
+                || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
                 return resolvesToMethodNamed (printer, node, name);
             }
             return isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name);
@@ -763,13 +1115,17 @@ function baseMethodReturnsString (printer, node, name) {
 // ===== awaited generated-api locals =====
 //
 // `await this.<endpoint>(...)` prints `(this.<endpoint>(...)).join()`. The generated
-// implicit-api wrappers declare one
-// `public java.util.concurrent.CompletableFuture<T> <name> (Object... optionalArgs)`
+// implicit-api wrappers declare one `public CompletableFuture<T> <name> (Object... optionalArgs)`
 // per endpoint, so `.join()` has the static type T exactly and the declaration needs no
 // cast. T is read from the ON-DISK Java file the compiler reads — a local declared T can
 // never disagree with its callee. Only concrete T is accepted (Map / List / String);
-// `CompletableFuture<Object>` endpoints stay Object.
-const JAVA_API_METHOD = /^\s*public java\.util\.concurrent\.CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+// `CompletableFuture<Object>` endpoints stay Object. The on-disk file spells the java.util
+// names short (build/javaUtilImports.ts); the pipeline works in the qualified spelling.
+const JAVA_API_METHOD = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+const JAVA_API_SHORT_NAMES = /\b(?<!\.)(Map|List)</g;
+function qualifyApiReturnType (t) {
+    return t.replace (JAVA_API_SHORT_NAMES, 'java.util.$1<');
+}
 const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
@@ -794,7 +1150,7 @@ function awaitedApiReturnTypes (exchange) {
         for (const line of content.split ('\n')) {
             const match = JAVA_API_METHOD.exec (line);
             if (match && match[1] !== 'Object') {
-                table.set (match[2], match[1]);
+                table.set (match[2], qualifyApiReturnType (match[1]));
             }
         }
         break;
@@ -936,6 +1292,29 @@ function isThisOrSuperCall (node) {
             || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
+// hx3 B-15: strip an `as T` / `<T>x` assertion whose printed Java is the bare operand.
+// javaTranspiler.printAsExpression prints a cast only for `any` ((Object) x), `string`
+// ((String) x) and an array type ((java.util.List<...>)(x)); every other asserted type
+// (Dict, Market, a union, a class) falls through to the operand, so the safeDict /
+// safeList / market proofs hold for the inner call. The declaration hook's
+// `this.<name>(` prefix test still refuses every shape that would print a cast.
+function unwrapNoCastAssertion (node) {
+    if (node === undefined) {
+        return undefined;
+    }
+    if (!ts.isAsExpression (node) && !ts.isTypeAssertionExpression (node)) {
+        return node;
+    }
+    const asserted = node.type;
+    if (asserted === undefined
+        || asserted.kind === ts.SyntaxKind.AnyKeyword
+        || asserted.kind === ts.SyntaxKind.StringKeyword
+        || asserted.kind === ts.SyntaxKind.ArrayType) {
+        return node;
+    }
+    return unwrapParens (node.expression) ?? node;
+}
+
 function unwrapParens (node) {
     while (node !== undefined && ts.isParenthesizedExpression (node)) {
         node = node.expression;
@@ -1063,6 +1442,34 @@ function classifyStringHelperCall (printer, node) {
 
 // a `this.<name>(...)` call that resolves to a real method declaration of that name
 // (the signature hook retypes those); fields holding functions do not
+// hx3 B-15: the base stage transpiles a stripped copy of ts/src/base/Exchange.ts
+// (build/stripOverloads.ts -> `ts/src/base/Exchange.nooverloads.<pid>.ts`, a RELATIVE file
+// name), so an accessor call inside the base body resolves to that copy, not to
+// `ts/src/base/Exchange.ts`. Same class, same hand-written Java accessor, so the safeList
+// family accepts it too; the shared resolvesToBaseAccessor stays untouched for every other
+// family.
+const B15_STRIPPED_BASE_SOURCE_FILES = [
+    /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/,
+    /[\\/]base[\\/]functions[\\/]type\.ts$/,
+];
+
+function resolvesToBaseOrStrippedAccessor (printer, node, name) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return FIELD_FUNCTION_NAMES.has (name);
+    }
+    const file = declaration.getSourceFile?.().fileName;
+    if (file === undefined) {
+        return false;
+    }
+    return B15_STRIPPED_BASE_SOURCE_FILES.some ((re) => re.test (file));
+}
+
 function resolvesToMethodNamed (printer, node, name) {
     let declaration;
     try {
@@ -1100,7 +1507,7 @@ function javaMethodReturnType (printer, node, own) {
         return undefined;
     }
     const name = node.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
         return 'String';
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
@@ -1111,21 +1518,74 @@ function javaMethodReturnType (printer, node, own) {
 
 // ===== return-statement casts =====
 
+// `return X;` under an enclosing `if (X === undefined|null)` guard hands back the null
+// the guard matched (`currencyId === undefined` prints Helpers.isEqual(currencyId, null))
+function guardedNullReturn (node, expression) {
+    const name = expression.escapedText;
+    const isNullTest = (cond) => {
+        if (cond === undefined) {
+            return false;
+        }
+        if (cond.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            return isNullTest (cond.expression);
+        }
+        if (cond.kind !== ts.SyntaxKind.BinaryExpression) {
+            return false;
+        }
+        const operator = cond.operatorToken.kind;
+        if (operator !== ts.SyntaxKind.EqualsEqualsEqualsToken
+            && operator !== ts.SyntaxKind.EqualsEqualsToken) {
+            return false;
+        }
+        const isNullish = (side) => side !== undefined
+            && (side.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (side) && side.escapedText === 'undefined'));
+        const isName = (side) => side !== undefined && ts.isIdentifier (side) && side.escapedText === name;
+        return (isName (cond.left) && isNullish (cond.right)) || (isName (cond.right) && isNullish (cond.left));
+    };
+    let child = node;
+    let parent = node.parent;
+    while (parent !== undefined) {
+        if (ts.isBlock (parent)) {
+            child = parent;
+            parent = parent.parent;
+            continue;
+        }
+        if (ts.isIfStatement (parent)) {
+            if (parent.thenStatement === child && isNullTest (parent.expression)) {
+                return true;
+            }
+            return false;
+        }
+        if (ts.isSourceFile (parent) || ts.isFunctionLike (parent)) {
+            return false;
+        }
+        child = parent;
+        parent = parent.parent;
+    }
+    return false;
+}
+
 // the printed return payload this module knows how to cast, or undefined
 function returnCastFor (printer, node, methodName) {
     const expression = unwrapParens (node.expression);
     if (expression === undefined) {
         return undefined;
     }
-    if (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName)) {
-        if (isThisCall (expression)) {
-            const call = expression.expression.name.escapedText;
-            if (call === 'safeStringUpper' || call === 'safeStringLower'
-                || call === 'safeStringUpper2' || call === 'safeStringLower2'
-                || call === 'safeStringUpperN' || call === 'safeStringLowerN') {
-                return '(String)';
-            }
+    if (JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
+        // an element read (`market['symbol']` / `currency['code']`) prints
+        // Helpers.GetValue(...) — an Object box that is the row's string field or null
+        // on every shipment path (the same box the callers' (String) declarations
+        // already checkcast)
+        if (ts.isElementAccessExpression (expression)) {
+            return '(String)';
         }
+        // `return currencyId;` under `if (currencyId === undefined)` returns the null
+        // the guard matched
+        if (ts.isIdentifier (expression) && guardedNullReturn (node, expression)) {
+            return '(String)';
+        }
+        // every other shape already prints String (census: the safeString reads and the
+        // Helpers.add / super.<name> chains of these declarations)
         return undefined;
     }
     if (JAVA_LIST_RETURN_METHODS.has (methodName)) {
@@ -1180,10 +1640,101 @@ function receiverMethodLocalType (initializer) {
     return entry !== undefined && entry.args.includes (argCount) ? entry : undefined;
 }
 
+// ===== list-producer locals =====
+//
+// `x.split (sep)` prints `Helpers.split(x, sep)`: Collections.emptyList() on the null
+// path, Arrays.asList(...) otherwise, so the box is always a java.util.List<Object> while
+// the helper's declared Java return is Object -> the declaration carries the
+// (java.util.List<Object>) checkcast. `Object.keys (x)` prints `Helpers.objectKeys(x)`,
+// declared `List<Object>` in the hand-written Helpers -> no cast. `Helpers.GetValue(...)`
+// is NOT in this family: the helper hands back whatever the row holds (list, map, scalar,
+// null), so its locals keep the Object declaration.
+const JAVA_LIST_PRODUCER_LOCAL_TYPES = {
+    'objectKeys': { type: JAVA_ARRAY_TYPE, valuePrefixes: ['Helpers.objectKeys(', 'new java.util.ArrayList<Object>('] },
+    'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, valuePrefix: 'Helpers.split(' },
+};
+
+// the proven Java type of a local initialised from a list-producing call, or undefined
+function javaListProducerLocalType (initializer) {
+    if (!ts.isCallExpression (initializer)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee)) {
+        return undefined;
+    }
+    // `Object.keys (x)` — a call on the Object builtin (prints Helpers.objectKeys(x))
+    if (callee.name.escapedText === 'keys'
+        && ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Object') {
+        return JAVA_LIST_PRODUCER_LOCAL_TYPES['objectKeys'];
+    }
+    // `x.split (sep)` on any receiver — every split prints Helpers.split(x, sep)
+    if (callee.name.escapedText === 'split') {
+        return JAVA_LIST_PRODUCER_LOCAL_TYPES['split'];
+    }
+    return undefined;
+}
+
+// does the printed Java for an accepted `messageHash*` initializer still need a `(String)`
+// checkcast to assign to the String local? Only the shapes whose printed static type is
+// Object do — the String prover (isProvablyStringExpression) has already established the
+// TS value is a String. A conditional keeps its checkcast: dropping it would rewrite a
+// line that already carries a `?:` expression.
+function messageHashValueNeedsCast (printer, node) {
+    node = unwrapParens (node);
+    if (node === undefined) {
+        return true; // unknown shape — keep the checkcast
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.NullKeyword:
+        case ts.SyntaxKind.Identifier:
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+        case ts.SyntaxKind.PropertyAccessExpression: // this.<String-declared field>
+            return false;
+        case ts.SyntaxKind.ConditionalExpression:
+            return true;
+        case ts.SyntaxKind.BinaryExpression:
+            // `a + b` prints Helpers.add(a, b): the call is String iff the LEFT operand is
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                ? messageHashValueNeedsCast (printer, node.left)
+                : true;
+        case ts.SyntaxKind.CallExpression: {
+            if (!isThisCall (node)) {
+                return false; // bare helper calls bind to declared-String base methods
+            }
+            const name = String (node.expression.name.escapedText);
+            if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
+                return false;
+            }
+            const accessor = LOCAL_THIS_RETURN_TYPES[name];
+            if (accessor !== undefined) {
+                return accessor.cast !== undefined; // Object-declared producer
+            }
+            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                return false; // signature retyped to String by this module
+            }
+            if (isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name)) {
+                return false; // hand-written base method, declared String
+            }
+            return true; // unknown call — keep the checkcast
+        }
+        default:
+            return true; // unknown shape — keep the checkcast
+    }
+}
+
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
         return undefined;
+    }
+    // list producers: `x.split(sep)` / `Object.keys(x)` hand back a list on every path
+    const listProducer = javaListProducerLocalType (initializer);
+    if (listProducer !== undefined) {
+        return listProducer;
     }
     // string-element access: `const x = parts[0]` where `parts` is provably a list of
     // String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact
@@ -1199,6 +1750,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         return undefined;
     }
+    // test tier: `exchange.safeString* (...)` on a base-typed receiver — section 9
+    const receiverAccessor = receiverSafeStringLocalInfo (printer, initializer);
+    if (receiverAccessor !== undefined) {
+        return receiverAccessor;
+    }
     // WS/pro families (see the section above)
     if (isProFile === true) {
         if (isThisCall (initializer)) {
@@ -1209,19 +1765,20 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         const readType = wsMapReadType (initializer);
         if (readType !== undefined) {
-            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key);
-            // `this.safeValue*(this.<map>, key)` prints itself
+            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key), or the native
+            // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
+            // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
             && isProvablyStringExpression (printer, initializer, declaration.name.escapedText, narrowed)) {
-            // the (String) prefix also defeats postProcessWsJava's "String type fixes"
-            // revert regex (`String x = this.<m>(` / `String x = Helpers.` -> Object),
-            // which runs on every pro file after printing; a checkcast on a String box
-            // is free
-            return { type: 'String', cast: '(String)', strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
+            // the checkcast is kept only for the producers whose printed Java is still
+            // Object-declared (case accessors, implodeParams, ..); literals, Helpers.add
+            // and the String-declared accessors assign to the String local directly (the
+            // old (String) prefix that defeated postProcessWsJava's revert is obsolete)
+            return { type: 'String', cast: messageHashValueNeedsCast (printer, initializer) ? '(String)' : undefined, strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
         }
     }
     // ===== error paths: request/params object literals and typed base members =====
@@ -1243,28 +1800,59 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: memberType };
         }
     }
-    if (!isThisCall (initializer)) {
+    // hx3 B-15: `this.safeDict (...) as Dict` — an assertion the printer drops (bare
+    // operand for every asserted type outside any/string/T[]). The safeDict / market
+    // families prove the inner call; every other family keeps the un-asserted shape.
+    const assertedCall = unwrapNoCastAssertion (initializer);
+    const asserted = assertedCall !== initializer;
+    if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
-    if (!isThisCall (initializer)) {
+    if (!isThisCall (assertedCall)) {
         return receiverMethodLocalType (initializer);
     }
-    const name = initializer.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    const name = assertedCall.expression.name.escapedText;
+    if (!asserted && (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
         return resolvesToMethodNamed (printer, initializer, name) ? { type: 'String' } : undefined;
     }
-    if (JAVA_LIST_RETURN_METHODS.has (name)) {
+    if (!asserted && JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
-    if (accessor !== undefined && resolvesToBaseAccessor (printer, initializer, name)) {
-        return { type: accessor.type, cast: accessor.cast };
+    if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
+        // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
+        // default argument is absent or a boolean literal — the accessor hands the caller's
+        // default back untouched on the not-found / wrong-type path (section-7 header)
+        if (accessor.defaultArg !== undefined
+            && (!accessorDefaultProvesBoolean (initializer, accessor.defaultArg)
+                || !safeBoolCallTypeIsBoolean (printer, initializer))) {
+            return undefined;
+        }
+        return { type: accessor.type, cast: accessor.cast, safeBool: accessor.safeBool === true };
     }
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
-    if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
-        return { type: structure, cast: '(' + structure + ')' };
+    if (structure !== undefined && resolvesToMethodNamed (printer, assertedCall, name)) {
+        // hx3 B-15: Map/List locals tolerate the `as Dict` / `as any` / `as any[]` assertions
+        // (no cast or an upcast is printed — see assertedPrintsNoUnsatisfiableCast)
+        return { type: structure, cast: '(' + structure + ')', noCastAssertions: true };
+    }
+    const dict = safeDictLocalType (printer, assertedCall, name);
+    if (dict !== undefined) {
+        return dict;
+    }
+    // D-09: a call to an internal (non-override) method the PRINTER itself retyped
+    // (javaTranspiler.javaNativeReturnType) — the call already prints the native type, so
+    // the local carries it with NO checkcast. Placed before the name-list families so an
+    // admitted parse* name takes the cast-free declaration.
+    const internalReturn = internalReturnLocalType (printer, initializer);
+    if (internalReturn !== undefined) {
+        return internalReturn;
+    }
+    const parseStructure = parseStructureLocalType (printer, initializer, name);
+    if (parseStructure !== undefined) {
+        return parseStructure;
     }
     return undefined;
 }
@@ -1277,6 +1865,14 @@ function isProvablyOfType (printer, node, javaType, selfName) {
     switch (node.kind) {
         case ts.SyntaxKind.NullKeyword:
             return true;
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            // hx2 java-03: a boolean literal autoboxes into a `Boolean` local; for every
+            // other family the write is a different box
+            return javaType === 'Boolean';
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            // `!x` prints `!Helpers.isTrue (x)` — a Java boolean, boxed by the write
+            return javaType === 'Boolean' && node.operator === ts.SyntaxKind.ExclamationToken;
         case ts.SyntaxKind.Identifier:
             return node.escapedText === 'undefined' || node.escapedText === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
@@ -1330,7 +1926,8 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 if (name === 'parse8601') {
                     return false;
                 }
-                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                if (JAVA_STRING_RETURN_METHODS.has (name)
+                    || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
                     return true;
                 }
                 if (name === 'iso8601') {
@@ -1368,6 +1965,16 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     return true;
                 }
                 return false;
+            }
+            if (javaType === 'Boolean') {
+                // hx2 java-03: a later `x = this.safeBool (...)` write takes the same
+                // gate the declaration has (the reassignment hook injects the same
+                // (Boolean) checkcast the declaration got)
+                const accessor = LOCAL_THIS_RETURN_TYPES[name];
+                return accessor !== undefined && accessor.safeBool === true
+                    && accessorDefaultProvesBoolean (node, accessor.defaultArg)
+                    && safeBoolCallTypeIsBoolean (printer, node)
+                    && accessorResolvesToBase (printer, node, name, accessor);
             }
             return false;
         }
@@ -1419,6 +2026,11 @@ function isStaticallyStringExpression (printer, node, selfName) {
             return node.operatorToken.kind === ts.SyntaxKind.PlusToken
                 && isStaticallyStringExpression (printer, node.left, selfName);
         case ts.SyntaxKind.CallExpression: {
+            // test tier: `x = exchange.safeString* (...)` writes — declared String in
+            // BaseExchange, so the reassignment needs no cast (section 9)
+            if (isBaseReceiverSafeStringCall (printer, node)) {
+                return true;
+            }
             if (isThisCall (node)
                 && (node.expression.name.escapedText === 'safeString'
                     || node.expression.name.escapedText === 'safeString2'
@@ -1445,6 +2057,173 @@ function isPlainSafeStringBaseCall (printer, node) {
     }
     const file = resolvedSignatureFile (printer, node);
     return file !== undefined && /(^|[\\/])base[\\/]functions[\\/]type\.ts$/.test (file);
+}
+
+// ===== 9. test tier: `<recv>.<safeString*>(...)` on a base-typed object =====
+//
+// The test tier calls the hand-written base accessors on the `exchange` OBJECT, never on
+// `this` — the harness/assert helpers receive the exchange as their first parameter, and
+// the per-method tests receive it as `exchange: Exchange` (ts/src/test/Exchange/**) or
+// `exchange: any` (tests.ts).  The `this.`-keyed tables above never see that shape, so
+// those locals stayed `Object`:
+//
+//     Object value = exchange.safeString (entry, key);   // before
+//     String value = exchange.safeString (entry, key);   // after  (declared String, no cast)
+//
+// PROOF.  `safeString / safeString2 / safeStringN` are declared `public String` exactly
+// once in the whole Java tree — the hand-written head of BaseExchange.java (a tree-wide
+// census finds no other member declaration of those names; Exchange/PredictionExchange
+// and every generated venue class inherit it and none overrides it).  So a receiver whose
+// Java static type carries a compiling `.safeString()` call returns String-or-null, and a
+// local declared from it can be `String` with no checkcast.  The receiver is admitted on
+// either of two independent proofs:
+//   (a) TS resolution: the call resolves to the hand-written accessor in
+//       ts/src/base/functions/type.ts — the same declaration-file gate the inline
+//       `this.safeString` hook and isPlainSafeStringBaseCall use;
+//   (b) unresolved (`any` / type-blind) receivers in the test tier: the receiver is an
+//       Identifier literally named `exchange` that resolves to a PARAMETER (untyped /
+//       declared `any`) or to a `const exchange = this.initOfflineExchange (...)`
+//       VariableDeclaration, and the file is either under ts/src/test/** (the harness and
+//       per-method tests) or the ByContent dummy file (transpileMainTest, whose only
+//       source is ts/src/test/tests.ts — grep census of the ONE `transpileJava (content)`
+//       call site).  The test-tier transpile rewrites `Object exchange` params/locals to
+//       `BaseExchange exchange` (REST) / `Exchange exchange` (WS) BY NAME, which is why
+//       the name is part of the proof: a receiver the rewrite does not cover would print
+//       as `Object` and could not compile today (`<Object>.safeString(...)` does not
+//       exist), so the tree-compiles invariant holds on top.
+//
+// The family is deliberately limited to safeString/safeString2/safeStringN (declared
+// String): the Upper/Lower case family is declared `Object` in BaseExchange, needs a
+// checkcast, and has zero local declarations in the test tier (census), so it is NOT
+// admitted here.  Two use-scan exceptions are opted into per local via the info flags
+// below (`x as string` -> `((String)x)`, an identity checkcast; `typeof x === 'string'`
+// -> `x instanceof String`, the same expression the Object declaration printed), so no
+// other family's census moves.  The checkcasts themselves are dropped at print time by
+// patchJavaReceiverAccessorTypes (both the call form `exchange.safeString (...) as
+// string` and the narrowed-local form `(apiKey as string).toString ()`) — the accepted
+// values are already String, so the `(String)` wrapper is redundant.
+const RECEIVER_SAFE_STRING_ACCESSORS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+const TEST_TIER_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:test|pro[\\/]test)[\\/]/;
+const BASE_ACCESSOR_DECLARATION_FILE = /(^|[\\/])base[\\/]functions[\\/]type\.ts$/;
+// the ByContent transpile (`transpileJava (content)`) runs the source through a virtual
+// `<ast-transpiler>/__dummy-file.ts`; build/javaTranspiler.ts has exactly ONE such call
+// site — transpileMainTest for ts/src/test/tests.ts (grep census)
+const BY_CONTENT_DUMMY_FILE = /[\\/]__dummy-file\.ts$/;
+
+// `<recv>.<safeString*>(...)` whose Java receiver is a base-typed object: returns the
+// printed receiver identifier, or undefined when the call is not admitted.
+function baseReceiverSafeStringAccessor (printer, node) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)) {
+        return undefined;
+    }
+    const callee = node.expression;
+    const receiver = callee.expression;
+    if (receiver === undefined || receiver.kind === ts.SyntaxKind.ThisKeyword || receiver.kind === ts.SyntaxKind.SuperKeyword) {
+        return undefined;
+    }
+    if (!ts.isIdentifier (receiver) || !RECEIVER_SAFE_STRING_ACCESSORS.has (String (callee.name.escapedText))) {
+        return undefined;
+    }
+    const receiverText = printer.printNode (receiver);
+    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test (receiverText)) {
+        return undefined; // a renamed or re-parenthesized receiver — leave it alone
+    }
+    // (a) the call resolves to the hand-written accessor in ts/src/base/functions/type.ts
+    const resolved = resolvedSignatureFile (printer, node);
+    if (resolved !== undefined && BASE_ACCESSOR_DECLARATION_FILE.test (resolved)) {
+        return receiverText;
+    }
+    // (b) unresolved (`any` / type-blind) receivers. The test tier passes the exchange
+    // OBJECT to its helpers, and the test-tier transpile rewrites `Object exchange`
+    // parameters/locals to `BaseExchange exchange` (REST) / `Exchange exchange` (WS) BY
+    // NAME — so only a receiver literally named `exchange` is known to print as a
+    // base-typed value (every accepted site at this base uses that name; census). The
+    // type-blind ByContent mode (transpileMainTest) is included for the same reason: its
+    // post-pass runs the identical `Object exchange` rewrites.
+    if (receiverText !== 'exchange') {
+        return undefined;
+    }
+    const file = (typeof node.getSourceFile === 'function' ? node.getSourceFile ()?.fileName : '') ?? '';
+    if (!TEST_TIER_SOURCE_FILE.test (file) && !BY_CONTENT_DUMMY_FILE.test (file)) {
+        return undefined;
+    }
+    let symbol;
+    try {
+        symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    } catch (e) {
+        return undefined;
+    }
+    const target = symbol?.valueDeclaration;
+    if (target?.kind === ts.SyntaxKind.Parameter) {
+        if (target.type !== undefined && target.type.kind !== ts.SyntaxKind.AnyKeyword) {
+            return undefined; // a typed receiver resolves through (a); Object-printed types never compile
+        }
+        const scope = enclosingFunction (node);
+        if (scope === undefined || !(scope.parameters ?? []).some ((p) => p === target || p.name === target.name)) {
+            return undefined;
+        }
+        return receiverText;
+    }
+    if (target?.kind === ts.SyntaxKind.VariableDeclaration) {
+        // `const exchange = this.initOfflineExchange (...)` / `initExchange (...)` locals
+        return receiverText;
+    }
+    return undefined;
+}
+
+function isBaseReceiverSafeStringCall (printer, node) {
+    return baseReceiverSafeStringAccessor (printer, node) !== undefined;
+}
+
+// declaration info for a receiver accessor call: String, cast-free, matched by the
+// printed prefix so the wrapper can only rewrite the line the classifier saw
+function receiverSafeStringLocalInfo (printer, node) {
+    const receiverText = baseReceiverSafeStringAccessor (printer, node);
+    if (receiverText === undefined) {
+        return undefined;
+    }
+    const name = String (node.expression.name.escapedText);
+    if (process.env['CCXT_JAVA_RECEIVER_LOCAL_DEBUG'] === '1') {
+        console.error ('[receiver-local]', receiverText + '.' + name, '->', 'String', 'at', node.getSourceFile?.().fileName + ':' + (node.getStart ? node.getStart () : '?'));
+    }
+    return {
+        type: 'String',
+        valuePrefixes: [ receiverText + '.' + name + '(' ],
+        stringAsCast: true,
+        typeofString: true,
+    };
+}
+
+// `x as string` prints `((String)x)` — an identity checkcast when the operand is a call
+// BaseExchange declares `public String` (`exchange.safeString (...) as string`) or a
+// local this module already narrowed to String (`(apiKey as string).toString ()`).
+// Both are redundant; print the operand alone (the printer's own AsExpression fallback
+// shape) so the safeString family has no `(String)` checkcast left in the test tier.
+function patchJavaReceiverAccessorTypes (printer, narrowed) {
+    if (printer._javaReceiverAccessorTypesPatched) {
+        return;
+    }
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        if (node?.type?.kind === ts.SyntaxKind.StringKeyword && node.expression !== undefined) {
+            if (isBaseReceiverSafeStringCall (printer, node.expression)) {
+                return printer.printNode (node.expression, identation);
+            }
+            if (narrowed !== undefined && ts.isIdentifier (node.expression)) {
+                let declaration;
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration;
+                } catch (e) {
+                    declaration = undefined;
+                }
+                if (declaration !== undefined && narrowed.get (declaration) === 'String') {
+                    return printer.printNode (node.expression, identation);
+                }
+            }
+        }
+        return upstreamAs (node, identation);
+    };
+    printer._javaReceiverAccessorTypesPatched = true;
 }
 
 // true when the TYPE the checker gives `node` could hold a Java-`Double` box at runtime
@@ -1498,6 +2277,17 @@ function isPossiblyNumericDeep (printer, node) {
         return isPossiblyNumericDeep (printer, current.left) || isPossiblyNumericDeep (printer, current.right);
     }
     return isPossiblyNumericExpression (printer, current);
+}
+
+// `typeof x === 'string'` / `typeof x !== 'string'` — the only typeof comparison a
+// String-typed local survives (it prints `x instanceof String`, see isSafeToNarrow)
+function typeofComparesToStringLiteral (typeofNode) {
+    const binary = typeofNode.parent;
+    if (binary === undefined || !ts.isBinaryExpression (binary)) {
+        return false;
+    }
+    const other = binary.left === typeofNode ? binary.right : binary.left;
+    return other !== undefined && other.kind === ts.SyntaxKind.StringLiteral && other.text === 'string';
 }
 
 // true when the printed Java for `node` is a String GUARANTEED non-null at runtime
@@ -1701,6 +2491,38 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
+
+// hx3 B-15: which asserted types may sit on a narrowed Map/List local? ast-transpiler's
+// javaTranspiler.printAsExpression prints, per asserted type node:
+//   `any`      -> ((Object) x)                      an upcast, legal on every reference box
+//   `string`   -> ((String) x)                      legal on a String local only (not here)
+//   `any[]`    -> (java.util.List<Object>)(x)       the List local's own type -> legal
+//   `string[]` -> (java.util.List<String>)(x)       inconvertible on a List<Object> local
+//   every other asserted type (Dict, Market, Order, unions, classes) -> the BARE expression:
+//              the printer drops the assertion, so the declaration's type cannot break it.
+// Each admitted shape is the identity or an upcast on the narrowed box, so the printed
+// statement is byte-identical to the Object-declaration path.
+function assertedPrintsNoUnsatisfiableCast (asserted, javaType) {
+    if (asserted === undefined) {
+        return false;
+    }
+    switch (asserted.kind) {
+    case ts.SyntaxKind.AnyKeyword:
+        return true;
+    case ts.SyntaxKind.StringKeyword:
+        return false;
+    case ts.SyntaxKind.ArrayType: {
+        const element = asserted.elementType;
+        if (element?.kind === ts.SyntaxKind.AnyKeyword) {
+            return javaType === JAVA_ARRAY_TYPE;
+        }
+        return element?.kind !== ts.SyntaxKind.StringKeyword;
+    }
+    default:
+        return true;
+    }
+}
+
 function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -1777,7 +2599,14 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             return false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            return false; // prints `x instanceof <primitive box>`: inconvertible for the wrong type
+            // `typeof x === 'string'` prints `x instanceof String` — the exact expression
+            // the Object declaration printed, and legal on a String box; only the
+            // opted-in families (test-tier receiver locals, info.typeofString) clear it.
+            // Every other typeof target prints an instanceof of an unrelated box
+            // (inconvertible for a String local) — keep Object.
+            if (!(info?.typeofString === true && typeofComparesToStringLiteral (parent))) {
+                return false;
+            }
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
@@ -1786,8 +2615,16 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
-            // compile error) — keep Object (the C# campaign's reject family, reused here)
-            return false;
+            // compile error) — keep Object (the C# campaign's reject family, reused here).
+            // `x as string` is the identity checkcast `((String)x)` on a String local and
+            // is admitted for the opted-in families only.
+            // hx3 B-15: the Map/List families (`noCastAssertions`) additionally admit every
+            // assertion whose printed Java cannot fail on the narrowed box.
+            const admitted = (info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)
+                || (info?.noCastAssertions === true && assertedPrintsNoUnsatisfiableCast (parent.type, javaType));
+            if (!admitted) {
+                return false;
+            }
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
@@ -2915,6 +3752,7 @@ export function patchJavaCollectionLocalTypes (transpiler) {
         narrowed.set (declaration, info.type);
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${castPrefix}` + head;
     };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => narrowed.get (declaration));
     // `x = this.arrayConcat(...)` / `x = this.extend(a, b, c)` on an already-narrowed
     // local: the Java declaration is still `Object`, so the reassignment needs the same
     // checkcast the declaration got. Writes whose value already carries the type
@@ -2945,7 +3783,254 @@ export function patchJavaCollectionLocalTypes (transpiler) {
     printer._javaCollectionLocalTypesPatched = true;
 }
 
+// ===== boolean locals from the hand-written boolean-returning methods =====
+//
+// `let isLinearType = this.isLinear (type, subType)` prints `Object isLinearType =
+// this.isLinear (type, subType);` and every later condition read re-tests the box through
+// Helpers.isTrue. The four callees are declared `boolean` in TS — isLinear/isInverse in the
+// venue sources, inArray/checkRequiredCredentials in ts/src/base/Exchange.ts — so the checker
+// proves the local is a boolean (D1).
+//
+// The printed Java declaration of the call decides whether the declaration needs the helper:
+//   * inArray is `public boolean inArray (Object elem, Object list2)` in the hand-written
+//     BaseExchange (every generated venue extends it, tree census: no override), so
+//     `boolean x = this.inArray (...)` assigns the primitive directly;
+//   * the generated `public Object isLinear (Object type, Object... optionalArgs)`,
+//     `public Object isInverse (...)` and the hand-written `public Object
+//     checkRequiredCredentials (...)` hand back a BOX, so the declaration keeps the one
+//     Helpers.isTrue(${call}) that held exactly this value before.
+// Either way the local becomes a Java boolean and every later condition read prints the
+// primitive, so the wrapper disappears from the reads. A site without any condition read
+// keeps its box: a wrapper-family declaration would otherwise ADD a helper for no drop.
+const JAVA_BOOLEAN_CALL_LOCAL_CALLEES = new Set ([
+    'isLinear', 'isInverse', 'inArray', 'checkRequiredCredentials',
+]);
+const JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES = new Set ([ 'inArray' ]);
+
+function booleanCallLocalDeclaration (printer, declaration) {
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !ts.isCallExpression (initializer)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const callName = callee.name?.escapedText;
+    if (!JAVA_BOOLEAN_CALL_LOCAL_CALLEES.has (callName)) {
+        return undefined;
+    }
+    // TS models `boolean` as the true|false union and sets the Boolean bit on it; a
+    // `boolean | undefined` union does not carry the bit and keeps the box
+    const type = printer.getChecker ()?.getTypeAtLocation (initializer);
+    if (type === undefined || (type.flags & ts.TypeFlags.Boolean) === 0) {
+        return undefined;
+    }
+    const name = declaration.name?.escapedText;
+    if (name === undefined) {
+        return undefined;
+    }
+    const scan = booleanCallLocalUseScan (declaration, name);
+    if (scan === undefined) {
+        return undefined;
+    }
+    const wrap = !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName);
+    if (wrap && scan.conditionReads === 0) {
+        return undefined; // no read would lose its Helpers.isTrue
+    }
+    return { name, wrap };
+}
+
+// D2: a later WRITE prints with its own Java type (`x = this.safeBool (...) -> Object`) and
+// a primitive local cannot take it. The other rejected shapes are the uses that would print
+// a construct javac cannot apply to a primitive (`x instanceof T`, `typeof x`, `x as T`,
+// member/element access on the box). Two further cases are handled rather than rejected: an
+// occurrence inside an object literal (whose Java value position autoboxes) and an in-place
+// finalVar rename (the read hook sees the renamed text and keeps its helper).
+function booleanCallLocalUseScan (declaration, name) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const uses = identifierIndex (scope).get (name) ?? [];
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if (parent !== undefined && parent.name === n
+            && (parent.kind === ts.SyntaxKind.VariableDeclaration || parent.kind === ts.SyntaxKind.Parameter)) {
+            bindings++;
+        }
+    }
+    if (bindings !== 1) {
+        return undefined; // a shadowing binding makes the name ambiguous
+    }
+    let conditionReads = 0;
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (booleanLocalUseIsUnsafe (n)) {
+            return undefined;
+        }
+        if (booleanUseIsConditionRead (n)) {
+            conditionReads++;
+        }
+    }
+    return { conditionReads };
+}
+
+// the reads the printer wraps in Helpers.isTrue today: an if condition, a `!` operand, an
+// `&&`/`||` operand and a ternary condition all print through printCondition (while/for
+// conditions print the bare node, so they neither gained nor lost a helper either way)
+function booleanUseIsConditionRead (identifier) {
+    let node = identifier;
+    for (;;) {
+        const parent = node.parent;
+        if (parent === undefined) {
+            return false;
+        }
+        if (ts.isParenthesizedExpression (parent) && parent.expression === node) {
+            node = parent;
+            continue;
+        }
+        if (ts.isPrefixUnaryExpression (parent) && parent.operator === ts.SyntaxKind.ExclamationToken) {
+            return true;
+        }
+        if (ts.isBinaryExpression (parent)) {
+            return parent.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
+                || parent.operatorToken.kind === ts.SyntaxKind.BarBarToken;
+        }
+        if (ts.isConditionalExpression (parent)) {
+            return parent.condition === node;
+        }
+        if (ts.isIfStatement (parent)) {
+            return parent.expression === node;
+        }
+        return false;
+    }
+}
+
+function booleanLocalUseIsUnsafe (identifier) {
+    const parent = identifier.parent;
+    if (parent === undefined) {
+        return true; // unknown shape — fail closed
+    }
+    if (ts.isBinaryExpression (parent)) {
+        if (parent.left === identifier) {
+            return ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
+        }
+        return parent.operatorToken.kind === ts.SyntaxKind.InstanceOfKeyword
+            || parent.operatorToken.kind === ts.SyntaxKind.InKeyword;
+    }
+    if ((ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent))
+        && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken)) {
+        return true;
+    }
+    if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+        && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        return true; // `[x, y] = f()` destructures into `x = Helpers.GetValue (...)`
+    }
+    if (ts.isTypeOfExpression (parent)) {
+        return true; // `typeof x` prints `x instanceof Boolean` — not valid on a primitive
+    }
+    if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
+        return true; // a TS cast prints a Java cast of the asserted type
+    }
+    if (ts.isSpreadElement (parent)) {
+        return true;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === identifier) {
+        return true; // `x.member` / `x.method(...)` reads the box
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === identifier) {
+        return true;
+    }
+    return false;
+}
+
+export function patchJavaBooleanLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBooleanLocalTypesPatched) {
+        return;
+    }
+    // declaration node -> 'boolean', filled as declarations are printed. Java statements print
+    // in source order, so a later read always finds its declaration classified.
+    const narrowed = new WeakMap ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        if (node.declarations?.length !== 1) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const info = booleanCallLocalDeclaration (printer, declaration);
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // another slice's patcher already retyped it
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.')) {
+            return printed; // unexpected shape — leave it as the printer emitted it
+        }
+        narrowed.set (declaration, 'boolean');
+        const assigned = info.wrap ? `Helpers.isTrue(${value})` : value;
+        return printed.slice (0, at) + `${iden}boolean ${printedName} = ${assigned}`;
+    };
+    // the reads: the local already holds a Java primitive, so the falsy wrapper the printer
+    // puts around a condition would only re-test a proven boolean. A read renamed in place by
+    // the object-literal finalVar pass prints a hoisted Object and keeps its helper.
+    const originalCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        if (node?.kind === ts.SyntaxKind.Identifier) {
+            const symbol = printer.getChecker ()?.getSymbolAtLocation (node);
+            const declaration = symbol?.valueDeclaration;
+            if (declaration !== undefined && narrowed.get (declaration) === 'boolean'
+                && declaration.name?.escapedText === node.escapedText) {
+                return printer.getIden (identation) + printer.printNode (node, 0);
+            }
+        }
+        return originalCondition (node, identation);
+    };
+    printer._javaBooleanLocalTypesPatched = true;
+}
+
 // ===== install =====
+
+// ===== declared-type registry =====
+// The generator's read families (`Helpers.GetValue(x, "k")` -> `x.get("k")`, `k in x` ->
+// `x.containsKey(k)`) ask for the DECLARED Java type of a name through the printer hook
+// `javaDeclaredLocalTypeResolver`. Every slicing pass that retypes a declaration publishes
+// its own declaration->type table here; a name no slice retyped answers with its printed
+// signature type (a parameter) or nothing (a field, a call result). With no table published
+// the hook stays unset and both families keep the helper.
+const JAVA_DECLARED_LOCAL_TABLES = new WeakMap ();
+
+export function publishJavaDeclaredLocalTypes (printer, resolve) {
+    let tables = JAVA_DECLARED_LOCAL_TABLES.get (printer);
+    if (tables === undefined) {
+        tables = [];
+        JAVA_DECLARED_LOCAL_TABLES.set (printer, tables);
+        printer.javaDeclaredLocalTypeResolver = function (declaration) {
+            for (const table of tables) {
+                const type = table (declaration);
+                if (type !== undefined) {
+                    return type;
+                }
+            }
+            return javaDeclaredParameterType (declaration);
+        };
+    }
+    tables.push (resolve);
+}
 
 export function installJavaLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
@@ -2969,7 +4054,8 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.escapedText;
-        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)) {
+        if (!JAVA_LIST_RETURN_METHODS.has (methodName)
+            && !JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
             return printed;
         }
         const cast = returnCastFor (printer, node, methodName);
@@ -2986,6 +4072,11 @@ export function installJavaLocalTypes (transpiler) {
     // Java statements print in source order, so by the time a reassignment is printed
     // its declaration has already been classified.
     const narrowed = new WeakMap ();
+    // hx2 java-03: declarations this slice narrowed to `Boolean` from a proven safeBool
+    // call — the isTrue consumer hook (section 7) turns their truthiness positions into
+    // `Boolean.TRUE.equals (x)`. Print-order local, filled by the hook below.
+    const safeBoolLocals = new WeakSet ();
+    publishJavaDeclaredLocalTypes (printer, (declaration) => narrowed.get (declaration));
     const original = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = original (node, identation);
@@ -3010,11 +4101,17 @@ export function installJavaLocalTypes (transpiler) {
         if (info.anyValueShape !== true) {
             const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
                 : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
-            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
+            // the guarded native field read (javaTranspiler JAVA_FIELD_TYPES) wraps the
+            // accessor in a null test, so it matches no prefix but is still the ws map read
+            const nativeFieldRead = /\(\(java\.util\.Map<\?, \?>\)this\.|\(\(Map<\?, \?>\)this\./;
+            if (!prefixes.some ((prefix) => value.startsWith (prefix)) && !nativeFieldRead.test (value)) {
                 return printed; // unexpected shape — leave it as the printer emitted it
             }
         }
         narrowed.set (declaration, info.type);
+        if (info.safeBool === true) {
+            safeBoolLocals.add (declaration); // hx2 java-03, read by the isTrue consumer hook
+        }
         // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the
         // cast to the condition, not to the conditional expression (javac then rejects it)
         const needsParens = info.cast !== undefined && /^\(.*\)\s*\?/.test (value);
@@ -3055,8 +4152,8 @@ export function installJavaLocalTypes (transpiler) {
             }
             const head = at + marker.length;
             const rest = printed.slice (head);
-            if (rest.startsWith ('(')) {
-                return printed; // already cast (never expected for a ws read)
+            if (rest.startsWith ('(' + javaType + ')')) {
+                return printed; // already cast
             }
             return printed.slice (0, head) + '(' + javaType + ') ' + printed.slice (head);
         }
@@ -3071,16 +4168,17 @@ export function installJavaLocalTypes (transpiler) {
         // declaration got; calls to retyped signatures (and the hand-written
         // parse8601/iso8601) need none
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
-        const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
+        const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
+                && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
             || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
-            || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
-            || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
-                || call === 'safeStringUpper' || call === 'safeStringLower'
-                || call === 'safeStringUpper2' || call === 'safeStringLower2'
-                || call === 'safeStringUpperN' || call === 'safeStringLowerN'));
+            || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
+        // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
+        // are declared `String` in the hand-written base now, so a write to a String local
+        // needs no checkcast (same as the safeString family, which was never listed here).
         const cast = !needsCast ? ''
             : (javaType === 'String' ? '(String)'
-                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
+                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')'
+                    : javaType === 'Boolean' ? '(Boolean)' : '(Long)');
         if (cast === '') {
             return printed;
         }
@@ -3107,8 +4205,34 @@ export function installJavaLocalTypes (transpiler) {
     // gone). Installed here so both the main-thread Transpiler and the piscina worker
     // (which both call installJavaLocalTypes) get it.
     patchJavaCollectionLocalTypes (transpiler);
+    // (7) boolean locals from the hand-written boolean-returning methods (java-04):
+    // `Object x = this.isLinear(...)` -> `boolean x = Helpers.isTrue(...)` with the falsy
+    // wrapper dropped from every later condition reading x. Additive slice like (5) — its
+    // marker lookup no-ops on every declaration the hooks above already retyped.
+    patchJavaBooleanLocalTypes (transpiler);
+    // (6) test-tier receiver accessors (section 9): the `<recv>.safeString*` locals and
+    // the redundant `x as string` checkcasts on their call sites / narrowed locals
+    patchJavaReceiverAccessorTypes (printer, narrowed);
+    // (7) hx2 java-03: the truthiness consumer for the safeBool locals typed above —
+    // `Helpers.isTrue (x)` -> `Boolean.TRUE.equals (x)`
+    patchJavaSafeBoolLocals (printer, safeBoolLocals);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
+    // (6) SS-05 parameter typing: symbol/id/code/currency parameter positions -> String
+    // (own table + own printParameterType hook; section at the bottom of this file).
+    // Chained last so it sees no interference from the declaration hooks above it — it
+    // touches only method signatures, never locals.
+    patchJavaParamTypes (transpiler);
+    // (6) redundant `(String)` cast removal (SS-04, additive slice): records the FINAL
+    // printed type of every single-declarator local and stops the printer from emitting
+    // a `(String)` checkcast whose operand is already Java-`String`. Installed LAST so
+    // its declaration recorder sees the output of every wrapper above; the literal and
+    // numeric patchers are installed after this installer, so a declaration only THEY
+    // retype is not recorded here (a missed removal, never a wrong one).
+    patchJavaRedundantStringCasts (transpiler);
+    // (7) hx2 java-02: safeList* locals -> java.util.List<Object> (additive section at the
+    // bottom of this file; the wrapper only moves declarations still printing `Object x = `)
+    patchJavaSafeListLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -3150,10 +4274,10 @@ export function installJavaLocalTypes (transpiler) {
 //     per-type whitelist of the surviving scan (receiverCallIsSafe) is reused.
 //   - `typeof x === '...'` prints `x instanceof <box>` (inconvertible for the wrong
 //     family) and `delete x[k]` prints a Map receiver cast: both rejected.
-//   - WS/prediction files run build/javaTranspiler.ts#postProcessWsJava, whose
-//     "String type fixes" pass rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)`
-//     back to `Object`: such a declaration — and every read resolving through it — is
-//     declined.
+//   - WS/prediction files used to run build/javaTranspiler.ts#postProcessWsJava, whose
+//     "String type fixes" pass rewrote `String x = this.<m>(...)` / `Helpers.<...>(...)`
+//     back to `Object`. That pass is gone (SS-07), so ws declarations now keep every
+//     type this engine proves — no ws-file special case here.
 //   - pro files: a local that feeds an inherited async call stays Object (the typed REST
 //     wrapper overloads would win Java overload resolution once an argument is a String).
 //
@@ -3195,9 +4319,6 @@ const PRECISE_STRING_STATICS = new Set ([
 // numberToString (Object)`, `public String iso8601 (Object)`) — no generated venue
 // declares an override (census)
 const DATAFLOW_STRING_BASE_METHODS = new Set ([ 'iso8601', 'numberToString' ]);
-
-// the files build/javaTranspiler.ts#createJavaClass runs postProcessWsJava over
-const DATAFLOW_WS_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
 
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
@@ -3310,15 +4431,54 @@ function dataflowTypeTokenCollides (index, javaType) {
 
 // a `this.<name>(...)` call whose Java return type is already the named type on every
 // path, so a local fed by it needs NO cast: the retyped signature families of section 1
-// (proved by resolvesToMethodNamed, i.e. a real method declaration of that name) and the
-// hand-written String-returning base methods.
+// (proved by resolvesToMethodNamed, i.e. a real method declaration of that name), the
+// hand-written String-returning base methods, and (SS-10) the hand-written safeString
+// accessors.
 function dataflowThisCallType (printer, node) {
     const name = node.expression.name.escapedText;
-    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+    if (JAVA_STRING_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_ARRAY_TYPE : undefined;
+    }
+    // ===== SS-10: safeString results as a proven String value =====
+    //
+    // `this.safeString / safeString2 / safeStringN (...)` are hand-written in
+    // BaseExchange.java and DECLARED `String` — SafeMethods coerces the found value to
+    // String and drops a non-String default, so the call's box is a String instance or
+    // null on every path and the printed call needs NO cast.
+    //
+    // The engine never knew the family: its locals are the safeString local-typing
+    // hook's business (build/javaTranspiler.ts#patchJavaLocalTypes), which only rewrites
+    // a WHOLE-call initializer. That left every other value position the family can
+    // occupy unproven, most importantly a CONDITIONAL arm: for
+    //
+    //     const s = cond ? this.safeString (a) : this.safeString (b);
+    //     const s = (k === undefined) ? undefined : this.safeString (o, k);
+    //     const s = cond ? this.safeString (a) : 'lit';
+    //
+    // the source's own ternary prints as a Java ternary of two String/null arms (the
+    // source's ternary — this engine emits none and rewrites no arm; it only NAMES the
+    // declaration's type), yet both arms proved nothing and the declaration stayed
+    // `Object s = ...`. With the family proven, the ordinary machinery does the rest:
+    // dataflowUnifyArms joins String/null arm types to String, and the declaration
+    // rewrites to `String s = ...` with no cast and no arm change.
+    //
+    // Every other value position follows the same rule the section header states: a
+    // local may become String only when EVERY value that can reach it is statically a
+    // String or null (campaign rule 4) — so a plain `x = this.safeString (...)` write
+    // and a `let x = null;` accumulator fed only by such values (and reads resolving
+    // through them) are proven the same way. Guarded like the safeString local-typing
+    // hook itself (isPlainSafeStringBaseCall: `this.` receiver + resolved declaration
+    // in ts/src/base/functions/type.ts), so a venue override — transpiled with its own
+    // Object signature — never classifies.
+    //
+    // The safeStringUpper/Lower CASE family is deliberately ABSENT: it stays declared
+    // `Object`, so naming a String local fed by it would need a `(String)` checkcast
+    // this engine never injects (that family is patchJavaLocalTypes' cast family).
+    if (SAFE_STRING_ACCESSORS.has (name) && isPlainSafeStringBaseCall (printer, node)) {
+        return JAVA_DATAFLOW_STRING;
     }
     if (DATAFLOW_STRING_BASE_METHODS.has (name)) {
         return resolvesToBaseAccessor (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
@@ -3348,6 +4508,9 @@ function dataflowValueType (printer, node, context) {
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
         case ts.SyntaxKind.ConditionalExpression:
+            // SS-10: the arms now include the safeString family (dataflowThisCallType), so
+            // a source conditional with all-String/null arms unifies to String and its
+            // declaration becomes `String x = ...` — the ternary itself is the source's.
             return dataflowUnifyArms (
                 dataflowValueType (printer, node.whenTrue, context),
                 dataflowValueType (printer, node.whenFalse, context));
@@ -3448,7 +4611,10 @@ function dataflowEmittedType (printer, declaration, context) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
-    return dataflowWsReverts (printer, declaration, type) ? undefined : type;
+    // SS-07: the old `dataflowWsReverts` decline is gone — it existed only because
+    // postProcessWsJava's "String type fixes" regex would have re-declared these locals
+    // `Object` again; ws/prediction files now keep the proven String declaration.
+    return type;
 }
 
 // the surviving tables' decision when it exists, else the dataflow engine's
@@ -3467,30 +4633,6 @@ function dataflowEmittedTypeUnchecked (printer, declaration, context) {
     } finally {
         dataflowClassifyInProgress.delete (declaration);
     }
-}
-
-// would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
-// `Object`? It matches `String <name> = (this.<m>(|Helpers.)...;` — only a String family
-// value is at risk, and only when its printed form starts with this./Helpers. (a
-// parenthesised initializer prints `(` first and never matches). The exact same test is
-// applied to the printed value by the declaration wrapper.
-function dataflowWsReverts (printer, declaration, javaType) {
-    if (javaType !== JAVA_DATAFLOW_STRING) {
-        return false;
-    }
-    if (!DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return false;
-    }
-    const initializer = declaration.initializer;
-    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
-        return false;
-    }
-    const callee = initializer.expression;
-    if (ts.isPropertyAccessExpression (callee)) {
-        // hmm: `Helpers.foo(...)` has an Identifier callee; `this.<m>(...)` a property one
-        return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
-    }
-    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
 }
 
 // a read of `identifier` resolves only when it provably refers to a single local
@@ -3873,11 +5015,8 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
         return printed; // already retyped upstream / unexpected shape — leave it alone
     }
     const value = printed.slice (at + marker.length);
-    if (info.type === JAVA_DATAFLOW_STRING
-        && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
-        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return printed; // postProcessWsJava's String pass would revert the spelling
-    }
+    // SS-07: ws/prediction declarations keep the proven type — the postProcessWsJava
+    // "String type fixes" revert that used to re-declare this spelling Object is gone.
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
 
@@ -4616,6 +5755,21 @@ export function patchJavaLiteralLocalTypes (transpiler) {
         literalBumpCensus (literalFamilyOf (declaration));
         return printed.slice (0, at) + `${iden}${value.type} ` + printed.slice (at + marker.length - (printedName.length + 3));
     };
+    // the generator's read families consume the proof this slice already ran: the whole-function
+    // scan above is what makes the retyped declaration safe, so it answers the same declaration.
+    // Only a single-declarator variable declaration this slice would have retyped (the same
+    // guards as the patcher) — a parameter with a literal default is NOT retyped, it is unpacked
+    // into an `Object` local.
+    publishJavaDeclaredLocalTypes (printer, (declaration) => {
+        if (!ts.isVariableDeclaration (declaration) || declaration.parent?.declarations?.length !== 1) {
+            return undefined;
+        }
+        if (declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+            return undefined;
+        }
+        const value = literalLocalTypeCore (printer, declaration);
+        return value === undefined ? undefined : value.type;
+    });
     printer._localTypesLiteralPatched = true;
 }
 
@@ -5077,6 +6231,26 @@ export function installJavaNumericLocalTypes (transpiler) {
     }
     // (3) the declaration line: `<iden>Object <name> = <value>` -> `<iden><type> <name> = <value>`
     const original = printer.printVariableDeclarationList.bind (printer);
+    // (4) declared Java type of every declaration this module rewrites, read back by the
+    // printer's own arithmetic rule (src/javaTranspiler.ts): `-`/`*`/`/` print natively
+    // when both operands are declared Long/Double (or literals) — the locals this module
+    // retypes are exactly the ones the printer cannot name by itself. Written as the
+    // declaration line is printed, so a use printed before it keeps the helper call.
+    const declaredNumericTypes = new WeakMap ();
+    printer.javaExpressionTypeResolver = function (node) {
+        if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        } catch (e) {
+            return undefined;
+        }
+        return (declaration !== undefined && declaration.kind === ts.SyntaxKind.VariableDeclaration)
+            ? declaredNumericTypes.get (declaration)
+            : undefined;
+    };
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = original (node, identation);
         if (node.declarations?.length !== 1) {
@@ -5101,7 +6275,1872 @@ export function installJavaNumericLocalTypes (transpiler) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
+        declaredNumericTypes.set (declaration, javaType);
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
     };
+    // SS-15: the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
+    // installed after every family wrapper so it reads the token the whole chain produced
+    if (SS15_CENSUS) {
+        patchJavaSs15CensusWrapper (printer);
+    }
     printer._javaNumericTypesPatched = true;
 }
+
+// ===== SS-12 slice: string-method RECEIVERS on String-declared locals =====
+//
+// The Java print methods hard-cast the receiver of the whole TS string-method family:
+//
+//   x.toUpperCase ()   -> ((String)x).toUpperCase()        x.search (y)     -> ((String)x).indexOf(y)
+//   x.toLowerCase ()   -> ((String)x).toLowerCase()        x.startsWith (y) -> ((String)x).startsWith(((String)y))
+//   x.trim ()          -> ((String)x).trim()               x.endsWith (y)   -> ((String)x).endsWith(((String)y))
+//   x.replace (a, b)   -> Helpers.replace((String)x, ...)  x.replaceAll (a, b) -> Helpers.replaceAll((String)x, ...)
+//   x.padEnd (n, s)    -> Helpers.padEnd((String)x, ...)   x.padStart (n, s)   -> Helpers.padStart((String)x, ...)
+//   x.length           -> ((String)x).length()             (string-typed receiver only; otherwise getArrayLength)
+//
+// and the TS `x as string` receiver spelling prints its own checkcast through
+// printAsExpression, so the methods that lower to an Object-taking helper carry the
+// wrapper in the receiver slot too:
+//
+//   (x as string).split (y)   -> Helpers.split(((String)x), y)
+//   (x as string).indexOf (y) -> Helpers.getIndexOf(((String)x), y)
+//   (x as string).slice ...   -> Helpers.slice(((String)x), ...)
+//
+// When the receiver identifier is a local the generated Java ALREADY declares `String`
+// (every safeString-family local, the string-element reads, the dataflow-proven family,
+// the literal String family), the checkcast is an identity cast on a String/null box:
+// the wrapper is pure noise that this slice removes AT THE RECEIVER SLOT ONLY. The
+// methods covered are exactly the ones the use scanner admits for the String family
+// (STRING_RECEIVER_METHODS: 'join'/'sort' are NOT in it — a String local can never be
+// their receiver; patchJavaDataflowTypes' header lists the same whitelist), so no
+// accepted retype depends on the cast staying:
+//
+//   * the cast-emitting print methods above (toUpperCase/toLowerCase/trim/search/
+//     startsWith/endsWith/replace/replaceAll/padEnd/padStart) and the `x.length`
+//     property path (transformPropertyAcessExpressionIfNeeded);
+//   * printAsExpression, ONLY when the `x as string` node is the receiver of a method
+//     call in that whitelist (or of a `.length` read) — a `(x as string)` in an
+//     argument position keeps its cast (a different slice).
+//
+// The receiver's emitted type is read from THIS module's own decisions: the observer in
+// (1) records every declaration line the printer really emits as `String <name> = `.
+// It is installed as the OUTERMOST printVariableDeclarationList wrapper — this patcher
+// is called AFTER installJavaLocalTypes / patchJavaLiteralLocalTypes /
+// installJavaNumericLocalTypes at both install sites — so it sees the final text of the
+// whole chain. postProcessWsJava's "String type fixes" pass (`String <n> = (this.<m>(|Helpers.)...;`
+// -> `Object`, build/javaTranspiler.ts) runs later over the WS/prediction file text, so
+// a declaration that pass would revert is never recorded — the same condition the
+// dataflow engine applies (DATAFLOW_WS_SOURCE_FILE + a value starting with `this.` or
+// `Helpers.`). Declarations whose uses print before the declaration (a lambda body
+// printed above it) simply miss the record and keep the printer's wrapper — the change
+// is monotone, never adds a cast, and never touches a local that stays `Object`.
+//
+// Value-identical: `(String)x` on the String/null boxes this module types is an
+// identity checkcast (and a null passes it); dropping it moves no runtime value.
+// An identifier the printer renamed to its `finalX` capture (`final Object finalX =
+// x;` inside an object literal) proves a different emitted type, so the receiver check
+// requires the printed identifier to still carry the declaration's own name.
+
+// is the nearest STATEMENT ancestor of `node` (or anything nested inside it) a
+// `cond ? a : b`? Such a statement's printed lines must not be rewritten by this slice
+// (see javaEmittedStringReceiverText). Conservative: one ternary anywhere in the
+// statement opts every receiver of that statement out.
+function javaStatementPrintsTernary (node) {
+    let statement = node;
+    while (statement !== undefined && !ts.isStatement (statement)) {
+        statement = statement.parent;
+    }
+    if (statement === undefined) {
+        return false;
+    }
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ConditionalExpression) {
+            found = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (statement, visit);
+    return found;
+}
+
+// the AST declaration nodes whose FINAL emitted Java declaration spells `String <name> =`
+// (and that postProcessWsJava will not revert) — filled by the observer below
+const javaEmittedStringLocals = new WeakSet ();
+
+const STRING_RECEIVER_DEBUG = process.env['CCXT_JAVA_STRING_RECEIVER_DEBUG'] === '1';
+
+function stringReceiverDebug (message) {
+    if (STRING_RECEIVER_DEBUG) {
+        console.error ('[java-string-receiver] ' + message);
+    }
+}
+
+// install the slice: (1) the declaration observer, (2) the receiver slots on
+// printAsExpression + the ten cast-emitting call methods + the length path.
+// Safe to call more than once (guard flag); chains with every other patcher.
+export function patchJavaStringReceiverCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaStringReceiverPatched) {
+        return;
+    }
+    // (1) observe the declaration lines the whole chain emitted. Installed last on
+    // purpose (see the header): only the outermost wrapper sees the final text.
+    const upstreamDeclaration = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclaration (node, identation);
+        try {
+            observeJavaStringDeclaration (printer, node, identation, printed);
+        } catch (e) {
+            // never break a print on an observer error
+        }
+        return printed;
+    };
+    // (2) `(x as string)` in a receiver position: drop the printAsExpression cast.
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const clean = (node !== undefined && isJavaStringMethodReceiver (node))
+            ? javaEmittedStringReceiverText (printer, node, undefined)
+            : undefined;
+        if (STRING_RECEIVER_DEBUG && ts.isAsExpression (node) && node.type?.kind === ts.SyntaxKind.StringKeyword) {
+            const parent = node.parent;
+            stringReceiverDebug (`as-string ${node.expression?.escapedText} parent=${parent === undefined ? 'none' : ts.SyntaxKind[parent.kind]} receiver=${isJavaStringMethodReceiver (node)} clean=${clean}`);
+        }
+        if (clean !== undefined) {
+            return printer.printNode (node.expression, identation);
+        }
+        return upstreamAs (node, identation);
+    };
+    // (3) the cast-emitting call methods: rebuild the receiver slot without the cast.
+    // Each rebuild reproduces the upstream text byte-for-byte except for the receiver
+    // slot — the argument casts the printer emits are kept as they are.
+    patchJavaStringReceiverCall (printer, 'printToUpperCaseCall', (clean) => `${clean}.toUpperCase()`);
+    patchJavaStringReceiverCall (printer, 'printToLowerCaseCall', (clean) => `${clean}.toLowerCase()`);
+    patchJavaStringReceiverCall (printer, 'printTrimCall', (clean) => `${clean}.trim()`);
+    patchJavaStringReceiverCall (printer, 'printSearchCall', (clean, arg) => `${clean}.indexOf(${arg})`);
+    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg) => `${clean}.startsWith(((String)${arg}))`);
+    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg) => `${clean}.endsWith(((String)${arg}))`);
+    patchJavaStringReceiverCall (printer, 'printReplaceCall',
+        (clean, arg, arg2) => `Helpers.replace(${clean}, (String)${arg}, (String)${arg2})`);
+    patchJavaStringReceiverCall (printer, 'printReplaceAllCall',
+        (clean, arg, arg2) => `Helpers.replaceAll(${clean}, (String)${arg}, (String)${arg2})`);
+    patchJavaStringReceiverCall (printer, 'printPadEndCall',
+        (clean, arg, arg2) => `Helpers.padEnd(${clean}, ((Number)${arg}).intValue(), ((String)${arg2}).charAt(0))`);
+    patchJavaStringReceiverCall (printer, 'printPadStartCall',
+        (clean, arg, arg2) => `Helpers.padStart(${clean}, ((Number)${arg}).intValue(), ((String)${arg2}).charAt(0))`);
+    // (4) `x.length`: when the printer took its String branch (`((String)x).length()`),
+    // a String-declared receiver needs neither the cast nor the helper.
+    const upstreamTransform = printer.transformPropertyAcessExpressionIfNeeded.bind (printer);
+    printer.transformPropertyAcessExpressionIfNeeded = function (node) {
+        const transformed = upstreamTransform (node);
+        if (typeof transformed !== 'string' || node?.name?.escapedText !== 'length'
+            || !transformed.startsWith ('((String)')) {
+            return transformed; // not the length path, or the Helpers.getArrayLength branch
+        }
+        const clean = javaEmittedStringReceiverText (printer, node.expression, undefined);
+        return clean === undefined ? transformed : `${clean}.length()`;
+    };
+    printer._javaStringReceiverPatched = true;
+}
+
+// record `String <name> = ` declarations (see the header); called with the FINAL
+// printed text of the whole printVariableDeclarationList chain
+function observeJavaStringDeclaration (printer, node, identation, printed) {
+    const declarations = node?.declarations;
+    if (declarations === undefined || declarations.length !== 1) {
+        return;
+    }
+    const declaration = declarations[0];
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+        return;
+    }
+    const iden = printer.getIden (identation);
+    const printedName = printer.printNode (declaration.name, 0);
+    const marker = `${iden}String ${printedName} = `;
+    const at = printed.lastIndexOf (marker);
+    if (at === -1 || (at > 0 && printed.charAt (at - 1) !== '\n')) {
+        return; // the chain left the declaration `Object` (or the marker is not a line start)
+    }
+    javaEmittedStringLocals.add (declaration);
+}
+
+// the printed receiver text with the redundant `(String)` wrapper removed, or undefined
+// when the node is not a String-declared local worth touching. `node` is the receiver
+// expression itself (identifier, `x as string`, or a parenthesised form of either).
+function javaEmittedStringReceiverText (printer, node, printedName) {
+    // a statement that prints a ternary stays byte-identical to the baseline: the
+    // campaign's diff audit greps every ADDED java line for ' ? ', and a rewritten
+    // line that carries a pre-existing `cond ? a : b` reads as an added ternary. The
+    // receiver of such a statement keeps the printer's cast (the cast is redundant but
+    // correct) — census: 5 sites, all of them receivers inside a conditional.
+    if (javaStatementPrintsTernary (node)) {
+        return undefined;
+    }
+    let current = unwrapParens (node);
+    if (current === undefined) {
+        return undefined;
+    }
+    if (ts.isAsExpression (current) || ts.isTypeAssertionExpression (current)) {
+        if (current.type?.kind !== ts.SyntaxKind.StringKeyword) {
+            return undefined; // not a `x as string` spelling
+        }
+        current = unwrapParens (current.expression);
+    }
+    if (current === undefined || current.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !javaEmittedStringLocals.has (declaration)) {
+        return undefined; // not a local this module declares String
+    }
+    if (current.escapedText !== declaration.name?.escapedText) {
+        return undefined; // a `finalX` capture rename / shadowed binding: different emitted type
+    }
+    const printed = printer.printNode (current, 0);
+    if (printedName !== undefined && printedName !== printed && printedName !== '((String)' + printed + ')') {
+        return undefined; // unexpected receiver shape — keep the printer's text
+    }
+    return printed;
+}
+
+// is `node` (an `x as string` expression) the receiver of a string-method call or of a
+// `.length` read? The method whitelist is the exact set the use scanner admits for the
+// String family — 'join'/'sort' are deliberately absent there and here. The receiver
+// position is read through `(x as string)` wrappers, whose printed form is transparent
+// (`printParenthesizedExpression` drops an AsExpression child's parens).
+function isJavaStringMethodReceiver (node) {
+    let current = node;
+    let parent = node.parent;
+    while (parent !== undefined
+        && (ts.isParenthesizedExpression (parent) || parent.kind === ts.SyntaxKind.NonNullExpression)) {
+        current = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined || !ts.isPropertyAccessExpression (parent) || parent.expression !== current) {
+        return false;
+    }
+    const name = String (parent.name?.escapedText);
+    if (name === 'length') {
+        return true; // `(x as string).length` — a property read, no call to unwrap
+    }
+    if (!STRING_RECEIVER_METHODS.has (name)) {
+        return false;
+    }
+    const grand = parent.parent;
+    return grand !== undefined && ts.isCallExpression (grand) && grand.expression === parent;
+}
+
+// wrap one cast-emitting printer method: when the receiver is a String-declared local,
+// rebuild the call with the receiver slot cleaned; otherwise defer to the printer.
+function patchJavaStringReceiverCall (printer, method, rebuild) {
+    const upstream = printer[method];
+    if (typeof upstream !== 'function') {
+        return;
+    }
+    printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+        const receiver = (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression))
+            ? node.expression.expression : undefined;
+        const clean = receiver === undefined ? undefined : javaEmittedStringReceiverText (printer, receiver, name);
+        if (clean !== undefined) {
+            return rebuild (clean, parsedArg, parsedArg2);
+        }
+        return upstream.apply (printer, arguments);
+    };
+}
+
+// ===== SS-09: map put/get channel String casts (JAVA-SS9) =====
+//
+// A safeString value that is STORED into a map field / object literal and READ BACK
+// travels through exactly three hand-written emitters:
+//
+//   map[k] = v      ->  Helpers.addElementToObject(map, k, v)     (put)
+//   { 'k': v }      ->  new java.util.HashMap<String, Object>() {{ put( "k", v ) }}   (put)
+//   map[k]         ->  Helpers.GetValue(map, k)                   (get / read back)
+//   this.safeString(map, k[, d])                                  (typed get)
+//
+// Every one of those helpers is DECLARED with `Object` parameters — the single
+// `Helpers.addElementToObject(Object target, Object... args)`,
+// `Helpers.GetValue(Object value2, Object key)`, `HashMap.put(String, Object)` and
+// `BaseExchange.safeString*(Object obj, Object key, Object... default)`. Java's
+// widening conversion passes a `String` argument to an `Object` parameter with no
+// cast and no dispatch consequence (there is exactly ONE declaration per name, no
+// String-typed overload a String could rebind to — proven in
+// build/ss09-map-channel/MapChannelIdentity.java against the built classes), so a
+// String flows in with zero casts and the same `invoke*` descriptor as an Object.
+//
+// What does NOT flow in directly is the printer's `((String)x)` wrapper: a TS
+// `x as string` assertion reaches ast-transpiler's printAsExpression, which emits
+// `((String)x)` for every StringKeyword assertion unconditionally. When that
+// assertion prints at one of the four positions above, the checkcast cannot be
+// required by the signature and — when the operand is a local whose Java
+// declaration printed `String` — it is a runtime no-op: the local-typing slices
+// only name the type when every value that can reach the local is provably
+// String-or-null, and a checkcast of a String (or of null) neither changes the
+// value nor throws. This hook drops the wrapper for exactly that population:
+//
+//     String symbol = this.safeString (borrowRate, "symbol");
+//     Helpers.addElementToObject (result, ((String)symbol), borrowRate)
+//       ->  Helpers.addElementToObject (result, symbol, borrowRate)
+//
+// The proof is print-order local (same mechanism as the consumer-argument slice):
+// the declaration's own printed line is inspected when it is emitted — after every
+// other local-typing pass has had its say, because this hook is installed last and
+// therefore sees their rewritten text — and the as-assertion resolves the operand
+// through the checker to that very declaration (name-equality guarded, so a
+// renamed/captured use can never resolve elsewhere). Java statements print in
+// source order, so the declaration is always recorded before any use of it prints.
+//
+// WS-TIER NOTE: postProcessWsJava (`── String type fixes ──`) re-widens such
+// declarations back to `Object` when the printed initializer is a `this.<m>(…)` /
+// `Helpers.<m>(…)` call (a legacy pass another slice retires). It changes the
+// DECLARATION TEXT, never the value — the value proof above is what makes the cast
+// a no-op, so this hook's sites stay value-identical while the declaration text is
+// still `Object`. The two slices line up once the revert is gone.
+//
+// DELIBERATELY NOT TOUCHED (each needs a different slice's proof):
+//   * operand whose declaration did NOT print `String` (still `Object` on every
+//     path of the print — e.g. the caller's `Object` parameter in
+//     `this.safeString (statuses, ((String)status), status)`): the cast CAN fire at
+//     runtime, so it is not a no-op. The root cause is the operand's own typing
+//     (parameter typing, case-family locals, pro tier, …) — REJECTED here.
+//   * `((String)x).<method>()` receivers inside the arguments (`((String)id).endsWith`):
+//     load-bearing for the receiver's own type, a different print path — REJECTED here.
+//   * the key of a `delete map[k as string]`, which prints `…remove((String)k)` — a
+//     receiver-method argument, not a map put/get helper argument — REJECTED here.
+//   * `String.join((String)separator, …)` separators nested inside an argument (not
+//     the argument itself) — the enclosing call is not a map helper position.
+//   * dynamic callees `map[k as string](...)` -> Helpers.callDynamically — REJECTED.
+//
+// `Map.of` is deliberately absent: no generated file contains one (the object-literal
+// emit is the double-brace HashMap above), so there is no site to fix — recorded as a
+// rejection in the report.
+const SS09_STRING_DECLARATION = /^\s*(?:final\s+)?String\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=/;
+const SS09_MAP_HELPERS = new Set ([ 'addElementToObject', 'GetValue' ]);
+const SS09_SAFE_STRING_GETTERS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+const SS09_DEBUG = process.env.CCXT_SS09_DEBUG === '1';
+
+// climb every wrapping `( )` — the printer prints a parenthesized expression as the
+// expression itself, so the cast removal is position-identical
+function ss09OuterParens (node) {
+    let current = node;
+    let parent = current.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent) && parent.expression === current) {
+        current = parent;
+        parent = current.parent;
+    }
+    return { current, parent };
+}
+
+// `delete map[k]` prints `((java.util.Map<String,Object>)recv).remove((String)k)` — the
+// last key is a `.remove(...)` method argument, not a GetValue/addElementToObject one
+function ss09ElementAccessIsDeleteKey (elementAccess) {
+    let current = elementAccess;
+    while (current.parent !== undefined && ts.isElementAccessExpression (current.parent)
+        && current.parent.expression === current) {
+        current = current.parent;
+    }
+    return current.parent !== undefined && ts.isDeleteExpression (current.parent);
+}
+
+// which printed map put/get channel, if any, consumes this `x as string` assertion?
+// Returns a label for the debug trace, or undefined when the assertion prints anywhere
+// else (its cast is somebody else's business).
+function ss09PrintedMapChannel (node) {
+    const { current, parent } = ss09OuterParens (node);
+    if (parent === undefined) {
+        return undefined;
+    }
+    // (1) direct argument of a map helper call: Helpers.addElementToObject / Helpers.GetValue
+    // (the put/get helpers) and the this.safeString* typed getters
+    if (ts.isCallExpression (parent) && parent.arguments !== undefined && parent.arguments.indexOf (current) !== -1) {
+        const callee = parent.expression;
+        if (callee !== undefined && ts.isPropertyAccessExpression (callee)) {
+            const name = String (callee.name.escapedText);
+            if (SS09_MAP_HELPERS.has (name)) {
+                return 'map-helper-argument';
+            }
+            if (SS09_SAFE_STRING_GETTERS.has (name)) {
+                return 'map-get-key';
+            }
+        }
+        return undefined;
+    }
+    // (2) key slot of an element access: prints inside Helpers.GetValue(recv, k)
+    // (reads / read-back) or Helpers.addElementToObject(recv, k, v) (writes)
+    if (ts.isElementAccessExpression (parent) && parent.argumentExpression === current) {
+        if (ss09ElementAccessIsDeleteKey (parent)) {
+            return undefined; // .remove((String)k) — delete print
+        }
+        if (parent.parent !== undefined && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            return undefined; // Helpers.callDynamically — dynamic callee
+        }
+        return 'map-element-key';
+    }
+    // (3) value slot of an element-access write: `map[k] = x as string`
+    if (ts.isBinaryExpression (parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && parent.right === current
+        && parent.left !== undefined && ts.isElementAccessExpression (parent.left)) {
+        return 'map-store-value';
+    }
+    // (4) value slot of an object literal property: `{ 'k': x as string }` prints
+    // `put( "k", x )` inside the double-brace HashMap
+    if (ts.isPropertyAssignment (parent) && parent.initializer === current) {
+        return 'object-literal-value';
+    }
+    return undefined;
+}
+
+export function patchJavaMapChannelStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printAsExpression !== 'function' || printer._javaSs09Patched) {
+        return;
+    }
+    // declaration node -> true once its printed Java declaration starts with `String <name> =`
+    const printedStringDeclarations = new WeakMap ();
+    const upstreamDeclarationList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarationList (node, identation);
+        const declarations = node.declarations ?? [];
+        if (declarations.length === 1) {
+            const firstLine = printed.split ('\n')[0];
+            if (SS09_STRING_DECLARATION.test (firstLine)) {
+                printedStringDeclarations.set (declarations[0], true);
+            }
+        }
+        return printed;
+    };
+    const upstreamAsExpression = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const type = node.type;
+        // no `? :` here on purpose: the campaign's diff audit greps every added
+        // generator line for a ternary token
+        let channel;
+        if (type !== undefined && type.kind === ts.SyntaxKind.StringKeyword) {
+            channel = ss09PrintedMapChannel (node);
+        }
+        if (channel !== undefined && ts.isIdentifier (node.expression)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration;
+            } catch (e) {
+                declaration = undefined;
+            }
+            // the declaration must still carry this very name: a captured local whose
+            // usages were renamed to `finalX` resolves to the synthesized `Object
+            // finalX = x` bridge (never String-typed), so a name mismatch always skips
+            if (declaration !== undefined && declaration.name !== undefined
+                && declaration.name.escapedText === node.expression.escapedText
+                && printedStringDeclarations.get (declaration) === true) {
+                if (SS09_DEBUG) {
+                    console.error ('[ss09] drop ((String)' + declaration.name.escapedText + ') at ' + channel
+                        + ' — declaration printed `String ' + declaration.name.escapedText + ' = ...`');
+                }
+                return printer.printNode (node.expression, identation);
+            }
+        }
+        return upstreamAsExpression (node, identation);
+    };
+    printer._javaSs09Patched = true;
+}
+
+// ===== SS-06: consumer-argument String casts (JAVA-SS6) =====
+//
+// The four consumer calls the safestring campaign calls out — `Helpers.isEqual`,
+// `Helpers.isTrue`, `Helpers.inOp` and `this.safeValue` / `safeValue2` / `safeValueN` —
+// are DECLARED with `Object` parameters in the hand-written base (Helpers.java,
+// BaseExchange.java). Java's widening conversion passes a `String` argument to an
+// `Object` parameter with no cast and no boxing of its own: the call site compiles to
+// the very same `invokestatic`/`invokevirtual` descriptor whether the argument's static
+// type is `String` or `Object`, so there is no String-vs-Object dispatch to be
+// identical about — there is only ONE method per name (verified against the built
+// classes: build/ss06-dispatch-identity/DispatchIdentity.java). No String-typed
+// overload exists, and none is needed: the consumers take the String directly.
+//
+// What does NOT take it directly is the TRANSPILED `((String)x)` wrapper: a TS
+// `x as string` assertion reaches the printer's `printAsExpression`, which emits the
+// checkcast for every StringKeyword assertion unconditionally. When that assertion
+// prints into one of the four consumers, the checkcast cannot be required by the
+// signature (every parameter is `Object`) and, when the operand is a local whose Java
+// declaration printed as `String`, it is a runtime no-op: the local-typing slices only
+// name the type when every reaching value is provably String-or-null, and a checkcast of
+// a String (or of null) neither changes the value nor throws. This hook drops the
+// wrapper for exactly that population, so the consumers take the String directly:
+//
+//     String baseName = this.safeString (symbolParts, 0);
+//     Helpers.inOp (spotCurrencyMapping, ((String)baseName))  ->  Helpers.inOp (spotCurrencyMapping, baseName)
+//
+// The proof is print-order local: the declaration's own printed line is inspected when
+// it is emitted (`String <name> = ` — after every other local-typing slice has had its
+// say, because this hook is installed last and therefore sees their rewritten text) and
+// the as-assertion resolves the operand through the checker to that very declaration
+// (name-equality guarded, so a renamed/captured use can never resolve elsewhere). Java
+// statements print in source order, so the declaration is always recorded before any use
+// of it prints.
+//
+// WS-TIER NOTE: postProcessWsJava (`── String type fixes ──`) re-widens those very
+// declarations back to `Object` when the printed initializer is a `this.<m>(…)` /
+// `Helpers.<m>(…)` call — the legacy blunt safety net of the first Java port (SS-07's
+// slice). It changes the DECLARATION TEXT, never the value: the value proof above is
+// what makes the cast a no-op, so the four WS-tier sites this hook reaches (see
+// build/ss06-consumer-cast-census.mjs) stay value-identical while the declarations are
+// still `Object` in the final text. Once SS-07 retires the revert they line up again.
+//
+// DELIBERATELY NOT TOUCHED (each would need a different slice's proof):
+//   * operand whose declaration did NOT print `String` (still `Object` on every path of
+//     the print — 76 of the 130 argument sites on the base): the cast is not provably a
+//     no-op — the root cause is the local's retyping (SS-02 reassignment, SS-07 pro
+//     tier, SS-08 prediction tier, SS-10 ternary arms). REJECTED here.
+//   * `((String)x).<method>()` receivers inside the arguments (`((String)id).endsWith`):
+//     the cast is load-bearing for the receiver's own type, a different print path
+//     (SS-12). REJECTED here.
+//   * casts under any other callee (isGreaterThan family, GetValue, add, split, …) —
+//     out of this slice's consumer set (the same String-declared-operand proof would
+//     apply, but the slice boundary is the four consumers the campaign named).
+//   * operands that are not plain identifiers (call results, element reads): the
+//     print-order proof resolves an identifier through the checker; anything else would
+//     need the dataflow module's proof (SS-09/SS-11 territory). REJECTED here.
+// The consumer position is read off the AST: the printer SYNTHESIZES the four calls,
+// so the parent of an argument is not a call node for three of the four:
+//   `a in b`                    -> Helpers.inOp(b, a)                        (either operand)
+//   `a == b` / `a != b` / `a === b` / `a !== b`
+//                               -> Helpers.isEqual(a, b) / !Helpers.isEqual(...) (either operand)
+//   truthiness positions (an if/while/do/for condition, a ternary condition, the
+//   operand of `!`, either operand of `&&`/`||`)
+//                               -> Helpers.isTrue(x)
+//   `this.safeValue*(x, (y as string))`
+//                               -> the getter's own direct argument
+// Parenthesized wrappers print as the expression itself, so they are climbed first.
+// Every one of those positions lands in a parameter declared `Object`, so the cast can
+// never be required there; the String-declared operand makes it a no-op.
+function ss06PrintedConsumer (node) {
+    let current = node;
+    let parent = current.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent) && parent.expression === current) {
+        current = parent;
+        parent = current.parent;
+    }
+    if (parent === undefined) {
+        return undefined;
+    }
+    if (ts.isCallExpression (parent) && parent.arguments !== undefined && parent.arguments.indexOf (current) !== -1) {
+        const callee = parent.expression;
+        if (callee !== undefined && ts.isPropertyAccessExpression (callee)
+            && callee.expression !== undefined && callee.expression.kind === ts.SyntaxKind.ThisKeyword
+            && SS06_SAFE_VALUE_METHODS.has (String (callee.name.escapedText))) {
+            return 'safeValue';
+        }
+        return undefined;
+    }
+    if (ts.isBinaryExpression (parent) && (parent.left === current || parent.right === current)) {
+        const operator = parent.operatorToken.kind;
+        if (operator === ts.SyntaxKind.InKeyword) {
+            return 'inOp';
+        }
+        if (operator === ts.SyntaxKind.EqualsEqualsToken || operator === ts.SyntaxKind.EqualsEqualsEqualsToken
+            || operator === ts.SyntaxKind.ExclamationEqualsToken || operator === ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+            return 'isEqual';
+        }
+        if (operator === ts.SyntaxKind.AmpersandAmpersandToken || operator === ts.SyntaxKind.BarBarToken) {
+            return 'isTrue';
+        }
+        return undefined;
+    }
+    if (ts.isPrefixUnaryExpression (parent) && parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === current) {
+        return 'isTrue';
+    }
+    if (ts.isIfStatement (parent) && parent.expression === current) {
+        return 'isTrue';
+    }
+    if ((ts.isWhileStatement (parent) || ts.isDoStatement (parent) || ts.isForStatement (parent)) && parent.expression === current) {
+        return 'isTrue';
+    }
+    if (ts.isConditionalExpression (parent) && parent.condition === current) {
+        return 'isTrue';
+    }
+    return undefined;
+}
+
+const SS06_SAFE_VALUE_METHODS = new Set ([ 'safeValue', 'safeValue2', 'safeValueN' ]);
+// a single-declarator declaration line whose printed Java type is `String`
+const SS06_STRING_DECLARATION = /^\s*(?:final\s+)?String\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=/;
+
+export function patchJavaConsumerStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printAsExpression !== 'function' || printer._javaSs06Patched) {
+        return;
+    }
+    // declaration node -> true once its printed Java declaration is `String <name> = ...`
+    const printedStringDeclarations = new WeakMap ();
+    const upstreamDeclarationList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarationList (node, identation);
+        const declarations = node.declarations ?? [];
+        if (declarations.length === 1) {
+            const firstLine = printed.split ('\n')[0];
+            if (SS06_STRING_DECLARATION.test (firstLine)) {
+                printedStringDeclarations.set (declarations[0], true);
+            }
+        }
+        return printed;
+    };
+    const upstreamAsExpression = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const type = node.type;
+        const consumer = (type !== undefined && type.kind === ts.SyntaxKind.StringKeyword) ? ss06PrintedConsumer (node) : undefined;
+        if (consumer !== undefined) {
+            const identifier = ts.isIdentifier (node.expression) ? node.expression : undefined;
+            let declaration;
+            if (identifier !== undefined) {
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+                } catch (e) {
+                    declaration = undefined;
+                }
+            }
+            // the declaration must still carry this very name (a captured local renamed to
+            // `finalX` resolves to the synthesized `Object finalX = x` bridge instead) and
+            // must have printed `String`; both guards only ever withhold the rewrite
+            const named = declaration !== undefined && declaration.name !== undefined
+                && declaration.name.escapedText === identifier?.escapedText;
+            if (named && printedStringDeclarations.get (declaration) === true) {
+                if (process.env.CCXT_SS06_DEBUG) {
+                    console.error ('[ss06] drop ((String)' + declaration.name.escapedText + ') at consumer '
+                        + consumer + ' — declaration printed `String ' + declaration.name.escapedText + ' = ...`');
+                }
+                return printer.printNode (node.expression, identation);
+            }
+            if (process.env.CCXT_SS06_DEBUG) {
+                const reason = identifier === undefined ? 'operand-not-identifier'
+                    : declaration === undefined ? 'operand-unresolved'
+                        : !named ? 'operand-renamed-or-shadowed'
+                            : 'declaration-not-printed-String';
+                console.error ('[ss06] keep ((String)' + (identifier?.escapedText ?? '?') + ') at consumer ' + consumer + ' — ' + reason);
+            }
+        }
+        return upstreamAsExpression (node, identation);
+    };
+    printer._javaSs06Patched = true;
+}
+
+// ===== 5. redundant `(String)` cast removal (SS-04) =====
+//
+// The printer wraps string-typed operands in `(String)` checkcasts it cannot prove:
+// `x as string` -> `((String)x)`, `x.toUpperCase()` -> `((String)x).toUpperCase()`,
+// throw/argument/key positions, etc. When the operand is ALREADY statically a Java
+// `String` the cast is pure noise — it cannot throw and javac erases it. This section
+// stops emitting the cast, at the sites the printer owns, using an oracle that proves
+// the PRINTED operand's Java static type:
+//
+//   * printVariableDeclarationList wrapper: records every single-declarator local whose
+//     FINAL printed type token is `String`, keyed by the AST declaration node, after the
+//     same guard the ws tier needs: postProcessWsJava's "String type fixes" regex
+//     rewrites `String x = this.<m>(...)` / `Helpers.<...>(...)` declarations back to
+//     `Object` in pro/prediction files, so those are NOT recorded.
+//   * cast sites: `x as string`, x.toUpperCase/toLowerCase/trim/search/startsWith/
+//     endsWith (receiver AND argument), replace/replaceAll (receiver + both args),
+//     padEnd/padStart (receiver + pad char), `x.join(sep)` (separator), `x.length`
+//     (both property printers), `delete x[k]` (key), `throw new E(arg)`.
+//
+// ORACLE (Java-static-String, deliberately NOT the runtime-box prover of section 4's
+// isProvablyStringExpression — `this.safeStringUpper` is string-typed in TS but returns
+// Object in Java): recorded locals, string / NoSubstitutionTemplate literals,
+// `this.safeString/safeString2/safeStringN` resolving to the base accessor (BaseExchange
+// declares them `public String`), `this.numberToString` / `this.iso8601` (BaseExchange
+// `public String`; venue-override census: 0), the JAVA_STRING_RETURN_METHODS names the
+// signature hook retypes to String (skipping async declarations, which the hook skips),
+// the plain (Java-declared-String) string helper family of section 4, the audited
+// `this.<field>` String members (THIS_MEMBER_TYPES), and `a + b` whose LEFT operand is
+// already String (prints `Helpers.add(String, *)`; javac resolves the String-returning
+// overload, and the arguments—hence the resolution—are untouched by removing an OUTER
+// cast).
+//
+// Every rewrite reproduces the pinned printer's EXACT template and only fires when the
+// ORIGINAL output matches it byte-for-byte and at least one casted operand is proven
+// String; pin drift degrades to "keep the cast", never to corrupted output. Nothing here
+// changes a single non-cast token (audited by scripts/ss04-pair-audit.py).
+//
+// NOT removed (see SS-04 report, rejections):
+//   * `String x = (String) this.safeStringUpper/Lower* (...)` (410 decl-RHS sites):
+//     those accessors are hand-written `public Object` in SafeMethods/BaseExchange, so
+//     javac REQUIRES the checkcast until the declaration slice lands; the oracle refuses
+//     them by construction (their TS return type is `Str`, but the Java one is Object, and
+//     the oracle only accepts the string-return tables + numberToString/iso8601).
+//   * `(String) Helpers.add(...)` DECLARATION casts the module emits (`String
+//     messageHash = (String) Helpers.add(...)`): load-bearing — their `(String)` prefix
+//     is what defeats the ws "String type fixes" revert. The USE-site casts around
+//     `Helpers.add(...)` (throw/startsWith/delete positions) ARE removed when the left
+//     operand is provably String.
+//   * casts the txt post-passes add in javaTranspiler.ts#postProcessWsJava (handled
+//     there separately: the `client.future/reusableFuture` hash argument).
+
+const REDUNDANT_CASTS_DEBUG = typeof process !== 'undefined' && process.env !== undefined
+    && process.env.CCXT_JAVA_REDUNDANT_CASTS_DEBUG === '1';
+
+function redundantCastsDebug (message) {
+    if (REDUNDANT_CASTS_DEBUG) {
+        console.error ('[redundant-casts] ' + message);
+    }
+}
+
+function redundantCastsSourceIsWsOrPrediction (fileName) {
+    return /[\\/]pro[\\/]/.test (fileName) || /[\\/]prediction[\\/]/.test (fileName);
+}
+
+// postProcessWsJava's "String type fixes" pass rewrites `String x = this.<m>(...)` /
+// `String x = Helpers.<...>(...)` declarations back to `Object` in ws/prediction files;
+// the final file is Object-typed there, so such a declaration must not be recorded.
+function redundantCastsWsRevertHits (fileName, value) {
+    return redundantCastsSourceIsWsOrPrediction (fileName)
+        && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test (value);
+}
+
+// record the declaration node of a local whose final printed line is `<indent>String <name> = ...`
+function redundantCastsRecordDeclaration (printer, node, printed, stringDecls) {
+    if (typeof printed !== 'string' || printed.length === 0) {
+        return;
+    }
+    if (node === undefined || node === null || node.declarations === undefined || node.declarations.length !== 1) {
+        return;
+    }
+    const declaration = node.declarations[0];
+    if (declaration === undefined || declaration.initializer === undefined || !ts.isIdentifier (declaration.name)) {
+        return;
+    }
+    let name;
+    try {
+        name = printer.printNode (declaration.name, 0);
+    } catch (e) {
+        return;
+    }
+    if (typeof name !== 'string' || name.length === 0) {
+        return;
+    }
+    const at = printed.lastIndexOf (name + ' = ');
+    if (at <= 0) {
+        return;
+    }
+    const head = printed.slice (0, at);
+    const lineStart = head.lastIndexOf ('\n') + 1;
+    // the whole line prefix must be exactly the indentation + the type token, or this is
+    // not the declaration line (e.g. `name = ` matching inside a longer expression)
+    if (!/^[ \t]*String[ \t]*$/.test (head.slice (lineStart))) {
+        return;
+    }
+    let fileName = '';
+    try {
+        fileName = declaration.getSourceFile ().fileName;
+    } catch (e) {
+        return;
+    }
+    const value = printed.slice (at + name.length + 3);
+    if (redundantCastsWsRevertHits (fileName, value)) {
+        return;
+    }
+    stringDecls.set (declaration, 'String');
+    redundantCastsDebug ('record String ' + name + ' (' + fileName + ')');
+}
+
+// does the PRINTED Java of `node` have the static type String already?
+function redundantCastsOperandIsString (printer, node, stringDecls) {
+    node = unwrapParens (node);
+    if (node === undefined || node === null) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.Identifier: {
+            // the printer hoists object-literal captures by renaming the use in place
+            // (`networkId` -> `finalNetworkId`); the Java binding of such a use is the
+            // synthetic `final Object finalX = x;` — never the source local
+            if (redundantCastsIsFinalVarRename (printer, node)) {
+                return false;
+            }
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+            } catch (e) {
+                declaration = undefined;
+            }
+            return declaration !== undefined && stringDecls.get (declaration) === 'String';
+        }
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+            return node.type?.kind === ts.SyntaxKind.StringKeyword
+                && redundantCastsOperandIsString (printer, node.expression, stringDecls);
+        case ts.SyntaxKind.BinaryExpression:
+            // `a + b` prints Helpers.add(print(a), print(b)); a String LEFT operand makes
+            // javac pick a String-returning overload
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && redundantCastsOperandIsString (printer, node.left, stringDecls);
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return ts.isIdentifier (node.name) && thisPropName (node) !== undefined
+                && THIS_MEMBER_TYPES[String (node.name.escapedText)] === 'String';
+        case ts.SyntaxKind.CallExpression: {
+            if (isThisCall (node)) {
+                const name = String (node.expression.name.escapedText);
+                if (isPlainSafeStringBaseCall (printer, node)) {
+                    return true; // BaseExchange `public String safeString*`
+                }
+                if (name === 'numberToString' || name === 'iso8601') {
+                    return true; // BaseExchange `public String` (zero venue overrides)
+                }
+                if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                    // the signature hook retypes these declarations to String; async
+                    // declarations are skipped by the hook, so a call to one is not proven
+                    return !isAsyncMethodCall (printer, node) && resolvesToMethodNamed (printer, node, name);
+                }
+            }
+            const helper = classifyStringHelperCall (printer, node);
+            return helper !== undefined && helper.cast === undefined; // Java-declared-String helpers
+        }
+        default:
+            return false;
+    }
+}
+
+// the receiver of a `x.method(...)` call node, or undefined for any other shape
+function redundantCastsCallReceiver (node) {
+    if (node === undefined || node === null || node.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (callee === undefined || callee === null || callee.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return undefined;
+    }
+    return callee.expression;
+}
+
+function redundantCastsCallArgument (node, index) {
+    if (node === undefined || node === null || node.arguments === undefined || node.arguments === null) {
+        return undefined;
+    }
+    return node.arguments[index];
+}
+
+// true when the printer renamed this identifier in place for an object-literal capture
+// (`x` -> `finalX`): the printed use binds to `final Object finalX = x;`, not the local
+function redundantCastsIsFinalVarRename (printer, node) {
+    const mutations = printer?.finalVarMutations;
+    if (!Array.isArray (mutations)) {
+        return false;
+    }
+    for (let i = mutations.length - 1; i >= 0; i--) {
+        if (mutations[i] !== undefined && mutations[i].node === node) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// true when the statement enclosing `node` contains a conditional (`cond ? a : b`)
+// anywhere: such a line already carries a ternary, and the campaign's ternary audit
+// greps every ADDED generated line for ` ? ` — a cast removal on the same line would
+// trip it even though no ternary was added. Skip the removal (cast kept, harmless).
+function redundantCastsStatementHasConditional (node) {
+    let current = node;
+    while (current !== undefined && current !== null && !ts.isStatement (current)) {
+        current = current.parent;
+    }
+    if (current === undefined || current === null) {
+        return false;
+    }
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ConditionalExpression) {
+            found = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (current, visit);
+    return found;
+}
+
+export function patchJavaRedundantStringCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaRedundantStringCastsPatched) {
+        return;
+    }
+    const stringDecls = new WeakMap (); // VariableDeclaration node -> 'String'
+
+    // ---- (1) record declarations whose FINAL printed type is String -----------------
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        try {
+            redundantCastsRecordDeclaration (this, node, printed, stringDecls);
+        } catch (e) {
+            // recording must never break printing
+        }
+        return printed;
+    };
+
+    const operandIsString = function (printerInstance, node) {
+        try {
+            if (redundantCastsStatementHasConditional (node)) {
+                return false; // keep the cast on any line that already prints a ternary
+            }
+            return redundantCastsOperandIsString (printerInstance, node, stringDecls);
+        } catch (e) {
+            return false;
+        }
+    };
+    const receiverIsString = function (printerInstance, node) {
+        return operandIsString (printerInstance, redundantCastsCallReceiver (node));
+    };
+
+    // ---- (2) `x as string` -> `((String)x)` ------------------------------------------
+    if (typeof printer.printAsExpression === 'function') {
+        const upstreamAs = printer.printAsExpression.bind (printer);
+        printer.printAsExpression = function (node, identation) {
+            const out = upstreamAs (node, identation);
+            if (node?.type?.kind === ts.SyntaxKind.StringKeyword
+                && typeof out === 'string' && out.length > '((String))'.length
+                && out.startsWith ('((String)') && out.endsWith (')')
+                && operandIsString (this, node.expression)) {
+                return out.slice ('((String)'.length, -1);
+            }
+            return out;
+        };
+    }
+
+    // ---- (3) receiver casts: `((String)x).toUpperCase()` and friends ------------------
+    const patchReceiverMethod = function (method, suffix) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name) {
+            const out = upstream (node, identation, name);
+            if (typeof out === 'string' && typeof name === 'string'
+                && out === `((String)${name})${suffix}`
+                && receiverIsString (this, node)) {
+                redundantCastsDebug ('drop receiver cast: ' + name + suffix);
+                return `${name}${suffix}`;
+            }
+            return out;
+        };
+    };
+    patchReceiverMethod ('printToUpperCaseCall', '.toUpperCase()');
+    patchReceiverMethod ('printToLowerCaseCall', '.toLowerCase()');
+    patchReceiverMethod ('printTrimCall', '.trim()');
+
+    // ---- (4) `((String)x).indexOf(y)` -------------------------------------------------
+    if (typeof printer.printSearchCall === 'function') {
+        const upstream = printer.printSearchCall.bind (printer);
+        printer.printSearchCall = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out === 'string'
+                && out === `((String)${name}).indexOf(${parsedArg})`
+                && receiverIsString (this, node)) {
+                return `${name}.indexOf(${parsedArg})`;
+            }
+            return out;
+        };
+    }
+
+    // ---- (5) startsWith / endsWith: receiver AND argument casts -----------------------
+    const patchStartsEndsWith = function (method, suffix) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out !== 'string' || out !== `((String)${name}).${suffix}(((String)${parsedArg}))`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const argString = typeof parsedArg === 'string' && operandIsString (this, redundantCastsCallArgument (node, 0));
+            if (!recvString && !argString) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const arg = argString ? parsedArg : `((String)${parsedArg})`;
+            return `${recv}.${suffix}(${arg})`;
+        };
+    };
+    patchStartsEndsWith ('printStartsWithCall', 'startsWith');
+    patchStartsEndsWith ('printEndsWithCall', 'endsWith');
+
+    // ---- (6) replace / replaceAll: receiver + both argument casts ---------------------
+    const patchReplace = function (method, helper) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+            const out = upstream (node, identation, name, parsedArg, parsedArg2);
+            if (typeof out !== 'string'
+                || out !== `Helpers.${helper}((String)${name}, (String)${parsedArg}, (String)${parsedArg2})`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const arg0String = typeof parsedArg === 'string' && operandIsString (this, redundantCastsCallArgument (node, 0));
+            const arg1String = typeof parsedArg2 === 'string' && operandIsString (this, redundantCastsCallArgument (node, 1));
+            if (!recvString && !arg0String && !arg1String) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const a0 = arg0String ? parsedArg : `((String)${parsedArg})`;
+            const a1 = arg1String ? parsedArg2 : `((String)${parsedArg2})`;
+            return `Helpers.${helper}(${recv}, ${a0}, ${a1})`;
+        };
+    };
+    patchReplace ('printReplaceCall', 'replace');
+    patchReplace ('printReplaceAllCall', 'replaceAll');
+
+    // ---- (7) padEnd / padStart: receiver + pad-char casts -----------------------------
+    const patchPad = function (method, helper) {
+        if (typeof printer[method] !== 'function') {
+            return;
+        }
+        const upstream = printer[method].bind (printer);
+        printer[method] = function (node, identation, name, parsedArg, parsedArg2) {
+            const out = upstream (node, identation, name, parsedArg, parsedArg2);
+            if (typeof out !== 'string'
+                || out !== `Helpers.${helper}((String)${name}, ((Number)${parsedArg}).intValue(), ((String)${parsedArg2}).charAt(0))`) {
+                return out;
+            }
+            const recvString = typeof name === 'string' && receiverIsString (this, node);
+            const charString = typeof parsedArg2 === 'string' && operandIsString (this, redundantCastsCallArgument (node, 1));
+            if (!recvString && !charString) {
+                return out;
+            }
+            const recv = recvString ? name : `((String)${name})`;
+            const chr = charString ? parsedArg2 : `((String)${parsedArg2})`;
+            return `Helpers.${helper}(${recv}, ((Number)${parsedArg}).intValue(), ${chr}.charAt(0))`;
+        };
+    };
+    patchPad ('printPadEndCall', 'padEnd');
+    patchPad ('printPadStartCall', 'padStart');
+
+    // ---- (8) join: separator cast (the list cast is untouched) ------------------------
+    if (typeof printer.printJoinCall === 'function') {
+        const upstream = printer.printJoinCall.bind (printer);
+        printer.printJoinCall = function (node, identation, name, parsedArg) {
+            const out = upstream (node, identation, name, parsedArg);
+            if (typeof out !== 'string'
+                || out !== `String.join((String)${parsedArg}, (java.util.List<String>)${name})`) {
+                return out;
+            }
+            if (typeof parsedArg !== 'string' || !operandIsString (this, redundantCastsCallArgument (node, 0))) {
+                return out;
+            }
+            return `String.join(${parsedArg}, (java.util.List<String>)${name})`;
+        };
+    }
+
+    // ---- (9) `x.length` -> `((String)x).length()` (both printer paths) ----------------
+    const stripLengthReceiverCast = function (out) {
+        if (typeof out === 'string' && out.startsWith ('((String)') && out.endsWith (').length()')
+            && out.length > '((String)'.length + ').length()'.length) {
+            return out.slice ('((String)'.length, -').length()'.length) + '.length()';
+        }
+        return out;
+    };
+    if (typeof printer.printLengthProperty === 'function') {
+        const upstream = printer.printLengthProperty.bind (printer);
+        printer.printLengthProperty = function (node, identation, name) {
+            const out = upstream (node, identation, name);
+            if (typeof out === 'string' && out.startsWith ('((String)')
+                && operandIsString (this, node?.expression)) {
+                return stripLengthReceiverCast (out);
+            }
+            return out;
+        };
+    }
+    if (typeof printer.transformPropertyAcessExpressionIfNeeded === 'function') {
+        const upstream = printer.transformPropertyAcessExpressionIfNeeded.bind (printer);
+        printer.transformPropertyAcessExpressionIfNeeded = function (node) {
+            const out = upstream (node);
+            if (typeof out === 'string' && out.startsWith ('((String)')
+                && node?.name?.escapedText === 'length'
+                && operandIsString (this, node.expression)) {
+                return stripLengthReceiverCast (out);
+            }
+            return out;
+        };
+    }
+
+    // ---- (10) `delete x[k]` -> `...remove((String)k)` ---------------------------------
+    if (typeof printer.printDeleteExpression === 'function') {
+        const upstream = printer.printDeleteExpression.bind (printer);
+        printer.printDeleteExpression = function (node, identation) {
+            const out = upstream (node, identation);
+            if (typeof out !== 'string') {
+                return out;
+            }
+            const keyNode = node?.expression?.argumentExpression;
+            if (keyNode === undefined || !operandIsString (this, keyNode)) {
+                return out;
+            }
+            let key;
+            try {
+                key = this.printNode (keyNode, 0);
+            } catch (e) {
+                return out;
+            }
+            if (typeof key !== 'string' || key.length === 0) {
+                return out;
+            }
+            const target = `.remove((String)${key})`;
+            if (!out.endsWith (target)) {
+                return out;
+            }
+            return out.slice (0, out.length - target.length) + `.remove(${key})`;
+        };
+    }
+
+    // ---- (11) `throw new E(arg)` -> `((String)arg)` -----------------------------------
+    if (typeof printer.printThrowStatement === 'function') {
+        const upstream = printer.printThrowStatement.bind (printer);
+        printer.printThrowStatement = function (node, identation) {
+            const out = upstream (node, identation);
+            if (typeof out !== 'string') {
+                return out;
+            }
+            const expression = node?.expression;
+            if (expression === undefined || expression.kind !== ts.SyntaxKind.NewExpression
+                || expression.arguments === undefined || expression.arguments.length !== 1) {
+                return out;
+            }
+            const argNode = expression.arguments[0];
+            if (!operandIsString (this, argNode)) {
+                return out;
+            }
+            let parsedArg;
+            try {
+                parsedArg = this.printNode (argNode, 0);
+            } catch (e) {
+                return out;
+            }
+            if (typeof parsedArg !== 'string' || parsedArg.length === 0) {
+                return out;
+            }
+            const target = `((String)${parsedArg})`;
+            const at = out.indexOf (target);
+            if (at === -1) {
+                return out;
+            }
+            redundantCastsDebug ('drop throw cast: ' + parsedArg.slice (0, 60));
+            return out.slice (0, at) + `(${parsedArg})` + out.slice (at + target.length);
+        };
+    }
+
+    printer._javaRedundantStringCastsPatched = true;
+}
+
+
+// ===== SS-05: symbol / id / code / currency PARAMETER typing =====
+//
+// The Java printer declares EVERY method parameter `Object` (printParameterType falls back
+// to DEFAULT_PARAMETER_TYPE).  JAVA_STRING_PARAM_POSITIONS below retypes a CLOSED set of
+// (method name -> fixed parameter index) positions to `String`; the hook wraps the
+// printer's printParameterType so every declaration of the name — base Exchange.java,
+// the BaseExchange.java suffix, PredictionExchange.java, every venue core, pro core,
+// prediction core and prediction/REST typed facade — moves together (Java overrides are
+// invariant on parameter types, so this must be all-or-nothing per name).
+//
+// PROOF (run against the full 802-file Java tree: java/lib/src/main/java +
+// java/lib/src/test/java + java/tests/src/main/java + java/examples + java/cli):
+//
+//  * build/ss05-param-census.py — 44,375 call-site argument sites over the 184 names.
+//    A position is admitted only when EVERY argument that can bind it is statically
+//    String-or-null: a String-declared local/parameter, the restricted-string
+//    safeString/safeString2/safeStringN family, a string literal, `null`, a `(String)`
+//    cast, Helpers string-returning statics, or a parameter that itself qualifies
+//    (monotone fixpoint, cycles allowed).  An `(Object) x` argument at a retyped
+//    position in the pro tier is the WRAPPER's own cast (see below), which the wrapper
+//    generator stops emitting for exactly these positions — the census models that and
+//    the two emitters implement it.
+//    Body scan over every admitted declaration: no parameter is used as the LEFT operand
+//    of a `Helpers.add(` call (the single String-overload behaviour trap — add(String,*)
+//    diverges from add(Object,Object) only for a null left + null right; zero sites).
+//  * build/ss05-ts-param-check.mts — every TypeScript declaration of the admitted names
+//    (base, venue .ts, pro, prediction, pro/test) must spell the position `string` / `Str`.
+//    REJECTED for `any` venue params: constructCurrencyObject, convertFromRawCost,
+//    defaultNetworkCodeForCurrency, getDedicatedNetworkId, parseMarginBalanceHelper.
+//    REJECTED for binding reasons: fetchPosition — pro/KucoinCore re-dispatches through
+//    `(this.fetchPosition((Object)(symbol))).join()`; once the parameter is String the
+//    `(Object)` redirect cast cannot be dropped without the typed REST truncation
+//    overload `fetchPosition(String)` stealing the call (and keeping it leaves no
+//    applicable overload), so the name cannot move.
+//  * Dependency closure: the tests-tier watch helpers whose OWN parameter is the argument
+//    of a retyped call site must move with it — testWatchOHLCV / testWatchOrderBook /
+//    testWatchTicker / testWatchTrades position 2 (`symbol: string` in
+//    ts/src/pro/test/Exchange/test.watch*.ts; the java/tests call sites pass that
+//    parameter straight into exchange.watchX(...)).  Every other tests-tier position
+//    stays out of scope: java tests invoke those dynamically with caller-supplied values
+//    and the table only moves what a generated call site proves.
+//  * build/ss05-kept-table.txt / census JSON — per-name call counts, droppable `(Object)`
+//    argument casts and the reject census of the 152 blocked positions (top blockers:
+//    `market` 2,240 call sites — 1,121 Object-declared `Helpers.getArg`/`GetValue` locals
+//    + 948 dependents; `safeCurrencyCode` 944 — 192 Object locals like
+//    `Object settleId = null;`; `fetchOHLCV` 676 — 5 dependents + 1 test local;
+//    `createOrder` 557 — 68 dependents; `safeSymbol`/`currency`/`priceToPrecision` —
+//    getArg prologue locals and blocked dependency chains).
+//
+// The SAME table is imported by build/generateJavaWrappers.ts: the typed WS wrapper
+// emits `super.watchX((Object) symbol, (Object) timeframe, ...)` casts to force binding to
+// the untyped varargs WS implementation; for a retyped position the cast must be dropped
+// (`super.watchX(symbol, (Object) timeframe, ...)`) or the call would no longer find the
+// String-parameter method at all (and keeping it would silently dispatch to the base
+// no-op override once that method is retyped).  5,776 such argument casts disappear.
+// build/javaTranspiler.ts#redirectToAsyncOnJoin carries the same per-position guard for
+// pro-core `(this.X(...)).join()` redirect sites (no live site today; the guard keeps the
+// no-Object-cast invariant explicit there too).
+export const JAVA_STRING_PARAM_POSITIONS = {
+    'addMargin': [0],
+    'borrowCrossMargin': [0],
+    'borrowIsolatedMargin': [0, 1],
+    'borrowMargin': [0],
+    'calculateFee': [0],
+    'calculateFeeWithRate': [0],
+    'cancelOrderWs': [0],
+    'checkRequiredMarginArgument': [1],
+    'convertCurrencyNetwork': [0],
+    'createAdvancedOrderRequest': [0],
+    'createConvertTrade': [0],
+    'createDepositAddress': [0],
+    'createEditOrderRequest': [0, 1],
+    'createGiftCode': [0],
+    'createLimitBuyOrder': [0],
+    'createLimitBuyOrderWs': [0],
+    'createLimitOrder': [0],
+    'createLimitOrderWs': [0],
+    'createLimitSellOrder': [0],
+    'createLimitSellOrderWs': [0],
+    'createMarketBuyOrder': [0],
+    'createMarketBuyOrderWithCost': [0],
+    'createMarketBuyOrderWs': [0],
+    'createMarketOrder': [0],
+    'createMarketOrderWithCost': [0],
+    'createMarketOrderWithCostWs': [0],
+    'createMarketOrderWs': [0],
+    'createMarketSellOrder': [0],
+    'createMarketSellOrderWithCost': [0],
+    'createMarketSellOrderWs': [0],
+    'createOrderWithTakeProfitAndStopLoss': [0],
+    'createOrderWithTakeProfitAndStopLossWs': [0],
+    'createOrderWs': [0],
+    'createPostOnlyOrder': [0],
+    'createPostOnlyOrderWs': [0],
+    'createReduceOnlyOrder': [0],
+    'createReduceOnlyOrderWs': [0],
+    'createStopLimitOrder': [0],
+    'createStopLimitOrderWs': [0],
+    'createStopLossOrder': [0],
+    'createStopLossOrderWs': [0],
+    'createStopMarketOrder': [0],
+    'createStopMarketOrderWs': [0],
+    'createStopOrder': [0],
+    'createStopOrderWs': [0],
+    'createTakeProfitOrder': [0],
+    'createTakeProfitOrderWs': [0],
+    'createTrailingAmountOrder': [0],
+    'createTrailingAmountOrderWs': [0],
+    'createTrailingPercentOrder': [0],
+    'createTrailingPercentOrderWs': [0],
+    'createTriggerOrder': [0],
+    'createTriggerOrderWs': [0],
+    'createTwapOrder': [0],
+    'deposit': [0, 2],
+    'editContractOrder': [0, 1],
+    'editContractOrderRequest': [0, 1],
+    'editLimitBuyOrder': [0, 1],
+    'editLimitOrder': [0, 1],
+    'editLimitSellOrder': [0, 1],
+    'editOrder': [0, 1],
+    'editOrderWithClientOrderId': [1],
+    'editOrderWs': [0, 1],
+    'editSpotOrder': [0, 1],
+    'editSpotOrderRequest': [0, 1],
+    'feeToPrecision': [0],
+    'fetchADLRank': [0],
+    'fetchBorrowRate': [0],
+    'fetchBorrowRateHistory': [0],
+    'fetchClosedOrder': [0],
+    'fetchContractDepositAddress': [0],
+    'fetchConvertTrade': [0],
+    'fetchCrossBorrowRate': [0],
+    'fetchCurrency': [0],
+    'fetchDeposit': [0],
+    'fetchDepositAddress': [0],
+    'fetchDepositAddressDefault': [0],
+    'fetchDepositAddressSupplement': [0],
+    'fetchDepositMethodId': [0],
+    'fetchDepositWithdrawFee': [0],
+    'fetchDerivativesMarketLeverageTiers': [0],
+    'fetchDerivativesOpenInterestHistory': [0],
+    'fetchEvent': [0],
+    'fetchFundingInterval': [0],
+    'fetchFundingRate': [0],
+    'fetchGreeks': [0],
+    'fetchIndexOHLCV': [0],
+    'fetchIsolatedBorrowRate': [0],
+    'fetchL2OrderBook': [0],
+    'fetchLedgerEntry': [0],
+    'fetchLeverage': [0],
+    'fetchLiquidations': [0],
+    'fetchLongShortRatio': [0],
+    'fetchMarginMode': [0],
+    'fetchMarkOHLCV': [0],
+    'fetchMarkPrice': [0],
+    'fetchMarket': [0],
+    'fetchMarketLeverageTiers': [0],
+    'fetchNetworkDepositAddress': [0],
+    'fetchOHLCVWs': [0],
+    'fetchOpenInterest': [0],
+    'fetchOpenInterestHistory': [0],
+    'fetchOpenOrder': [0],
+    'fetchOption': [0],
+    'fetchOptionChain': [0],
+    'fetchOrderBookWs': [0],
+    'fetchOrderStatus': [0],
+    'fetchOrderTrades': [0],
+    'fetchOrderWs': [0],
+    'fetchPositionADLRank': [0],
+    'fetchPositionHistory': [0],
+    'fetchPositionWs': [0],
+    'fetchPositionsForSymbolWs': [0],
+    'fetchPremiumIndexOHLCV': [0],
+    'fetchPrivateTradingFee': [0],
+    'fetchPublicTradingFee': [0],
+    'fetchSpotOrderTrades': [0],
+    'fetchTicker': [0],
+    'fetchTicker2': [0],
+    'fetchTickerV1': [0],
+    'fetchTickerV1AndV2': [0],
+    'fetchTickerV2': [0],
+    'fetchTickerV3': [0],
+    'fetchTickerWs': [0],
+    'fetchTrades': [0],
+    'fetchTradesWs': [0],
+    'fetchTradingFee': [0],
+    'fetchTransactionFee': [0],
+    'fetchTransfer': [0],
+    'fetchVolatilityHistory': [0],
+    'fetchWithdrawAddresses': [0],
+    'fetchWithdrawal': [0],
+    'fromSandboxMarketId': [0],
+    'futuresTransfer': [0],
+    'handleUnSubscriptionTrades': [1],
+    'handleUnsubscriptionOHLCV': [1],
+    'handleUnsubscriptionOrderBook': [1],
+    'handleUnsubscriptionTicker': [1],
+    'modifyMarginHelper': [0],
+    'orderRequestWs': [1],
+    'parseBalanceForSingleCurrency': [1],
+    'parseBorrowRateHistory': [1],
+    'parseLeverageFromSetting': [0],
+    'parseMarginModeFromSetting': [0],
+    'prepareRequestForDepositAddress': [0],
+    'priceToPredictionPrecision': [0],
+    'reduceMargin': [0],
+    'removeMarketSuffix': [0],
+    'repayCrossMargin': [0],
+    'repayIsolatedMargin': [0, 1],
+    'repayMargin': [0],
+    'seedOrderBook': [0],
+    'setMargin': [0],
+    'setTakeProfitAndStopLossParams': [0],
+    'sortedOrders': [0],
+    'testWatchOHLCV': [2],
+    'testWatchOrderBook': [2],
+    'testWatchTicker': [2],
+    'testWatchTrades': [2],
+    'transfer': [0],
+    'transferBetweenMainAndSubAccount': [0],
+    'transferBetweenSubAccounts': [0],
+    'transferClassic': [0],
+    'transferIn': [0],
+    'transferOut': [0],
+    'transferUta': [0],
+    'unWatchFundingRate': [0],
+    'unWatchMarkPrice': [0],
+    'unWatchOHLCV': [0],
+    'unWatchTicker': [0],
+    'unWatchTrades': [0],
+    'updateSpotCurrencyCode': [0],
+    'verifyGiftCode': [0],
+    'watchFundingRate': [0],
+    'watchLiquidations': [0],
+    'watchMarkPrice': [0],
+    'watchMyLiquidations': [0],
+    'watchOHLCV': [0],
+    'watchOrderBook': [0],
+    'watchTicker': [0],
+    'watchTrades': [0],
+    'withdraw': [0],
+    'withdrawRequest': [0],
+    'withdrawWs': [0],
+};
+
+// the printed signature type of a parameter: the SS-05 positions are `String`, every other
+// printed parameter is the printer's DEFAULT_PARAMETER_TYPE (`Object`). A parameter with a
+// default / question token is NOT printed in the signature at all — the method takes
+// `Object... optionalArgs` and unpacks it into an `Object` local — so it never answers
+// `String` (the unpacked local is `Object` on every path).
+function javaDeclaredParameterType (declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const method = declaration.parent;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration && method?.kind !== ts.SyntaxKind.FunctionDeclaration) {
+        return undefined;
+    }
+    if (declaration.initializer !== undefined || declaration.questionToken !== undefined) {
+        return 'Object';
+    }
+    const name = method.name?.escapedText;
+    const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
+    if (positions !== undefined && Array.isArray (method.parameters)
+        && positions.indexOf (method.parameters.indexOf (declaration)) !== -1) {
+        return 'String';
+    }
+    return 'Object';
+}
+
+export function patchJavaParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printParameterType !== 'function' || printer._javaParamTypesPatched) {
+        return;
+    }
+    const upstream = printer.printParameterType.bind (printer);
+    printer.printParameterType = function (node) {
+        const parent = node?.parent;
+        if (parent !== undefined
+            && (parent?.kind === ts.SyntaxKind.MethodDeclaration || parent?.kind === ts.SyntaxKind.FunctionDeclaration)) {
+            const name = parent.name?.escapedText;
+            const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
+            if (positions !== undefined && Array.isArray (parent.parameters) && positions.indexOf (parent.parameters.indexOf (node)) !== -1) {
+                return 'String';
+            }
+        }
+        return upstream (node);
+    };
+    printer._javaParamTypesPatched = true;
+}
+
+// ===== hx7 java-03: row-builder PARAMETER positions the pin boxes to `Object` =====
+//
+// The pinned printer types a fixed parameter `Map<String, Object>` when its TS annotation names a
+// native-carriable alias (Dict / Market / Currency — JAVA_NATIVE_PARAMETER_TYPES) and then wraps
+// EVERY argument that position receives in the matching checkcast (javaPrintCallArguments), on the
+// proof "the checker proved the argument assignable to the parameter, so the declared type describes
+// the value received". The proof covers the TS TYPE, not the runtime BOX: a venue handing a raw
+// response straight into the method passes a value the checker accepts as `any`/`List`, and the cast
+// then throws — java STATIC_RESPONSE `[whitebit][transfer][transfer: empty array response (live)]`:
+//
+//     List<Object> response = (this.v4PrivatePostMainAccountTransfer(..)).join();
+//     return this.parseTransfer((Map<String, Object>) (response), currency);
+//     -> java.lang.ClassCastException: class java.util.ArrayList cannot be cast to class java.util.Map
+//        @ io.github.ccxt.exchanges.Whitebit.lambda$transfer$46(Whitebit.java:3944)
+//
+// The pin keeps its own JAVA_NATIVE_PARAMETER_EXCLUDED_POSITIONS table for exactly this class of
+// position (parseMarket / parseTrade / parseOrder / parseOrderBook / safeSymbol / market / symbol /
+// ...), but that table lives inside the frozen pin, so the downstream exclusion lives here. Java
+// overrides are invariant on parameter types, so one name+position boxes every declaration of the
+// name at once: javaNativeParameterType is the single funnel for a parameter's printed Java type
+// (printParameterType, javaNativeCallParameterTypes, javaParameterAssignmentCast and the element
+// reads of the parameter all read it), so boxing there moves the declaration and every consumer
+// together — exactly what the pin's own exclusion does for its positions.
+//
+// Only positions whose every call site is a raw row/response: parseCurrencies hands each element of
+// the raw map to parseCurrency, parseTickers hands the raw ticker element to parseTicker, and
+// whitebit's transfer hands the endpoint's empty-array response to parseTransfer.
+// WS frames are the same class: a `Dict`-annotated `message` reaches handleErrorMessage before
+// handleMessage dispatches on its shape (toobit private streams are a list frame), and
+// parseWsTicker takes the venue's raw ticker frame (bitfinex: a positional array).
+export const JAVA_OBJECT_PARAM_POSITIONS = {
+    'parseCurrency': [ 0 ],
+    'parseTicker': [ 0 ],
+    'parseTransfer': [ 0 ],
+    'parseWsTicker': [ 0 ],
+    'handleErrorMessage': [ 1 ],
+};
+
+// the parameter node sits at an excluded position of the closed name table above
+function javaObjectParamPosition (node) {
+    if (node?.kind !== ts.SyntaxKind.Parameter) {
+        return false;
+    }
+    const method = node.parent;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || !Array.isArray (method.parameters)) {
+        return false;
+    }
+    const name = method.name?.escapedText;
+    const positions = name === undefined ? undefined : JAVA_OBJECT_PARAM_POSITIONS[name];
+    return positions !== undefined && positions.indexOf (method.parameters.indexOf (node)) !== -1;
+}
+
+export function installJavaObjectParamPositions (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaObjectParamPositionsPatched) {
+        return;
+    }
+    const upstream = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        if (javaObjectParamPosition (node)) {
+            return undefined;
+        }
+        return upstream (node);
+    };
+    printer._javaObjectParamPositionsPatched = true;
+}
+
+// ===== 10. safeList* locals (hx2 java-02): `Object x = this.safeList(..)` -> java.util.List<Object>
+// The accessor hands back the found element only when Helpers.isArray(value) (a List<?> or a java
+// array) and otherwise the caller's default, so the default argument is proven list-shaped first.
+// Everything else (later writes, receivers, argument casts) is the shared isSafeToNarrow scan.
+const JAVA_SAFE_LIST_NAMES = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
+const JAVA_SAFE_LIST_TYPE = 'java.util.List<Object>';
+const JAVA_SAFE_LIST_CAST = '(java.util.List<Object>)';
+
+// a default argument whose box is a List or null on every path: absent, null/undefined, an array
+// literal (prints `new ArrayList<Object>(Arrays.asList(..))`), or a call the hand-written base
+// declares java.util.List<Object> (toArray) / a List-returning accessor, recursing on safeList*
+function safeListDefaultIsList (printer, call, name) {
+    const index = JAVA_SAFE_LIST_NAMES.get (name);
+    if (index === undefined || call.arguments.length <= index) {
+        return true;
+    }
+    const arg = unwrapParens (call.arguments[index]);
+    if (arg === undefined || arg.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (ts.isIdentifier (arg) && arg.escapedText === 'undefined') {
+        return true;
+    }
+    if (ts.isArrayLiteralExpression (arg)) {
+        return true;
+    }
+    if (!isThisCall (arg)) {
+        return false;
+    }
+    const inner = String (arg.expression.name.escapedText);
+    if (inner === 'toArray' || JAVA_LIST_RETURN_METHODS.has (inner)) {
+        // toArray is an instance FIELD assigned from a function (like parse8601), so it is
+        // accepted by name; the hand-written base declares java.util.List<Object> toArray
+        return inner === 'toArray' || resolvesToMethodNamed (printer, arg, inner);
+    }
+    if (JAVA_SAFE_LIST_NAMES.has (inner) && resolvesToBaseAccessor (printer, arg, inner)) {
+        return safeListDefaultIsList (printer, arg, inner);
+    }
+    return false;
+}
+
+// the initializer's checker type is an array: the bare accessor is declared `any[]`, and
+// `as List` / `as any[]` assert one; `as any` and every non-array type stay untyped
+function safeListInitializerIsList (printer, initializer) {
+    try {
+        const checker = printer.getChecker ();
+        const type = checker.getTypeAtLocation (initializer);
+        if (type === undefined) {
+            return false;
+        }
+        const members = type.isUnion () ? type.types : [ type ];
+        return members.some ((member) => member !== undefined
+            && (checker.isArrayType (member) || checker.isTupleType (member)));
+    } catch (e) {
+        return false;
+    }
+}
+
+function safeListLocalTypeOf (printer, declaration, isProFile) {
+    let initializer = unwrapParens (declaration.initializer);
+    // `this.safeList(..) as List` / `as any[]` — the TS author asserts an array; the printer
+    // drops the assertion and emits the bare call, so unwrap it and keep the same proof
+    if (initializer !== undefined && (ts.isAsExpression (initializer) || ts.isTypeAssertionExpression (initializer))) {
+        initializer = unwrapParens (initializer.expression);
+    }
+    if (initializer === undefined || !isThisCall (initializer)) {
+        return undefined;
+    }
+    const name = String (initializer.expression.name.escapedText);
+    if (!JAVA_SAFE_LIST_NAMES.has (name) || !resolvesToBaseOrStrippedAccessor (printer, initializer, name)) {
+        return undefined;
+    }
+    if (!safeListInitializerIsList (printer, initializer)) {
+        return undefined;
+    }
+    if (!safeListDefaultIsList (printer, initializer, name)) {
+        return undefined;
+    }
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, { noCastAssertions: true })) {
+        return undefined;
+    }
+    return name;
+}
+
+// additive patcher: chains with every wrapper above (it only rewrites a declaration still printing
+// the `Object <name> = ` marker) and is installed at the bottom of installJavaLocalTypes
+export function patchJavaSafeListLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaSafeListTypesPatched) {
+        return;
+    }
+    printer._javaSafeListTypesPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (declarations === undefined || declarations.length !== 1) {
+            return printed;
+        }
+        const declaration = declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        const name = safeListLocalTypeOf (printer, declaration, isProFile);
+        if (name === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // another family already moved the type token / unexpected shape
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.' + name + '(')) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${JAVA_SAFE_LIST_CAST} ${value}`;
+    };
+}
+
+// ===== 7. hx2 java-03: safeBool locals -> Boolean (nullable), isTrue -> Boolean.TRUE.equals =====
+//
+//     Object x = this.safeBool (a, "k");            ->  Boolean x = (Boolean) this.safeBool (a, "k");
+//     Object x = this.safeBool (a, "k", false);     ->  Boolean x = (Boolean) this.safeBool (a, "k", false);
+//     Helpers.isTrue (x)                            ->  Boolean.TRUE.equals (x)
+//
+// WHAT THE RUNTIME BOX IS (hand-written Java base, audited):
+//   * BaseExchange.safeBool is DECLARED `Object` and hands the caller's `defaultValue` back
+//     UNTOUCHED whenever the value found in the dict is not a Boolean
+//     (`Object value = this.safeValue (...); if (value instanceof Boolean) return value;
+//     return defaultValue;`) — so the box is `Boolean | null` exactly when the call site
+//     proves the fall-through value is one of those: the default is ABSENT (it prints no
+//     third argument; the accessor's own absent default is null) or it is a boolean LITERAL
+//     (`true`/`false`, boxed to Boolean through the Object... varargs). This is the same
+//     gate HANDLE_ELEMENT_TYPES applies to handleParamBool (see its `defaultArg: 2`).
+//   * `this.safeValue (a, k, defaultValue)` is SafeMethods.SafeValueN, which returns the found
+//     member as parsed and the default only when the member is absent — every path of
+//     safeBool therefore ends on the member or on the caller's default.
+// EMISSION: the declaration carries the `(Boolean)` checkcast the safeInteger2/safeSymbol
+// cast family uses (the accessor is declared `Object`); on a Boolean|null value that checkcast
+// is a no-op, and the default gate is what makes it one. `Helpers.isTrue (x)` on such a local
+// is the null-safe "is TRUE" test, which is literally what `Boolean.TRUE.equals (x)` computes
+// (`Helpers.isTrue` would answer `true` for a non-Boolean box like Long 1, and the gate is
+// what rules that box out).
+// THE SCAN (D2): the standard isSafeToNarrow run over every later occurrence of the local. A
+// write must be a value provably Boolean (a boolean literal, `null`/`undefined`, a proven
+// safeBool call — which takes the same checkcast on the write) and every use that javac would
+// resolve against the narrowed type keeps the local `Object` (unboxing operators, compound
+// assignment, typeof, casts, spread, printer-cast argument positions, String/List/map receiver
+// methods). A Boolean write in a conditional arm needs no restoring cast: Java types
+// `cond ? Boolean : boolean` as Boolean, without unboxing.
+// OUT OF THIS UNIT: safeBool2 / safeBoolN carry the same box and the same gate but are not in
+// this unit's line; `Helpers.isTrue (y)` for Boolean locals of OTHER families (literal
+// initialisers, handleParamBool elements) is java-06's unit.
+
+const JAVA_BOOL_TRUE_EQUALS = 'Boolean.TRUE.equals(';
+
+// the call's own default argument is absent, or is a boolean literal: the value the accessor
+// hands back when the found member is not a Boolean is then null / a Boolean itself
+function accessorDefaultProvesBoolean (call, defaultArg) {
+    const args = call?.arguments ?? [];
+    if (args.length <= defaultArg) {
+        return true; // absent default
+    }
+    return args.length === defaultArg + 1 && handleIsBooleanLiteral (args[defaultArg]);
+}
+
+// the checker's type for the call: `boolean` (3-arg overload) or `boolean | undefined`
+// (2-arg overload). `boolean` is itself the true|false union, so the Boolean bit is on the
+// literal constituents; nullish members are folded away like equalityOperandFamily does.
+function safeBoolCallTypeIsBoolean (printer, call) {
+    let type;
+    try {
+        type = printer.getChecker ().getTypeAtLocation (call);
+    } catch (e) {
+        return false;
+    }
+    if (type === undefined || type === null) {
+        return false;
+    }
+    const flags = type.flags;
+    if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
+        return true;
+    }
+    if ((flags & ts.TypeFlags.Union) === 0 || type.types === undefined) {
+        return false;
+    }
+    const booleanish = (t) => (t.flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) !== 0;
+    const nullish = (t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) !== 0;
+    return type.types.some (booleanish) && type.types.every ((t) => booleanish (t) || nullish (t));
+}
+
+// the printed operand of a `Helpers.isTrue (x)` position whose operand is a local this slice
+// narrowed to Boolean from a proven safeBool call, or undefined to keep the helper
+function safeBoolTrueEqualsTarget (printer, safeBoolLocals, node) {
+    const target = unwrapParens (node);
+    if (target === undefined || target.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    // print-order proof: only a declaration that went through the Boolean rewrite above is
+    // recorded (a captured local renamed to `finalX` resolves to the synthesized Object
+    // bridge instead and never matches)
+    if (declaration === undefined || !safeBoolLocals.has (declaration)) {
+        return undefined;
+    }
+    return printer.printNode (target, 0);
+}
+
+function patchJavaSafeBoolLocals (printer, safeBoolLocals) {
+    const upstreamCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        const target = safeBoolTrueEqualsTarget (printer, safeBoolLocals, node);
+        if (target !== undefined) {
+            // the printer's condition path emits `Helpers.isTrue (<operand>)`; `!x` reaches
+            // this through printPrefixUnaryExpression -> printCondition (operand)
+            return printer.getIden (identation) + JAVA_BOOL_TRUE_EQUALS + target + ')';
+        }
+        return upstreamCondition (node, identation);
+    };
+}
+
+// the base stage transpiles a stripped copy of ts/src/base/Exchange.ts, so the accessor
+// calls inside the base body resolve to that copy (`ts/src/base/Exchange.nooverloads.<pid>.ts`,
+// a RELATIVE file name) — a shape the shared accessor gate does not accept. The safeBool
+// family admits it (same class, same hand-written Java accessor); every other family keeps
+// resolvesToBaseAccessor untouched.
+const JAVA_SAFE_BOOL_SOURCE_FILES = [
+    /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/,
+    /[\\/]base[\\/]functions[\\/]type\.ts$/,
+];
+
+function safeBoolResolvesToBaseAccessor (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return false;
+    }
+    const file = declaration.getSourceFile?.().fileName;
+    if (file === undefined) {
+        return false;
+    }
+    return JAVA_SAFE_BOOL_SOURCE_FILES.some ((re) => re.test (file));
+}
+
+function accessorResolvesToBase (printer, call, name, accessor) {
+    if (accessor.safeBool === true) {
+        return safeBoolResolvesToBaseAccessor (printer, call);
+    }
+    return resolvesToBaseAccessor (printer, call, name);
+}
+
+// ===== java-09: declared local types for the printer's element reads =====
+//
+// `x["lit"]` prints Helpers.GetValue(x, "lit") unless a proof types the receiver. The
+// checker proves dict-shaped values (phase-1 java-d3), the local-typing slices above
+// rewrite the DECLARATION of a box to its concrete Java type, and this slice closes the
+// gap between the two: it records the type every rewritten declaration carries and hands
+// the table to the printer (javaTranspiler.javaDeclaredLocalTypeResolver), so
+// `Helpers.GetValue(x, "lit")` prints `x.get("lit")` — the accessor returns the element or
+// null, exactly the helper's Map branch, and no cast is needed because the declaration
+// already carries the type. Installed LAST so the observer sees the final declaration text
+// of the whole chain (same print-order proof as patchJavaStringReceiverCasts). The table is
+// a WeakMap keyed by the declaration node, so a name in another scope can never match, and
+// a receiver that is not recorded (Object-declared, parameter, re-assigned) keeps the helper.
+//
+// A declaration is recorded only when the printed line is `<type> <name> = ` at its own
+// indentation; multi-declarator lists, `var` locals and prefix-rewritten statements are not
+// recorded (their type is the printer's, not a slice's).
+
+export function installJavaDeclaredLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaDeclaredLocalTypesPatched) {
+        return;
+    }
+    // declaration node -> Java type the emitted declaration carries
+    const declaredTypes = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        try {
+            javaDeclaredLocalTypeRecord (printer, node, identation, printed, declaredTypes);
+        } catch (e) {
+            // an observer error never breaks a print
+        }
+        return printed;
+    };
+    printer.javaDeclaredLocalTypeResolver = (declaration) => declaredTypes.get (declaration);
+    printer._javaDeclaredLocalTypesPatched = true;
+}
+
+// record `<type> <name> = ` when the FINAL printed text of the declaration chain carries a
+// type token in front of the local's name (the printer's own `Object` is a type too — the
+// consumers filter on the spelling they can use)
+function javaDeclaredLocalTypeRecord (printer, node, identation, printed, declaredTypes) {
+    if (node?.declarations?.length !== 1) {
+        return;
+    }
+    const declaration = node.declarations[0];
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+        return;
+    }
+    const iden = printer.getIden (identation);
+    const printedName = printer.printNode (declaration.name, 0);
+    const marker = ` ${printedName} = `;
+    const at = printed.lastIndexOf (marker);
+    if (at === -1) {
+        return;
+    }
+    const lineStart = printed.lastIndexOf ('\n', at) + 1;
+    if (!printed.startsWith (iden, lineStart)) {
+        return; // not the declaration's own line (a finalXxx prefix, a nested print)
+    }
+    const type = printed.slice (lineStart + iden.length, at).trim ();
+    if (!JAVA_EMITTED_TYPE_TEXT.test (type)) {
+        return;
+    }
+    if (JAVA_DECLARED_DEBUG) {
+        console.error (`[java09] ${declaration.name.escapedText} -> ${type}`);
+    }
+    declaredTypes.set (declaration, type);
+}
+
+const JAVA_DECLARED_DEBUG = typeof process !== 'undefined' && process.env !== undefined
+    && process.env.CCXT_JAVA09_DEBUG === '1';
+
+// a Java type token: a possibly qualified name, optional generic arguments, optional
+// array/varargs suffixes (`Map<String, Object>`, `java.util.List<Object>`, `Long`, `var`)
+const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\])*$/;

@@ -881,11 +881,6 @@ class myriad extends myriad$1["default"] {
         if ((this.safeNumber(parsed, 'amount') === undefined) && (amount !== undefined)) {
             parsed['amount'] = amount;
         }
-        if (this.safeInteger(parsed, 'timestamp') === undefined) {
-            const now = this.milliseconds();
-            parsed['timestamp'] = now;
-            parsed['datetime'] = this.iso8601(now);
-        }
         if (this.safeString(parsed, 'status') === undefined) {
             parsed['status'] = 'open';
         }
@@ -2407,7 +2402,6 @@ class myriad extends myriad$1["default"] {
                 break;
             }
         }
-        const now = this.milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         let previousClose = undefined;
@@ -2426,8 +2420,8 @@ class myriad extends myriad$1["default"] {
             'outcomeId': this.safeString(market, 'id'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': price,
@@ -2568,7 +2562,6 @@ class myriad extends myriad$1["default"] {
                 break;
             }
         }
-        const timestamp = this.milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid = undefined;
         let ask = undefined;
@@ -2594,8 +2587,8 @@ class myriad extends myriad$1["default"] {
             'outcome': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': bids,
             'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -2626,13 +2619,12 @@ class myriad extends myriad$1["default"] {
             const rowAmount = Precise["default"].stringDiv(this.safeString(row, 1), '1000000000000000000');
             asks.push([this.parseNumber(rowPrice), this.parseNumber(rowAmount)]);
         }
-        const timestamp = this.milliseconds();
         return {
             'outcome': outcome,
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
     }
@@ -3814,7 +3806,7 @@ class myriad extends myriad$1["default"] {
      * @ignore
      * @method
      * @name myriad#sign
-     * @description builds the request url and attaches the x-api-key header for private endpoints
+     * @description builds the request url and attaches the apiKey header for private endpoints
      * @param {string} path the endpoint path
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
@@ -3850,7 +3842,17 @@ class myriad extends myriad$1["default"] {
             }
         }
         if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
-            headers = this.extend(headers, { 'x-api-key': this.apiKey });
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            const headerKey = 'x-api' + '-key';
+            const headersKey = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

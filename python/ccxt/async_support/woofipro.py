@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -471,14 +471,14 @@ class woofipro(Exchange, ImplicitAPI):
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUEST Rate limit exceed.
                     '-1004': BadRequest,  # UNKNOWN_PARAM An unknown parameter was sent.
                     '-1005': BadRequest,  # INVALID_PARAM Some parameters are in wrong format for api.
-                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise self error.
+                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
                     '-1007': BadRequest,  # DUPLICATE_REQUEST The data is already exists or your request is duplicated.
                     '-1008': InvalidOrder,  # QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
                     '-1009': InsufficientFunds,  # CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
                     '-1011': NetworkError,  # RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
                     '-1012': BadRequest,  # RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
                     '-1101': InsufficientFunds,  # RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
-                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value(price * size) is too small.
+                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value (price * size) is too small.
                     '-1103': InvalidOrder,  # PRICE_FILTER The order price is not following the tick size rule for the symbol.
                     '-1104': InvalidOrder,  # SIZE_FILTER The order quantity is not following the step size rule for the symbol.
                     '-1105': InvalidOrder,  # PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
@@ -500,7 +500,7 @@ class woofipro(Exchange, ImplicitAPI):
         super(woofipro, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -512,7 +512,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -536,7 +536,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -548,7 +548,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -648,7 +648,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for woofipro
 
@@ -660,7 +660,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicInfo(params)
         #
         #   {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [
@@ -697,7 +697,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_markets(rows)
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -711,7 +711,7 @@ class woofipro(Exchange, ImplicitAPI):
         tokenPromise = self.v1PublicGetPublicToken(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -803,7 +803,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -836,7 +836,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "executed_timestamp": "1641481113084",
         #         "order_id": "87001234",
-        #         "order_tag": "default", <-- self param only in "fetchOrderTrades"
+        #         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         #         "executed_price": "1",
         #         "executed_quantity": "12",
         #         "fee_asset": "WOO",
@@ -878,7 +878,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -901,7 +901,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicMarketTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -959,7 +959,7 @@ class woofipro(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: object):
+    def parse_funding_interval(self, interval: Str) -> Str:
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -969,7 +969,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string(intervals, interval, interval)
 
-    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate interval
 
@@ -1000,7 +1000,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "symbol": "PERP_ETH_USDC",
@@ -1016,7 +1016,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple markets
 
@@ -1032,7 +1032,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRates(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1098,7 +1098,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1117,7 +1117,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "symbol": "PERP_BTC_USDC",
@@ -1141,7 +1141,7 @@ class woofipro(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         return self.parse_ticker(data, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1157,7 +1157,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFutures(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "rows": [{
@@ -1220,7 +1220,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -1239,7 +1239,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "symbol": "PERP_BTC_USDC",
@@ -1255,7 +1255,7 @@ class woofipro(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         return self.parse_open_interest(data, market)
 
-    async def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+    async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
         """
         retrieves the open interest for a list of contract trading pairs
 
@@ -1271,7 +1271,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFutures(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1786022130191,
         #     "data": {
         #         "rows": [{
@@ -1298,7 +1298,7 @@ class woofipro(Exchange, ImplicitAPI):
             result.append(self.parse_open_interest(interest))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1329,7 +1329,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1363,7 +1363,7 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1395,7 +1395,7 @@ class woofipro(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -1430,7 +1430,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "meta": {
@@ -1455,7 +1455,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -1469,7 +1469,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -1480,7 +1480,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -1511,7 +1511,7 @@ class woofipro(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1534,7 +1534,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "asks": [{
@@ -1563,7 +1563,7 @@ class woofipro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
@@ -1589,7 +1589,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1618,7 +1618,7 @@ class woofipro(Exchange, ImplicitAPI):
         # * cancelOrder
         # * fetchOrder
         # * fetchOrders
-        # isFromFetchOrder = ('order_tag' in order); TO_DO
+        # const isFromFetchOrder = ('order_tag' in order); TO_DO
         #
         # stop order after creating it:
         #   {
@@ -1638,7 +1638,7 @@ class woofipro(Exchange, ImplicitAPI):
         #       "algoType": "STOP_LOSS",
         #       "side": "BUY",
         #       "quantity": "0.1",
-        #       "isTriggered": False,
+        #       "isTriggered": false,
         #       "triggerPrice": "100",
         #       "triggerStatus": "USELESS",
         #       "type": "LIMIT",
@@ -1651,14 +1651,14 @@ class woofipro(Exchange, ImplicitAPI):
         #       "averageExecutedPrice": "0",
         #       "totalFee": "0",
         #       "feeAsset": '',
-        #       "reduceOnly": False,
+        #       "reduceOnly": false,
         #       "createdTime": "1686149609.744",
         #       "updatedTime": "1686149903.362"
         #   }
         #
         timestamp = self.safe_integer_n(order, ['timestamp', 'created_time', 'createdTime'])
         orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1666,7 +1666,7 @@ class woofipro(Exchange, ImplicitAPI):
         amount = self.safe_string_2(order, 'order_quantity', 'quantity')  # This is base amount
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
         orderType = self.safe_string_lower_2(order, 'order_type', 'type')
-        status = self.safe_value_2(order, 'status', 'algoStatus')
+        status = self.safe_string_2(order, 'status', 'algoStatus')
         success = self.safe_bool(order, 'success')
         if success is not None:
             status = 'NEW' if (success) else 'REJECTED'
@@ -1680,14 +1680,14 @@ class woofipro(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice = None
         stopLossPrice = None
-        childOrders = self.safe_value(order, 'childOrders')
+        childOrders = self.safe_list(order, 'childOrders')
         if childOrders is not None:
-            first = self.safe_value(childOrders, 0)
+            first = self.safe_dict(childOrders, 0)
             innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
-                takeProfitOrder = self.safe_value(innerChildOrders, 0)
-                stopLossOrder = self.safe_value(innerChildOrders, 1)
+                takeProfitOrder = self.safe_dict(innerChildOrders, 0)
+                stopLossOrder = self.safe_dict(innerChildOrders, 1)
                 takeProfitPrice = self.safe_number(takeProfitOrder, 'triggerPrice')
                 stopLossPrice = self.safe_number(stopLossOrder, 'triggerPrice')
         lastUpdateTimestamp = self.safe_integer_2(order, 'updatedTime', 'updated_time')
@@ -1754,7 +1754,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1781,8 +1781,8 @@ class woofipro(Exchange, ImplicitAPI):
             'side': orderSide,
         }
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
         algoType = self.safe_string(params, 'algoType')
@@ -1849,7 +1849,7 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1877,15 +1877,15 @@ class woofipro(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_list(params, 'childOrders') is not None)
         response = None
         if isConditional:
             response = await self.v1PrivatePostAlgoOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1899,7 +1899,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1918,7 +1918,7 @@ class woofipro(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         *contract only* create a list of trade orders
 
@@ -1940,9 +1940,9 @@ class woofipro(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
-            stopLoss = self.safe_value(orderParams, 'stopLoss')
-            takeProfit = self.safe_value(orderParams, 'takeProfit')
-            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
+            stopLoss = self.safe_dict(orderParams, 'stopLoss')
+            takeProfit = self.safe_dict(orderParams, 'takeProfit')
+            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_list(orderParams, 'childOrders') is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
@@ -1953,7 +1953,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostBatchOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "rows": [{
@@ -1972,7 +1972,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_orders(rows)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2032,12 +2032,12 @@ class woofipro(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-            # request['side'] = side.upper()
-            # request['symbol'] = market['id']
+            # request['side'] = side.toUpperCase ();
+            # request['symbol'] = market['id'];
             response = await self.v1PrivatePutOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "EDIT_SENT"
@@ -2048,7 +2048,7 @@ class woofipro(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
@@ -2098,7 +2098,7 @@ class woofipro(Exchange, ImplicitAPI):
                 response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_SENT"
@@ -2106,7 +2106,7 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "status": "CANCEL_SENT"
         # }
@@ -2122,7 +2122,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -2149,7 +2149,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteBatchOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "status": "CANCEL_ALL_SENT"
@@ -2160,7 +2160,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': response,
         })]
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
@@ -2187,13 +2187,13 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
         # trigger
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #      "status": "CANCEL_ALL_SENT"
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_ALL_SENT"
@@ -2206,7 +2206,7 @@ class woofipro(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
@@ -2248,7 +2248,7 @@ class woofipro(Exchange, ImplicitAPI):
                 response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "order_id": 78151,
@@ -2277,7 +2277,7 @@ class woofipro(Exchange, ImplicitAPI):
         parsedOrders = {} if (orders is None) else orders
         return self.parse_order(parsedOrders, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2325,7 +2325,7 @@ class woofipro(Exchange, ImplicitAPI):
             response = await self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203988,
         #         "data": {
         #             "meta": {
@@ -2357,11 +2357,11 @@ class woofipro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_dict(response, 'data', response)
         orders = self.safe_list(data, 'rows')
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2384,7 +2384,7 @@ class woofipro(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2407,7 +2407,7 @@ class woofipro(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'COMPLETED'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2431,7 +2431,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -2454,7 +2454,7 @@ class woofipro(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
@@ -2489,7 +2489,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2532,7 +2532,7 @@ class woofipro(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2546,7 +2546,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientHolding(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "holding": [{
@@ -2581,7 +2581,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetAssetHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2634,14 +2634,14 @@ class woofipro(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2701,7 +2701,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2718,7 +2718,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2735,7 +2735,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2767,11 +2767,11 @@ class woofipro(Exchange, ImplicitAPI):
             rowsList = rows
         return self.parse_transactions(rowsList, currency, since, limit, params)
 
-    async def get_withdraw_nonce(self, params={}):
+    async def get_withdraw_nonce(self, params: dict = {}) -> Num:
         response = await self.v1PrivateGetWithdrawNonce(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_nonce": 1
@@ -2784,17 +2784,17 @@ class woofipro(Exchange, ImplicitAPI):
     def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2862,7 +2862,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostWithdrawRequest(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_id": 123
@@ -2887,7 +2887,7 @@ class woofipro(Exchange, ImplicitAPI):
             'marginMode': self.safe_string_lower(marginMode, 'default_margin_mode'),
         }
 
-    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: Strings = None, params: dict = {}) -> MarginModes:
         """
         fetches the set margin mode of every contract market
 
@@ -2903,7 +2903,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientMarginModes(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "rows": [{
@@ -2917,7 +2917,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_margin_modes(rows, symbols, 'symbol')
 
-    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the set margin mode of a contract market
 
@@ -2936,7 +2936,7 @@ class woofipro(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol'])
         return marginMode
 
-    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated' for a market
 
@@ -2961,7 +2961,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989
         # }
         #
@@ -2970,7 +2970,7 @@ class woofipro(Exchange, ImplicitAPI):
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989
         #     }
         #
@@ -2989,7 +2989,7 @@ class woofipro(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: str, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: str, params: dict = {}) -> MarginModification:
         """
  @ignore
         add or reduce isolated position margin
@@ -3013,7 +3013,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostPositionMargin(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989
         # }
         #
@@ -3022,7 +3022,7 @@ class woofipro(Exchange, ImplicitAPI):
         modification['amount'] = self.parse_number(self.number_to_string(amount))
         return modification
 
-    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin to an isolated position
 
@@ -3035,7 +3035,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from an isolated position
 
@@ -3058,7 +3058,7 @@ class woofipro(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -3074,7 +3074,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -3085,7 +3085,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -3102,7 +3102,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -3122,7 +3122,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return await self.v1PrivatePostClientLeverage(self.extend(request, params))
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "IMR_withdraw_orders": 0.1,
@@ -3191,7 +3191,7 @@ class woofipro(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
@@ -3210,7 +3210,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositionSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "IMR_withdraw_orders": 0.1,
@@ -3237,7 +3237,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3252,7 +3252,7 @@ class woofipro(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositions(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "current_margin_ratio_with_orders": 1.2385,
@@ -3292,10 +3292,10 @@ class woofipro(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'rows', [])
         return self.parse_positions(positions, symbols)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

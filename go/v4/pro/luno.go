@@ -71,14 +71,14 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if this.Markets == nil {
 
 		retRes5212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes5212)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
@@ -92,14 +92,14 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Luno) HandleTrades(client any, message any, subscription any) {
+func (this *Luno) HandleTrades(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "110980825",
@@ -115,22 +115,27 @@ func (this *Luno) HandleTrades(client any, message any, subscription any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var rawTrades any = this.SafeList(message, "trade_updates", []any{})
-	var length int = ccxt.GetArrayLength(rawTrades)
-	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
+	var rawTrades []any = ccxt.SafeListTyped(message, "trade_updates")
+	var length int = len(rawTrades)
+	if length == 0 {
 		return
 	}
-	var symbol any = ccxt.GetValue(subscription, "symbol")
-	var market any = this.Market(symbol)
+	var symbol any = subscription["symbol"]
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTrades)); i++ {
-		var rawTrade any = ccxt.GetValue(rawTrades, i)
+	for i := 0; i < len(rawTrades); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(rawTrades) {
+				return ccxt.DerefScalar(rawTrades[i])
+			}
+			return nil
+		}()
 		var trade any = this.ParseTrade(rawTrade, market)
 		stored.(ccxt.Appender).Append(trade)
 	}
@@ -151,7 +156,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(market, nil))), nil, ccxt.GetValue(market, "symbol"))
+	var symbol any = func() any {
+		if market == nil {
+			return nil
+		}
+		return ccxt.GetValue(market, "symbol")
+	}()
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
@@ -193,14 +203,14 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if this.Markets == nil {
 
 		retRes15612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15612)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
@@ -218,7 +228,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Luno) HandleOrderBook(client any, message any, subscription any) {
+func (this *Luno) HandleOrderBook(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "24352",
@@ -251,14 +261,14 @@ func (this *Luno) HandleOrderBook(client any, message any, subscription any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol any = ccxt.GetValue(subscription, "symbol")
+	var symbol any = subscription["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var timestamp any = this.SafeInteger(message, "timestamp")
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+	var timestamp *int64 = this.SafeInteger(message, "timestamp")
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
 	}
 	var asks any = this.SafeValue(message, "asks")
-	if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
+	if !ccxt.IsEqual(asks, nil) {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
 	} else {
@@ -268,7 +278,7 @@ func (this *Luno) HandleOrderBook(client any, message any, subscription any) {
 		ccxt.AddElementToObject(ob, "datetime", this.Iso8601(timestamp))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var nonce any = this.SafeInteger(message, "sequence")
+	var nonce *int64 = this.SafeInteger(message, "sequence")
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -285,8 +295,8 @@ func (this *Luno) CustomParseOrderBook(orderbook any, symbol any, optionalArgs .
 	_ = amountKey
 	countOrIdKey := ccxt.GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
-	var bids any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
-	var asks any = this.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var bids any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	return map[string]any{
 		"symbol":    symbol,
 		"bids":      this.SortBy(bids, 0, true),
@@ -304,9 +314,9 @@ func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
 	_ = thirdKey
 	bidasks = this.ToArray(bidasks)
-	var result any = []any{}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidasks)); i++ {
-		ccxt.AppendToArray(&result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
+	var result []any = []any{}
+	for i := 0; i < ccxt.GetArrayLength(bidasks); i++ {
+		result = append(result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
 	}
 	return result
 }
@@ -317,12 +327,12 @@ func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	_ = amountKey
 	thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
 	_ = thirdKey
-	var price any = this.SafeNumber(bidask, priceKey)
-	var amount any = this.SafeNumber(bidask, amountKey)
-	var result any = []any{price, amount}
-	if ccxt.IsTrue(!ccxt.IsEqual(thirdKey, nil)) {
-		var thirdValue any = this.SafeString(bidask, thirdKey)
-		ccxt.AppendToArray(&result, thirdValue)
+	var price *float64 = this.SafeNumber(bidask, priceKey)
+	var amount *float64 = this.SafeNumber(bidask, amountKey)
+	var result []any = []any{price, amount}
+	if !ccxt.IsEqual(thirdKey, nil) {
+		var thirdValue *string = this.SafeString(bidask, thirdKey)
+		result = append(result, thirdValue)
 	}
 	return result
 }
@@ -373,31 +383,41 @@ func (this *Luno) HandleDelta(orderbook any, message any) {
 	var createUpdate any = this.SafeValue(message, "create_update")
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
-	if ccxt.IsTrue(!ccxt.IsEqual(createUpdate, nil)) {
+	if !ccxt.IsEqual(createUpdate, nil) {
 		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
-		var typeVar any = this.SafeString(createUpdate, "type")
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "ASK")) {
+		var typeVar *string = this.SafeString(createUpdate, "type")
+		if typeVar != nil && *typeVar == "ASK" {
 			asksOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "BID")) {
+		} else if typeVar != nil && *typeVar == "BID" {
 			bidsOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
 		}
 	}
 	var deleteUpdate any = this.SafeValue(message, "delete_update")
-	if ccxt.IsTrue(!ccxt.IsEqual(deleteUpdate, nil)) {
-		var orderId any = this.SafeString(deleteUpdate, "order_id")
+	if !ccxt.IsEqual(deleteUpdate, nil) {
+		var orderId *string = this.SafeString(deleteUpdate, "order_id")
 		asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 		bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 	}
 }
 func (this *Luno) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(ccxt.IsEqual(message, "")) {
+	if ccxt.IsEqual(message, "") {
 		return
 	}
 	var subscriptions []any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
-	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(handlers)); j++ {
-		var handler any = ccxt.GetValue(handlers, j)
-		ccxt.CallDynamically(handler, client, message, ccxt.GetValue(subscriptions, 0))
+	for j := 0; j < len(handlers); j++ {
+		var handler any = func() any {
+			if j >= 0 && j < len(handlers) {
+				return ccxt.DerefScalar(handlers[j])
+			}
+			return nil
+		}()
+		ccxt.CallDynamically(handler, client, message, func() any {
+			if 0 >= 0 && 0 < len(subscriptions) {
+				return ccxt.DerefScalar(subscriptions[0])
+			}
+			return nil
+		}())
 	}
 }
 
@@ -414,6 +434,7 @@ func (this *Luno) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name luno#watchTrades
@@ -432,13 +453,7 @@ func (this *Luno) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -463,11 +478,7 @@ func (this *Luno) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}

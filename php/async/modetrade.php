@@ -113,7 +113,7 @@ class modetrade extends Exchange {
                 'setMargin' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
-                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -404,10 +404,10 @@ class modetrade extends Exchange {
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        // todo => implementation needs unification
+                        // todo: implementation needs unification
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => array(
-                            // todo => implementation needs unification
+                            // todo: implementation needs unification
                             'triggerPriceType' => null,
                             'price' => false,
                         ),
@@ -446,11 +446,11 @@ class modetrade extends Exchange {
                     '-1105' => '\\ccxt\\InvalidOrder', // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
                     '-1201' => '\\ccxt\\BadRequest', // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
                     '-1202' => '\\ccxt\\BadRequest', // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
-                    '29' => '\\ccxt\\BadRequest', // array("success":false,"code":29,"message":"Verify contract is invalid")
-                    '9' => '\\ccxt\\AuthenticationError', // array("success":false,"code":9,"message":"Address and signature do not match")
-                    '3' => '\\ccxt\\AuthenticationError', // array("success":false,"code":3,"message":"Signature error")
-                    '2' => '\\ccxt\\BadRequest', // array("success":false,"code":2,"message":"Timestamp expired")
-                    '15' => '\\ccxt\\BadRequest', // array("success":false,"code":15,"message":"BrokerId is not exist")
+                    '29' => '\\ccxt\\BadRequest', // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9' => '\\ccxt\\AuthenticationError', // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3' => '\\ccxt\\AuthenticationError', // {"success":false,"code":3,"message":"Signature error"}
+                    '2' => '\\ccxt\\BadRequest', // {"success":false,"code":2,"message":"Timestamp expired"}
+                    '15' => '\\ccxt\\BadRequest', // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 ),
                 'broad' => array(
                 ),
@@ -480,12 +480,12 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -522,12 +522,12 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicSystemInfo($params));
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "status" => 0,
-        //             "msg" => "System is functioning properly."
-        //         ),
-        //         "timestamp" => "1709274106602"
+        //         "success": true,
+        //         "data": {
+        //             "status": 0,
+        //             "msg": "System is functioning properly."
+        //         },
+        //         "timestamp": "1709274106602"
         //     }
         //
         return $this->safe_integer($response, 'timestamp');
@@ -536,29 +536,29 @@ class modetrade extends Exchange {
     public function parse_market(array $market): array {
         //
         //   {
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "quote_min" => 123,
-        //     "quote_max" => 100000,
-        //     "quote_tick" => 0.1,
-        //     "base_min" => 0.00001,
-        //     "base_max" => 20,
-        //     "base_tick" => 0.00001,
-        //     "min_notional" => 1,
-        //     "price_range" => 0.02,
-        //     "price_scope" => 0.4,
-        //     "std_liquidation_fee" => 0.03,
-        //     "liquidator_fee" => 0.015,
-        //     "claim_insurance_fund_discount" => 0.0075,
-        //     "funding_period" => 8,
-        //     "cap_funding" => 0.000375,
-        //     "floor_funding" => -0.000375,
-        //     "interest_rate" => 0.0001,
-        //     "created_time" => 1684140107326,
-        //     "updated_time" => 1685345968053,
-        //     "base_mmr" => 0.05,
-        //     "base_imr" => 0.1,
-        //     "imr_factor" => 0.0002512,
-        //     "liquidation_tier" => "1"
+        //     "symbol": "PERP_BTC_USDC",
+        //     "quote_min": 123,
+        //     "quote_max": 100000,
+        //     "quote_tick": 0.1,
+        //     "base_min": 0.00001,
+        //     "base_max": 20,
+        //     "base_tick": 0.00001,
+        //     "min_notional": 1,
+        //     "price_range": 0.02,
+        //     "price_scope": 0.4,
+        //     "std_liquidation_fee": 0.03,
+        //     "liquidator_fee": 0.015,
+        //     "claim_insurance_fund_discount": 0.0075,
+        //     "funding_period": 8,
+        //     "cap_funding": 0.000375,
+        //     "floor_funding": -0.000375,
+        //     "interest_rate": 0.0001,
+        //     "created_time": 1684140107326,
+        //     "updated_time": 1685345968053,
+        //     "base_mmr": 0.05,
+        //     "base_imr": 0.1,
+        //     "imr_factor": 0.0002512,
+        //     "liquidation_tier": "1"
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
@@ -638,36 +638,36 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicInfo($params));
         //
         //   {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => array(
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [
         //         {
-        //           "symbol" => "PERP_BTC_USDC",
-        //           "quote_min" => 123,
-        //           "quote_max" => 100000,
-        //           "quote_tick" => 0.1,
-        //           "base_min" => 0.00001,
-        //           "base_max" => 20,
-        //           "base_tick" => 0.00001,
-        //           "min_notional" => 1,
-        //           "price_range" => 0.02,
-        //           "price_scope" => 0.4,
-        //           "std_liquidation_fee" => 0.03,
-        //           "liquidator_fee" => 0.015,
-        //           "claim_insurance_fund_discount" => 0.0075,
-        //           "funding_period" => 8,
-        //           "cap_funding" => 0.000375,
-        //           "floor_funding" => -0.000375,
-        //           "interest_rate" => 0.0001,
-        //           "created_time" => 1684140107326,
-        //           "updated_time" => 1685345968053,
-        //           "base_mmr" => 0.05,
-        //           "base_imr" => 0.1,
-        //           "imr_factor" => 0.0002512,
-        //           "liquidation_tier" => "1"
+        //           "symbol": "PERP_BTC_USDC",
+        //           "quote_min": 123,
+        //           "quote_max": 100000,
+        //           "quote_tick": 0.1,
+        //           "base_min": 0.00001,
+        //           "base_max": 20,
+        //           "base_tick": 0.00001,
+        //           "min_notional": 1,
+        //           "price_range": 0.02,
+        //           "price_scope": 0.4,
+        //           "std_liquidation_fee": 0.03,
+        //           "liquidator_fee": 0.015,
+        //           "claim_insurance_fund_discount": 0.0075,
+        //           "funding_period": 8,
+        //           "cap_funding": 0.000375,
+        //           "floor_funding": -0.000375,
+        //           "interest_rate": 0.0001,
+        //           "created_time": 1684140107326,
+        //           "updated_time": 1685345968053,
+        //           "base_mmr": 0.05,
+        //           "base_imr": 0.1,
+        //           "imr_factor": 0.0002512,
+        //           "liquidation_tier": "1"
         //         }
-        //       )
+        //       ]
         //     }
         //   }
         //
@@ -692,21 +692,21 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicToken($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [{
-        //         "token" => "USDC",
-        //         "decimals" => 6,
-        //         "minimum_withdraw_amount" => 0.000001,
-        //         "token_hash" => "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
-        //         "chain_details" => [array(
-        //             "chain_id" => 43113,
-        //             "contract_address" => "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
-        //             "cross_chain_withdrawal_fee" => 123,
-        //             "decimals" => 6,
-        //             "withdraw_fee" => 2
-        //             )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "token": "USDC",
+        //         "decimals": 6,
+        //         "minimum_withdraw_amount": 0.000001,
+        //         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+        //         "chain_details": [{
+        //             "chain_id": 43113,
+        //             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+        //             "cross_chain_withdrawal_fee": 123,
+        //             "decimals": 6,
+        //             "withdraw_fee": 2
+        //             }]
         //         }
         //       ]
         //     }
@@ -725,7 +725,7 @@ class modetrade extends Exchange {
         $resultingNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
-            // TODO => transform chain id to human readable name
+            // TODO: transform chain id to human readable name
             $networkId = $this->safe_string($network, 'chain_id', '');
             $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
             if ($precision !== null) {
@@ -776,7 +776,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKey, mixed $feeAmountKey) {
+    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey) {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {
@@ -795,27 +795,27 @@ class modetrade extends Exchange {
         // public/market_trades
         //
         //     {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "side" => "SELL",
-        //         "executed_price" => 46222.35,
-        //         "executed_quantity" => 0.0012,
-        //         "executed_timestamp" => "1683878609166"
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "SELL",
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1683878609166"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         "id" => "99119876",
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => "0.0024",
-        //         "side" => "BUY",
-        //         "executed_timestamp" => "1641481113084",
-        //         "order_id" => "87001234",
-        //         "order_tag" => "default", <-- this param only in "fetchOrderTrades"
-        //         "executed_price" => "1",
-        //         "executed_quantity" => "12",
-        //         "fee_asset" => "BTC",
-        //         "is_maker" => "1"
+        //         "id": "99119876",
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641481113084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "BTC",
+        //         "is_maker": "1"
         //     }
         //
         $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
@@ -885,16 +885,16 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicMarketTrades($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "side" => "BUY",
-        //         "executed_price" => 2050,
-        //         "executed_quantity" => 1,
-        //         "executed_timestamp" => 1683878609166
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "side": "BUY",
+        //         "executed_price": 2050,
+        //         "executed_quantity": 1,
+        //         "executed_timestamp": 1683878609166
+        //       }]
         //     }
         // }
         //
@@ -912,7 +912,7 @@ class modetrade extends Exchange {
         //             "last_funding_rate":-0.00002094,
         //             "last_funding_rate_timestamp":1653631200000,
         //             "next_funding_time":1653634800000,
-        //            "sum_unitary_funding" => 521.367
+        //            "sum_unitary_funding": 521.367
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
@@ -946,7 +946,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -998,16 +998,16 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFundingRateSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
         //     }
         // }
         //
@@ -1036,18 +1036,18 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFundingRates($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "est_funding_rate" => 123,
-        //         "est_funding_rate_timestamp" => 1683880020000,
-        //         "last_funding_rate" => 0.0001,
-        //         "last_funding_rate_timestamp" => 1683878400000,
-        //         "next_funding_time" => 1683907200000,
-        //         "sum_unitary_funding" => 521.367
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "est_funding_rate": 123,
+        //         "est_funding_rate_timestamp": 1683880020000,
+        //         "last_funding_rate": 0.0001,
+        //         "last_funding_rate_timestamp": 1683878400000,
+        //         "next_funding_time": 1683907200000,
+        //         "sum_unitary_funding": 521.367
+        //       }]
         //     }
         // }
         //
@@ -1056,7 +1056,7 @@ class modetrade extends Exchange {
         return $this->parse_funding_rates($rows, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1095,19 +1095,19 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.0001,
-        //         "funding_rate_timestamp" => 1684224000000,
-        //         "next_funding_time" => 1684252800000
-        //       )],
-        //       "meta" => {
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.0001,
+        //         "funding_rate_timestamp": 1684224000000,
+        //         "next_funding_time": 1684252800000
+        //       }],
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
         //       }
         //     }
         // }
@@ -1131,17 +1131,17 @@ class modetrade extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
-        //         "symbol" => "PERP_ETH_USDC",
-        //         "funding_rate" => 0.00046875,
-        //         "mark_price" => 2100,
-        //         "funding_fee" => 0.000016,
-        //         "payment_type" => "Pay",
-        //         "status" => "Accrued",
-        //         "created_time" => 1682235722003,
-        //         "updated_time" => 1682235722003
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
         // }
         //
         $marketId = $this->safe_string($income, 'symbol');
@@ -1164,7 +1164,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1209,24 +1209,24 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "meta" => array(
-        //             "total" => 9,
-        //             "records_per_page" => 25,
-        //             "current_page" => 1
-        //         ),
-        //         "rows" => [array(
-        //                 "symbol" => "PERP_ETH_USDC",
-        //                 "funding_rate" => 0.00046875,
-        //                 "mark_price" => 2100,
-        //                 "funding_fee" => 0.000016,
-        //                 "payment_type" => "Pay",
-        //                 "status" => "Accrued",
-        //                 "created_time" => 1682235722003,
-        //                 "updated_time" => 1682235722003
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
         //     }
         // }
         //
@@ -1254,27 +1254,27 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetClientInfo($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -1329,18 +1329,18 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetOrderbookSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "asks" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "bids" => [array(
-        //         "price" => 10669.4,
-        //         "quantity" => 1.56263218
-        //       )],
-        //       "timestamp" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "asks": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "bids": [{
+        //         "price": 10669.4,
+        //         "quantity": 1.56263218
+        //       }],
+        //       "timestamp": 123
         //     }
         // }
         //
@@ -1392,21 +1392,21 @@ class modetrade extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "open" => 66166.23,
-        //         "close" => 66124.56,
-        //         "low" => 66038.06,
-        //         "high" => 66176.97,
-        //         "volume" => 23.45528526,
-        //         "amount" => 1550436.21725288,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "type" => "1m",
-        //         "start_timestamp" => 1636388220000,
-        //         "end_timestamp" => 1636388280000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "open": 66166.23,
+        //         "close": 66124.56,
+        //         "low": 66038.06,
+        //         "high": 66176.97,
+        //         "volume": 23.45528526,
+        //         "amount": 1550436.21725288,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "type": "1m",
+        //         "start_timestamp": 1636388220000,
+        //         "end_timestamp": 1636388280000
+        //       }]
         //     }
         // }
         //
@@ -1422,77 +1422,77 @@ class modetrade extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag' ?? '', $order)); TO_DO
+        // const isFromFetchOrder = ('order_tag' in order); TO_DO
         //
-        // stop $order after creating it:
+        // stop order after creating it:
         //   {
-        //     "orderId" => "1578938",
-        //     "clientOrderId" => "0",
-        //     "algoType" => "STOP_LOSS",
-        //     "quantity" => "0.1"
+        //     "orderId": "1578938",
+        //     "clientOrderId": "0",
+        //     "algoType": "STOP_LOSS",
+        //     "quantity": "0.1"
         //   }
-        // stop $order after fetching it:
+        // stop order after fetching it:
         //   {
-        //       "algoOrderId" => "1578958",
-        //       "clientOrderId" => "0",
-        //       "rootAlgoOrderId" => "1578958",
-        //       "parentAlgoOrderId" => "0",
-        //       "symbol" => "SPOT_LTC_USDT",
-        //       "orderTag" => "default",
-        //       "algoType" => "STOP_LOSS",
-        //       "side" => "BUY",
-        //       "quantity" => "0.1",
-        //       "isTriggered" => false,
-        //       "triggerPrice" => "100",
-        //       "triggerStatus" => "USELESS",
-        //       "type" => "LIMIT",
-        //       "rootAlgoStatus" => "CANCELLED",
-        //       "algoStatus" => "CANCELLED",
-        //       "triggerPriceType" => "MARKET_PRICE",
-        //       "price" => "75",
-        //       "triggerTime" => "0",
-        //       "totalExecutedQuantity" => "0",
-        //       "averageExecutedPrice" => "0",
-        //       "totalFee" => "0",
-        //       "feeAsset" => '',
-        //       "reduceOnly" => false,
-        //       "createdTime" => "1686149609.744",
-        //       "updatedTime" => "1686149903.362"
+        //       "algoOrderId": "1578958",
+        //       "clientOrderId": "0",
+        //       "rootAlgoOrderId": "1578958",
+        //       "parentAlgoOrderId": "0",
+        //       "symbol": "SPOT_LTC_USDT",
+        //       "orderTag": "default",
+        //       "algoType": "STOP_LOSS",
+        //       "side": "BUY",
+        //       "quantity": "0.1",
+        //       "isTriggered": false,
+        //       "triggerPrice": "100",
+        //       "triggerStatus": "USELESS",
+        //       "type": "LIMIT",
+        //       "rootAlgoStatus": "CANCELLED",
+        //       "algoStatus": "CANCELLED",
+        //       "triggerPriceType": "MARKET_PRICE",
+        //       "price": "75",
+        //       "triggerTime": "0",
+        //       "totalExecutedQuantity": "0",
+        //       "averageExecutedPrice": "0",
+        //       "totalFee": "0",
+        //       "feeAsset": '',
+        //       "reduceOnly": false,
+        //       "createdTime": "1686149609.744",
+        //       "updatedTime": "1686149903.362"
         //   }
         //
         $timestamp = $this->safe_integer_n($order, array( 'timestamp', 'created_time', 'createdTime' ));
         $orderId = $this->safe_string_n($order, array( 'order_id', 'orderId', 'algoOrderId' ));
-        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit $order
+        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $price = $this->safe_string_2($order, 'order_price', 'price');
-        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base $amount
-        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote $amount
+        $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
+        $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
-        $status = $this->safe_value_2($order, 'status', 'algoStatus');
+        $status = $this->safe_string_2($order, 'status', 'algoStatus');
         $success = $this->safe_bool($order, 'success');
         if ($success !== null) {
             $status = ($success) ? 'NEW' : 'REJECTED';
         }
         $side = $this->safe_string_lower($order, 'side');
-        $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
+        $filled = $this->omit_zero($this->safe_string_2($order, 'executed', 'totalExecutedQuantity'));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
         $remaining = Precise::string_sub($cost, $filled);
-        $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
+        $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        $childOrders = $this->safe_value($order, 'childOrders');
+        $childOrders = $this->safe_list($order, 'childOrders');
         if ($childOrders !== null) {
-            $first = $this->safe_value($childOrders, 0);
+            $first = $this->safe_dict($childOrders, 0);
             $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
-                $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
-                $stopLossOrder = $this->safe_value($innerChildOrders, 1);
+                $takeProfitOrder = $this->safe_dict($innerChildOrders, 0);
+                $stopLossOrder = $this->safe_dict($innerChildOrders, 1);
                 $takeProfitPrice = $this->safe_number($takeProfitOrder, 'triggerPrice');
                 $stopLossPrice = $this->safe_number($stopLossOrder, 'triggerPrice');
             }
@@ -1575,7 +1575,7 @@ class modetrade extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
@@ -1683,7 +1683,7 @@ class modetrade extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1727,13 +1727,13 @@ class modetrade extends Exchange {
             $response = Async\await($this->v1PrivatePostAlgoOrder($request));
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "algo_type" => "STOP",
-            //       "quantity" => 100.12
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "algo_type": "STOP",
+            //       "quantity": 100.12
             //     }
             // }
             //
@@ -1741,16 +1741,16 @@ class modetrade extends Exchange {
             $response = Async\await($this->v1PrivatePostOrder($request));
             //
             // {
-            //     "success" => true,
-            //     "timestamp" => 1702989203989,
-            //     "data" => {
-            //       "order_id" => 13,
-            //       "client_order_id" => "testclientid",
-            //       "order_type" => "LIMIT",
-            //       "order_price" => 100.12,
-            //       "order_quantity" => 0.987654,
-            //       "order_amount" => 0.8,
-            //       "error_message" => "none"
+            //     "success": true,
+            //     "timestamp": 1702989203989,
+            //     "data": {
+            //       "order_id": 13,
+            //       "client_order_id": "testclientid",
+            //       "order_type": "LIMIT",
+            //       "order_price": 100.12,
+            //       "order_quantity": 0.987654,
+            //       "order_amount": 0.8,
+            //       "error_message": "none"
             //     }
             // }
             //
@@ -1762,7 +1762,7 @@ class modetrade extends Exchange {
         return $order;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1792,8 +1792,8 @@ class modetrade extends Exchange {
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
-            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
+            $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
@@ -1807,18 +1807,18 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivatePostBatchOrder($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203988,
-        //         "data" => {
-        //             "rows" => [array(
-        //                 "order_id" => 13,
-        //                 "client_order_id" => "testclientid",
-        //                 "order_type" => "LIMIT",
-        //                 "order_price" => 100.12,
-        //                 "order_quantity" => 0.987654,
-        //                 "order_amount" => 0.8,
-        //                 "error_message" => "none"
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203988,
+        //         "data": {
+        //             "rows": [{
+        //                 "order_id": 13,
+        //                 "client_order_id": "testclientid",
+        //                 "order_type": "LIMIT",
+        //                 "order_price": 100.12,
+        //                 "order_quantity": 0.987654,
+        //                 "order_amount": 0.8,
+        //                 "error_message": "none"
+        //             }]
         //         }
         //     }
         //
@@ -1827,7 +1827,7 @@ class modetrade extends Exchange {
         return $this->parse_orders($rows);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1897,16 +1897,16 @@ class modetrade extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            // $request['side'] = strtoupper($side);
-            // $request['symbol'] = $market['id'];
+            // request['side'] = side.toUpperCase ();
+            // request['symbol'] = market['id'];
             $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $params)));
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "EDIT_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "EDIT_SENT"
         //     }
         // }
         //
@@ -1915,7 +1915,7 @@ class modetrade extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1974,17 +1974,17 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203988,
-        //     "data" => {
-        //       "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203988,
+        //     "data": {
+        //       "status": "CANCEL_SENT"
         //     }
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203988,
-        //     "status" => "CANCEL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203988,
+        //     "status": "CANCEL_SENT"
         // }
         //
         $extendParams = array( 'symbol' => $symbol );
@@ -2000,7 +2000,7 @@ class modetrade extends Exchange {
         return $this->extend($this->parse_order($data), $extendParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -2033,10 +2033,10 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -2045,7 +2045,7 @@ class modetrade extends Exchange {
         )) );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2077,18 +2077,18 @@ class modetrade extends Exchange {
         } else {
             $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $params)));
         }
-        // $trigger
+        // trigger
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //      "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //      "status": "CANCEL_ALL_SENT"
         // }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "status" => "CANCEL_ALL_SENT"
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "status": "CANCEL_ALL_SENT"
         //     }
         // }
         //
@@ -2099,7 +2099,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2150,28 +2150,28 @@ class modetrade extends Exchange {
         }
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "order_id" => 78151,
-        //         "user_id" => 12345,
-        //         "price" => 0.67772,
-        //         "type" => "LIMIT",
-        //         "quantity" => 20,
-        //         "amount" => 10,
-        //         "executed_quantity" => 20,
-        //         "total_executed_quantity" => 20,
-        //         "visible_quantity" => 1,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "side" => "BUY",
-        //         "status" => "FILLED",
-        //         "total_fee" => 0.5,
-        //         "fee_asset" => "BTC",
-        //         "client_order_id" => 1,
-        //         "average_executed_price" => 0.67772,
-        //         "created_time" => 1653563963000,
-        //         "updated_time" => 1653564213000,
-        //         "realized_pnl" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "order_id": 78151,
+        //         "user_id": 12345,
+        //         "price": 0.67772,
+        //         "type": "LIMIT",
+        //         "quantity": 20,
+        //         "amount": 10,
+        //         "executed_quantity": 20,
+        //         "total_executed_quantity": 20,
+        //         "visible_quantity": 1,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "side": "BUY",
+        //         "status": "FILLED",
+        //         "total_fee": 0.5,
+        //         "fee_asset": "BTC",
+        //         "client_order_id": 1,
+        //         "average_executed_price": 0.67772,
+        //         "created_time": 1653563963000,
+        //         "updated_time": 1653564213000,
+        //         "realized_pnl": 123
         //     }
         // }
         //
@@ -2238,39 +2238,39 @@ class modetrade extends Exchange {
         }
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "meta" => array(
-        //                 "total" => 9,
-        //                 "records_per_page" => 25,
-        //                 "current_page" => 1
-        //             ),
-        //             "rows" => [array(
-        //                 "order_id" => 78151,
-        //                 "user_id" => 12345,
-        //                 "price" => 0.67772,
-        //                 "type" => "LIMIT",
-        //                 "quantity" => 20,
-        //                 "amount" => 10,
-        //                 "executed_quantity" => 20,
-        //                 "total_executed_quantity" => 20,
-        //                 "visible_quantity" => 1,
-        //                 "symbol" => "PERP_BTC_USDC",
-        //                 "side" => "BUY",
-        //                 "status" => "FILLED",
-        //                 "total_fee" => 0.5,
-        //                 "fee_asset" => "BTC",
-        //                 "client_order_id" => 1,
-        //                 "average_executed_price" => 0.67772,
-        //                 "created_time" => 1653563963000,
-        //                 "updated_time" => 1653564213000,
-        //                 "realized_pnl" => 123
-        //             )]
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "meta": {
+        //                 "total": 9,
+        //                 "records_per_page": 25,
+        //                 "current_page": 1
+        //             },
+        //             "rows": [{
+        //                 "order_id": 78151,
+        //                 "user_id": 12345,
+        //                 "price": 0.67772,
+        //                 "type": "LIMIT",
+        //                 "quantity": 20,
+        //                 "amount": 10,
+        //                 "executed_quantity": 20,
+        //                 "total_executed_quantity": 20,
+        //                 "visible_quantity": 1,
+        //                 "symbol": "PERP_BTC_USDC",
+        //                 "side": "BUY",
+        //                 "status": "FILLED",
+        //                 "total_fee": 0.5,
+        //                 "fee_asset": "BTC",
+        //                 "client_order_id": 1,
+        //                 "average_executed_price": 0.67772,
+        //                 "created_time": 1653563963000,
+        //                 "updated_time": 1653564213000,
+        //                 "realized_pnl": 123
+        //             }]
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_dict($response, 'data', $response);
         $orders = $this->safe_list($data, 'rows', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2333,7 +2333,7 @@ class modetrade extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2363,22 +2363,22 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetOrderOidTrades($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
@@ -2387,7 +2387,7 @@ class modetrade extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2431,27 +2431,27 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetTrades($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => 2,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "fee" => 0.0001,
-        //         "fee_asset" => "USDC",
-        //         "side" => "BUY",
-        //         "order_id" => 1,
-        //         "executed_price" => 123,
-        //         "executed_quantity" => 0.05,
-        //         "executed_timestamp" => 1567382401000,
-        //         "is_maker" => 1,
-        //         "realized_pnl" => 123
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": 2,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "fee": 0.0001,
+        //         "fee_asset": "USDC",
+        //         "side": "BUY",
+        //         "order_id": 1,
+        //         "executed_price": 123,
+        //         "executed_quantity": 0.05,
+        //         "executed_timestamp": 1567382401000,
+        //         "is_maker": 1,
+        //         "realized_pnl": 123
+        //       }]
         //     }
         // }
         //
@@ -2497,16 +2497,16 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetClientHolding($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "holding" => [array(
-        //         "updated_time" => 1580794149000,
-        //         "token" => "BTC",
-        //         "holding" => -28.000752,
-        //         "frozen" => 123,
-        //         "pending_short" => -2000
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "holding": [{
+        //         "updated_time": 1580794149000,
+        //         "token": "BTC",
+        //         "holding": -28.000752,
+        //         "frozen": 123,
+        //         "pending_short": -2000
+        //       }]
         //     }
         // }
         //
@@ -2526,13 +2526,13 @@ class modetrade extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['balance_token'] = $currency['id'];
+            $request['token'] = $currency['id'];
         }
         if ($since !== null) {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['size'] = $limit;
         }
         $transactionType = $this->safe_string($params, 'type');
         $params = $this->omit($params, 'type');
@@ -2542,26 +2542,26 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //       "meta" => array(
-        //         "total" => 9,
-        //         "records_per_page" => 25,
-        //         "current_page" => 1
-        //       ),
-        //       "rows" => [array(
-        //         "id" => "230707030600002",
-        //         "tx_id" => "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
-        //         "side" => "WITHDRAW",
-        //         "token" => "USDC",
-        //         "amount" => 555,
-        //         "fee" => 123,
-        //         "trans_status" => "FAILED",
-        //         "created_time" => 1688699193034,
-        //         "updated_time" => 1688699193096,
-        //         "chain_id" => "986532"
-        //       )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //       "meta": {
+        //         "total": 9,
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //       },
+        //       "rows": [{
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //       }]
         //     }
         // }
         //
@@ -2570,21 +2570,45 @@ class modetrade extends Exchange {
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         $currencyId = $this->safe_string($item, 'token');
         $code = $this->safe_currency_code($currencyId, $currency);
         $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number($item, 'amount');
-        $side = $this->safe_string($item, 'token_side');
-        $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        $side = $this->safe_string($item, 'side');
+        $direction = null;
+        if ($side !== null) {
+            $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        }
         $timestamp = $this->safe_integer($item, 'created_time');
-        $fee = $this->parse_token_and_fee_temp($item, 'fee_token', 'fee_amount');
+        $feeCost = $this->parse_number($this->safe_string($item, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         return $this->safe_ledger_entry(array(
             'id' => $this->safe_string($item, 'id'),
             'currency' => $code,
-            'account' => $this->safe_string($item, 'account'),
+            'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tx_id'),
-            'status' => $this->parse_transaction_status($this->safe_string($item, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($item, 'trans_status')),
             'amount' => $amount,
             'before' => null,
             'after' => null,
@@ -2592,15 +2616,17 @@ class modetrade extends Exchange {
             'direction' => $direction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'type' => $this->parse_ledger_entry_type($this->safe_string_2($item, 'type', 'side')),
             'info' => $item,
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
+            'DEPOSIT' => 'transaction', // Funds deposited from the chain
+            'WITHDRAW' => 'transaction', // Funds withdrawn to the chain
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -2628,15 +2654,34 @@ class modetrade extends Exchange {
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
-        // example in fetchLedger
-        $code = $this->safe_string($transaction, 'token');
-        $movementDirection = $this->safe_string_lower($transaction, 'token_side');
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        $currencyId = $this->safe_string($transaction, 'token');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $movementDirection = $this->safe_string_lower($transaction, 'side');
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
         }
-        $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $addressTo = $this->safe_string($transaction, 'target_address');
-        $addressFrom = $this->safe_string($transaction, 'source_address');
+        $feeCost = $this->parse_number($this->safe_string($transaction, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         $timestamp = $this->safe_integer($transaction, 'created_time');
         return array(
             'info' => $transaction,
@@ -2645,20 +2690,20 @@ class modetrade extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => null,
-            'addressFrom' => $addressFrom,
-            'addressTo' => $addressTo,
-            'tag' => $this->safe_string($transaction, 'extra'),
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tag' => null,
             'tagFrom' => null,
             'tagTo' => null,
             'type' => $movementDirection,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'trans_status')),
             'updated' => $this->safe_integer($transaction, 'updated_time'),
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => null,
+            'network' => null, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         );
     }
 
@@ -2666,8 +2711,11 @@ class modetrade extends Exchange {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
+            'PENDING' => 'pending',
+            'PENDING_REBALANCE' => 'pending',
             'PROCESSING' => 'pending',
             'COMPLETED' => 'ok',
+            'FAILED' => 'failed',
             'CANCELED' => 'canceled',
         );
         if ($status === null) {
@@ -2742,19 +2790,20 @@ class modetrade extends Exchange {
         $rows = $this->safe_list($currencyRows, 1, array());
         //
         //     {
-        //         "rows":array(),
-        //         "meta":array(
+        //         "rows":[],
+        //         "meta":{
         //             "total":0,
         //             "records_per_page":25,
         //             "current_page":1
-        //         ),
+        //         },
         //         "success":true
         //     }
         //
+        $params = $this->omit($params, 'side'); // request-side filter, not a unified transaction field
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
-    public function get_withdraw_nonce($params = array()) {
+    public function get_withdraw_nonce($params = array()): PromiseInterface {
         return Async\async(self::do_get_withdraw_nonce(...))($params);
     }
 
@@ -2762,10 +2811,10 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetWithdrawNonce($params));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_nonce" => 1
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_nonce": 1
         //         }
         //     }
         //
@@ -2777,7 +2826,7 @@ class modetrade extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2785,7 +2834,7 @@ class modetrade extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2865,10 +2914,10 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "timestamp" => 1702989203989,
-        //         "data" => {
-        //             "withdraw_id" => 123
+        //         "success": true,
+        //         "timestamp": 1702989203989,
+        //         "data": {
+        //             "withdraw_id": 123
         //         }
         //     }
         //
@@ -2908,27 +2957,27 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetClientInfo($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "account_id" => "<string>",
-        //         "email" => "test@test.com",
-        //         "account_mode" => "FUTURES",
-        //         "max_leverage" => 20,
-        //         "taker_fee_rate" => 123,
-        //         "maker_fee_rate" => 123,
-        //         "futures_taker_fee_rate" => 123,
-        //         "futures_maker_fee_rate" => 123,
-        //         "maintenance_cancel_orders" => true,
-        //         "imr_factor" => array(
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
-        //         ),
-        //         "max_notional" => {
-        //             "PERP_BTC_USDC" => 123,
-        //             "PERP_ETH_USDC" => 123,
-        //             "PERP_NEAR_USDC" => 123
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "account_id": "<string>",
+        //         "email": "test@test.com",
+        //         "account_mode": "FUTURES",
+        //         "max_leverage": 20,
+        //         "taker_fee_rate": 123,
+        //         "maker_fee_rate": 123,
+        //         "futures_taker_fee_rate": 123,
+        //         "futures_maker_fee_rate": 123,
+        //         "maintenance_cancel_orders": true,
+        //         "imr_factor": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
+        //         },
+        //         "max_notional": {
+        //             "PERP_BTC_USDC": 123,
+        //             "PERP_ETH_USDC": 123,
+        //             "PERP_NEAR_USDC": 123
         //         }
         //     }
         // }
@@ -2966,27 +3015,27 @@ class modetrade extends Exchange {
         return Async\await($this->v1PrivatePostClientLeverage($this->extend($request, $params)));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
-        //     "IMR_withdraw_orders" => 0.1,
-        //     "MMR_with_orders" => 0.05,
-        //     "average_open_price" => 27908.14386047,
-        //     "cost_position" => -139329.358492,
-        //     "est_liq_price" => 117335.92899428,
-        //     "fee_24_h" => 123,
-        //     "imr" => 0.1,
-        //     "last_sum_unitary_funding" => 70.38,
-        //     "mark_price" => 27794.9,
-        //     "mmr" => 0.05,
-        //     "pending_long_qty" => 123,
-        //     "pending_short_qty" => 123,
-        //     "pnl_24_h" => 123,
-        //     "position_qty" => -5,
-        //     "settle_price" => 27865.8716984,
-        //     "symbol" => "PERP_BTC_USDC",
-        //     "timestamp" => 1685429350571,
-        //     "unsettled_pnl" => 354.858492
+        //     "IMR_withdraw_orders": 0.1,
+        //     "MMR_with_orders": 0.05,
+        //     "average_open_price": 27908.14386047,
+        //     "cost_position": -139329.358492,
+        //     "est_liq_price": 117335.92899428,
+        //     "fee_24_h": 123,
+        //     "imr": 0.1,
+        //     "last_sum_unitary_funding": 70.38,
+        //     "mark_price": 27794.9,
+        //     "mmr": 0.05,
+        //     "pending_long_qty": 123,
+        //     "pending_short_qty": 123,
+        //     "pnl_24_h": 123,
+        //     "position_qty": -5,
+        //     "settle_price": 27865.8716984,
+        //     "symbol": "PERP_BTC_USDC",
+        //     "timestamp": 1685429350571,
+        //     "unsettled_pnl": 354.858492
         // }
         //
         $contract = $this->safe_string($position, 'symbol');
@@ -3037,7 +3086,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -3064,27 +3113,27 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetPositionSymbol($this->extend($request, $params)));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "IMR_withdraw_orders" => 0.1,
-        //         "MMR_with_orders" => 0.05,
-        //         "average_open_price" => 27908.14386047,
-        //         "cost_position" => -139329.358492,
-        //         "est_liq_price" => 117335.92899428,
-        //         "fee_24_h" => 123,
-        //         "imr" => 0.1,
-        //         "last_sum_unitary_funding" => 70.38,
-        //         "mark_price" => 27794.9,
-        //         "mmr" => 0.05,
-        //         "pending_long_qty" => 123,
-        //         "pending_short_qty" => 123,
-        //         "pnl_24_h" => 123,
-        //         "position_qty" => -5,
-        //         "settle_price" => 27865.8716984,
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "timestamp" => 1685429350571,
-        //         "unsettled_pnl" => 354.858492
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "IMR_withdraw_orders": 0.1,
+        //         "MMR_with_orders": 0.05,
+        //         "average_open_price": 27908.14386047,
+        //         "cost_position": -139329.358492,
+        //         "est_liq_price": 117335.92899428,
+        //         "fee_24_h": 123,
+        //         "imr": 0.1,
+        //         "last_sum_unitary_funding": 70.38,
+        //         "mark_price": 27794.9,
+        //         "mmr": 0.05,
+        //         "pending_long_qty": 123,
+        //         "pending_short_qty": 123,
+        //         "pnl_24_h": 123,
+        //         "position_qty": -5,
+        //         "settle_price": 27865.8716984,
+        //         "symbol": "PERP_BTC_USDC",
+        //         "timestamp": 1685429350571,
+        //         "unsettled_pnl": 354.858492
         //     }
         // }
         //
@@ -3112,39 +3161,39 @@ class modetrade extends Exchange {
         $response = Async\await($this->v1PrivateGetPositions($params));
         //
         // {
-        //     "success" => true,
-        //     "timestamp" => 1702989203989,
-        //     "data" => {
-        //         "current_margin_ratio_with_orders" => 1.2385,
-        //         "free_collateral" => 450315.09115,
-        //         "initial_margin_ratio" => 0.1,
-        //         "initial_margin_ratio_with_orders" => 0.1,
-        //         "maintenance_margin_ratio" => 0.05,
-        //         "maintenance_margin_ratio_with_orders" => 0.05,
-        //         "margin_ratio" => 1.2385,
-        //         "open_margin_ratio" => 1.2102,
-        //         "total_collateral_value" => 489865.71329,
-        //         "total_pnl_24_h" => 123,
-        //         "rows" => [array(
-        //             "IMR_withdraw_orders" => 0.1,
-        //             "MMR_with_orders" => 0.05,
-        //             "average_open_price" => 27908.14386047,
-        //             "cost_position" => -139329.358492,
-        //             "est_liq_price" => 117335.92899428,
-        //             "fee_24_h" => 123,
-        //             "imr" => 0.1,
-        //             "last_sum_unitary_funding" => 70.38,
-        //             "mark_price" => 27794.9,
-        //             "mmr" => 0.05,
-        //             "pending_long_qty" => 123,
-        //             "pending_short_qty" => 123,
-        //             "pnl_24_h" => 123,
-        //             "position_qty" => -5,
-        //             "settle_price" => 27865.8716984,
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "timestamp" => 1685429350571,
-        //             "unsettled_pnl" => 354.858492
-        //         )]
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "current_margin_ratio_with_orders": 1.2385,
+        //         "free_collateral": 450315.09115,
+        //         "initial_margin_ratio": 0.1,
+        //         "initial_margin_ratio_with_orders": 0.1,
+        //         "maintenance_margin_ratio": 0.05,
+        //         "maintenance_margin_ratio_with_orders": 0.05,
+        //         "margin_ratio": 1.2385,
+        //         "open_margin_ratio": 1.2102,
+        //         "total_collateral_value": 489865.71329,
+        //         "total_pnl_24_h": 123,
+        //         "rows": [{
+        //             "IMR_withdraw_orders": 0.1,
+        //             "MMR_with_orders": 0.05,
+        //             "average_open_price": 27908.14386047,
+        //             "cost_position": -139329.358492,
+        //             "est_liq_price": 117335.92899428,
+        //             "fee_24_h": 123,
+        //             "imr": 0.1,
+        //             "last_sum_unitary_funding": 70.38,
+        //             "mark_price": 27794.9,
+        //             "mmr": 0.05,
+        //             "pending_long_qty": 123,
+        //             "pending_short_qty": 123,
+        //             "pnl_24_h": 123,
+        //             "position_qty": -5,
+        //             "settle_price": 27865.8716984,
+        //             "symbol": "PERP_BTC_USDC",
+        //             "timestamp": 1685429350571,
+        //             "unsettled_pnl": 354.858492
+        //         }]
         //     }
         // }
         //
@@ -3153,11 +3202,11 @@ class modetrade extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3231,8 +3280,8 @@ class modetrade extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        //     400 Bad Request array("success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled.")
-        //                     array("code":"-1011","message":"The system is under maintenance.","success":false)
+        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');

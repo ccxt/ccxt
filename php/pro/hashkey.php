@@ -118,31 +118,31 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "symbolName" => "DOGEUSDT",
-        //         "topic" => "kline",
-        //         "params" => array(
-        //             "realtimeInterval" => "24h",
-        //             "klineType" => "1m"
-        //         ),
-        //         "data" => array(
+        //         "symbol": "DOGEUSDT",
+        //         "symbolName": "DOGEUSDT",
+        //         "topic": "kline",
+        //         "params": {
+        //             "realtimeInterval": "24h",
+        //             "klineType": "1m"
+        //         },
+        //         "data": [
         //             {
-        //                 "t" => 1722861660000,
-        //                 "s" => "DOGEUSDT",
-        //                 "sn" => "DOGEUSDT",
-        //                 "c" => "0.08389",
-        //                 "h" => "0.08389",
-        //                 "l" => "0.08389",
-        //                 "o" => "0.08389",
-        //                 "v" => "0"
+        //                 "t": 1722861660000,
+        //                 "s": "DOGEUSDT",
+        //                 "sn": "DOGEUSDT",
+        //                 "c": "0.08389",
+        //                 "h": "0.08389",
+        //                 "l": "0.08389",
+        //                 "o": "0.08389",
+        //                 "v": "0"
         //             }
-        //         ),
-        //         "f" => true,
-        //         "sendTime" => 1722861664258,
-        //         "shared" => false
+        //         ],
+        //         "f": true,
+        //         "sendTime": 1722861664258,
+        //         "shared": false
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -172,14 +172,14 @@ class hashkey extends \ccxt\async\hashkey {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "t" => 1722861660000,
-        //         "s" => "DOGEUSDT",
-        //         "sn" => "DOGEUSDT",
-        //         "c" => "0.08389",
-        //         "h" => "0.08389",
-        //         "l" => "0.08389",
-        //         "o" => "0.08389",
-        //         "v" => "0"
+        //         "t": 1722861660000,
+        //         "s": "DOGEUSDT",
+        //         "sn": "DOGEUSDT",
+        //         "c": "0.08389",
+        //         "h": "0.08389",
+        //         "l": "0.08389",
+        //         "o": "0.08389",
+        //         "v": "0"
         //     }
         //
         return array(
@@ -217,37 +217,37 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->wath_public($market, $topic, $messageHash, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "symbolName" => "ETHUSDT",
-        //         "topic" => "realtimes",
-        //         "params" => array(
-        //             "realtimeInterval" => "24h"
-        //         ),
-        //         "data" => array(
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "realtimes",
+        //         "params": {
+        //             "realtimeInterval": "24h"
+        //         },
+        //         "data": [
         //             {
-        //                 "t" => 1722864411064,
-        //                 "s" => "ETHUSDT",
-        //                 "sn" => "ETHUSDT",
-        //                 "c" => "2195",
-        //                 "h" => "2918.85",
-        //                 "l" => "2135.5",
-        //                 "o" => "2915.78",
-        //                 "v" => "666.5019",
-        //                 "qv" => "1586902.757079",
-        //                 "m" => "-0.2472",
-        //                 "e" => 301
+        //                 "t": 1722864411064,
+        //                 "s": "ETHUSDT",
+        //                 "sn": "ETHUSDT",
+        //                 "c": "2195",
+        //                 "h": "2918.85",
+        //                 "l": "2135.5",
+        //                 "o": "2915.78",
+        //                 "v": "666.5019",
+        //                 "qv": "1586902.757079",
+        //                 "m": "-0.2472",
+        //                 "e": 301
         //             }
-        //         ),
-        //         "f" => false,
-        //         "sendTime" => 1722864411086,
-        //         "shared" => false
+        //         ],
+        //         "f": false,
+        //         "sendTime": 1722864411086,
+        //         "shared": false
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
-        $ticker = $this->parse_ticker($this->safe_dict($data, 0));
+        $ticker = $this->parse_ticker($this->safe_dict($data, 0, array()));
         $symbol = $ticker['symbol'];
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
@@ -285,29 +285,29 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "symbolName" => "ETHUSDT",
-        //         "topic" => "trade",
-        //         "params" => array(
-        //             "realtimeInterval" => "24h"
-        //         ),
-        //         "data" => array(
-        //             array(
-        //                 "v" => "1745922896272048129",
-        //                 "t" => 1722866228075,
-        //                 "p" => "2340.41",
-        //                 "q" => "0.0132",
-        //                 "m" => true
-        //             ),
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "trade",
+        //         "params": {
+        //             "realtimeInterval": "24h"
+        //         },
+        //         "data": [
+        //             {
+        //                 "v": "1745922896272048129",
+        //                 "t": 1722866228075,
+        //                 "p": "2340.41",
+        //                 "q": "0.0132",
+        //                 "m": true
+        //             },
         //             ...
-        //         ),
-        //         "f" => true,
-        //         "sendTime" => 1722869464248,
-        //         "channelId" => "668498fffeba4108-00000001-00113184-562e27d215e43f9c-c188b319",
-        //         "shared" => false
+        //         ],
+        //         "f": true,
+        //         "sendTime": 1722869464248,
+        //         "channelId": "668498fffeba4108-00000001-00113184-562e27d215e43f9c-c188b319",
+        //         "shared": false
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -357,34 +357,34 @@ class hashkey extends \ccxt\async\hashkey {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "symbolName" => "ETHUSDT",
-        //         "topic" => "depth",
-        //         "params" => array( "realtimeInterval" => "24h" ),
-        //         "data" => array(
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "depth",
+        //         "params": { "realtimeInterval": "24h" },
+        //         "data": [
         //             {
-        //                 "e" => 301,
-        //                 "s" => "ETHUSDT",
-        //                 "t" => 1722873144371,
-        //                 "v" => "84661262_18",
-        //                 "b" => array(
-        //                     array( "1650", "0.0864" ),
+        //                 "e": 301,
+        //                 "s": "ETHUSDT",
+        //                 "t": 1722873144371,
+        //                 "v": "84661262_18",
+        //                 "b": [
+        //                     [ "1650", "0.0864" ],
         //                     ...
-        //                 ),
-        //                 "a" => array(
+        //                 ],
+        //                 "a": [
         //                     ["4085", "0.0074" ],
         //                     ...
-        //                 ),
-        //                 "o" => 0
+        //                 ],
+        //                 "o": 0
         //             }
-        //         ),
-        //         "f" => false,
-        //         "sendTime" => 1722873144589,
-        //         "channelId" => "2265aafffe68b588-00000001-0011510c-9e9ca710b1500854-551830bd",
-        //         "shared" => false
+        //         ],
+        //         "f": false,
+        //         "sendTime": 1722873144589,
+        //         "channelId": "2265aafffe68b588-00000001-0011510c-9e9ca710b1500854-551830bd",
+        //         "shared": false
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -435,40 +435,40 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // swap
         //     {
-        //         "e" => "contractExecutionReport",
-        //         "E" => "1723037391181",
-        //         "s" => "ETHUSDT-PERPETUAL",
-        //         "c" => "1723037389677",
-        //         "S" => "BUY_OPEN",
-        //         "o" => "LIMIT",
-        //         "f" => "IOC",
-        //         "q" => "1",
-        //         "p" => "2561.75",
-        //         "X" => "FILLED",
-        //         "i" => "1747358716129257216",
-        //         "l" => "1",
-        //         "z" => "1",
-        //         "L" => "2463.36",
-        //         "n" => "0.001478016",
-        //         "N" => "USDT",
-        //         "u" => true,
-        //         "w" => true,
-        //         "m" => false,
-        //         "O" => "1723037391140",
-        //         "Z" => "2463.36",
-        //         "C" => false,
-        //         "v" => "5",
-        //         "reqAmt" => "0",
-        //         "d" => "1747358716255075840",
-        //         "r" => "0",
-        //         "V" => "2463.36",
-        //         "P" => "0",
-        //         "lo" => false,
-        //         "lt" => ""
+        //         "e": "contractExecutionReport",
+        //         "E": "1723037391181",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "c": "1723037389677",
+        //         "S": "BUY_OPEN",
+        //         "o": "LIMIT",
+        //         "f": "IOC",
+        //         "q": "1",
+        //         "p": "2561.75",
+        //         "X": "FILLED",
+        //         "i": "1747358716129257216",
+        //         "l": "1",
+        //         "z": "1",
+        //         "L": "2463.36",
+        //         "n": "0.001478016",
+        //         "N": "USDT",
+        //         "u": true,
+        //         "w": true,
+        //         "m": false,
+        //         "O": "1723037391140",
+        //         "Z": "2463.36",
+        //         "C": false,
+        //         "v": "5",
+        //         "reqAmt": "0",
+        //         "d": "1747358716255075840",
+        //         "r": "0",
+        //         "V": "2463.36",
+        //         "P": "0",
+        //         "lo": false,
+        //         "lt": ""
         //     }
         //
         if ($this->orders === null) {
@@ -496,7 +496,7 @@ class hashkey extends \ccxt\async\hashkey {
         $timeInForce = $this->safe_string($order, 'f');
         $postOnly = null;
         list($type, $timeInForce, $postOnly) = $this->parseOrderTypeTimeInForceAndPostOnly($type, $timeInForce);
-        if ($market['contract'] === true) { // swap orders are always have $type 'LIMIT', thus we can not define the correct $type
+        if ($market['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             $type = null;
         }
         return $this->safe_order(array(
@@ -563,21 +563,21 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message, $subscription = array()) {
+    public function handle_my_trade(Client $client, array $message, array $subscription = array()) {
         //
         //     {
-        //         "e" => "ticketInfo",
-        //         "E" => "1723037391156",
-        //         "s" => "ETHUSDT-PERPETUAL",
-        //         "q" => "1.00",
-        //         "t" => "1723037391147",
-        //         "p" => "2463.36",
-        //         "T" => "1747358716187197441",
-        //         "o" => "1747358716129257216",
-        //         "c" => "1723037389677",
-        //         "a" => "1735619524953226496",
-        //         "m" => false,
-        //         "S" => "BUY"
+        //         "e": "ticketInfo",
+        //         "E": "1723037391156",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "q": "1.00",
+        //         "t": "1723037391147",
+        //         "p": "2463.36",
+        //         "T": "1747358716187197441",
+        //         "o": "1747358716129257216",
+        //         "c": "1723037389677",
+        //         "a": "1735619524953226496",
+        //         "m": false,
+        //         "S": "BUY"
         //     }
         //
         if ($this->myTrades === null) {
@@ -599,27 +599,27 @@ class hashkey extends \ccxt\async\hashkey {
         //
         // watchTrades
         //     {
-        //         "v" => "1745922896272048129",
-        //         "t" => 1722866228075,
-        //         "p" => "2340.41",
-        //         "q" => "0.0132",
-        //         "m" => true
+        //         "v": "1745922896272048129",
+        //         "t": 1722866228075,
+        //         "p": "2340.41",
+        //         "q": "0.0132",
+        //         "m": true
         //     }
         //
         // watchMyTrades
         //     {
-        //         "e" => "ticketInfo",
-        //         "E" => "1723037391156",
-        //         "s" => "ETHUSDT-PERPETUAL",
-        //         "q" => "1.00",
-        //         "t" => "1723037391147",
-        //         "p" => "2463.36",
-        //         "T" => "1747358716187197441",
-        //         "o" => "1747358716129257216",
-        //         "c" => "1723037389677",
-        //         "a" => "1735619524953226496",
-        //         "m" => false,
-        //         "S" => "BUY"
+        //         "e": "ticketInfo",
+        //         "E": "1723037391156",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "q": "1.00",
+        //         "t": "1723037391147",
+        //         "p": "2463.36",
+        //         "T": "1747358716187197441",
+        //         "o": "1747358716129257216",
+        //         "c": "1723037389677",
+        //         "a": "1735619524953226496",
+        //         "m": false,
+        //         "S": "BUY"
         //     }
         //
         $marketId = $this->safe_string($trade, 's');
@@ -694,26 +694,26 @@ class hashkey extends \ccxt\async\hashkey {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_position(Client $client, mixed $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //     {
-        //         "e" => "outboundContractPositionInfo",
-        //         "E" => "1723084699801",
-        //         "A" => "1735619524953226496",
-        //         "s" => "ETHUSDT-PERPETUAL",
-        //         "S" => "LONG",
-        //         "p" => "2429.6",
-        //         "P" => "2",
-        //         "a" => "2",
-        //         "f" => "10760.14",
-        //         "m" => "1.0085",
-        //         "r" => "-0.0029",
-        //         "up" => "0.0478",
-        //         "pr" => "0.0492",
-        //         "pv" => "4.8592",
-        //         "v" => "5.00",
-        //         "mt" => "CROSS",
-        //         "mm" => "0.0367"
+        //         "e": "outboundContractPositionInfo",
+        //         "E": "1723084699801",
+        //         "A": "1735619524953226496",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "S": "LONG",
+        //         "p": "2429.6",
+        //         "P": "2",
+        //         "a": "2",
+        //         "f": "10760.14",
+        //         "m": "1.0085",
+        //         "r": "-0.0029",
+        //         "up": "0.0478",
+        //         "pr": "0.0492",
+        //         "pv": "4.8592",
+        //         "v": "5.00",
+        //         "mt": "CROSS",
+        //         "mm": "0.0367"
         //     }
         //
         if ($this->positions === null) {
@@ -798,7 +798,7 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subscribeHash) {
+    public function set_balance_cache(Client $client, string $type, string $subscribeHash) {
         if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -815,14 +815,14 @@ class hashkey extends \ccxt\async\hashkey {
         // without this comment, transpilation breaks for some reason...
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
-        // don't remove the $future from the .futures cache
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve();
@@ -830,23 +830,23 @@ class hashkey extends \ccxt\async\hashkey {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "e" => "outboundContractAccountInfo",        // $event $type
+        //         "e": "outboundContractAccountInfo",        // event type
         //                                                    // outboundContractAccountInfo
-        //         "E" => "1714717314118",                      // $event time
-        //         "T" => true,                                 // can trade
-        //         "W" => true,                                 // can withdraw
-        //         "D" => true,                                 // can deposit
-        //         "B" => array(                                     // balances changed
+        //         "E": "1714717314118",                      // event time
+        //         "T": true,                                 // can trade
+        //         "W": true,                                 // can withdraw
+        //         "D": true,                                 // can deposit
+        //         "B": [                                     // balances changed
         //             {
-        //                 "a" => "USDT",                       // asset
-        //                 "f" => "474960.65",                  // free amount
-        //                 "l" => "24835.178056020383226869",   // locked amount
-        //                 "r" => ""                            // to be released
+        //                 "a": "USDT",                       // asset
+        //                 "f": "474960.65",                  // free amount
+        //                 "l": "24835.178056020383226869",   // locked amount
+        //                 "r": ""                            // to be released
         //             }
-        //         )
+        //         ]
         //     }
         //
         $event = $this->safe_string($message, 'e');
@@ -871,7 +871,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($this->balance[$type], $messageHash);
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -880,20 +880,20 @@ class hashkey extends \ccxt\async\hashkey {
         if ($listenKey !== null) {
             return $listenKey;
         }
-        // single-flight leader election on a never-dialed $client, see
-        // https://github.com/ccxt/ccxt/issues/29393 => racing cold callers each
-        // mint their own $listenKey and each schedules its own
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        // mint their own listenKey and each schedules its own
         // keepAliveListenKey timer, and the key rides the private url built by
         // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
         // subscriptions never deliver. the flight is registered in
-        // $client->futures and settled through $client->resolve() /
-        // $client->reject(), so every mutation of the futures map goes through
+        // client.futures and settled through client.resolve () /
+        // client.reject (), so every mutation of the futures map goes through
         // the client's own accessors
         $messageHash = 'authenticateFlight';
         $client = $this->client('authenticationFlights');
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             // a flight is already in progress - wake when the leader
-            // settles it => the $listenKey is then in the bucket
+            // settles it: the listenKey is then in the bucket
             Async\await($client->future($messageHash));
             return $this->safe_string($this->options, 'listenKey');
         }
@@ -904,20 +904,20 @@ class hashkey extends \ccxt\async\hashkey {
             $response = Async\await($this->privatePostApiV1UserDataStream($params));
             //
             //    {
-            //        "listenKey" => "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
             //    }
             //
             $listenKey = $this->safe_string($response, 'listenKey');
             if ($listenKey === null) {
                 // reject instead of caching an empty credential, so waiters
-                // retry rather than dial .../ws/null for an hour
+                // retry rather than dial .../ws/undefined for an hour
                 throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
             }
             $this->options['listenKey'] = $listenKey;
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
-            // settle the flight => $client->resolve() wakes every waiter and
-            // drops the $future from the map
+            // settle the flight: client.resolve () wakes every waiter and
+            // drops the future from the map
             $client->resolve($listenKey, $messageHash);
         } catch (Exception $e) {
             // reject the flight - all waiters throw and the next caller
@@ -930,11 +930,11 @@ class hashkey extends \ccxt\async\hashkey {
         return $listenKey;
     }
 
-    public function keep_alive_listen_key(mixed $listenKey, $params = array()) {
+    public function keep_alive_listen_key(?string $listenKey, $params = array()) {
         return Async\async(self::do_keep_alive_listen_key(...))($listenKey, $params);
     }
 
-    private function do_keep_alive_listen_key(mixed $listenKey, $params = array()) {
+    private function do_keep_alive_listen_key(?string $listenKey, $params = array()) {
         if ($listenKey === null) {
             return;
         }

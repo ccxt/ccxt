@@ -304,8 +304,8 @@ class bitbank extends bitbank$1["default"] {
         //       }
         //     }
         //
-        const data = this.safeValue(response, 'data');
-        const pairs = this.safeValue(data, 'pairs', []);
+        const data = this.safeDict(response, 'data');
+        const pairs = this.safeList(data, 'pairs', []);
         return this.parseMarkets(pairs);
     }
     parseMarket(entry) {
@@ -329,7 +329,7 @@ class bitbank extends bitbank$1["default"] {
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.safeValue(entry, 'is_enabled'),
+            'active': this.safeBool(entry, 'is_enabled'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -433,7 +433,7 @@ class bitbank extends bitbank$1["default"] {
             'pair': market['id'],
         };
         const response = await this.publicGetPairDepth(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'data', {});
+        const orderbook = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(orderbook, 'timestamp');
         return this.parseOrderBook(orderbook, market['symbol'], timestamp);
     }
@@ -502,7 +502,7 @@ class bitbank extends bitbank$1["default"] {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTransactions(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const trades = this.safeList(data, 'transactions', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -547,7 +547,7 @@ class bitbank extends bitbank$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const pairs = this.safeList(data, 'pairs', []);
         const result = {};
         for (let i = 0; i < pairs.length; i++) {
@@ -634,9 +634,9 @@ class bitbank extends bitbank$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const candlestick = this.safeValue(data, 'candlestick', []);
-        const first = this.safeValue(candlestick, 0, {});
+        const data = this.safeDict(response, 'data', {});
+        const candlestick = this.safeList(data, 'candlestick', []);
+        const first = this.safeDict(candlestick, 0, {});
         const ohlcv = this.safeList(first, 'ohlcv', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
@@ -646,7 +646,7 @@ class bitbank extends bitbank$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const assets = this.safeList(data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
@@ -905,7 +905,7 @@ class bitbank extends bitbank$1["default"] {
             request['since'] = this.parseToInt(since / 1000);
         }
         const response = await this.privateGetUserSpotActiveOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -937,7 +937,7 @@ class bitbank extends bitbank$1["default"] {
             request['since'] = this.parseToInt(since / 1000);
         }
         const response = await this.privateGetUserSpotTradeHistory(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -959,10 +959,10 @@ class bitbank extends bitbank$1["default"] {
             'asset': currency['id'],
         };
         const response = await this.privateGetUserWithdrawalAccount(this.extend(request, params));
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         // Not sure about this if there could be more than one account...
-        const accounts = this.safeValue(data, 'accounts', []);
-        const firstAccount = this.safeValue(accounts, 0, {});
+        const accounts = this.safeList(data, 'accounts', []);
+        const firstAccount = this.safeDict(accounts, 0, {});
         const address = this.safeString(firstAccount, 'address');
         return {
             'info': response,
@@ -1124,7 +1124,7 @@ class bitbank extends bitbank$1["default"] {
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
-        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
+        if ((success === undefined || success === 0) || (data === undefined)) {
             const errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

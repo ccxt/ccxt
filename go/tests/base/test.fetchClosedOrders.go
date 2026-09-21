@@ -18,8 +18,8 @@ func testFetchClosedOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 	orders := (<-exchange.FetchClosedOrdersAsync(symbol))
 	PanicOnError(orders)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
-	var now any = exchange.Milliseconds()
-	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+	var now int64 = exchange.Milliseconds()
+	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		TestOrder(exchange, skippedProperties, method, order, symbol, now)
 		AssertInArray(exchange, skippedProperties, method, order, "status", []any{"closed", "canceled"})

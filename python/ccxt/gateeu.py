@@ -54,6 +54,9 @@ class gateeu(gate, ImplicitAPI):
                 'fetchMarkets': {
                     'types': ['spot'],
                 },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100,  # this venue returns an empty book above 100
+                },
                 'mica': True,
             },
         })

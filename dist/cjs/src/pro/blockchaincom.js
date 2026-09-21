@@ -183,11 +183,11 @@ class blockchaincom extends blockchaincom$1["default"] {
             const marketId = this.safeString(message, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const messageHash = 'ohlcv:' + symbol;
-            const request = this.safeValue(client.subscriptions, messageHash);
+            const request = this.safeDict(client.subscriptions, messageHash);
             const timeframeId = this.safeString(request, 'granularity');
             const timeframe = this.findTimeframe(timeframeId);
-            const ohlcv = this.safeValue(message, 'price', []);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            const ohlcv = this.safeList(message, 'price', []);
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -267,7 +267,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             ticker = this.parseTicker(message, market);
         }
         else if (event === 'updated') {
-            const lastTicker = this.safeValue(this.tickers, symbol);
+            const lastTicker = this.safeDict(this.tickers, symbol);
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         const messageHash = 'ticker:' + symbol;
@@ -307,7 +307,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'average': undefined,
             'baseVolume': this.safeString(lastTicker, 'baseVolume'),
             'quoteVolume': undefined,
-            'info': this.extend(this.safeValue(lastTicker, 'info', {}), ticker),
+            'info': this.extend(this.safeDict(lastTicker, 'info', {}), ticker),
         }, market);
     }
     /**

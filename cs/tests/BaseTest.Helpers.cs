@@ -577,8 +577,16 @@ public partial class testMainClass : BaseTest
         var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
+        exchange.fetchResponseByUrl = null; // a plain body (or the undefined reset) drops any url-keyed mock
         return exchange;
 
+    }
+
+    public BaseExchange setFetchResponseByUrl(object exchange2, object responsesByUrl)
+    {
+        var exchange = exchange2 as BaseExchange;
+        exchange.fetchResponseByUrl = responsesByUrl;
+        return exchange;
     }
 
     public object setupWsMockTransport(object exchange2, object url)

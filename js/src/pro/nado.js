@@ -1174,9 +1174,11 @@ export default class nado extends nadoRest {
         if (value === undefined) {
             return undefined;
         }
-        const length = value.length;
-        if (length > 13) {
-            return this.parseToInt(value.slice(0, length - 6));
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (value.length > 13) {
+            return this.parseToInt(value.slice(0, value.length - 6));
         }
         return this.safeInteger(message, key);
     }
@@ -1846,7 +1848,7 @@ export default class nado extends nadoRest {
         }
         const id = this.safeString(message, 'id');
         const hasResult = ('result' in message);
-        const result = this.safeValue(message, 'result');
+        const result = this.safeDict(message, 'result');
         const method = this.safeString(result, 'method');
         if (method === 'pong') {
             // pong replies carry both 'id' and 'result' so they must be routed
@@ -1861,12 +1863,12 @@ export default class nado extends nadoRest {
             return;
         }
         if ((id !== undefined) && hasResult) {
-            const authentication = this.safeValue(client.subscriptions, 'authentication:' + id);
+            const authentication = this.safeString(client.subscriptions, 'authentication:' + id);
             if (authentication !== undefined) {
                 this.handleAuthentication(client, message);
                 return;
             }
-            const subscription = this.safeValue(client.subscriptions, 'subscription:' + id);
+            const subscription = this.safeDict(client.subscriptions, 'subscription:' + id);
             if (subscription !== undefined) {
                 this.handleSubscription(client, message);
                 return;

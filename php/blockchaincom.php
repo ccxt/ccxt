@@ -181,7 +181,7 @@ class blockchaincom extends Exchange {
                     'BCH' => 'BCH',
                     'BSV' => 'BSV',
                     'BTC' => 'BTC',
-                    // 'BEP20' => 'BNB', // todo
+                    // 'BEP20': 'BNB', // todo
                     'DCR' => 'DCR',
                     'DESO' => 'DESO',
                     'DASH' => 'DASH',
@@ -205,11 +205,11 @@ class blockchaincom extends Exchange {
                     'XTZ' => 'XTZ',
                     'ZEC' => 'ZEC',
                     'ZIL' => 'ZIL',
-                    // 'THETA' => 'THETA', // todo => possible TFUEL THETA FUEL is also same, but API might have a mistake
-                    // todo => uncomment below after consensus
-                    // 'MOBILECOIN' => 'MOB',
-                    // 'KIN' => 'KIN',
-                    // 'DIGITALGOLD' => 'DGLD',
+                    // 'THETA': 'THETA', // todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    // todo: uncomment below after consensus
+                    // 'MOBILECOIN': 'MOB',
+                    // 'KIN': 'KIN',
+                    // 'DIGITALGOLD': 'DGLD',
                 ),
             ),
             'features' => array(
@@ -301,25 +301,25 @@ class blockchaincom extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         //
-        //     "USDC-GBP" => {
-        //         "base_currency" => "USDC",
-        //         "base_currency_scale" => 6,
-        //         "counter_currency" => "GBP",
-        //         "counter_currency_scale" => 2,
-        //         "min_price_increment" => 10000,
-        //         "min_price_increment_scale" => 8,
-        //         "min_order_size" => 500000000,
-        //         "min_order_size_scale" => 8,
-        //         "max_order_size" => 0,
-        //         "max_order_size_scale" => 8,
-        //         "lot_size" => 10000,
-        //         "lot_size_scale" => 8,
-        //         "status" => "open",
-        //         "id" => 68,
-        //         "auction_price" => 0,
-        //         "auction_size" => 0,
-        //         "auction_time" => "",
-        //         "imbalance" => 0
+        //     "USDC-GBP": {
+        //         "base_currency": "USDC",
+        //         "base_currency_scale": 6,
+        //         "counter_currency": "GBP",
+        //         "counter_currency_scale": 2,
+        //         "min_price_increment": 10000,
+        //         "min_price_increment_scale": 8,
+        //         "min_order_size": 500000000,
+        //         "min_order_size_scale": 8,
+        //         "max_order_size": 0,
+        //         "max_order_size_scale": 8,
+        //         "lot_size": 10000,
+        //         "lot_size_scale": 8,
+        //         "status": "open",
+        //         "id": 68,
+        //         "auction_price": 0,
+        //         "auction_size": 0,
+        //         "auction_time": "",
+        //         "imbalance": 0
         //     }
         //
         $markets = $this->publicGetSymbols($params);
@@ -327,7 +327,7 @@ class blockchaincom extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_value($markets, $marketId);
+            $market = $this->safe_dict($markets, $marketId);
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
@@ -433,7 +433,7 @@ class blockchaincom extends Exchange {
         return $this->fetch_l3_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -476,10 +476,10 @@ class blockchaincom extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //     "symbol" => "BTC-USD",
-        //     "price_24h" => 47791.86,
-        //     "volume_24h" => 362.88635738,
-        //     "last_trade_price" => 47587.75
+        //     "symbol": "BTC-USD",
+        //     "price_24h": 47791.86,
+        //     "volume_24h": 362.88635738,
+        //     "last_trade_price": 47587.75
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -549,7 +549,7 @@ class blockchaincom extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_order_state(mixed $state) {
+    public function parse_order_state(?string $state): ?string {
         $states = array(
             'OPEN' => 'open',
             'REJECTED' => 'rejected',
@@ -564,20 +564,20 @@ class blockchaincom extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "clOrdId" => "00001",
-        //         "ordType" => "MARKET",
-        //         "ordStatus" => "FILLED",
-        //         "side" => "BUY",
-        //         "symbol" => "USDC-USDT",
-        //         "exOrdId" => "281775861306290",
-        //         "price" => null,
-        //         "text" => "Fill",
-        //         "lastShares" => "30.0",
-        //         "lastPx" => "0.9999",
-        //         "leavesQty" => "0.0",
-        //         "cumQty" => "30.0",
-        //         "avgPx" => "0.9999",
-        //         "timestamp" => "1633940339619"
+        //         "clOrdId": "00001",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "symbol": "USDC-USDT",
+        //         "exOrdId": "281775861306290",
+        //         "price": null,
+        //         "text": "Fill",
+        //         "lastShares": "30.0",
+        //         "lastPx": "0.9999",
+        //         "leavesQty": "0.0",
+        //         "cumQty": "30.0",
+        //         "avgPx": "0.9999",
+        //         "timestamp": "1633940339619"
         //     }
         //
         $clientOrderId = $this->safe_string($order, 'clOrdId');
@@ -618,7 +618,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -644,7 +644,7 @@ class blockchaincom extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
         }
         $request = array(
-            // 'stopPx' : limit $price
+            // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
             // 'minQty' : The minimum quantity required for an IOC fill
@@ -686,7 +686,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -707,7 +707,7 @@ class blockchaincom extends Exchange {
         ));
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -717,13 +717,13 @@ class blockchaincom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // cancels all open orders if no $symbol specified
-        // cancels all open orders of specified $symbol, if $symbol is specified
+        // cancels all open orders if no symbol specified
+        // cancels all open orders of specified symbol, if symbol is specified
         if ($this->markets === null) {
             $this->load_markets();
         }
         $request = array(
-            // 'symbol' => $marketId,
+            // 'symbol': marketId,
         );
         if ($symbol !== null) {
             $marketId = $this->market_id($symbol);
@@ -731,7 +731,7 @@ class blockchaincom extends Exchange {
         }
         $response = $this->privateDeleteOrders($this->extend($request, $params));
         //
-        // array()
+        // {}
         //
         return array(
             $this->safe_order(array(
@@ -755,9 +755,9 @@ class blockchaincom extends Exchange {
         $response = $this->privateGetFees($params);
         //
         //     {
-        //         "makerRate" => "0.002",
-        //         "takerRate" => "0.004",
-        //         "volumeInUSD" => "0.0"
+        //         "makerRate": "0.002",
+        //         "takerRate": "0.004",
+        //         "volumeInUSD": "0.0"
         //     }
         //
         $makerFee = $this->safe_number($response, 'makerRate');
@@ -776,7 +776,7 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -824,13 +824,13 @@ class blockchaincom extends Exchange {
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $request = array(
-            // 'to' => unix epoch ms
-            // 'from' => unix epoch ms
+            // 'to': unix epoch ms
+            // 'from': unix epoch ms
             'status' => $state,
             'limit' => 100,
         );
@@ -890,7 +890,7 @@ class blockchaincom extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -941,7 +941,7 @@ class blockchaincom extends Exchange {
         $address = null;
         if ($rawAddress !== null) {
             $addressParts = explode(';', $rawAddress);
-            // if a $tag or memo is used it is separated by a colon in the 'address' value
+            // if a tag or memo is used it is separated by a colon in the 'address' value
             $tag = $this->safe_string($addressParts, 0);
             $address = $this->safe_string($addressParts, 1);
         }
@@ -954,7 +954,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function parse_transaction_state(mixed $state) {
+    public function parse_transaction_state(?string $state): ?string {
         $states = array(
             'COMPLETED' => 'ok', //
             'REJECTED' => 'failed',
@@ -984,7 +984,7 @@ class blockchaincom extends Exchange {
         //     {
         //         "amount":30.0,
         //         "currency":"USDT",
-        //         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific $id
+        //         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific id
         //         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
         //         "fee":34.005078,
         //         "state":"COMPLETED",
@@ -1028,7 +1028,7 @@ class blockchaincom extends Exchange {
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
-            'status' => $this->parse_transaction_state($state), // 'status' =>   'pending',   // 'ok', 'failed', 'canceled', string
+            'status' => $this->parse_transaction_state($state), // 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated' => null,
             'comment' => null,
             'internal' => null,
@@ -1061,15 +1061,15 @@ class blockchaincom extends Exchange {
         );
         $response = $this->privatePostWithdrawals($this->extend($request, $params));
         //
-        //     array(
-        //         "amount" => "30.0",
-        //         "currency" => "USDT",
-        //         "beneficiary" => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         "withdrawalId" => "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //         "fee" => "34.005078",
-        //         "state" => "PENDING",
-        //         "timestamp" => "1634218452595"
-        //     ),
+        //     {
+        //         "amount": "30.0",
+        //         "currency": "USDT",
+        //         "beneficiary": "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         "withdrawalId": "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee": "34.005078",
+        //         "state": "PENDING",
+        //         "timestamp": "1634218452595"
+        //     },
         //
         return $this->parse_transaction($response, $currency);
     }
@@ -1197,20 +1197,20 @@ class blockchaincom extends Exchange {
         $response = $this->privateGetAccounts($this->extend($request, $params));
         //
         //     {
-        //         "primary" => array(
-        //             array(
+        //         "primary": [
+        //             {
         //                 "currency":"ETH",
         //                 "balance":0.009,
         //                 "available":0.009,
         //                 "balance_local":30.82869,
         //                 "available_local":30.82869,
         //                 "rate":3425.41
-        //             ),
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
-        $balances = $this->safe_value($response, $accountName);
+        $balances = $this->safe_list($response, $accountName);
         if ($balances === null) {
             throw new ExchangeError($this->id . ' fetchBalance() could not find the "' . $accountName . '" account');
         }
@@ -1227,7 +1227,7 @@ class blockchaincom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1238,7 +1238,7 @@ class blockchaincom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        // note => only works with exchange-order-$id
+        // note: only works with exchange-order-id
         // does not work with clientOrderId
         if ($this->markets === null) {
             $this->load_markets();
@@ -1249,26 +1249,26 @@ class blockchaincom extends Exchange {
         $response = $this->privateGetOrdersOrderId($this->extend($request, $params));
         //
         //     {
-        //         "exOrdId" => 11111111,
-        //         "clOrdId" => "ABC",
-        //         "ordType" => "MARKET",
-        //         "ordStatus" => "FILLED",
-        //         "side" => "BUY",
-        //         "price" => 0.12345,
-        //         "text" => "string",
-        //         "symbol" => "BTC-USD",
-        //         "lastShares" => 0.5678,
-        //         "lastPx" => 3500.12,
-        //         "leavesQty" => 10,
-        //         "cumQty" => 0.123345,
-        //         "avgPx" => 345.33,
-        //         "timestamp" => 1592830770594
+        //         "exOrdId": 11111111,
+        //         "clOrdId": "ABC",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "price": 0.12345,
+        //         "text": "string",
+        //         "symbol": "BTC-USD",
+        //         "lastShares": 0.5678,
+        //         "lastPx": 3500.12,
+        //         "leavesQty": 10,
+        //         "cumQty": 0.123345,
+        //         "avgPx": 345.33,
+        //         "timestamp": 1592830770594
         //     }
         //
         return $this->parse_order($response);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

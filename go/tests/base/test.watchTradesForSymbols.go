@@ -14,15 +14,16 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchTradesForSymbols"
-	var now any = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var logText any = Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " [symbols: "), exchange.Json(symbols)), "] ")
+	var now int64 = exchange.Milliseconds()
+	var ends any = now + 30000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	var returnedSymbols any = []any{}
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	var returnedSymbols []any = []any{}
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -33,7 +34,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -50,26 +51,25 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-			Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
-			var symbol any = nil
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+		var elapsedMs any = now - startTime
+		if (success == true) && (!IsEqual(response, nil)) {
+			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
+			for i := 0; i < GetArrayLength(response); i++ {
 				var trade any = GetValue(response, i)
-				symbol = GetValue(trade, "symbol")
-				if IsTrue(IsEqual(symbol, nil)) {
-					continue
-				}
-				TestTrade(exchange, skippedProperties, method, trade, symbol, now)
+				var symbol any = GetValue(trade, "symbol")
+				Assert((symbol != nil), Add(Add(logText, "returned a trade without a symbol "), exchange.Json(trade)))
+				TestTrade(exchange, skippedProperties, method, trade, symbol, now, true)
 				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
-				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
-					AppendToArray(&returnedSymbols, symbol)
+				if !EvalTruthy(exchange.InArray(symbol, returnedSymbols)) {
+					returnedSymbols = append(returnedSymbols, symbol)
 				}
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan(elapsedMs, maxIdleTime) {
 				idle = true
 			}
 		}
 	}
+	Assert((len(returnedSymbols) == GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
 
 	ch <- true
 	return nil

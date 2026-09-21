@@ -243,7 +243,7 @@ class kucoin extends kucoin$1["default"] {
     }
     async authenticateUta() {
         this.checkRequiredCredentials();
-        const utaToken = this.safeValue(this.options, 'utaToken');
+        const utaToken = this.safeString(this.options, 'utaToken');
         const lastUpdate = this.safeInteger(this.options, 'utaTokenLastUpdate', 0);
         let refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
         refreshInterval = this.safeInteger(this.options, 'utaTokenRefreshInterval', refreshInterval);
@@ -1022,7 +1022,7 @@ class kucoin extends kucoin$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1069,7 +1069,7 @@ class kucoin extends kucoin$1["default"] {
         const interval = this.safeString(data, 'i');
         const timeframe = this.findTimeframe(interval);
         const messageHash = 'uta:candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1112,7 +1112,7 @@ class kucoin extends kucoin$1["default"] {
             const channel = 'trade';
             const trades = await this.subscribePublicUta(messageHash, channel, symbol, params);
             if (this.newUpdates) {
-                const first = this.safeValue(trades, 0);
+                const first = this.safeDict(trades, 0);
                 const tradeSymbol = this.safeString(first, 'symbol');
                 limit = trades.getLimit(tradeSymbol, limit);
             }
@@ -1160,7 +1160,7 @@ class kucoin extends kucoin$1["default"] {
         }
         const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1715,7 +1715,7 @@ class kucoin extends kucoin$1["default"] {
             const deltaEnd = this.safeInteger(data, 'C');
             if (nonce === undefined) {
                 const cacheLength = orderbook.cache.length;
-                const subscription = this.safeValue(client.subscriptions, messageHash, {});
+                const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
                 const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
                 const utaParams = {
@@ -1735,9 +1735,12 @@ class kucoin extends kucoin$1["default"] {
         client.resolve(this.orderbooks[symbol], messageHash);
     }
     getCacheIndex(orderbook, cache) {
-        const firstDelta = this.safeValue(cache, 0);
+        const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN(firstDelta, ['sequenceStart', 'sequence', 'O']);
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return -1;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -1745,6 +1748,9 @@ class kucoin extends kucoin$1["default"] {
             const delta = cache[i];
             const deltaStart = this.safeIntegerN(delta, ['sequenceStart', 'sequence', 'O']);
             const deltaEnd = this.safeIntegerN(delta, ['sequenceEnd', 'sequence', 'C']); // todo check
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                continue;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1834,7 +1840,7 @@ class kucoin extends kucoin$1["default"] {
             return;
         }
         const subscriptionHash = this.safeString(client.subscriptions, id);
-        const subscription = this.safeValue(client.subscriptions, subscriptionHash);
+        const subscription = this.safeDict(client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
@@ -2206,8 +2212,8 @@ class kucoin extends kucoin$1["default"] {
             this.triggerOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
-        const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue(orders, orderId);
+        const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+        const order = this.safeDict(orders, orderId);
         if (order !== undefined) {
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
@@ -2628,7 +2634,7 @@ class kucoin extends kucoin$1["default"] {
             'uta': uta,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -2872,7 +2878,7 @@ class kucoin extends kucoin$1["default"] {
         const cache = this.positions.hashmap;
         const symbolCache = this.safeDict(cache, symbol, {});
         const values = Object.values(symbolCache);
-        return this.safeValue(values, 0);
+        return this.safeDict(values, 0);
     }
     setPositionsCache(client, uta) {
         if (!(this.isEmpty(this.positions))) {

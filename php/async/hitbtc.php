@@ -25,10 +25,10 @@ class hitbtc extends Exchange {
             'id' => 'hitbtc',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),
-            // 300 requests per second => 1000ms / 300 = 3.333 (Trading => placing, replacing, deleting)
+            // 300 requests per second => 1000ms / 300 = 3.333 (Trading: placing, replacing, deleting)
             // 30 requests per second => ( 1000ms / rateLimit ) / 30 = cost = 10 (Market Data and other Public Requests)
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
-            'rateLimit' => 3.333, // TODO => optimize https://api.hitbtc.com/#rate-limiting
+            'rateLimit' => 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version' => '3',
             'has' => array(
                 'CORS' => false,
@@ -465,7 +465,7 @@ class hitbtc extends Exchange {
                     '20012' => '\\ccxt\\ExchangeError',
                     '20014' => '\\ccxt\\ExchangeError',
                     '20016' => '\\ccxt\\ExchangeError',
-                    '20018' => '\\ccxt\\ExchangeError', // Withdrawals are unavailable due to the current configuration. Any of => - internal withdrawals are disabled; - in-chain withdrawals are disabled.
+                    '20018' => '\\ccxt\\ExchangeError', // Withdrawals are unavailable due to the current configuration. Any of: - internal withdrawals are disabled; - in-chain withdrawals are disabled.
                     '20031' => '\\ccxt\\ExchangeError',
                     '20032' => '\\ccxt\\ExchangeError',
                     '20033' => '\\ccxt\\ExchangeError',
@@ -503,237 +503,237 @@ class hitbtc extends Exchange {
                     'ETC' => 'ETC',
                     'BEP20' => 'BSC',
                     'TRC20' => 'TRX',
-                    // '' => 'UGT',
+                    // '': 'UGT',
                     'NEAR' => 'NEAR',
-                    // '' => 'LWF',
+                    // '': 'LWF',
                     'DGB' => 'DGB',
-                    // '' => 'YOYOW',
+                    // '': 'YOYOW',
                     'AE' => 'AE',
-                    // 'BCHABC' => 'BCHABC',
-                    // '' => 'BCI',
-                    // 'BYTECOIN' => 'bcn',
+                    // 'BCHABC': 'BCHABC',
+                    // '': 'BCI',
+                    // 'BYTECOIN': 'bcn',
                     'AR' => 'AR',
-                    // '' => 'HPC',
+                    // '': 'HPC',
                     'ADA' => 'ADA',
-                    // 'BELDEX' => 'BDX',
-                    // 'ARDOR' => 'ARDR',
-                    // 'NEBLIO' => 'NEBL',
-                    // '' => 'DIM',
+                    // 'BELDEX': 'BDX',
+                    // 'ARDOR': 'ARDR',
+                    // 'NEBLIO': 'NEBL',
+                    // '': 'DIM',
                     'CHZ' => 'CHZ',
-                    // '' => 'BET',
-                    // '' => '8BT',
+                    // '': 'BET',
+                    // '': '8BT',
                     'ABBC' => 'ABBC',
-                    // '' => 'ABTC',
-                    // 'ACHAIN' => 'ACT',
-                    // '' => 'ADK',
-                    // '' => 'AEON',
+                    // '': 'ABTC',
+                    // 'ACHAIN': 'ACT',
+                    // '': 'ADK',
+                    // '': 'AEON',
                     'ALGO' => 'ALGO',
-                    // 'AMBROSUS' => 'AMB',
-                    // '' => 'APL',
+                    // 'AMBROSUS': 'AMB',
+                    // '': 'APL',
                     'APT' => 'APT',
-                    // '' => 'ARK',
-                    // 'PIRATECHAIN' => 'ARRR',
-                    // '' => 'ASP',
-                    // '' => 'ATB',
+                    // '': 'ARK',
+                    // 'PIRATECHAIN': 'ARRR',
+                    // '': 'ASP',
+                    // '': 'ATB',
                     'ATOM' => 'ATOM',
                     'AVAXC' => 'AVAC',
                     'AVAXX' => 'AVAX',
-                    // '' => 'AYA',
-                    // '' => 'B2G',
-                    // '' => 'B2X',
-                    // '' => 'BANANO',
-                    // '' => 'BCCF',
+                    // '': 'AYA',
+                    // '': 'B2G',
+                    // '': 'B2X',
+                    // '': 'BANANO',
+                    // '': 'BCCF',
                     'BSV' => 'BCHSV',
                     'BEP2' => 'BNB',
-                    // 'BOSON' => 'BOS',
-                    // '' => 'BRL', // brazilian real
-                    // '' => 'BST',
-                    // 'BITCOINADDITION' => 'BTCADD',
-                    // '' => 'BTCP',
-                    // 'SUPERBTC' => 'SBTC',
-                    // 'BITCOINVAULT' => 'BTCV',
-                    // 'BITCOINGOLD' => 'BTG',
-                    // 'BITCOINDIAMOND' => 'BCD',
-                    // 'BITCONNECT' => 'BCC',
-                    // '' => 'BTM',
-                    // 'BITSHARES_OLD' => 'BTS',
-                    // '' => 'BTX',
-                    // '' => 'BWI',
+                    // 'BOSON': 'BOS',
+                    // '': 'BRL', // brazilian real
+                    // '': 'BST',
+                    // 'BITCOINADDITION': 'BTCADD',
+                    // '': 'BTCP',
+                    // 'SUPERBTC': 'SBTC',
+                    // 'BITCOINVAULT': 'BTCV',
+                    // 'BITCOINGOLD': 'BTG',
+                    // 'BITCOINDIAMOND': 'BCD',
+                    // 'BITCONNECT': 'BCC',
+                    // '': 'BTM',
+                    // 'BITSHARES_OLD': 'BTS',
+                    // '': 'BTX',
+                    // '': 'BWI',
                     'CELO' => 'CELO',
-                    // '' => 'CENNZ',
-                    // '' => 'CHX',
+                    // '': 'CENNZ',
+                    // '': 'CHX',
                     'CKB' => 'CKB',
-                    // 'CALLISTO' => 'CLO',
-                    // '' => 'CLR',
-                    // '' => 'CNX',
-                    // '' => 'CRS',
-                    // '' => 'CSOV',
+                    // 'CALLISTO': 'CLO',
+                    // '': 'CLR',
+                    // '': 'CNX',
+                    // '': 'CRS',
+                    // '': 'CSOV',
                     'CTXC' => 'CTXC',
-                    // '' => 'CURE',
-                    // 'CONSTELLATION' => 'DAG',
-                    // '' => 'DAPS',
+                    // '': 'CURE',
+                    // 'CONSTELLATION': 'DAG',
+                    // '': 'DAPS',
                     'DASH' => 'DASH',
-                    // '' => 'DBIX',
+                    // '': 'DBIX',
                     'DCR' => 'DCR',
-                    // '' => 'DCT',
-                    // '' => 'DDR',
-                    // '' => 'DNA',
+                    // '': 'DCT',
+                    // '': 'DDR',
+                    // '': 'DNA',
                     'DOGE' => 'doge',
-                    // 'POLKADOT' => 'DOT',
-                    // '' => 'NEWDOT', POLKADOT NEW
-                    // '' => 'dsh',
-                    // '' => 'ECA',
-                    // '' => 'ECOIN',
-                    // '' => 'EEX',
+                    // 'POLKADOT': 'DOT',
+                    // '': 'NEWDOT', POLKADOT NEW
+                    // '': 'dsh',
+                    // '': 'ECA',
+                    // '': 'ECOIN',
+                    // '': 'EEX',
                     'EGLD' => 'EGLD',
-                    // '' => 'ELE',
-                    // 'ELECTRONEUM' => 'Electroneum',
-                    // '' => 'ELM',
-                    // '' => 'EMC',
+                    // '': 'ELE',
+                    // 'ELECTRONEUM': 'Electroneum',
+                    // '': 'ELM',
+                    // '': 'EMC',
                     'EOS' => 'EOS',
-                    // 'AERGO' => 'ERG',
+                    // 'AERGO': 'ERG',
                     'ETHW' => 'ETHW',
-                    // 'ETHERLITE' => 'ETL',
-                    // '' => 'ETP', // metaverse etp
-                    // '' => 'EUNO',
+                    // 'ETHERLITE': 'ETL',
+                    // '': 'ETP', // metaverse etp
+                    // '': 'EUNO',
                     'EVER' => 'EVER',
-                    // '' => 'EXP',
-                    // '' => 'fcn',
+                    // '': 'EXP',
+                    // '': 'fcn',
                     'FET' => 'FET',
                     'FIL' => 'FIL',
-                    // '' => 'FIRO',
+                    // '': 'FIRO',
                     'FLOW' => 'FLOW',
-                    // '' => 'G999',
-                    // '' => 'GAME',
-                    // '' => 'GASP',
-                    // '' => 'GBX',
-                    // '' => 'GHOST',
-                    // '' => 'GLEEC',
+                    // '': 'G999',
+                    // '': 'GAME',
+                    // '': 'GASP',
+                    // '': 'GBX',
+                    // '': 'GHOST',
+                    // '': 'GLEEC',
                     'GLMR' => 'GLMR',
-                    // '' => 'GMD',
-                    // '' => 'GRAPH',
+                    // '': 'GMD',
+                    // '': 'GRAPH',
                     'GRIN' => 'GRIN',
                     'HBAR' => 'HBAR',
-                    // '' => 'HDG',
+                    // '': 'HDG',
                     'HIVE' => 'HIVE',
-                    // 'HARBOR' => 'HRB',
-                    // '' => 'HSR',
-                    // '' => 'HTML',
+                    // 'HARBOR': 'HRB',
+                    // '': 'HSR',
+                    // '': 'HTML',
                     'HYDRA' => 'HYDRA',
                     'ICP' => 'ICP',
                     'ICX' => 'ICX',
-                    // '' => 'IML',
+                    // '': 'IML',
                     'IOST' => 'IOST',
                     'IOTA' => 'IOTA',
                     'IOTX' => 'IOTX',
-                    // '' => 'IQ',
+                    // '': 'IQ',
                     'KAVA' => 'KAVA',
                     'KLAY' => 'KIM',
                     'KOMODO' => 'KMD',
-                    // '' => 'KRM',
+                    // '': 'KRM',
                     'KSM' => 'KSM',
-                    // '' => 'LAVA',
-                    // 'LITECOINCASH' => 'LCC',
+                    // '': 'LAVA',
+                    // 'LITECOINCASH': 'LCC',
                     'LSK' => 'LSK',
-                    // '' => 'LOC',
+                    // '': 'LOC',
                     'LTC' => 'ltc',
-                    // '' => 'LTNM',
-                    // 'TERRACLASSIC' => 'LUNA',
-                    // 'TERRA' => 'LUNANEW',
-                    // '' => 'MAN',
-                    // '' => 'MESH',
+                    // '': 'LTNM',
+                    // 'TERRACLASSIC': 'LUNA',
+                    // 'TERRA': 'LUNANEW',
+                    // '': 'MAN',
+                    // '': 'MESH',
                     'MINA' => 'MINA',
-                    // '' => 'MNX',
-                    // 'MOBILECOIN' => 'MOB',
+                    // '': 'MNX',
+                    // 'MOBILECOIN': 'MOB',
                     'MOVR' => 'MOVR',
-                    // '' => 'MPK',
-                    // '' => 'MRV',
+                    // '': 'MPK',
+                    // '': 'MRV',
                     'NANO' => 'NANO',
-                    // '' => 'NAV',
+                    // '': 'NAV',
                     'NEO' => 'NEO',
-                    // 'NIMIQ' => 'NIM',
-                    // '' => 'NJBC',
-                    // '' => 'NKN',
-                    // '' => 'NLC2',
-                    // '' => 'NOF',
-                    // 'ENERGI' => 'NRG',
-                    // '' => 'nxt',
-                    // '' => 'ODN',
+                    // 'NIMIQ': 'NIM',
+                    // '': 'NJBC',
+                    // '': 'NKN',
+                    // '': 'NLC2',
+                    // '': 'NOF',
+                    // 'ENERGI': 'NRG',
+                    // '': 'nxt',
+                    // '': 'ODN',
                     'ONE' => 'ONE',
-                    // 'ONTOLOGYGAS' => 'ONG',
+                    // 'ONTOLOGYGAS': 'ONG',
                     'ONT' => 'ONT',
                     'OPTIMISM' => 'OP',
-                    // '' => 'PAD',
-                    // '' => 'PART',
-                    // '' => 'PBKX',
-                    // '' => 'PLC',
+                    // '': 'PAD',
+                    // '': 'PART',
+                    // '': 'PBKX',
+                    // '': 'PLC',
                     'PLCU' => 'PLCU',
-                    // '' => 'PLI',
-                    // '' => 'POA',
+                    // '': 'PLI',
+                    // '': 'POA',
                     'MATIC' => 'POLYGON',
-                    // '' => 'PPC',
-                    // '' => 'PQT',
-                    // '' => 'PROC',
-                    // 'PASTEL' => 'PSL',
-                    // '' => 'qcn',
+                    // '': 'PPC',
+                    // '': 'PQT',
+                    // '': 'PROC',
+                    // 'PASTEL': 'PSL',
+                    // '': 'qcn',
                     'QTUM' => 'QTUM',
-                    // '' => 'RCOIN',
+                    // '': 'RCOIN',
                     'REI' => 'REI',
-                    // '' => 'RIF',
-                    // '' => 'ROOTS',
+                    // '': 'RIF',
+                    // '': 'ROOTS',
                     'OASIS' => 'ROSE',
-                    // '' => 'RPX',
-                    // '' => 'RUB',
+                    // '': 'RPX',
+                    // '': 'RUB',
                     'RVN' => 'RVN',
-                    // '' => 'SBD',
+                    // '': 'SBD',
                     'SC' => 'SC',
                     'SCRT' => 'SCRT',
-                    // '' => 'SLX',
-                    // 'SMARTMESH' => 'SMART',
-                    // '' => 'SMT',
-                    // '' => 'SNM',
+                    // '': 'SLX',
+                    // 'SMARTMESH': 'SMART',
+                    // '': 'SMT',
+                    // '': 'SNM',
                     'SOL' => 'SOL',
-                    // '' => 'SRX',
-                    // '' => 'STAK',
+                    // '': 'SRX',
+                    // '': 'STAK',
                     'STEEM' => 'STEEM',
-                    // 'STRATIS' => 'STRAT',
-                    // '' => 'TCN',
-                    // '' => 'TENT',
+                    // 'STRATIS': 'STRAT',
+                    // '': 'TCN',
+                    // '': 'TENT',
                     'THETA' => 'Theta',
-                    // '' => 'TIV',
-                    // '' => 'TNC',
-                    // 'TON' => 'TONCOIN',
+                    // '': 'TIV',
+                    // '': 'TNC',
+                    // 'TON': 'TONCOIN',
                     'TRUE' => 'TRUE',
-                    // '' => 'TRY', // turkish lira
-                    // '' => 'UNO',
-                    // '' => 'USNOTA',
-                    // '' => 'VEO',
+                    // '': 'TRY', // turkish lira
+                    // '': 'UNO',
+                    // '': 'USNOTA',
+                    // '': 'VEO',
                     'VET' => 'VET',
-                    // '' => 'VITAE',
-                    // 'VELAS' => 'VLX',
+                    // '': 'VITAE',
+                    // 'VELAS': 'VLX',
                     'VSYS' => 'VSYS',
-                    // '' => 'VTC',
+                    // '': 'VTC',
                     'WAVES' => 'WAVES',
                     'WAX' => 'WAX',
-                    // '' => 'WEALTH',
-                    // 'WALTONCHAIN' => 'WTC',
-                    // '' => 'WTT',
+                    // '': 'WEALTH',
+                    // 'WALTONCHAIN': 'WTC',
+                    // '': 'WTT',
                     'XCH' => 'XCH',
-                    // '' => 'XDC', // xinfin?
-                    // '' => 'xdn',
-                    // '' => 'XDNCO',
-                    // '' => 'XDNICCO',
+                    // '': 'XDC', // xinfin?
+                    // '': 'xdn',
+                    // '': 'XDNCO',
+                    // '': 'XDNICCO',
                     'XEC' => 'XEC',
                     'NEM' => 'XEM',
-                    // 'HAVEN' => 'XHV',
-                    // '' => 'XLC',
+                    // 'HAVEN': 'XHV',
+                    // '': 'XLC',
                     'XLM' => 'XLM',
-                    // '' => 'XMO',
+                    // '': 'XMO',
                     'XMR' => 'xmr',
-                    // 'MONEROCLASSIC' => 'XMC',
-                    // '' => 'XNS',
-                    // '' => 'XPRM',
-                    // '' => 'XRC',
+                    // 'MONEROCLASSIC': 'XMC',
+                    // '': 'XNS',
+                    // '': 'XPRM',
+                    // '': 'XRC',
                     'XRD' => 'XRD',
                     'XRP' => 'XRP',
                     'XTZ' => 'XTZ',
@@ -742,7 +742,7 @@ class hitbtc extends Exchange {
                     'ZEC' => 'ZEC',
                     'ZEN' => 'ZEN',
                     'ZIL' => 'ZIL',
-                    // '' => 'ZYN',
+                    // '': 'ZYN',
                 ),
                 'accountsByType' => array(
                     'spot' => 'spot',
@@ -780,7 +780,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
@@ -800,7 +800,7 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicSymbol($params));
         //
         //     {
-        //         "AAVEUSDT_PERP":array(
+        //         "AAVEUSDT_PERP":{
         //             "type":"futures",
         //             "expiry":null,
         //             "underlying":"AAVE",
@@ -813,8 +813,8 @@ class hitbtc extends Exchange {
         //             "fee_currency":"USDT",
         //             "margin_trading":true,
         //             "max_initial_leverage":"50.00"
-        //         ),
-        //         "MANAUSDT":array(
+        //         },
+        //         "MANAUSDT":{
         //             "type":"spot",
         //             "base_currency":"MANA",
         //             "quote_currency":"USDT",
@@ -825,7 +825,7 @@ class hitbtc extends Exchange {
         //             "fee_currency":"USDT",
         //             "margin_trading":true,
         //             "max_initial_leverage":"5.00"
-        //         ),
+        //         },
         //     }
         //
         $result = array();
@@ -833,7 +833,7 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             if (str_ends_with($id, '_BQX')) {
-                continue; // seems like an invalid $symbol and if we try to access it individually we get => array("timestamp":"2023-09-02T14:38:20.351Z","error":array("description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such $symbol => EOSUSD_BQX"),"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591")
+                continue; // seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
             }
             $market = $this->safe_value($response, $id);
             $marketType = $this->safe_string($market, 'type');
@@ -948,44 +948,44 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicCurrency($params));
         //
         //    {
-        //        "DFC" => {
-        //            "full_name" => "DeFiScale",
-        //            "crypto" => true,
-        //            "payin_enabled" => false,
-        //            "payout_enabled" => true,
-        //            "transfer_enabled" => false,
-        //            "transfer_to_wallet_enabled" => true,
-        //            "transfer_to_exchange_enabled" => false,
-        //            "sign" => "D",
-        //            "crypto_payment_id_name" => "",
-        //            "crypto_explorer" => "https://etherscan.io/tx/{tx}",
-        //            "precision_transfer" => "0.00000001",
-        //            "delisted" => false,
-        //            "networks" => array(
+        //        "DFC": {
+        //            "full_name": "DeFiScale",
+        //            "crypto": true,
+        //            "payin_enabled": false,
+        //            "payout_enabled": true,
+        //            "transfer_enabled": false,
+        //            "transfer_to_wallet_enabled": true,
+        //            "transfer_to_exchange_enabled": false,
+        //            "sign": "D",
+        //            "crypto_payment_id_name": "",
+        //            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //            "precision_transfer": "0.00000001",
+        //            "delisted": false,
+        //            "networks": [
         //                {
-        //                    "code" => "ETH",
-        //                    "network_name" => "Ethereum",
-        //                    "network" => "ETH",
-        //                    "protocol" => "ERC-20",
-        //                    "default" => true,
-        //                    "is_ens_available" => true,
-        //                    "payin_enabled" => true,
-        //                    "payout_enabled" => true,
-        //                    "precision_payout" => "0.000000000000000001",
-        //                    "payout_fee" => "277000.0000000000",
-        //                    "payout_is_payment_id" => false,
-        //                    "payin_payment_id" => false,
-        //                    "payin_confirmations" => "2",
-        //                    "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
-        //                    "crypto_payment_id_name" => "",
-        //                    "crypto_explorer" => "https://etherscan.io/tx/{tx}",
-        //                    "is_multichain" => true,
-        //                    "asset_id" => array(
-        //                        "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        //                    "code": "ETH",
+        //                    "network_name": "Ethereum",
+        //                    "network": "ETH",
+        //                    "protocol": "ERC-20",
+        //                    "default": true,
+        //                    "is_ens_available": true,
+        //                    "payin_enabled": true,
+        //                    "payout_enabled": true,
+        //                    "precision_payout": "0.000000000000000001",
+        //                    "payout_fee": "277000.0000000000",
+        //                    "payout_is_payment_id": false,
+        //                    "payin_payment_id": false,
+        //                    "payin_confirmations": "2",
+        //                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        //                    "crypto_payment_id_name": "",
+        //                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //                    "is_multichain": true,
+        //                    "asset_id": {
+        //                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
         //                    }
         //                }
-        //            )
-        //        ),
+        //            ]
+        //        },
         //    }
         //
         $enhancedArray = $this->add_key_in_array_items($response, '_coin_id');
@@ -1066,7 +1066,7 @@ class hitbtc extends Exchange {
         );
         $network = $this->safe_string_upper($params, 'network');
         if (($network !== null) && ($code === 'USDT')) {
-            $networks = $this->safe_value($this->options, 'networks');
+            $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
             if ($parsedNetwork !== null) {
                 $request['currency'] = $parsedNetwork;
@@ -1075,7 +1075,7 @@ class hitbtc extends Exchange {
         }
         $response = Async\await($this->privatePostWalletCryptoAddress($this->extend($request, $params)));
         //
-        //  array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")
+        //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
         //
         $currencyId = $this->safe_string($response, 'currency');
         return array(
@@ -1110,7 +1110,7 @@ class hitbtc extends Exchange {
         );
         $network = $this->safe_string_upper($params, 'network');
         if (($network !== null) && ($code === 'USDT')) {
-            $networks = $this->safe_value($this->options, 'networks');
+            $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
             if ($parsedNetwork !== null) {
                 $request['currency'] = $parsedNetwork;
@@ -1119,9 +1119,9 @@ class hitbtc extends Exchange {
         }
         $response = Async\await($this->privateGetWalletCryptoAddress($this->extend($request, $params)));
         //
-        //  [array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")]
+        //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        $firstAddress = $this->safe_value($response, 0);
+        $firstAddress = $this->safe_dict($response, 0);
         $address = $this->safe_string($firstAddress, 'address');
         $currencyId = $this->safe_string($firstAddress, 'currency');
         $tag = $this->safe_string($firstAddress, 'payment_id');
@@ -1181,15 +1181,15 @@ class hitbtc extends Exchange {
             throw new BadRequest($this->id . ' fetchBalance() $type parameter must be one of ' . implode(', ', $keys));
         }
         //
-        //     array(
-        //       array(
-        //         "currency" => "PAXG",
-        //         "available" => "0",
-        //         "reserved" => "0",
-        //         "reserved_margin" => "0",
-        //       ),
+        //     [
+        //       {
+        //         "currency": "PAXG",
+        //         "available": "0",
+        //         "reserved": "0",
+        //         "reserved_margin": "0",
+        //       },
         //       ...
-        //     )
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -1218,15 +1218,15 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicTickerSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "ask" => "0.020572",
-        //         "bid" => "0.020566",
-        //         "last" => "0.020574",
-        //         "low" => "0.020388",
-        //         "high" => "0.021084",
-        //         "open" => "0.020913",
-        //         "volume" => "138444.3666",
-        //         "volume_quote" => "2853.6874972480",
-        //         "timestamp" => "2021-06-02T17:52:36.732Z"
+        //         "ask": "0.020572",
+        //         "bid": "0.020566",
+        //         "last": "0.020574",
+        //         "low": "0.020388",
+        //         "high": "0.021084",
+        //         "open": "0.020913",
+        //         "volume": "138444.3666",
+        //         "volume_quote": "2853.6874972480",
+        //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
         return $this->parse_ticker($response, $market);
@@ -1259,16 +1259,16 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicTicker($this->extend($request, $params)));
         //
         //     {
-        //       "BTCUSDT" => {
-        //         "ask" => "63049.06",
-        //         "bid" => "63046.41",
-        //         "last" => "63048.36",
-        //         "low" => "62010.00",
-        //         "high" => "66657.99",
-        //         "open" => "64839.75",
-        //         "volume" => "15272.13278",
-        //         "volume_quote" => "976312127.6277998",
-        //         "timestamp" => "2021-10-22T04:25:47.573Z"
+        //       "BTCUSDT": {
+        //         "ask": "63049.06",
+        //         "bid": "63046.41",
+        //         "last": "63048.36",
+        //         "low": "62010.00",
+        //         "high": "66657.99",
+        //         "open": "64839.75",
+        //         "volume": "15272.13278",
+        //         "volume_quote": "976312127.6277998",
+        //         "timestamp": "2021-10-22T04:25:47.573Z"
         //       }
         //     }
         //
@@ -1287,15 +1287,15 @@ class hitbtc extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //       "ask" => "62756.01",
-        //       "bid" => "62754.09",
-        //       "last" => "62755.87",
-        //       "low" => "62010.00",
-        //       "high" => "66657.99",
-        //       "open" => "65089.27",
-        //       "volume" => "16719.50366",
-        //       "volume_quote" => "1063422878.8156828",
-        //       "timestamp" => "2021-10-22T07:29:14.585Z"
+        //       "ask": "62756.01",
+        //       "bid": "62754.09",
+        //       "last": "62755.87",
+        //       "low": "62010.00",
+        //       "high": "66657.99",
+        //       "open": "65089.27",
+        //       "volume": "16719.50366",
+        //       "volume_quote": "1063422878.8156828",
+        //       "timestamp": "2021-10-22T07:29:14.585Z"
         //     }
         //
         $timestamp = $this->parse8601($ticker['timestamp']);
@@ -1374,7 +1374,7 @@ class hitbtc extends Exchange {
         return $trades;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1433,59 +1433,59 @@ class hitbtc extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // createOrder ($market)
+        // createOrder (market)
         //
         //  {
-        //      "id" => "1569252895",
-        //      "position_id" => "0",
-        //      "quantity" => "10",
-        //      "price" => "0.03919424",
-        //      "fee" => "0.000979856000",
-        //      "timestamp" => "2022-01-25T19:38:36.153Z",
-        //      "taker" => true
+        //      "id": "1569252895",
+        //      "position_id": "0",
+        //      "quantity": "10",
+        //      "price": "0.03919424",
+        //      "fee": "0.000979856000",
+        //      "timestamp": "2022-01-25T19:38:36.153Z",
+        //      "taker": true
         //  }
         //
         // fetchTrades
         //
         //  {
-        //      "id" => 974786185,
-        //      "price" => "0.032462",
-        //      "qty" => "0.3673",
-        //      "side" => "buy",
-        //      "timestamp" => "2020-10-16T12:57:39.846Z"
+        //      "id": 974786185,
+        //      "price": "0.032462",
+        //      "qty": "0.3673",
+        //      "side": "buy",
+        //      "timestamp": "2020-10-16T12:57:39.846Z"
         //  }
         //
         // fetchMyTrades spot
         //
         //  {
-        //      "id" => 277210397,
-        //      "clientOrderId" => "6e102f3e7f3f4e04aeeb1cdc95592f1a",
-        //      "orderId" => 28102855393,
-        //      "symbol" => "ETHBTC",
-        //      "side" => "sell",
-        //      "quantity" => "0.002",
-        //      "price" => "0.073365",
-        //      "fee" => "0.000000147",
-        //      "timestamp" => "2018-04-28T18:39:55.345Z",
-        //      "taker" => true
+        //      "id": 277210397,
+        //      "clientOrderId": "6e102f3e7f3f4e04aeeb1cdc95592f1a",
+        //      "orderId": 28102855393,
+        //      "symbol": "ETHBTC",
+        //      "side": "sell",
+        //      "quantity": "0.002",
+        //      "price": "0.073365",
+        //      "fee": "0.000000147",
+        //      "timestamp": "2018-04-28T18:39:55.345Z",
+        //      "taker": true
         //  }
         //
         // fetchMyTrades swap and margin
         //
         //  {
-        //      "id" => 4718564,
-        //      "order_id" => 58730811958,
-        //      "client_order_id" => "475c47d97f867f09726186eb22b4c3d4",
-        //      "symbol" => "BTCUSDT_PERP",
-        //      "side" => "sell",
-        //      "quantity" => "0.0001",
-        //      "price" => "41118.51",
-        //      "fee" => "0.002055925500",
-        //      "timestamp" => "2022-03-17T05:23:17.795Z",
-        //      "taker" => true,
-        //      "position_id" => 2350122,
-        //      "pnl" => "0.002255000000",
-        //      "liquidation" => false
+        //      "id": 4718564,
+        //      "order_id": 58730811958,
+        //      "client_order_id": "475c47d97f867f09726186eb22b4c3d4",
+        //      "symbol": "BTCUSDT_PERP",
+        //      "side": "sell",
+        //      "quantity": "0.0001",
+        //      "price": "41118.51",
+        //      "fee": "0.002055925500",
+        //      "timestamp": "2022-03-17T05:23:17.795Z",
+        //      "taker": true,
+        //      "position_id": 2350122,
+        //      "pnl": "0.002255000000",
+        //      "liquidation": false
         //  }
         //
         $timestamp = $this->parse8601($trade['timestamp']);
@@ -1494,14 +1494,14 @@ class hitbtc extends Exchange {
         $symbol = $market['symbol'];
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
-        $taker = $this->safe_value($trade, 'taker');
+        $taker = $this->safe_bool($trade, 'taker');
         if ($taker !== null) {
             $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         } else {
-            $takerOrMaker = 'taker'; // the only case when `$taker` field is missing, is public fetchTrades and it must be $taker
+            $takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if ($feeCostString !== null) {
-            $info = $this->safe_value($market, 'info', array());
+            $info = $this->safe_dict($market, 'info', array());
             $feeCurrency = $this->safe_string($info, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrency);
             $fee = array(
@@ -1509,9 +1509,9 @@ class hitbtc extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        // we use clientOrderId as the order $id with this exchange intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
-        // explained here => https://github.com/ccxt/ccxt/issues/5674
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'quantity', 'qty');
@@ -1534,11 +1534,11 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($types, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1558,28 +1558,28 @@ class hitbtc extends Exchange {
         }
         $response = Async\await($this->privateGetWalletTransactions($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //       {
-        //         "id" => "101609495",
-        //         "created_at" => "2018-03-06T22:05:06.507Z",
-        //         "updated_at" => "2018-03-06T22:11:45.03Z",
-        //         "status" => "SUCCESS",
-        //         "type" => "DEPOSIT",
-        //         "subtype" => "BLOCKCHAIN",
-        //         "native" => {
-        //           "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
-        //           "index" => "881652766",
-        //           "currency" => "ETH",
-        //           "amount" => "0.01418088",
-        //           "hash" => "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
-        //           "address" => "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
-        //           "confirmations" => "20",
-        //           "senders" => array(
+        //         "id": "101609495",
+        //         "created_at": "2018-03-06T22:05:06.507Z",
+        //         "updated_at": "2018-03-06T22:11:45.03Z",
+        //         "status": "SUCCESS",
+        //         "type": "DEPOSIT",
+        //         "subtype": "BLOCKCHAIN",
+        //         "native": {
+        //           "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
+        //           "index": "881652766",
+        //           "currency": "ETH",
+        //           "amount": "0.01418088",
+        //           "hash": "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
+        //           "address": "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
+        //           "confirmations": "20",
+        //           "senders": [
         //             "0x243bec9256c9a3469da22103891465b47583d9f1"
-        //           )
+        //           ]
         //         }
         //       }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
@@ -1598,7 +1598,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -1608,31 +1608,31 @@ class hitbtc extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // $transaction
+        // transaction
         //
         //     {
-        //       "id" => "101609495",
-        //       "created_at" => "2018-03-06T22:05:06.507Z",
-        //       "updated_at" => "2018-03-06T22:11:45.03Z",
-        //       "status" => "SUCCESS",
-        //       "type" => "DEPOSIT", // DEPOSIT, WITHDRAW, ..
-        //       "subtype" => "BLOCKCHAIN",
-        //       "native" => array(
-        //         "tx_id" => "e20b0965-4024-44d0-b63f-7fb8996a6706",
-        //         "index" => "881652766",
-        //         "currency" => "ETH",
-        //         "amount" => "0.01418088",
-        //         "hash" => "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
-        //         "address" => "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
-        //         "confirmations" => "20",
-        //         "senders" => array(
+        //       "id": "101609495",
+        //       "created_at": "2018-03-06T22:05:06.507Z",
+        //       "updated_at": "2018-03-06T22:11:45.03Z",
+        //       "status": "SUCCESS",
+        //       "type": "DEPOSIT", // DEPOSIT, WITHDRAW, ..
+        //       "subtype": "BLOCKCHAIN",
+        //       "native": {
+        //         "tx_id": "e20b0965-4024-44d0-b63f-7fb8996a6706",
+        //         "index": "881652766",
+        //         "currency": "ETH",
+        //         "amount": "0.01418088",
+        //         "hash": "d95dbbff3f9234114f1211ab0ba2a94f03f394866fd5749d74a1edab80e6c5d3",
+        //         "address": "0xd9259302c32c0a0295d86a39185c9e14f6ba0a0d",
+        //         "confirmations": "20",
+        //         "senders": [
         //           "0x243bec9256c9a3469da22103891465b47583d9f1"
-        //         ),
-        //         "fee" => "1.22" // only for WITHDRAW
+        //         ],
+        //         "fee": "1.22" // only for WITHDRAW
         //       }
-        //     ),
-        //     "operation_id" => "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
-        //     "commit_risk" => array()
+        //     },
+        //     "operation_id": "084cfcd5-06b9-4826-882e-fdb75ec3625d", // only for WITHDRAW
+        //     "commit_risk": {}
         // withdraw
         //
         //     {
@@ -1644,7 +1644,7 @@ class hitbtc extends Exchange {
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $native = $this->safe_value($transaction, 'native', array());
+        $native = $this->safe_dict($transaction, 'native', array());
         $currencyId = $this->safe_string($native, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $txhash = $this->safe_string($native, 'hash');
@@ -1904,13 +1904,13 @@ class hitbtc extends Exchange {
             throw new NotSupported($this->id . ' fetchTradingFees() not support this market type');
         }
         //
-        //     array(
+        //     [
         //         {
         //             "symbol":"ARVUSDT",
         //             "take_rate":"0.0009",
         //             "make_rate":"0.0009"
         //         }
-        //     )
+        //     ]
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -1980,29 +1980,29 @@ class hitbtc extends Exchange {
         //
         // Spot and Swap
         //
-        //     array(
+        //     [
         //         {
-        //             "timestamp" => "2021-10-25T07:38:00.000Z",
-        //             "open" => "4173.391",
-        //             "close" => "4170.923",
-        //             "min" => "4170.923",
-        //             "max" => "4173.986",
-        //             "volume" => "0.1879",
-        //             "volume_quote" => "784.2517846"
+        //             "timestamp": "2021-10-25T07:38:00.000Z",
+        //             "open": "4173.391",
+        //             "close": "4170.923",
+        //             "min": "4170.923",
+        //             "max": "4173.986",
+        //             "volume": "0.1879",
+        //             "volume_quote": "784.2517846"
         //         }
-        //     )
+        //     ]
         //
         // Mark, Index and Premium Index
         //
-        //     array(
-        //         array(
-        //             "timestamp" => "2022-04-01T01:28:00.000Z",
-        //             "open" => "45146.39",
-        //             "close" => "45219.43",
-        //             "min" => "45146.39",
-        //             "max" => "45219.43"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "timestamp": "2022-04-01T01:28:00.000Z",
+        //             "open": "45146.39",
+        //             "close": "45219.43",
+        //             "min": "45146.39",
+        //             "max": "45219.43"
+        //         },
+        //     ]
         //
         $ohlcvs = $this->to_array($response);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -2024,13 +2024,13 @@ class hitbtc extends Exchange {
         //
         // Mark, Index and Premium Index
         //
-        //     array(
-        //         "timestamp" => "2022-04-01T01:28:00.000Z",
-        //         "open" => "45146.39",
-        //         "close" => "45219.43",
-        //         "min" => "45146.39",
-        //         "max" => "45219.43"
-        //     ),
+        //     {
+        //         "timestamp": "2022-04-01T01:28:00.000Z",
+        //         "open": "45146.39",
+        //         "close": "45219.43",
+        //         "min": "45146.39",
+        //         "max": "45219.43"
+        //     },
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
@@ -2099,7 +2099,7 @@ class hitbtc extends Exchange {
         return $this->filter_by_array($parsed, 'status', array( 'closed', 'canceled' ), false);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2147,29 +2147,29 @@ class hitbtc extends Exchange {
             }
         }
         //
-        //     array(
+        //     [
         //       {
-        //         "id" => "685965182082",
-        //         "client_order_id" => "B3CBm9uGg9oYQlw96bBSEt38-6gbgBO0",
-        //         "symbol" => "BTCUSDT",
-        //         "side" => "buy",
-        //         "status" => "new",
-        //         "type" => "limit",
-        //         "time_in_force" => "GTC",
-        //         "quantity" => "0.00010",
-        //         "quantity_cumulative" => "0",
-        //         "price" => "50000.00",
-        //         "price_average" => "0",
-        //         "created_at" => "2021-10-26T11:40:09.287Z",
-        //         "updated_at" => "2021-10-26T11:40:09.287Z"
+        //         "id": "685965182082",
+        //         "client_order_id": "B3CBm9uGg9oYQlw96bBSEt38-6gbgBO0",
+        //         "symbol": "BTCUSDT",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.00010",
+        //         "quantity_cumulative": "0",
+        //         "price": "50000.00",
+        //         "price_average": "0",
+        //         "created_at": "2021-10-26T11:40:09.287Z",
+        //         "updated_at": "2021-10-26T11:40:09.287Z"
         //       }
-        //     )
+        //     ]
         //
         $order = $this->safe_dict($response, 0, array());
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2198,7 +2198,7 @@ class hitbtc extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'order_id' => $id, // exchange assigned order $id as oppose to the client order $id
+            'order_id' => $id, // exchange assigned order id as oppose to the client order id
         );
         $marketType = null;
         $marginMode = null;
@@ -2222,40 +2222,40 @@ class hitbtc extends Exchange {
         //
         // Spot
         //
-        //     array(
+        //     [
         //       {
-        //         "id" => 1393448977,
-        //         "order_id" => 653496804534,
-        //         "client_order_id" => "065f6f0ff9d54547848454182263d7b4",
-        //         "symbol" => "DICEETH",
-        //         "side" => "buy",
-        //         "quantity" => "1.4",
-        //         "price" => "0.00261455",
-        //         "fee" => "0.000003294333",
-        //         "timestamp" => "2021-09-19T05:35:56.601Z",
-        //         "taker" => true
+        //         "id": 1393448977,
+        //         "order_id": 653496804534,
+        //         "client_order_id": "065f6f0ff9d54547848454182263d7b4",
+        //         "symbol": "DICEETH",
+        //         "side": "buy",
+        //         "quantity": "1.4",
+        //         "price": "0.00261455",
+        //         "fee": "0.000003294333",
+        //         "timestamp": "2021-09-19T05:35:56.601Z",
+        //         "taker": true
         //       }
-        //     )
+        //     ]
         //
         // Swap and Margin
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => 4718551,
-        //             "order_id" => 58730748700,
-        //             "client_order_id" => "dcbcd8549e3445ee922665946002ef67",
-        //             "symbol" => "BTCUSDT_PERP",
-        //             "side" => "buy",
-        //             "quantity" => "0.0001",
-        //             "price" => "41095.96",
-        //             "fee" => "0.002054798000",
-        //             "timestamp" => "2022-03-17T05:23:02.217Z",
-        //             "taker" => true,
-        //             "position_id" => 2350122,
-        //             "pnl" => "0",
-        //             "liquidation" => false
+        //             "id": 4718551,
+        //             "order_id": 58730748700,
+        //             "client_order_id": "dcbcd8549e3445ee922665946002ef67",
+        //             "symbol": "BTCUSDT_PERP",
+        //             "side": "buy",
+        //             "quantity": "0.0001",
+        //             "price": "41095.96",
+        //             "fee": "0.002054798000",
+        //             "timestamp": "2022-03-17T05:23:02.217Z",
+        //             "taker": true,
+        //             "position_id": 2350122,
+        //             "pnl": "0",
+        //             "liquidation": false
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -2308,23 +2308,23 @@ class hitbtc extends Exchange {
             }
         }
         //
-        //     array(
+        //     [
         //       {
-        //         "id" => "488953123149",
-        //         "client_order_id" => "103ad305301e4c3590045b13de15b36e",
-        //         "symbol" => "BTCUSDT",
-        //         "side" => "buy",
-        //         "status" => "new",
-        //         "type" => "limit",
-        //         "time_in_force" => "GTC",
-        //         "quantity" => "0.00001",
-        //         "quantity_cumulative" => "0",
-        //         "price" => "0.01",
-        //         "post_only" => false,
-        //         "created_at" => "2021-04-13T13:06:16.567Z",
-        //         "updated_at" => "2021-04-13T13:06:16.567Z"
+        //         "id": "488953123149",
+        //         "client_order_id": "103ad305301e4c3590045b13de15b36e",
+        //         "symbol": "BTCUSDT",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.00001",
+        //         "quantity_cumulative": "0",
+        //         "price": "0.01",
+        //         "post_only": false,
+        //         "created_at": "2021-04-13T13:06:16.567Z",
+        //         "updated_at": "2021-04-13T13:06:16.567Z"
         //       }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2379,7 +2379,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2427,7 +2427,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2477,7 +2477,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2520,7 +2520,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2564,9 +2564,9 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         $isLimit = ($type === 'limit');
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $isPostOnly = $this->is_post_only($type === 'market', null, $params);
@@ -2575,17 +2575,17 @@ class hitbtc extends Exchange {
             'side' => $side,
             'quantity' => $this->amount_to_precision($market['symbol'], $amount),
             'symbol' => $market['id'],
-            // 'client_order_id' => 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
-            // 'time_in_force' => 'GTC', // Optional GTC, IOC, FOK, Day, GTD
-            // 'price' => $this->price_to_precision(symbol, $price), // Required if $type is limit, stopLimit, or takeProfitLimit
-            // 'stop_price' => $this->safe_number($params, 'stop_price'), // Required if $type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
-            // 'expire_time' => '2021-06-15T17:01:05.092Z', // Required if $timeInForce is GTD
-            // 'strict_validate' => false,
-            // 'post_only' => false, // Optional
-            // 'reduce_only' => false, // Optional
-            // 'display_quantity' => '0', // Optional
-            // 'take_rate' => 0.001, // Optional
-            // 'make_rate' => 0.001, // Optional
+            // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
+            // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
+            // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
+            // 'stop_price': this.safeNumber (params, 'stop_price'), // Required if type is stopLimit, stopMarket, takeProfitLimit, takeProfitMarket
+            // 'expire_time': '2021-06-15T17:01:05.092Z', // Required if timeInForce is GTD
+            // 'strict_validate': false,
+            // 'post_only': false, // Optional
+            // 'reduce_only': false, // Optional
+            // 'display_quantity': '0', // Optional
+            // 'take_rate': 0.001, // Optional
+            // 'make_rate': 0.001, // Optional
         );
         if ($reduceOnly !== null) {
             if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
@@ -2653,72 +2653,72 @@ class hitbtc extends Exchange {
         //
         // limit
         //     {
-        //       "id" => 488953123149,
-        //       "client_order_id" => "103ad305301e4c3590045b13de15b36e",
-        //       "symbol" => "BTCUSDT",
-        //       "side" => "buy",
-        //       "status" => "new",
-        //       "type" => "limit",
-        //       "time_in_force" => "GTC",
-        //       "quantity" => "0.00001",
-        //       "quantity_cumulative" => "0",
-        //       "price" => "0.01",
-        //       "price_average" => "0.01",
-        //       "post_only" => false,
-        //       "created_at" => "2021-04-13T13:06:16.567Z",
-        //       "updated_at" => "2021-04-13T13:06:16.567Z"
+        //       "id": 488953123149,
+        //       "client_order_id": "103ad305301e4c3590045b13de15b36e",
+        //       "symbol": "BTCUSDT",
+        //       "side": "buy",
+        //       "status": "new",
+        //       "type": "limit",
+        //       "time_in_force": "GTC",
+        //       "quantity": "0.00001",
+        //       "quantity_cumulative": "0",
+        //       "price": "0.01",
+        //       "price_average": "0.01",
+        //       "post_only": false,
+        //       "created_at": "2021-04-13T13:06:16.567Z",
+        //       "updated_at": "2021-04-13T13:06:16.567Z"
         //     }
         //
-        // $market
+        // market
         //     {
-        //       "id" => "685877626834",
-        //       "client_order_id" => "Yshl7G-EjaREyXQYaGbsmdtVbW-nzQwu",
-        //       "symbol" => "BTCUSDT",
-        //       "side" => "buy",
-        //       "status" => "filled",
-        //       "type" => "market",
-        //       "time_in_force" => "GTC",
-        //       "quantity" => "0.00010",
-        //       "quantity_cumulative" => "0.00010",
-        //       "post_only" => false,
-        //       "created_at" => "2021-10-26T08:55:55.1Z",
-        //       "updated_at" => "2021-10-26T08:55:55.1Z",
-        //       "trades" => array(
+        //       "id": "685877626834",
+        //       "client_order_id": "Yshl7G-EjaREyXQYaGbsmdtVbW-nzQwu",
+        //       "symbol": "BTCUSDT",
+        //       "side": "buy",
+        //       "status": "filled",
+        //       "type": "market",
+        //       "time_in_force": "GTC",
+        //       "quantity": "0.00010",
+        //       "quantity_cumulative": "0.00010",
+        //       "post_only": false,
+        //       "created_at": "2021-10-26T08:55:55.1Z",
+        //       "updated_at": "2021-10-26T08:55:55.1Z",
+        //       "trades": [
         //         {
-        //           "id" => "1437229630",
-        //           "position_id" => "0",
-        //           "quantity" => "0.00010",
-        //           "price" => "62884.78",
-        //           "fee" => "0.005659630200",
-        //           "timestamp" => "2021-10-26T08:55:55.1Z",
-        //           "taker" => true
+        //           "id": "1437229630",
+        //           "position_id": "0",
+        //           "quantity": "0.00010",
+        //           "price": "62884.78",
+        //           "fee": "0.005659630200",
+        //           "timestamp": "2021-10-26T08:55:55.1Z",
+        //           "taker": true
         //         }
-        //       )
+        //       ]
         //     }
         //
         // swap and margin
         //
         //     {
-        //         "id" => 58418961892,
-        //         "client_order_id" => "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
-        //         "symbol" => "BTCUSDT_PERP",
-        //         "side" => "buy",
-        //         "status" => "new",
-        //         "type" => "limit",
-        //         "time_in_force" => "GTC",
-        //         "quantity" => "0.0005",
-        //         "quantity_cumulative" => "0",
-        //         "price" => "30000.00",
-        //         "post_only" => false,
-        //         "reduce_only" => false,
-        //         "created_at" => "2022-03-16T08:16:53.039Z",
-        //         "updated_at" => "2022-03-16T08:16:53.039Z"
+        //         "id": 58418961892,
+        //         "client_order_id": "r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4",
+        //         "symbol": "BTCUSDT_PERP",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "quantity": "0.0005",
+        //         "quantity_cumulative": "0",
+        //         "price": "30000.00",
+        //         "post_only": false,
+        //         "reduce_only": false,
+        //         "created_at": "2022-03-16T08:16:53.039Z",
+        //         "updated_at": "2022-03-16T08:16:53.039Z"
         //     }
         //
         $id = $this->safe_string($order, 'client_order_id');
-        // we use clientOrderId as the $order $id with this exchange intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
-        // explained here => https://github.com/ccxt/ccxt/issues/5674
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_string($order, 'quantity');
@@ -2797,38 +2797,38 @@ class hitbtc extends Exchange {
             $response = Async\await($this->privateGetMarginConfig($params));
             //
             //     {
-            //         "config" => [array(
-            //             "symbol" => "BTCUSD",
-            //             "margin_call_leverage_mul" => "1.50",
-            //             "liquidation_leverage_mul" => "2.00",
-            //             "max_initial_leverage" => "10.00",
-            //             "margin_mode" => "Isolated",
-            //             "force_close_fee" => "0.05",
-            //             "enabled" => true,
-            //             "active" => true,
-            //             "limit_base" => "50000.00",
-            //             "limit_power" => "2.2",
-            //             "unlimited_threshold" => "10.0"
-            //         )]
+            //         "config": [{
+            //             "symbol": "BTCUSD",
+            //             "margin_call_leverage_mul": "1.50",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "10.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.05",
+            //             "enabled": true,
+            //             "active": true,
+            //             "limit_base": "50000.00",
+            //             "limit_power": "2.2",
+            //             "unlimited_threshold": "10.0"
+            //         }]
             //     }
             //
         } elseif ($marketType === 'swap') {
             $response = Async\await($this->privateGetFuturesConfig($params));
             //
             //     {
-            //         "config" => [array(
-            //             "symbol" => "BTCUSD_PERP",
-            //             "margin_call_leverage_mul" => "1.20",
-            //             "liquidation_leverage_mul" => "2.00",
-            //             "max_initial_leverage" => "100.00",
-            //             "margin_mode" => "Isolated",
-            //             "force_close_fee" => "0.001",
-            //             "enabled" => true,
-            //             "active" => false,
-            //             "limit_base" => "5000000.000000000000",
-            //             "limit_power" => "1.25",
-            //             "unlimited_threshold" => "2.00"
-            //         )]
+            //         "config": [{
+            //             "symbol": "BTCUSD_PERP",
+            //             "margin_call_leverage_mul": "1.20",
+            //             "liquidation_leverage_mul": "2.00",
+            //             "max_initial_leverage": "100.00",
+            //             "margin_mode": "Isolated",
+            //             "force_close_fee": "0.001",
+            //             "enabled": true,
+            //             "active": false,
+            //             "limit_base": "5000000.000000000000",
+            //             "limit_power": "1.25",
+            //             "unlimited_threshold": "2.00"
+            //         }]
             //     }
             //
         } else {
@@ -2870,7 +2870,7 @@ class hitbtc extends Exchange {
         }
         $currency = $this->currency($code);
         $requestAmount = $this->currency_to_precision($code, $amount);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -2886,20 +2886,20 @@ class hitbtc extends Exchange {
         );
         $response = Async\await($this->privatePostWalletTransfer($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
-        //     )
+        //     ]
         //
         return $this->parse_transfer($response, $currency);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
-        //     array(
+        //     [
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
-        //     )
+        //     ]
         //
         return array(
             'id' => $this->safe_string($transfer, 0),
@@ -2914,11 +2914,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function convert_currency_network(string $code, mixed $amount, mixed $fromNetwork, mixed $toNetwork, mixed $params) {
+    public function convert_currency_network(string $code, ?float $amount, mixed $fromNetwork, mixed $toNetwork, $params = array()): PromiseInterface {
         return Async\async(self::do_convert_currency_network(...))($code, $amount, $fromNetwork, $toNetwork, $params);
     }
 
-    private function do_convert_currency_network(string $code, mixed $amount, mixed $fromNetwork, mixed $toNetwork, mixed $params) {
+    private function do_convert_currency_network(string $code, ?float $amount, mixed $fromNetwork, mixed $toNetwork, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2943,7 +2943,7 @@ class hitbtc extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $response = Async\await($this->privatePostWalletConvert($this->extend($request, $params)));
-        // array("result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"])
+        // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
         return array(
             'info' => $response,
         );
@@ -2980,7 +2980,7 @@ class hitbtc extends Exchange {
         if ($tag !== null) {
             $request['payment_id'] = $tag;
         }
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network');
         if (($network !== null) && ($code === 'USDT')) {
             $parsedNetwork = $this->safe_string($networks, $network);
@@ -2989,7 +2989,7 @@ class hitbtc extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
         if ($includeFee === true) {
             $request['include_fee'] = true;
@@ -3036,18 +3036,18 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicFuturesInfo($this->extend($request, $params)));
         //
         //     {
-        //         "BTCUSDT_PERP" => {
-        //             "contract_type" => "perpetual",
-        //             "mark_price" => "30897.68",
-        //             "index_price" => "30895.29",
-        //             "funding_rate" => "0.0001",
-        //             "open_interest" => "93.7128",
-        //             "next_funding_time" => "2021-07-21T16:00:00.000Z",
-        //             "indicative_funding_rate" => "0.0001",
-        //             "premium_index" => "0.000047541807127312",
-        //             "avg_premium_index" => "0.000087063368020112",
-        //             "interest_rate" => "0.0001",
-        //             "timestamp" => "2021-07-21T09:48:37.235Z"
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "30897.68",
+        //             "index_price": "30895.29",
+        //             "funding_rate": "0.0001",
+        //             "open_interest": "93.7128",
+        //             "next_funding_time": "2021-07-21T16:00:00.000Z",
+        //             "indicative_funding_rate": "0.0001",
+        //             "premium_index": "0.000047541807127312",
+        //             "avg_premium_index": "0.000087063368020112",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2021-07-21T09:48:37.235Z"
         //         }
         //     }
         //
@@ -3067,7 +3067,7 @@ class hitbtc extends Exchange {
         return $this->filter_by_array($fundingRates, 'symbol', $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3096,12 +3096,12 @@ class hitbtc extends Exchange {
         $market = null;
         $request = array(
             // all arguments are optional
-            // 'symbols' => Comma separated list of $symbol codes,
-            // 'sort' => 'DESC' or 'ASC'
-            // 'from' => 'Datetime or Number',
-            // 'until' => 'Datetime or Number',
-            // 'limit' => 100,
-            // 'offset' => 0,
+            // 'symbols': Comma separated list of symbol codes,
+            // 'sort': 'DESC' or 'ASC'
+            // 'from': 'Datetime or Number',
+            // 'until': 'Datetime or Number',
+            // 'limit': 100,
+            // 'offset': 0,
         );
         list($request, $params) = $this->handle_until_option('until', $request, $params);
         if ($symbol !== null) {
@@ -3118,16 +3118,16 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicFuturesHistoryFunding($this->extend($request, $params)));
         //
         //    {
-        //        "BTCUSDT_PERP" => array(
-        //            array(
-        //                "timestamp" => "2021-07-29T16:00:00.271Z",
-        //                "funding_rate" => "0.0001",
-        //                "avg_premium_index" => "0.000061858585213222",
-        //                "next_funding_time" => "2021-07-30T00:00:00.000Z",
-        //                "interest_rate" => "0.0001"
-        //            ),
+        //        "BTCUSDT_PERP": [
+        //            {
+        //                "timestamp": "2021-07-29T16:00:00.271Z",
+        //                "funding_rate": "0.0001",
+        //                "avg_premium_index": "0.000061858585213222",
+        //                "next_funding_time": "2021-07-30T00:00:00.000Z",
+        //                "interest_rate": "0.0001"
+        //            },
         //            ...
-        //        ),
+        //        ],
         //        ...
         //    }
         //
@@ -3196,36 +3196,36 @@ class hitbtc extends Exchange {
             }
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT_PERP",
-        //             "type" => "isolated",
-        //             "leverage" => "10.00",
-        //             "created_at" => "2022-03-19T07:54:35.24Z",
-        //             "updated_at" => "2022-03-19T07:54:58.922Z",
-        //             currencies" => array(
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
         //                 {
-        //                     "code" => "USDT",
-        //                     "margin_balance" => "7.478100643043",
-        //                     "reserved_orders" => "0",
-        //                     "reserved_positions" => "0.303530761300"
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
         //                 }
-        //             ),
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 2470568,
-        //                     "symbol" => "ETHUSDT_PERP",
-        //                     "quantity" => "0.001",
-        //                     "price_entry" => "2927.509",
-        //                     "price_margin_call" => "0",
-        //                     "price_liquidation" => "0",
-        //                     "pnl" => "0",
-        //                     "created_at" => "2022-03-19T07:54:35.24Z",
-        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
         //                 }
-        //             )
-        //         ),
-        //     )
+        //             ]
+        //         },
+        //     ]
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -3234,7 +3234,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -3275,72 +3275,72 @@ class hitbtc extends Exchange {
             }
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT_PERP",
-        //             "type" => "isolated",
-        //             "leverage" => "10.00",
-        //             "created_at" => "2022-03-19T07:54:35.24Z",
-        //             "updated_at" => "2022-03-19T07:54:58.922Z",
-        //             currencies" => array(
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
         //                 {
-        //                     "code" => "USDT",
-        //                     "margin_balance" => "7.478100643043",
-        //                     "reserved_orders" => "0",
-        //                     "reserved_positions" => "0.303530761300"
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
         //                 }
-        //             ),
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 2470568,
-        //                     "symbol" => "ETHUSDT_PERP",
-        //                     "quantity" => "0.001",
-        //                     "price_entry" => "2927.509",
-        //                     "price_margin_call" => "0",
-        //                     "price_liquidation" => "0",
-        //                     "pnl" => "0",
-        //                     "created_at" => "2022-03-19T07:54:35.24Z",
-        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
         //                 }
-        //             )
-        //         ),
-        //     )
+        //             ]
+        //         },
+        //     ]
         //
         return $this->parse_position($response, $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT_PERP",
-        //             "type" => "isolated",
-        //             "leverage" => "10.00",
-        //             "created_at" => "2022-03-19T07:54:35.24Z",
-        //             "updated_at" => "2022-03-19T07:54:58.922Z",
-        //             $currencies" => array(
+        //             "symbol": "ETHUSDT_PERP",
+        //             "type": "isolated",
+        //             "leverage": "10.00",
+        //             "created_at": "2022-03-19T07:54:35.24Z",
+        //             "updated_at": "2022-03-19T07:54:58.922Z",
+        //             currencies": [
         //                 {
-        //                     "code" => "USDT",
-        //                     "margin_balance" => "7.478100643043",
-        //                     "reserved_orders" => "0",
-        //                     "reserved_positions" => "0.303530761300"
+        //                     "code": "USDT",
+        //                     "margin_balance": "7.478100643043",
+        //                     "reserved_orders": "0",
+        //                     "reserved_positions": "0.303530761300"
         //                 }
-        //             ),
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 2470568,
-        //                     "symbol" => "ETHUSDT_PERP",
-        //                     "quantity" => "0.001",
-        //                     "price_entry" => "2927.509",
-        //                     "price_margin_call" => "0",
-        //                     "price_liquidation" => "0",
-        //                     "pnl" => "0",
-        //                     "created_at" => "2022-03-19T07:54:35.24Z",
-        //                     "updated_at" => "2022-03-19T07:54:58.922Z"
+        //             ],
+        //             "positions": [
+        //                 {
+        //                     "id": 2470568,
+        //                     "symbol": "ETHUSDT_PERP",
+        //                     "quantity": "0.001",
+        //                     "price_entry": "2927.509",
+        //                     "price_margin_call": "0",
+        //                     "price_liquidation": "0",
+        //                     "pnl": "0",
+        //                     "created_at": "2022-03-19T07:54:35.24Z",
+        //                     "updated_at": "2022-03-19T07:54:58.922Z"
         //                 }
-        //             )
-        //         ),
-        //     )
+        //             ]
+        //         },
+        //     ]
         //
         $marginMode = $this->safe_string($position, 'type');
         $leverage = $this->safe_number($position, 'leverage');
@@ -3396,20 +3396,20 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
-        //         "contract_type" => "perpetual",
-        //         "mark_price" => "42307.43",
-        //         "index_price" => "42303.27",
-        //         "funding_rate" => "0.0001",
-        //         "open_interest" => "30.9826",
-        //         "next_funding_time" => "2022-03-22T16:00:00.000Z",
-        //         "indicative_funding_rate" => "0.0001",
-        //         "premium_index" => "0",
-        //         "avg_premium_index" => "0.000029587712038098",
-        //         "interest_rate" => "0.0001",
-        //         "timestamp" => "2022-03-22T08:08:26.687Z"
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
         $datetime = $this->safe_string($interest, 'timestamp');
@@ -3424,7 +3424,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -3451,18 +3451,18 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicFuturesInfo($this->extend($request, $params)));
         //
         //     {
-        //         "BTCUSDT_PERP" => {
-        //             "contract_type" => "perpetual",
-        //             "mark_price" => "97291.83",
-        //             "index_price" => "97298.61",
-        //             "funding_rate" => "-0.000183473092423284",
-        //             "open_interest" => "94.1503",
-        //             "next_funding_time" => "2024-12-20T08:00:00.000Z",
-        //             "indicative_funding_rate" => "-0.00027495203277752",
-        //             "premium_index" => "-0.000789474900583786",
-        //             "avg_premium_index" => "-0.000683473092423284",
-        //             "interest_rate" => "0.0001",
-        //             "timestamp" => "2024-12-20T04:57:33.693Z"
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
         //         }
         //     }
         //
@@ -3477,7 +3477,7 @@ class hitbtc extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -3504,17 +3504,17 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicFuturesInfoSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "contract_type" => "perpetual",
-        //         "mark_price" => "42307.43",
-        //         "index_price" => "42303.27",
-        //         "funding_rate" => "0.0001",
-        //         "open_interest" => "30.9826",
-        //         "next_funding_time" => "2022-03-22T16:00:00.000Z",
-        //         "indicative_funding_rate" => "0.0001",
-        //         "premium_index" => "0",
-        //         "avg_premium_index" => "0.000029587712038098",
-        //         "interest_rate" => "0.0001",
-        //         "timestamp" => "2022-03-22T08:08:26.687Z"
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
         return $this->parse_open_interest($response, $market);
@@ -3547,17 +3547,17 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicFuturesInfoSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "contract_type" => "perpetual",
-        //         "mark_price" => "42307.43",
-        //         "index_price" => "42303.27",
-        //         "funding_rate" => "0.0001",
-        //         "open_interest" => "30.9826",
-        //         "next_funding_time" => "2022-03-22T16:00:00.000Z",
-        //         "indicative_funding_rate" => "0.0001",
-        //         "premium_index" => "0",
-        //         "avg_premium_index" => "0.000029587712038098",
-        //         "interest_rate" => "0.0001",
-        //         "timestamp" => "2022-03-22T08:08:26.687Z"
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
         return $this->parse_funding_rate($response, $market);
@@ -3566,17 +3566,17 @@ class hitbtc extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "contract_type" => "perpetual",
-        //         "mark_price" => "42307.43",
-        //         "index_price" => "42303.27",
-        //         "funding_rate" => "0.0001",
-        //         "open_interest" => "30.9826",
-        //         "next_funding_time" => "2022-03-22T16:00:00.000Z",
-        //         "indicative_funding_rate" => "0.0001",
-        //         "premium_index" => "0",
-        //         "avg_premium_index" => "0.000029587712038098",
-        //         "interest_rate" => "0.0001",
-        //         "timestamp" => "2022-03-22T08:08:26.687Z"
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
         $fundingDateTime = $this->safe_string($contract, 'next_funding_time');
@@ -3603,11 +3603,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, ?string $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, mixed $amount, ?string $type, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3627,8 +3627,8 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'], // swap and margin
             'margin_balance' => $amount, // swap and margin
-            // "leverage" => "10", // swap only required
-            // "strict_validate" => false, // swap and margin
+            // "leverage": "10", // swap only required
+            // "strict_validate": false, // swap and margin
         );
         if ($leverage !== null) {
             $request['leverage'] = $leverage;
@@ -3646,20 +3646,20 @@ class hitbtc extends Exchange {
         }
         //
         //     {
-        //         "symbol" => "BTCUSDT_PERP",
-        //         "type" => "isolated",
-        //         "leverage" => "8.00",
-        //         "created_at" => "2022-03-30T23:34:27.161Z",
-        //         "updated_at" => "2022-03-30T23:34:27.161Z",
-        //         "currencies" => array(
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
         //             {
-        //                 "code" => "USDT",
-        //                 "margin_balance" => "7.000000000000",
-        //                 "reserved_orders" => "0",
-        //                 "reserved_positions" => "0"
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
         //             }
-        //         ),
-        //         "positions" => null
+        //         ],
+        //         "positions": null
         //     }
         //
         $parsedAmount = $this->parse_number($amount);
@@ -3674,24 +3674,24 @@ class hitbtc extends Exchange {
         // addMargin/reduceMargin
         //
         //     {
-        //         "symbol" => "BTCUSDT_PERP",
-        //         "type" => "isolated",
-        //         "leverage" => "8.00",
-        //         "created_at" => "2022-03-30T23:34:27.161Z",
-        //         "updated_at" => "2022-03-30T23:34:27.161Z",
-        //         "currencies" => array(
+        //         "symbol": "BTCUSDT_PERP",
+        //         "type": "isolated",
+        //         "leverage": "8.00",
+        //         "created_at": "2022-03-30T23:34:27.161Z",
+        //         "updated_at": "2022-03-30T23:34:27.161Z",
+        //         "currencies": [
         //             {
-        //                 "code" => "USDT",
-        //                 "margin_balance" => "7.000000000000",
-        //                 "reserved_orders" => "0",
-        //                 "reserved_positions" => "0"
+        //                 "code": "USDT",
+        //                 "margin_balance": "7.000000000000",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0"
         //             }
-        //         ),
-        //         "positions" => null
+        //         ],
+        //         "positions": null
         //     }
         //
-        $currencies = $this->safe_value($data, 'currencies', array());
-        $currencyInfo = $this->safe_value($currencies, 0);
+        $currencies = $this->safe_list($data, 'currencies', array());
+        $currencyInfo = $this->safe_dict($currencies, 0);
         $datetime = $this->safe_string($data, 'updated_at');
         return array(
             'info' => $data,
@@ -3794,32 +3794,32 @@ class hitbtc extends Exchange {
         }
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "type" => "isolated",
-        //         "leverage" => "12.00",
-        //         "created_at" => "2022-03-29T22:31:29.067Z",
-        //         "updated_at" => "2022-03-30T00:00:00.125Z",
-        //         "currencies" => array(
+        //         "symbol": "BTCUSDT",
+        //         "type": "isolated",
+        //         "leverage": "12.00",
+        //         "created_at": "2022-03-29T22:31:29.067Z",
+        //         "updated_at": "2022-03-30T00:00:00.125Z",
+        //         "currencies": [
         //             {
-        //                 "code" => "USDT",
-        //                 "margin_balance" => "20.824360374174",
-        //                 "reserved_orders" => "0",
-        //                 "reserved_positions" => "0.973330435000"
+        //                 "code": "USDT",
+        //                 "margin_balance": "20.824360374174",
+        //                 "reserved_orders": "0",
+        //                 "reserved_positions": "0.973330435000"
         //             }
-        //         ),
-        //         "positions" => array(
+        //         ],
+        //         "positions": [
         //             {
-        //                 "id" => 631301,
-        //                 "symbol" => "BTCUSDT",
-        //                 "quantity" => "0.00022",
-        //                 "price_entry" => "47425.57",
-        //                 "price_margin_call" => "",
-        //                 "price_liquidation" => "0",
-        //                 "pnl" => "0",
-        //                 "created_at" => "2022-03-29T22:31:29.067Z",
-        //                 "updated_at" => "2022-03-30T00:00:00.125Z"
+        //                 "id": 631301,
+        //                 "symbol": "BTCUSDT",
+        //                 "quantity": "0.00022",
+        //                 "price_entry": "47425.57",
+        //                 "price_margin_call": "",
+        //                 "price_liquidation": "0",
+        //                 "pnl": "0",
+        //                 "created_at": "2022-03-29T22:31:29.067Z",
+        //                 "updated_at": "2022-03-30T00:00:00.125Z"
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_leverage($response, $market);
@@ -3837,7 +3837,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
     }
 
@@ -3874,7 +3874,7 @@ class hitbtc extends Exchange {
             'symbol' => $market['id'],
             'leverage' => (string) $leverage,
             'margin_balance' => $this->amount_to_precision($symbol, $amount),
-            // 'strict_validate' => false,
+            // 'strict_validate': false,
         );
         return Async\await($this->privatePutFuturesAccountIsolatedSymbol($this->extend($request, $params)));
     }
@@ -3899,54 +3899,54 @@ class hitbtc extends Exchange {
         $response = Async\await($this->publicGetPublicCurrency($params));
         //
         //     {
-        //       "WEALTH" => {
-        //         "full_name" => "ConnectWealth",
-        //         "payin_enabled" => false,
-        //         "payout_enabled" => false,
-        //         "transfer_enabled" => true,
-        //         "precision_transfer" => "0.001",
-        //         "networks" => array(
+        //       "WEALTH": {
+        //         "full_name": "ConnectWealth",
+        //         "payin_enabled": false,
+        //         "payout_enabled": false,
+        //         "transfer_enabled": true,
+        //         "precision_transfer": "0.001",
+        //         "networks": [
         //           {
-        //             "network" => "ETH",
-        //             "protocol" => "ERC20",
-        //             "default" => true,
-        //             "payin_enabled" => false,
-        //             "payout_enabled" => false,
-        //             "precision_payout" => "0.001",
-        //             "payout_fee" => "0.016800000000",
-        //             "payout_is_payment_id" => false,
-        //             "payin_payment_id" => false,
-        //             "payin_confirmations" => "2"
+        //             "network": "ETH",
+        //             "protocol": "ERC20",
+        //             "default": true,
+        //             "payin_enabled": false,
+        //             "payout_enabled": false,
+        //             "precision_payout": "0.001",
+        //             "payout_fee": "0.016800000000",
+        //             "payout_is_payment_id": false,
+        //             "payin_payment_id": false,
+        //             "payin_confirmations": "2"
         //           }
-        //         )
+        //         ]
         //       }
         //     }
         //
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
-        //         "full_name" => "ConnectWealth",
-        //         "payin_enabled" => false,
-        //         "payout_enabled" => false,
-        //         "transfer_enabled" => true,
-        //         "precision_transfer" => "0.001",
-        //         "networks" => array(
+        //         "full_name": "ConnectWealth",
+        //         "payin_enabled": false,
+        //         "payout_enabled": false,
+        //         "transfer_enabled": true,
+        //         "precision_transfer": "0.001",
+        //         "networks": [
         //           {
-        //             "network" => "ETH",
-        //             "protocol" => "ERC20",
-        //             "default" => true,
-        //             "payin_enabled" => false,
-        //             "payout_enabled" => false,
-        //             "precision_payout" => "0.001",
-        //             "payout_fee" => "0.016800000000",
-        //             "payout_is_payment_id" => false,
-        //             "payin_payment_id" => false,
-        //             "payin_confirmations" => "2"
+        //             "network": "ETH",
+        //             "protocol": "ERC20",
+        //             "default": true,
+        //             "payin_enabled": false,
+        //             "payout_enabled": false,
+        //             "precision_payout": "0.001",
+        //             "payout_fee": "0.016800000000",
+        //             "payout_is_payment_id": false,
+        //             "payin_payment_id": false,
+        //             "payin_confirmations": "2"
         //           }
-        //         )
+        //         ]
         //    }
         //
         $networks = $this->safe_list($fee, 'networks', array());
@@ -3958,7 +3958,7 @@ class hitbtc extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
-            $isDefault = $this->safe_value($networkEntry, 'default');
+            $isDefault = $this->safe_bool($networkEntry, 'default');
             $withdrawResult = array(
                 'fee' => $withdrawFee,
                 'percentage' => ($withdrawFee !== null) ? false : null,
@@ -4047,21 +4047,21 @@ class hitbtc extends Exchange {
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
-        //       "error" => {
-        //         "code" => 20001,
-        //         "message" => "Insufficient funds",
-        //         "description" => "Check that the funds are sufficient, given commissions"
+        //       "error": {
+        //         "code": 20001,
+        //         "message": "Insufficient funds",
+        //         "description": "Check that the funds are sufficient, given commissions"
         //       }
         //     }
         //
         //     {
-        //       "error" => {
-        //         "code" => "600",
-        //         "message" => "Action not allowed"
+        //       "error": {
+        //         "code": "600",
+        //         "message": "Action not allowed"
         //       }
         //     }
         //
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_dict($response, 'error');
         $errorCode = $this->safe_string($error, 'code');
         if ($errorCode !== null) {
             $feedback = $this->id . ' ' . $body;
@@ -4073,7 +4073,7 @@ class hitbtc extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $implodedPath;

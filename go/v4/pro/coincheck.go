@@ -77,7 +77,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if this.Markets == nil {
 
 		retRes6012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6012)
@@ -119,11 +119,11 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	//     ]
 	//
 	var symbol any = this.Symbol(this.SafeString(message, 0))
-	var data any = this.SafeValue(message, 1, map[string]any{})
-	var timestamp any = this.SafeTimestamp(data, "last_update_at")
+	var data any = this.SafeDict(message, 1, map[string]any{})
+	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
+	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(snapshot)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	} else {
@@ -159,7 +159,7 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if this.Markets == nil {
 
 		retRes12412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12412)
@@ -176,7 +176,7 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -198,15 +198,15 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	//         ]
 	//     ]
 	//
-	var first any = this.SafeValue(message, 0, []any{})
+	var first any = this.SafeList(message, 0, []any{})
 	var symbol any = this.Symbol(this.SafeString(first, 2))
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
+	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
 		var trade any = this.ParseWsTrade(data)
 		stored.(ccxt.Appender).Append(trade)
@@ -230,10 +230,10 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.Symbol(this.SafeString(trade, 2))
-	var timestamp any = this.SafeTimestamp(trade, 0)
-	var side any = this.SafeString(trade, 5)
-	var priceString any = this.SafeString(trade, 3)
-	var amountString any = this.SafeString(trade, 4)
+	var timestamp *int64 = this.SafeTimestamp(trade, 0)
+	var side *string = this.SafeString(trade, 5)
+	var priceString *string = this.SafeString(trade, 3)
+	var amountString *string = this.SafeString(trade, 4)
 	return this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, 1),
 		"info":         trade,
@@ -252,7 +252,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) any {
 }
 func (this *Coincheck) HandleMessage(client any, message any) {
 	var data any = this.SafeValue(message, 0)
-	if !ccxt.IsTrue(ccxt.IsArray(data)) {
+	if !ccxt.IsArray(data) {
 		this.HandleOrderBook(client, message)
 	} else {
 		this.HandleTrades(client, message)
@@ -272,6 +272,7 @@ func (this *Coincheck) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coincheck#watchOrderBook
@@ -289,11 +290,7 @@ func (this *Coincheck) WatchOrderBook(symbol string, options ...ccxt.WatchOrderB
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -318,13 +315,7 @@ func (this *Coincheck) WatchTrades(symbol string, options ...ccxt.WatchTradesOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}

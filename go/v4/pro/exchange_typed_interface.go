@@ -87,6 +87,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
 	case "bybiteu":
 		itf := NewBybiteu(options)
 		return itf
+	case "bybitid":
+		itf := NewBybitid(options)
+		return itf
 	case "bydfi":
 		itf := NewBydfi(options)
 		return itf

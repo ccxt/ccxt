@@ -10,6 +10,7 @@ import log from 'ololog'
 import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { applyJavaImports } from './javaUtilImports.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -494,6 +495,10 @@ let storedRustMethods: Dict = {};
 // straight from the base). Used by the Go emitter to skip endpoints the parent
 // core already declares (see createImplicitMethodsGo).
 let storedParents: Dict = {};
+// exchange id -> set of endpoint names reachable in the class's OWN api tree
+// (`instance.api`). The Go emitter bakes the TransformedApi entry into a wrapper
+// only for these (see createImplicitMethodsGo).
+let storedResolvableNames: Dict = {};
 
 // when true, we are generating the implicit APIs for the prediction-market
 // exchanges (ts/src/prediction/) which live in their own namespace/subfolder
@@ -512,6 +517,7 @@ function resetStoredMethods () {
     storedGoMethods = {};
     storedJavaMethods = {};
     storedParents = {};
+    storedResolvableNames = {};
 }
 
 
@@ -616,7 +622,10 @@ function getPreamble () {
 
 //-------------------------------------------------------------------------
 
-function generateImplicitMethodNames(id: string, api: string, paths: string[] = []){
+// resolvable walks an api tree and maps each derived camelCase endpoint name to
+// the tree data the Go emitter can bake (endpoint, path chain, verb, resolved
+// cost), without touching the stored* state.
+function generateImplicitMethodNames(id: string, api: string, paths: string[] = [], resolvable?: Map<string, Dict>){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
@@ -641,9 +650,6 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 const result = paths.concat (key).concat (endpoint.split (pattern)).filter(r => r.length > 0);
                 let camelCasePath = result.map(capitalize).join('');
                 camelCasePath = lowercaseFirstLetter(camelCasePath);
-                storedCamelCaseMethods[id].push (camelCasePath)
-                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
-                storedUnderscoreMethods[id].push (underscorePath)
                 let config: {} | undefined = undefined
                 if (Array.isArray (value)) {
                     config = {}
@@ -653,6 +659,13 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                         config = { 'cost': config }
                     }
                 }
+                if (resolvable) {
+                    resolvable.set (camelCasePath, { endpoint, paths, method: key.toUpperCase (), goCost: endpointCost (config) })
+                    continue
+                }
+                storedCamelCaseMethods[id].push (camelCasePath)
+                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
+                storedUnderscoreMethods[id].push (underscorePath)
                 // Nothing has to be stripped from the config here: the response
                 // shape is declared as an erased type assertion on the api leaf
                 // (`{ 'cost': 1 } as Endpoint<List>`), so it never becomes a
@@ -671,7 +684,7 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 })
             }
         } else {
-            generateImplicitMethodNames(id, value, paths.concat([ key ]))
+            generateImplicitMethodNames(id, value, paths.concat([ key ]), resolvable)
         }
     }
 }
@@ -877,7 +890,7 @@ function createImplicitMethodsRust(){
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
                 `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
-                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
+                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".into()), optional_args).await`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')];
@@ -886,6 +899,49 @@ function createImplicitMethodsRust(){
         // Close the `impl <Core>` block opened in createRustHeader.
         storedRustMethods[exchange].push('}');
     }
+}
+
+// the price of an endpoint as callEndpoint resolves it out of the TransformedApi
+// entry: config['cost'], a bare numeric config, or the 1 default. Only a whole
+// number is bakeable: the ported api dict carries a fractional cost as the source
+// expression that produced it (`10 / 3`), which Go evaluates by integer division,
+// so a fractional cost returns null and keeps the runtime dispatch.
+function endpointCost (config: any): number | null {
+    if (typeof config === 'number') {
+        return Number.isInteger (config) ? config : null;
+    }
+    if (config === null || config === undefined) {
+        return 1;
+    }
+    if (typeof config === 'object' && !Array.isArray (config)) {
+        const cost = config['cost'];
+        if (cost === undefined) {
+            return 1;
+        }
+        return (typeof cost === 'number' && Number.isInteger (cost)) ? cost : null;
+    }
+    return null;
+}
+
+// Body of a generated Go endpoint wrapper. When the class's own api tree
+// declares the endpoint, the lookup callEndpoint performs is replaced by the
+// entry itself — path, path chain, verb and cost are baked from that same tree,
+// and args are thinned the way callEndpoint thins them (GetArg(args, 0, nil), an
+// empty headers dict, nil body). Every other endpoint keeps the runtime
+// dispatch: its TransformedApi table has no entry, so it resolves to nil today.
+function goBakes (resolvable: any): boolean {
+    return !!(resolvable && typeof resolvable.goCost === 'number' && typeof resolvable.endpoint === 'string');
+}
+
+function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string): string {
+    if (!goBakes (resolvable)) {
+        return `\treturn this.${callEndpoint}("${method}", args...)`
+    }
+    const paths: string[] = resolvable.paths || []
+    // transformApiNew keys by the parent key itself when it is the only path
+    // level, and by the []string it walked for a nested one
+    const api = paths.length === 1 ? JSON.stringify (paths[0]) : `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
+    return `\treturn this.Fetch2Async(${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})})`
 }
 
 function createImplicitMethodsGo(){
@@ -917,6 +973,10 @@ function createImplicitMethodsGo(){
         // cannot access the unexported callEndpointAsync from package ccxt — use the
         // exported wrapper instead
         const callEndpoint = isPrediction ? 'CallEndpointAsync' : 'callEndpointAsync';
+        // prediction exchanges live in package ccxtprediction and take the
+        // package-level helpers through the ccxt import (GetArg is not re-exported
+        // into that package)
+        const pkgPrefix = isPrediction ? 'ccxt.' : '';
         // A derived exchange's core embeds its parent's core in Go
         // (`type BinanceusCore struct { BinanceCore }`), so every endpoint the parent
         // already declares is promoted onto the child receiver. Re-emitting those
@@ -931,11 +991,17 @@ function createImplicitMethodsGo(){
             }
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
-        const methods = ownMethodNames.map(method=> {
+        const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
+        let bakedAny = false;
+        const methods = ownMethodNames.map(method => {
+            const own = resolvable.get (method);
+            if (goBakes (own)) {
+                bakedAny = true;
+            }
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
                 `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan any {`,
-                `\treturn this.${callEndpoint}("${method}", args...)`,
+                goEndpointBody (method, own, callEndpoint, pkgPrefix),
                 `}`,
                 ``,
             ].join('\n')
@@ -948,6 +1014,11 @@ function createImplicitMethodsGo(){
             // ].join('\n')
         });
         // methods.unshift (reusableMethod);
+        if (isPrediction && bakedAny) {
+            // the baked bodies thin args through the package-level GetArg, which
+            // ccxtprediction takes from package ccxt
+            storedGoMethods[exchange].push (`import ccxt "github.com/ccxt/ccxt/go/v4"`, '')
+        }
         storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
@@ -1002,7 +1073,7 @@ async function editAPIFilesJava(subdir = ''){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, applyJavaImports (storedJavaMethods[exchanges[idx]].join ('\n')))))
 }
 
 //-------------------------------------------------------------------------
@@ -1099,12 +1170,9 @@ function createRustHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    // When the parent is another exchange, extend its untyped Core class
-    // (CompletableFuture<Object> methods) — extending the typed wrapper would
-    // shadow the Core signatures and break the generated typed wrapper subclass.
     // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
     const baseParent = (parent === 'Exchange' && isPrediction) ? 'PredictionExchange' : parent;
-    const capParent = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? baseParent : `${capitalize(baseParent)}Core`;
+    const capParent = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? baseParent : capitalize(baseParent);
     const parentImport = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const javaPackage = isPrediction ? 'io.github.ccxt.api.prediction' : 'io.github.ccxt.api';
     const namespace = `package ${javaPackage};\n${parentImport};`;
@@ -1159,6 +1227,13 @@ function populateImplicitMethods(exchanges: string[]) {
         storedCamelCaseMethods[exchange] = []
         storedUnderscoreMethods[exchange] = []
         storedContext[exchange] = []
+        // the endpoints this class's own api tree declares, with the tree data the
+        // Go emitter bakes (see goEndpointBody); pro-only WS endpoints are absent
+        // and keep the dispatch
+        storedResolvableNames[exchange] = new Map<string, Dict> ()
+        if (instance.api) {
+            generateImplicitMethodNames (exchange, instance.api, [], storedResolvableNames[exchange])
+        }
         // The api tree this instance exposes is the deep merge of describe()
         // along its prototype chain, so the declared shapes are merged the same
         // way — over the same files, in the same order — read from the

@@ -1,5 +1,5 @@
 import dydxRest from '../dydx.js';
-import type { Int, Trade, OrderBook, OHLCV, Market } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class dydx extends dydxRest {
     describe(): any;
@@ -14,7 +14,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name dydx#unWatchTrades
@@ -25,8 +25,8 @@ export default class dydx extends dydxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name dydx#watchOrderBook
@@ -37,7 +37,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name dydx#unWatchOrderBook
@@ -48,7 +48,7 @@ export default class dydx extends dydxRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
      * @method
@@ -62,7 +62,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name dydx#unWatchOHLCV
@@ -75,7 +75,7 @@ export default class dydx extends dydxRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

@@ -258,12 +258,12 @@ class cryptomus extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '500' => '\\ccxt\\ExchangeError',
-                    '6' => '\\ccxt\\InsufficientFunds', // array("code":6,"message":"Insufficient funds.")
+                    '6' => '\\ccxt\\InsufficientFunds', // {"code":6,"message":"Insufficient funds."}
                     'Insufficient funds.' => '\\ccxt\\InsufficientFunds',
                     'Minimum amount 15 USDT' => '\\ccxt\\InvalidOrder',
-                    // array("code":500,"message":"Server error.")
-                    // array("message":"Minimum amount 15 USDT","state":1)
-                    // array("message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1)
+                    // {"code":500,"message":"Server error."}
+                    // {"message":"Minimum amount 15 USDT","state":1}
+                    // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 ),
                 'broad' => array(),
             ),
@@ -288,21 +288,21 @@ class cryptomus extends Exchange {
         $response = $this->publicGetV2UserApiExchangeMarkets($params);
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
-        //                 "symbol" => "POL_USDT",
-        //                 "baseCurrency" => "POL",
-        //                 "quoteCurrency" => "USDT",
-        //                 "baseMinSize" => "1.00000000",
-        //                 "quoteMinSize" => "5.00000000",
-        //                 "baseMaxSize" => "50000.00000000",
-        //                 "quoteMaxSize" => "10000000000.00000000",
-        //                 "basePrec" => "1",
-        //                 "quotePrec" => "4"
-        //             ),
+        //         "result": [
+        //             {
+        //                 "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //                 "symbol": "POL_USDT",
+        //                 "baseCurrency": "POL",
+        //                 "quoteCurrency": "USDT",
+        //                 "baseMinSize": "1.00000000",
+        //                 "quoteMinSize": "5.00000000",
+        //                 "baseMaxSize": "50000.00000000",
+        //                 "quoteMaxSize": "10000000000.00000000",
+        //                 "basePrec": "1",
+        //                 "quotePrec": "4"
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -312,16 +312,16 @@ class cryptomus extends Exchange {
     public function parse_market(array $market): array {
         //
         //     {
-        //         "id" => "01JHN5EFT64YC4HR9KCGM5M65D",
-        //         "symbol" => "POL_USDT",
-        //         "baseCurrency" => "POL",
-        //         "quoteCurrency" => "USDT",
-        //         "baseMinSize" => "1.00000000",
-        //         "quoteMinSize" => "5.00000000",
-        //         "baseMaxSize" => "50000.00000000",
-        //         "quoteMaxSize" => "10000000000.00000000",
-        //         "basePrec" => "1",
-        //         "quotePrec" => "4"
+        //         "id": "01JHN5EFT64YC4HR9KCGM5M65D",
+        //         "symbol": "POL_USDT",
+        //         "baseCurrency": "POL",
+        //         "quoteCurrency": "USDT",
+        //         "baseMinSize": "1.00000000",
+        //         "quoteMinSize": "5.00000000",
+        //         "baseMaxSize": "50000.00000000",
+        //         "quoteMaxSize": "10000000000.00000000",
+        //         "basePrec": "1",
+        //         "quotePrec": "4"
         //     }
         //
         $marketId = $this->safe_string($market, 'symbol');
@@ -403,20 +403,20 @@ class cryptomus extends Exchange {
         $response = $this->publicGetV1ExchangeMarketAssets($params);
         //
         //     {
-        //         'state' => '0',
-        //         'result' => array(
-        //             array(
-        //                 'currency_code' => 'USDC',
-        //                 'network_code' => 'bsc',
-        //                 'can_withdraw' => true,
-        //                 'can_deposit' => true,
-        //                 'min_withdraw' => '1.00000000',
-        //                 'max_withdraw' => '10000000.00000000',
-        //                 'max_deposit' => '10000000.00000000',
-        //                 'min_deposit' => '1.00000000'
-        //             ),
+        //         'state': '0',
+        //         'result': [
+        //             {
+        //                 'currency_code': 'USDC',
+        //                 'network_code': 'bsc',
+        //                 'can_withdraw': true,
+        //                 'can_deposit': true,
+        //                 'min_withdraw': '1.00000000',
+        //                 'max_withdraw': '10000000.00000000',
+        //                 'max_deposit': '10000000.00000000',
+        //                 'min_deposit': '1.00000000'
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $coins = $this->safe_list($response, 'result');
@@ -426,8 +426,8 @@ class cryptomus extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        // currency here is array of $networks
-        $id = null; // all entries have same $id, as they were grouped by
+        // currency here is array of networks
+        $id = null; // all entries have same id, as they were grouped by
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
@@ -487,13 +487,13 @@ class cryptomus extends Exchange {
         $response = $this->publicGetV1ExchangeMarketTickers($params);
         //
         //     {
-        //         "data" => [
-        //         array(
-        //             "currency_pair" => "MATIC_USDT",
-        //             "last_price" => "0.342",
-        //             "base_volume" => "1676.84092771",
-        //             "quote_volume" => "573.48033609043"
-        //         ),
+        //         "data": [
+        //         {
+        //             "currency_pair": "MATIC_USDT",
+        //             "last_price": "0.342",
+        //             "base_volume": "1676.84092771",
+        //             "quote_volume": "573.48033609043"
+        //         },
         //         ...
         //     }
         //
@@ -501,13 +501,13 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "currency_pair" => "XMR_USDT",
-        //         "last_price" => "158.04829772",
-        //         "base_volume" => "0.35185785",
-        //         "quote_volume" => "55.523761128544"
+        //         "currency_pair": "XMR_USDT",
+        //         "last_price": "158.04829772",
+        //         "base_volume": "0.35185785",
+        //         "quote_volume": "55.523761128544"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'currency_pair');
@@ -563,20 +563,20 @@ class cryptomus extends Exchange {
         $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
         //
         //     {
-        //         "data" => {
-        //             "timestamp" => "1730138702",
-        //             "bids" => array(
+        //         "data": {
+        //             "timestamp": "1730138702",
+        //             "bids": [
         //                 {
-        //                     "price" => "2250.00",
-        //                     "quantity" => "1.00000"
+        //                     "price": "2250.00",
+        //                     "quantity": "1.00000"
         //                 }
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 {
-        //                     "price" => "2428.69",
-        //                     "quantity" => "0.16470"
+        //                     "price": "2428.69",
+        //                     "quantity": "0.16470"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -607,16 +607,16 @@ class cryptomus extends Exchange {
         $response = $this->publicGetV1ExchangeMarketTradesCurrencyPair($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "trade_id" => "01J829C3RAXHXHR09HABGQ1YAT",
-        //                 "price" => "2315.6320500000000000",
-        //                 "base_volume" => "21.9839623057260000",
-        //                 "quote_volume" => "0.0094937200000000",
-        //                 "timestamp" => 1726653796,
-        //                 "type" => "sell"
+        //                 "trade_id": "01J829C3RAXHXHR09HABGQ1YAT",
+        //                 "price": "2315.6320500000000000",
+        //                 "base_volume": "21.9839623057260000",
+        //                 "quote_volume": "0.0094937200000000",
+        //                 "timestamp": 1726653796,
+        //                 "type": "sell"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data');
@@ -630,12 +630,12 @@ class cryptomus extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "trade_id" => "01J017Q6B3JGHZRP9D2NZHVKFX",
-        //         "price" => "59498.63487492",
-        //         "base_volume" => "94.00784310",
-        //         "quote_volume" => "0.00158000",
-        //         "timestamp" => 1718028573,
-        //         "type" => "sell"
+        //         "trade_id": "01J017Q6B3JGHZRP9D2NZHVKFX",
+        //         "price": "59498.63487492",
+        //         "base_volume": "94.00784310",
+        //         "quote_volume": "0.00158000",
+        //         "timestamp": 1718028573,
+        //         "type": "sell"
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
@@ -675,13 +675,13 @@ class cryptomus extends Exchange {
         $response = $this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
+        //         "result": [
         //             {
-        //                 "ticker" => "AVAX",
-        //                 "available" => "0.00000000",
-        //                 "held" => "0.00000000"
+        //                 "ticker": "AVAX",
+        //                 "available": "0.00000000",
+        //                 "held": "0.00000000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -691,9 +691,9 @@ class cryptomus extends Exchange {
     public function parse_balance(mixed $balance): array {
         //
         //     {
-        //         "ticker" => "AVAX",
-        //         "available" => "0.00000000",
-        //         "held" => "0.00000000"
+        //         "ticker": "AVAX",
+        //         "available": "0.00000000",
+        //         "held": "0.00000000"
         //     }
         //
         $result = array(
@@ -779,13 +779,13 @@ class cryptomus extends Exchange {
         }
         //
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open limit order
          *
@@ -804,7 +804,7 @@ class cryptomus extends Exchange {
         $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params));
         //
         //     {
-        //         "success" => true
+        //         "success": true
         //     }
         //
         return $this->safe_order(array( 'info' => $response ));
@@ -842,41 +842,41 @@ class cryptomus extends Exchange {
         $response = $this->privateGetV2UserApiExchangeOrdersHistory($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
+        //         "result": [
         //             {
-        //                 "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
-        //                 "type" => "market",
-        //                 "direction" => "sell",
-        //                 "symbol" => "TRX_USDT",
-        //                 "quantity" => "67.5400000000000000",
-        //                 "filledQuantity" => "67.5400000000000000",
-        //                 "filledValue" => "20.0053480000000000",
-        //                 "state" => "completed",
-        //                 "internalState" => "filled",
-        //                 "createdAt" => "2024-12-12 11:40:19",
-        //                 "finishedAt" => "2024-12-12 11:40:21",
-        //                 "deal" => {
-        //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
-        //                     "state" => "completed",
-        //                     "createdAt" => "2024-12-12 11:40:21",
-        //                     "completedAt" => "2024-12-12 11:40:21",
-        //                     "averageFilledPrice" => "0.2962000000000000",
-        //                     "transactions" => array(
-        //                         array(
-        //                             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
-        //                             "tradeRole" => "taker",
-        //                             "filledPrice" => "0.2962000000000000",
-        //                             "filledQuantity" => "67.5400000000000000",
-        //                             "filledValue" => "20.0053480000000000",
-        //                             "fee" => "0.0000000000000000",
-        //                             "feeCurrency" => "USDT",
-        //                             "committedAt" => "2024-12-12 11:40:21"
+        //                 "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //                 "type": "market",
+        //                 "direction": "sell",
+        //                 "symbol": "TRX_USDT",
+        //                 "quantity": "67.5400000000000000",
+        //                 "filledQuantity": "67.5400000000000000",
+        //                 "filledValue": "20.0053480000000000",
+        //                 "state": "completed",
+        //                 "internalState": "filled",
+        //                 "createdAt": "2024-12-12 11:40:19",
+        //                 "finishedAt": "2024-12-12 11:40:21",
+        //                 "deal": {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //                     "state": "completed",
+        //                     "createdAt": "2024-12-12 11:40:21",
+        //                     "completedAt": "2024-12-12 11:40:21",
+        //                     "averageFilledPrice": "0.2962000000000000",
+        //                     "transactions": [
+        //                         {
+        //                             "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                             "tradeRole": "taker",
+        //                             "filledPrice": "0.2962000000000000",
+        //                             "filledQuantity": "67.5400000000000000",
+        //                             "filledValue": "20.0053480000000000",
+        //                             "fee": "0.0000000000000000",
+        //                             "feeCurrency": "USDT",
+        //                             "committedAt": "2024-12-12 11:40:21"
         //                         }
-        //                     )
+        //                     ]
         //                 }
-        //             ),
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -920,22 +920,22 @@ class cryptomus extends Exchange {
         $response = $this->privateGetV2UserApiExchangeOrders($this->extend($request, $params));
         //
         //     {
-        //         "result" => array(
-        //             array(
-        //                 "id" => "01JFFG72CBRDP68K179KC9DSTG",
-        //                 "direction" => "sell",
-        //                 "symbol" => "BTC_USDT",
-        //                 "price" => "102.0130000000000000",
-        //                 "quantity" => "0.0005000000000000",
-        //                 "value" => "0.0510065000000000",
-        //                 "filledQuantity" => "0.0000000000000000",
-        //                 "filledValue" => "0.0000000000000000",
-        //                 "createdAt" => "2024-12-19 09:02:51",
-        //                 "clientOrderId" => "987654321",
-        //                 "stopLossPrice" => "101.12"
-        //             ),
+        //         "result": [
+        //             {
+        //                 "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //                 "direction": "sell",
+        //                 "symbol": "BTC_USDT",
+        //                 "price": "102.0130000000000000",
+        //                 "quantity": "0.0005000000000000",
+        //                 "value": "0.0510065000000000",
+        //                 "filledQuantity": "0.0000000000000000",
+        //                 "filledValue": "0.0000000000000000",
+        //                 "createdAt": "2024-12-19 09:02:51",
+        //                 "clientOrderId": "987654321",
+        //                 "stopLossPrice": "101.12"
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_orders($result, $market, null, null);
@@ -945,57 +945,57 @@ class cryptomus extends Exchange {
         //
         // createOrder
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
         //     }
         //
         // fetchOrders
         //     {
-        //         "id" => "01JEXAPY04JDFBVFC2D23BCKMK",
-        //         "type" => "market",
-        //         "direction" => "sell",
-        //         "symbol" => "TRX_USDT",
-        //         "quantity" => "67.5400000000000000",
-        //         "filledQuantity" => "67.5400000000000000",
-        //         "filledValue" => "20.0053480000000000",
-        //         "state" => "completed",
-        //         "internalState" => "filled",
-        //         "createdAt" => "2024-12-12 11:40:19",
-        //         "finishedAt" => "2024-12-12 11:40:21",
-        //         "deal" => {
-        //             "id" => "01JEXAPZ9C9TWENPFZJASZ1YD2",
-        //             "state" => "completed",
-        //             "createdAt" => "2024-12-12 11:40:21",
-        //             "completedAt" => "2024-12-12 11:40:21",
-        //             "averageFilledPrice" => "0.2962000000000000",
-        //             "transactions" => array(
-        //                 array(
-        //                     "id" => "01JEXAPZ9C9TWENPFZJASZ1YD3",
-        //                     "tradeRole" => "taker",
-        //                     "filledPrice" => "0.2962000000000000",
-        //                     "filledQuantity" => "67.5400000000000000",
-        //                     "filledValue" => "20.0053480000000000",
-        //                     "fee" => "0.0000000000000000",
-        //                     "feeCurrency" => "USDT",
-        //                     "committedAt" => "2024-12-12 11:40:21"
+        //         "id": "01JEXAPY04JDFBVFC2D23BCKMK",
+        //         "type": "market",
+        //         "direction": "sell",
+        //         "symbol": "TRX_USDT",
+        //         "quantity": "67.5400000000000000",
+        //         "filledQuantity": "67.5400000000000000",
+        //         "filledValue": "20.0053480000000000",
+        //         "state": "completed",
+        //         "internalState": "filled",
+        //         "createdAt": "2024-12-12 11:40:19",
+        //         "finishedAt": "2024-12-12 11:40:21",
+        //         "deal": {
+        //             "id": "01JEXAPZ9C9TWENPFZJASZ1YD2",
+        //             "state": "completed",
+        //             "createdAt": "2024-12-12 11:40:21",
+        //             "completedAt": "2024-12-12 11:40:21",
+        //             "averageFilledPrice": "0.2962000000000000",
+        //             "transactions": [
+        //                 {
+        //                     "id": "01JEXAPZ9C9TWENPFZJASZ1YD3",
+        //                     "tradeRole": "taker",
+        //                     "filledPrice": "0.2962000000000000",
+        //                     "filledQuantity": "67.5400000000000000",
+        //                     "filledValue": "20.0053480000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "feeCurrency": "USDT",
+        //                     "committedAt": "2024-12-12 11:40:21"
         //                 }
-        //             )
+        //             ]
         //         }
-        //     ),
+        //     },
         //     ...
         //
         // fetchOpenOrders
         //     {
-        //         "id" => "01JFFG72CBRDP68K179KC9DSTG",
-        //         "direction" => "sell",
-        //         "symbol" => "BTC_USDT",
-        //         "price" => "102.0130000000000000",
-        //         "quantity" => "0.0005000000000000",
-        //         "value" => "0.0510065000000000",
-        //         "filledQuantity" => "0.0000000000000000",
-        //         "filledValue" => "0.0000000000000000",
-        //         "createdAt" => "2024-12-19 09:02:51",
-        //         "clientOrderId" => "987654321",
-        //         "stopLossPrice" => "101.12"
+        //         "id": "01JFFG72CBRDP68K179KC9DSTG",
+        //         "direction": "sell",
+        //         "symbol": "BTC_USDT",
+        //         "price": "102.0130000000000000",
+        //         "quantity": "0.0005000000000000",
+        //         "value": "0.0510065000000000",
+        //         "filledQuantity": "0.0000000000000000",
+        //         "filledValue": "0.0000000000000000",
+        //         "createdAt": "2024-12-19 09:02:51",
+        //         "clientOrderId": "987654321",
+        //         "stopLossPrice": "101.12"
         //     }
         //
         $id = $this->safe_string_2($order, 'order_id', 'id');
@@ -1075,49 +1075,49 @@ class cryptomus extends Exchange {
         $response = $this->privateGetV2UserApiExchangeAccountTariffs($params);
         //
         //     {
-        //         $result => {
-        //             equivalent_currency_code => 'USD',
-        //             current_tariff_step => array(
-        //                 step => '0',
-        //                 from_turnover => '0.00000000',
-        //                 maker_percent => '0.08',
-        //                 taker_percent => '0.1'
-        //             ),
-        //             tariff_steps => array(
-        //                 array(
-        //                     step => '0',
-        //                     from_turnover => '0.00000000',
-        //                     maker_percent => '0.08',
-        //                     taker_percent => '0.1'
-        //                 ),
-        //                 array(
-        //                     step => '1',
-        //                     from_turnover => '100001.00000000',
-        //                     maker_percent => '0.06',
-        //                     taker_percent => '0.095'
-        //                 ),
-        //                 array(
-        //                     step => '2',
-        //                     from_turnover => '250001.00000000',
-        //                     maker_percent => '0.055',
-        //                     taker_percent => '0.085'
-        //                 ),
-        //                 array(
-        //                     step => '3',
-        //                     from_turnover => '500001.00000000',
-        //                     maker_percent => '0.05',
-        //                     taker_percent => '0.075'
-        //                 ),
+        //         result: {
+        //             equivalent_currency_code: 'USD',
+        //             current_tariff_step: {
+        //                 step: '0',
+        //                 from_turnover: '0.00000000',
+        //                 maker_percent: '0.08',
+        //                 taker_percent: '0.1'
+        //             },
+        //             tariff_steps: [
         //                 {
-        //                     step => '4',
-        //                     from_turnover => '2500001.00000000',
-        //                     maker_percent => '0.04',
-        //                     taker_percent => '0.07'
+        //                     step: '0',
+        //                     from_turnover: '0.00000000',
+        //                     maker_percent: '0.08',
+        //                     taker_percent: '0.1'
+        //                 },
+        //                 {
+        //                     step: '1',
+        //                     from_turnover: '100001.00000000',
+        //                     maker_percent: '0.06',
+        //                     taker_percent: '0.095'
+        //                 },
+        //                 {
+        //                     step: '2',
+        //                     from_turnover: '250001.00000000',
+        //                     maker_percent: '0.055',
+        //                     taker_percent: '0.085'
+        //                 },
+        //                 {
+        //                     step: '3',
+        //                     from_turnover: '500001.00000000',
+        //                     maker_percent: '0.05',
+        //                     taker_percent: '0.075'
+        //                 },
+        //                 {
+        //                     step: '4',
+        //                     from_turnover: '2500001.00000000',
+        //                     maker_percent: '0.04',
+        //                     taker_percent: '0.07'
         //                 }
-        //             ),
-        //             daily_turnover => '0.00000000',
-        //             monthly_turnover => '77.52062617',
-        //             circulation_funds => '25.48900443'
+        //             ],
+        //             daily_turnover: '0.00000000',
+        //             monthly_turnover: '77.52062617',
+        //             circulation_funds: '25.48900443'
         //         }
         //     }
         //
@@ -1149,7 +1149,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(array $feeTiers, ?array $market = null): array {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1168,7 +1168,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;
@@ -1212,13 +1212,13 @@ class cryptomus extends Exchange {
             throw new ExchangeError($feedback);
         } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
             //
-            //      array("message":"Minimum amount 15 USDT","state":1)
+            //      {"message":"Minimum amount 15 USDT","state":1}
             //
             $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

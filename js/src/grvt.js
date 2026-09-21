@@ -3030,7 +3030,7 @@ export default class grvt extends Exchange {
             'clientOrderId': this.safeString(metadata, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct(stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus(this.safeString(stateObj, 'status')),
             'symbol': this.safeString(market, 'symbol'),
@@ -3253,7 +3253,7 @@ export default class grvt extends Exchange {
             'chain_id': this.isSandboxModeEnabled ? '326' : '325',
         };
     }
-    handleUntilOptionString(key, request, params, multiplier = 1) {
+    handleUntilOptionString(key, request, params = undefined, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString(this.parseToInt(until * multiplier));

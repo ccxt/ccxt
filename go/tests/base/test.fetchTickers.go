@@ -16,7 +16,7 @@ func testFetchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	// prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
 	// is impractical and the "every active market has a ticker" check doesn't apply — test
 	// fetchTickers by the outcome handle instead
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 
 		predictionResult := (<-FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol}))
 		PanicOnError(predictionResult)
@@ -51,13 +51,18 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
 	var values []any = ObjectValues(response)
 	var checkedSymbol any = nil
-	if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
+	if (argSymbols != nil) && (GetArrayLength(argSymbols) == 1) {
 		checkedSymbol = GetValue(argSymbols, 0)
 	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-	for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+	for i := 0; i < len(values); i++ {
 		// todo: symbol check here
-		var ticker any = GetValue(values, i)
+		var ticker any = func() any {
+			if i >= 0 && i < len(values) {
+				return DerefScalar(values[i])
+			}
+			return nil
+		}()
 
 		{
 			func() (ret_ any) {
@@ -70,7 +75,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							// catch block:
 							var ohlcv any = nil
 							var tickerSymbol any = GetValue(ticker, "symbol")
-							if IsTrue(IsTrue((!IsEqual(tickerSymbol, nil))) && IsTrue(TickerExceptionNeedsOhlcv(ex, exchange, ticker))) {
+							if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 								ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
 								PanicOnError(ohlcv)
@@ -93,23 +98,23 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 }
 func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {
 	var tickersValues []any = ObjectValues(tickers)
-	if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
+	if !(InOp(skippedProperties, "checkActiveSymbols")) {
 		//
 		// ensure all "active" symbols have tickers
 		//
 		var nonInactiveMarkets any = GetActiveMarkets(exchange)
 		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
-		var obtainedTickersLength int = GetArrayLength(tickersValues)
+		var obtainedTickersLength int = len(tickersValues)
 		var minRatio float64 = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
 		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
 		//
 		// ensure tickers length is less than markets length
 		//
 		var allMarkets any = exchange.GetMarkets()
-		if IsTrue(IsEqual(allMarkets, nil)) {
+		if IsEqual(allMarkets, nil) {
 			return
 		}
-		var allMarketsLength int = GetArrayLength(ObjectKeys(allMarkets))
-		Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
+		var allMarketsLength int = len(ObjectKeys(allMarkets))
+		Assert((obtainedTickersLength <= allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
 	}
 }

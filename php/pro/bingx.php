@@ -97,7 +97,7 @@ class bingx extends \ccxt\async\bingx {
                 ),
                 'watchOrderBook' => array(
                     'depth' => 100, // 5, 10, 20, 50, 100
-                    // 'interval' => 500, // 100, 200, 500, 1000
+                    // 'interval': 500, // 100, 200, 500, 1000
                 ),
                 'watchTrades' => array(
                     'ignoreDuplicates' => true,
@@ -225,69 +225,73 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $dataType, $topic, $market, $methodName, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // swap
         //
         //     {
-        //         "code" => 0,
-        //         "dataType" => "BTC-USDT@$ticker",
-        //         "data" => {
-        //             "e" => "24hTicker",
-        //             "E" => 1706498923556,
-        //             "s" => "BTC-USDT",
-        //             "p" => "346.4",
-        //             "P" => "0.82",
-        //             "c" => "42432.5",
-        //             "L" => "0.0529",
-        //             "h" => "42855.4",
-        //             "l" => "41578.3",
-        //             "v" => "64310.9754",
-        //             "q" => "2728360284.15",
-        //             "o" => "42086.1",
-        //             "O" => 1706498922655,
-        //             "C" => 1706498883023,
-        //             "A" => "42437.8",
-        //             "a" => "1.4160",
-        //             "B" => "42437.1",
-        //             "b" => "2.5747"
+        //         "code": 0,
+        //         "dataType": "BTC-USDT@ticker",
+        //         "data": {
+        //             "e": "24hTicker",
+        //             "E": 1706498923556,
+        //             "s": "BTC-USDT",
+        //             "p": "346.4",
+        //             "P": "0.82",
+        //             "c": "42432.5",
+        //             "L": "0.0529",
+        //             "h": "42855.4",
+        //             "l": "41578.3",
+        //             "v": "64310.9754",
+        //             "q": "2728360284.15",
+        //             "o": "42086.1",
+        //             "O": 1706498922655,
+        //             "C": 1706498883023,
+        //             "A": "42437.8",
+        //             "a": "1.4160",
+        //             "B": "42437.1",
+        //             "b": "2.5747"
         //         }
         //     }
         //
         // spot
         //
         //     {
-        //         "code" => 0,
-        //         "timestamp" => 1706506795473,
-        //         "data" => {
-        //             "e" => "24hTicker",
-        //             "E" => 1706506795472,
-        //             "s" => "BTC-USDT",
-        //             "p" => -372.12,
-        //             "P" => "-0.87%",
-        //             "o" => 42548.95,
-        //             "h" => 42696.1,
-        //             "l" => 41621.29,
-        //             "c" => 42176.83,
-        //             "v" => 4943.33,
-        //             "q" => 208842236.5,
-        //             "O" => 1706420395472,
-        //             "C" => 1706506795472,
-        //             "A" => 42177.23,
-        //             "a" => 5.14484,
-        //             "B" => 42176.38,
-        //             "b" => 5.36117
+        //         "code": 0,
+        //         "timestamp": 1706506795473,
+        //         "data": {
+        //             "e": "24hTicker",
+        //             "E": 1706506795472,
+        //             "s": "BTC-USDT",
+        //             "p": -372.12,
+        //             "P": "-0.87%",
+        //             "o": 42548.95,
+        //             "h": 42696.1,
+        //             "l": 41621.29,
+        //             "c": 42176.83,
+        //             "v": 4943.33,
+        //             "q": 208842236.5,
+        //             "O": 1706420395472,
+        //             "C": 1706506795472,
+        //             "A": 42177.23,
+        //             "a": 5.14484,
+        //             "B": 42176.38,
+        //             "b": 5.36117
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
-        // $marketId = messageHash.split('@')[0];
+        // const marketId = messageHash.split('@')[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $ticker = $this->parse_ws_ticker($data, $market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        $inverseUrl = $this->safe_string($this->urls['api']['ws'], 'inverse');
+        $isInverse = ($inverseUrl !== null) && (mb_strpos($client->url, $inverseUrl) === 0);
+        $ticker = $this->parse_ws_ticker($data, $market, $isInverse);
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
         if ($this->safe_string($message, 'dataType') === 'all@ticker') {
@@ -295,33 +299,38 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null) {
+    public function parse_ws_ticker(array $message, ?array $market = null, ?bool $isInverse = null): array {
         //
         //     {
-        //         "e" => "24hTicker",
-        //         "E" => 1706498923556,
-        //         "s" => "BTC-USDT",
-        //         "p" => "346.4",
-        //         "P" => "0.82",
-        //         "c" => "42432.5",
-        //         "L" => "0.0529",
-        //         "h" => "42855.4",
-        //         "l" => "41578.3",
-        //         "v" => "64310.9754",
-        //         "q" => "2728360284.15",
-        //         "o" => "42086.1",
-        //         "O" => 1706498922655,
-        //         "C" => 1706498883023,
-        //         "A" => "42437.8",
-        //         "a" => "1.4160",
-        //         "B" => "42437.1",
-        //         "b" => "2.5747"
+        //         "e": "24hTicker",
+        //         "E": 1706498923556,
+        //         "s": "BTC-USDT",
+        //         "p": "346.4",
+        //         "P": "0.82",
+        //         "c": "42432.5",
+        //         "L": "0.0529",
+        //         "h": "42855.4",
+        //         "l": "41578.3",
+        //         "v": "64310.9754",
+        //         "q": "2728360284.15",
+        //         "o": "42086.1",
+        //         "O": 1706498922655,
+        //         "C": 1706498883023,
+        //         "A": "42437.8",
+        //         "a": "1.4160",
+        //         "B": "42437.1",
+        //         "b": "2.5747"
         //     }
         //
         $timestamp = $this->safe_integer($message, 'C');
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        $inverse = ($isInverse === null) ? ($market['inverse'] === true) : $isInverse;
+        $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -340,7 +349,7 @@ class bingx extends \ccxt\async\bingx {
             'change' => $this->safe_string($message, 'p'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($message, 'v'),
+            'baseVolume' => $this->safe_string($message, $baseVolumeKey),
             'quoteVolume' => $this->safe_string($message, 'q'),
             'info' => $message,
         ), $market);
@@ -461,85 +470,85 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $dataType, $topic, $market, $methodName, $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
-        // spot => first snapshot
+        // spot: first snapshot
         //
         //    {
-        //      "id" => "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
-        //      "code" => 0,
-        //      "msg" => "SUCCESS",
-        //      "timestamp" => 1690214699854
+        //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
+        //      "code": 0,
+        //      "msg": "SUCCESS",
+        //      "timestamp": 1690214699854
         //    }
         //
-        // spot => subsequent updates
+        // spot: subsequent updates
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //           "E" => 1690214529432,
-        //           "T" => 1690214529386,
-        //           "e" => "trade",
-        //           "m" => true,
-        //           "p" => "29110.19",
-        //           "q" => "0.1868",
-        //           "s" => "BTC-USDT",
-        //           "t" => "57903921"
-        //         ),
-        //         "dataType" => "BTC-USDT@trade",
-        //         "success" => true
+        //         "code": 0,
+        //         "data": {
+        //           "E": 1690214529432,
+        //           "T": 1690214529386,
+        //           "e": "trade",
+        //           "m": true,
+        //           "p": "29110.19",
+        //           "q": "0.1868",
+        //           "s": "BTC-USDT",
+        //           "t": "57903921"
+        //         },
+        //         "dataType": "BTC-USDT@trade",
+        //         "success": true
         //     }
         //
-        // linear swap => first snapshot
+        // linear swap: first snapshot
         //
         //    {
-        //        "id" => "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
-        //        "code" => 0,
-        //        "msg" => '',
-        //        "dataType" => '',
-        //        "data" => null
+        //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
+        //        "code": 0,
+        //        "msg": '',
+        //        "dataType": '',
+        //        "data": null
         //    }
         //
-        // linear swap => subsequent updates
+        // linear swap: subsequent updates
         //
         //    {
-        //        "code" => 0,
-        //        "dataType" => "BTC-USDT@trade",
-        //        "data" => array(
-        //            array(
-        //                "q" => "0.0421",
-        //                "p" => "29023.5",
-        //                "T" => 1690221401344,
-        //                "m" => false,
-        //                "s" => "BTC-USDT"
-        //            ),
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@trade",
+        //        "data": [
+        //            {
+        //                "q": "0.0421",
+        //                "p": "29023.5",
+        //                "T": 1690221401344,
+        //                "m": false,
+        //                "s": "BTC-USDT"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
-        // inverse swap => first snapshot
+        // inverse swap: first snapshot
         //
         //     {
-        //         "code" => 0,
-        //         "id" => "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
-        //         "msg" => "SUCCESS",
-        //         "timestamp" => 1722920589426
+        //         "code": 0,
+        //         "id": "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1722920589426
         //     }
         //
-        // inverse swap => subsequent updates
+        // inverse swap: subsequent updates
         //
         //     {
-        //         "code" => 0,
-        //         "dataType" => "BTC-USD@trade",
-        //         "data" => {
-        //             "e" => "trade",
-        //             "E" => 1722920589665,
-        //             "s" => "BTC-USD",
-        //             "t" => "39125001",
-        //             "p" => "55360.0",
-        //             "q" => "1",
-        //             "T" => 1722920589582,
-        //             "m" => false
+        //         "code": 0,
+        //         "dataType": "BTC-USD@trade",
+        //         "data": {
+        //             "e": "trade",
+        //             "E": 1722920589665,
+        //             "s": "BTC-USD",
+        //             "t": "39125001",
+        //             "p": "55360.0",
+        //             "q": "1",
+        //             "T": 1722920589582,
+        //             "m": false
         //         }
         //     }
         //
@@ -666,26 +675,26 @@ class bingx extends \ccxt\async\bingx {
         $bookside->store($price, $amount);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // spot
         //
         //     {
         //         "code":0,
         //         "data":
-        //         array(
-        //             "asks":array(
+        //         {
+        //             "asks":[
         //                 ["84119.73","0.000011"],
         //                 ["84116.52","0.000014"],
         //                 ["84116.40","0.000039"]
-        //             ),
-        //             "bids":array(
+        //             ],
+        //             "bids":[
         //                 ["83656.98","2.570805"],
         //                 ["83655.51","0.000347"],
         //                 ["83654.59","0.000082"]
-        //             ),
+        //             ],
         //             "lastUpdateId":13565694850
-        //         ),
+        //         },
         //         "dataType":"BTC-USDT@depth100",
         //         "success":true,
         //         "timestamp":1743241379958
@@ -699,16 +708,16 @@ class bingx extends \ccxt\async\bingx {
         //         "ts":1743241563651,
         //         "data":
         //         {
-        //             "bids":array(
+        //             "bids":[
         //                 ["83363.2","0.1908"],
         //                 ["83360.0","0.0003"],
         //                 ["83356.5","0.0245"],
-        //             ),
-        //             "asks":array(
+        //             ],
+        //             "asks":[
         //                 ["83495.0","0.0024"],
         //                 ["83490.0","0.0001"],
         //                 ["83488.0","0.0004"],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -719,16 +728,16 @@ class bingx extends \ccxt\async\bingx {
         //         "dataType":"BTC-USD@depth100",
         //         "data":{
         //             "symbol":"BTC-USD",
-        //             "bids":array(
-        //                 array("p":"83411.2","a":"2.979216","v":"2485.0"),
-        //                 array("p":"83411.1","a":"1.592114","v":"1328.0"),
-        //                 array("p":"83410.8","a":"2.656730","v":"2216.0"),
-        //             ),
-        //             "asks":array(
-        //                 array("p":"88200.0","a":"0.344671","v":"304.0"),
-        //                 array("p":"88023.8","a":"0.045442","v":"40.0"),
-        //                 array("p":"88001.0","a":"0.003409","v":"3.0"),
-        //             ),
+        //             "bids":[
+        //                 {"p":"83411.2","a":"2.979216","v":"2485.0"},
+        //                 {"p":"83411.1","a":"1.592114","v":"1328.0"},
+        //                 {"p":"83410.8","a":"2.656730","v":"2216.0"},
+        //             ],
+        //             "asks":[
+        //                 {"p":"88200.0","a":"0.344671","v":"304.0"},
+        //                 {"p":"88023.8","a":"0.045442","v":"40.0"},
+        //                 {"p":"88001.0","a":"0.003409","v":"3.0"},
+        //             ],
         //             "aggPrecision":"0.1",
         //             "timestamp":1743242290710
         //         }
@@ -746,10 +755,10 @@ class bingx extends \ccxt\async\bingx {
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
-            // $limit = array( 5, 10, 20, 50, 100 )
+            // const limit = [ 5, 10, 20, 50, 100 ]
             $subscriptionHash = $dataType;
             $subscription = $client->subscriptions[$subscriptionHash];
-            // see handleOHLCV — $subscription->limit may be missing for non-$orderbook callers;
+            // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -777,13 +786,13 @@ class bingx extends \ccxt\async\bingx {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "c" => "28909.0",
-        //        "o" => "28915.4",
-        //        "h" => "28915.4",
-        //        "l" => "28896.1",
-        //        "v" => "27.6919",
-        //        "T" => 1696687499999,
-        //        "t" => 1696687440000
+        //        "c": "28909.0",
+        //        "o": "28915.4",
+        //        "h": "28915.4",
+        //        "l": "28896.1",
+        //        "v": "27.6919",
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
@@ -804,68 +813,68 @@ class bingx extends \ccxt\async\bingx {
         );
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // spot:
         //
         //   {
-        //       "code" => 0,
-        //       "data" => array(
-        //         "E" => 1696687498608,
-        //         "K" => array(
-        //           "T" => 1696687499999,
-        //           "c" => "27917.829",
-        //           "h" => "27918.427",
-        //           "i" => "1min",
-        //           "l" => "27917.7",
-        //           "n" => 262,
-        //           "o" => "27917.91",
-        //           "q" => "25715.359197",
-        //           "s" => "BTC-USDT",
-        //           "t" => 1696687440000,
-        //           "v" => "0.921100"
-        //         ),
-        //         "e" => "kline",
-        //         "s" => "BTC-USDT"
-        //       ),
-        //       "dataType" => "BTC-USDT@kline_1min",
-        //       "success" => true
+        //       "code": 0,
+        //       "data": {
+        //         "E": 1696687498608,
+        //         "K": {
+        //           "T": 1696687499999,
+        //           "c": "27917.829",
+        //           "h": "27918.427",
+        //           "i": "1min",
+        //           "l": "27917.7",
+        //           "n": 262,
+        //           "o": "27917.91",
+        //           "q": "25715.359197",
+        //           "s": "BTC-USDT",
+        //           "t": 1696687440000,
+        //           "v": "0.921100"
+        //         },
+        //         "e": "kline",
+        //         "s": "BTC-USDT"
+        //       },
+        //       "dataType": "BTC-USDT@kline_1min",
+        //       "success": true
         //   }
         //
         // linear swap:
         //
         //    {
-        //        "code" => 0,
-        //        "dataType" => "BTC-USDT@kline_1m",
-        //        "s" => "BTC-USDT",
-        //        "data" => array(
+        //        "code": 0,
+        //        "dataType": "BTC-USDT@kline_1m",
+        //        "s": "BTC-USDT",
+        //        "data": [
         //            {
-        //            "c" => "28909.0",
-        //            "o" => "28915.4",
-        //            "h" => "28915.4",
-        //            "l" => "28896.1",
-        //            "v" => "27.6919",
-        //            "T" => 1690907580000
+        //            "c": "28909.0",
+        //            "o": "28915.4",
+        //            "h": "28915.4",
+        //            "l": "28896.1",
+        //            "v": "27.6919",
+        //            "T": 1690907580000
         //            }
-        //        )
+        //        ]
         //    }
         //
         // inverse swap:
         //
         //     {
-        //         "code" => 0,
-        //         "timestamp" => 1723769354547,
-        //         "dataType" => "BTC-USD@kline_1m",
-        //         "data" => {
-        //             "t" => 1723769340000,
-        //             "o" => 57485.1,
-        //             "c" => 57468,
-        //             "l" => 57464.9,
-        //             "h" => 57485.1,
-        //             "a" => 0.189663,
-        //             "v" => 109,
-        //             "u" => 92,
-        //             "s" => "BTC-USD"
+        //         "code": 0,
+        //         "timestamp": 1723769354547,
+        //         "dataType": "BTC-USD@kline_1m",
+        //         "data": {
+        //             "t": 1723769340000,
+        //             "o": 57485.1,
+        //             "c": 57468,
+        //             "l": 57464.9,
+        //             "h": 57485.1,
+        //             "a": 0.189663,
+        //             "v": 109,
+        //             "u": 92,
+        //             "s": "BTC-USD"
         //         }
         //     }
         //
@@ -889,7 +898,7 @@ class bingx extends \ccxt\async\bingx {
             $candles = array( $this->safe_dict($data, 'K', array()) );
         }
         $symbol = $market['symbol'];
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $rawTimeframe = explode('_', $dataType)[1];
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
@@ -897,9 +906,9 @@ class bingx extends \ccxt\async\bingx {
         if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $client->subscriptions[$subscriptionHash];
-            // $subscription->limit is only set when watchOHLCV registers the $subscription;
-            // when handleMessage routes a non-OHLCV-originated $subscription here (or the
-            // $subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            // subscription.limit is only set when watchOHLCV registers the subscription;
+            // when handleMessage routes a non-OHLCV-originated subscription here (or the
+            // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             $limit = $this->safe_integer($subscription, 'limit', $this->safe_integer($this->options, 'OHLCVLimit', 1000));
             $this->ohlcvs[$symbol][$unifiedTimeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -955,8 +964,8 @@ class bingx extends \ccxt\async\bingx {
         if ($url === null) {
             throw new BadRequest($this->id . ' watchOHLCV is not supported for ' . $marketType . ' markets.');
         }
-        $options = $this->safe_value($this->options, $marketType, array());
-        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $options = $this->safe_dict($this->options, $marketType, array());
+        $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = $this->get_message_hash('ohlcv', $market['symbol'], $timeframe);
         $subscriptionHash = $market['id'] . '@kline_' . $rawTimeframe;
@@ -1003,8 +1012,8 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, $market['type'], array());
-        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $options = $this->safe_dict($this->options, $market['type'], array());
+        $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $subMessageHash = $market['id'] . '@kline_' . $rawTimeframe;
         $messageHash = 'unsubscribe::' . $subMessageHash;
@@ -1191,7 +1200,7 @@ class bingx extends \ccxt\async\bingx {
                 throw new NotSupported($this->id . ' watchBalance is not supported for inverse swap markets yet');
             }
             // swap balance updates are pushed automatically over the listenKey connection,
-            // so we must not send a $subscription message (an empty one is rejected with 80014)
+            // so we must not send a subscription message (an empty one is rejected with 80014)
             $baseUrl = $this->safe_string($this->urls['api']['ws'], $subType);
         } else {
             $baseUrl = $this->safe_string($this->urls['api']['ws'], $type);
@@ -1217,7 +1226,7 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subType, mixed $subscriptionHash, mixed $params) {
+    public function set_balance_cache(Client $client, mixed $type, ?string $subType, string $subscriptionHash, array $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -1234,14 +1243,14 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $subType) {
+    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subType);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $subType) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
-        // don't remove the $future from the .futures cache
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve();
@@ -1312,7 +1321,7 @@ class bingx extends \ccxt\async\bingx {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, ?string $type, ?array $symbols = null) {
         if ($this->positions !== null) {
             return;
         }
@@ -1328,11 +1337,11 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type, 'subType' => 'linear' )));
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1343,7 +1352,7 @@ class bingx extends \ccxt\async\bingx {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1351,16 +1360,16 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "s" => "LINK-USDT",     // Symbol
-        //         "pa" => "5.000",        // Position Amount
-        //         "ep" => "11.2345",      // Entry Price
-        //         "up" => "0.5000",       // Unrealized PnL
-        //         "mt" => "isolated",     // Margin Type
-        //         "iw" => "50.00000000",  // Isolated Wallet
-        //         "ps" => "LONG"          // Position Side
+        //         "s": "LINK-USDT",     // Symbol
+        //         "pa": "5.000",        // Position Amount
+        //         "ep": "11.2345",      // Entry Price
+        //         "up": "0.5000",       // Unrealized PnL
+        //         "mt": "isolated",     // Margin Type
+        //         "iw": "50.00000000",  // Isolated Wallet
+        //         "ps": "LONG"          // Position Side
         //     }
         //
         $marketId = $this->safe_string($position, 's');
@@ -1407,25 +1416,25 @@ class bingx extends \ccxt\async\bingx {
         ));
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         "e" => "ACCOUNT_UPDATE",
-        //         "E" => 1696244249320,
-        //         "a" => {
-        //             "m" => "ORDER",
-        //             "B" => [...],
-        //             "P" => array(
+        //         "e": "ACCOUNT_UPDATE",
+        //         "E": 1696244249320,
+        //         "a": {
+        //             "m": "ORDER",
+        //             "B": [...],
+        //             "P": [
         //                 {
-        //                     "s" => "LINK-USDT",
-        //                     "pa" => "5.000",
-        //                     "ep" => "11.2345",
-        //                     "up" => "0.5000",
-        //                     "mt" => "isolated",
-        //                     "iw" => "50.00000000",
-        //                     "ps" => "LONG"
+        //                     "s": "LINK-USDT",
+        //                     "pa": "5.000",
+        //                     "ep": "11.2345",
+        //                     "up": "0.5000",
+        //                     "mt": "isolated",
+        //                     "iw": "50.00000000",
+        //                     "ps": "LONG"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1466,15 +1475,15 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($newPositions, 'swap:positions');
     }
 
-    public function handle_error_message(Client $client, mixed $message): bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
-        // array( $code => 100400, msg => '', timestamp => 1696245808833 )
+        // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
         // {
-        //     "code" => 100500,
-        //     "id" => "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
-        //     "msg" => '',
-        //     "timestamp" => 1696245842307
+        //     "code": 100500,
+        //     "id": "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
+        //     "msg": '',
+        //     "timestamp": 1696245842307
         // }
         $code = $this->safe_string($message, 'code');
         try {
@@ -1495,7 +1504,7 @@ class bingx extends \ccxt\async\bingx {
     private function do_keep_alive_listen_key($params = array()) {
         $listenKey = $this->safe_string($this->options, 'listenKey');
         if ($listenKey === null) {
-            // A network $error happened => we can't renew a listen key that does not exist.
+            // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
         try {
@@ -1520,7 +1529,7 @@ class bingx extends \ccxt\async\bingx {
             $this->options['lastAuthenticatedTime'] = 0;
             return;
         }
-        // whether or not to schedule another $listenKey keepAlive request
+        // whether or not to schedule another listenKey keepAlive request
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
         $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
     }
@@ -1534,22 +1543,22 @@ class bingx extends \ccxt\async\bingx {
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            // single-flight leader election on a never-dialed $client, see
-            // https://github.com/ccxt/ccxt/issues/29393 => racing fetches mint
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream. $client->futures is
-            // the registry => $client->future() is the atomic check-and-insert
-            // and $client->resolve() / $client->reject() settle and remove the
+            // connect their watchers to an orphaned stream. client.futures is
+            // the registry: client.future () is the atomic check-and-insert
+            // and client.resolve () / client.reject () settle and remove the
             // entry under the same lock in every port
             $messageHash = 'authenticate';
             $client = $this->client('authenticationFlights');
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // a flight is already in progress - wake when the leader
-                // settles it => the $listenKey is then in the bucket
+                // settles it: the listenKey is then in the bucket
                 Async\await($client->future($messageHash));
                 return;
             }
-            // reusableFuture (), not $future () - the two match in
+            // reusableFuture (), not future () - the two match in
             // js/py/php/cs/java, but go's Client.Future () yields a channel
             // that the trailing suspension point below would panic on
             $future = $client->reusableFuture($messageHash);
@@ -1564,8 +1573,8 @@ class bingx extends \ccxt\async\bingx {
                 $this->options['listenKey'] = $listenKey;
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                // settle the flight => $client->resolve() removes the $future from
-                // $client->futures and wakes every waiter
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
                 $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - waiters throw and the next caller re-leads.
@@ -1585,8 +1594,8 @@ class bingx extends \ccxt\async\bingx {
         //
         // spot
         // {
-        //     "ping" => "5963ba3db76049b2870f9a686b2ebaac",
-        //     "time" => "2023-10-02T18:51:55.089+0800"
+        //     "ping": "5963ba3db76049b2870f9a686b2ebaac",
+        //     "time": "2023-10-02T18:51:55.089+0800"
         // }
         // swap
         // Ping
@@ -1608,98 +1617,120 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function handle_order(mixed $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "code" => 0,
-        //         "dataType" => "spot.executionReport",
-        //         "data" => {
-        //            "e" => "executionReport",
-        //            "E" => 1694680212947,
-        //            "s" => "LTC-USDT",
-        //            "S" => "BUY",
-        //            "o" => "LIMIT",
-        //            "q" => 0.1,
-        //            "p" => 50,
-        //            "x" => "NEW",
-        //            "X" => "PENDING",
-        //            "i" => 1702238305204043800,
-        //            "l" => 0,
-        //            "z" => 0,
-        //            "L" => 0,
-        //            "n" => 0,
-        //            "N" => "",
-        //            "T" => 0,
-        //            "t" => 0,
-        //            "O" => 1694680212676,
-        //            "Z" => 0,
-        //            "Y" => 0,
-        //            "Q" => 0,
-        //            "m" => false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //            "e": "executionReport",
+        //            "E": 1694680212947,
+        //            "s": "LTC-USDT",
+        //            "S": "BUY",
+        //            "o": "LIMIT",
+        //            "q": 0.1,
+        //            "p": 50,
+        //            "x": "NEW",
+        //            "X": "PENDING",
+        //            "i": 1702238305204043800,
+        //            "l": 0,
+        //            "z": 0,
+        //            "L": 0,
+        //            "n": 0,
+        //            "N": "",
+        //            "T": 0,
+        //            "t": 0,
+        //            "O": 1694680212676,
+        //            "Z": 0,
+        //            "Y": 0,
+        //            "Q": 0,
+        //            "m": false
         //         }
         //      }
         //
         //      {
-        //         "code" => 0,
-        //         "dataType" => "spot.executionReport",
-        //         "data" => {
-        //           "e" => "executionReport",
-        //           "E" => 1694681809302,
-        //           "s" => "LTC-USDT",
-        //           "S" => "BUY",
-        //           "o" => "MARKET",
-        //           "q" => 0,
-        //           "p" => 62.29,
-        //           "x" => "TRADE",
-        //           "X" => "FILLED",
-        //           "i" => "1702245001712369664",
-        //           "l" => 0.0802,
-        //           "z" => 0.0802,
-        //           "L" => 62.308,
-        //           "n" => -0.0000802,
-        //           "N" => "LTC",
-        //           "T" => 1694681809256,
-        //           "t" => 38259147,
-        //           "O" => 1694681809248,
-        //           "Z" => 4.9971016,
-        //           "Y" => 4.9971016,
-        //           "Q" => 5,
-        //           "m" => false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         // swap
         //    {
-        //        "e" => "ORDER_TRADE_UPDATE",
-        //        "E" => 1696843635475,
-        //        "o" => {
-        //           "s" => "LTC-USDT",
-        //           "c" => "",
-        //           "i" => "1711312357852147712",
-        //           "S" => "BUY",
-        //           "o" => "MARKET",
-        //           "q" => "0.10000000",
-        //           "p" => "64.35010000",
-        //           "ap" => "64.36000000",
-        //           "x" => "TRADE",
-        //           "X" => "FILLED",
-        //           "N" => "USDT",
-        //           "n" => "-0.00321800",
-        //           "T" => 0,
-        //           "wt" => "MARK_PRICE",
-        //           "ps" => "LONG",
-        //           "rp" => "0.00000000",
-        //           "z" => "0.10000000"
+        //        "e": "ORDER_TRADE_UPDATE",
+        //        "E": 1696843635475,
+        //        "o": {
+        //           "s": "LTC-USDT",
+        //           "c": "",
+        //           "i": "1711312357852147712",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": "0.10000000",
+        //           "p": "64.35010000",
+        //           "ap": "64.36000000",
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "N": "USDT",
+        //           "n": "-0.00321800",
+        //           "T": 0,
+        //           "wt": "MARK_PRICE",
+        //           "ps": "LONG",
+        //           "rp": "0.00000000",
+        //           "z": "0.10000000"
         //        }
         //    }
         //
         $isSpot = (is_array($message) && array_key_exists('dataType' ?? '', $message));
-        $data = $this->safe_value_2($message, 'data', 'o', array());
+        $data = $this->safe_dict_2($message, 'data', 'o', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
         $parsedOrder = $this->parse_order($data);
+        if (!$isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            $updateTimestamp = $this->safe_integer($message, 'T');
+            if (($updateTimestamp !== null) && ($updateTimestamp > 0)) {
+                $orderId = $this->safe_string($parsedOrder, 'id');
+                if ($orderId !== null) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for ($i = 0; $i < count($stored); $i++) {
+                        $previousOrder = $stored[$i];
+                        if (($previousOrder['id'] === $orderId) && ($previousOrder['symbol'] === $parsedOrder['symbol'])) {
+                            $previousTimestamp = $this->safe_integer($previousOrder, 'lastUpdateTimestamp');
+                            if (($previousTimestamp !== null) && ($updateTimestamp < $previousTimestamp)) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                $parsedOrder['lastUpdateTimestamp'] = $updateTimestamp;
+            }
+        }
         $stored->append($parsedOrder);
         $symbol = $parsedOrder['symbol'];
         $spotHash = 'spot:order';
@@ -1709,60 +1740,60 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($stored, $messageHash . ':' . $symbol);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //
         //      {
-        //         "code" => 0,
-        //         "dataType" => "spot.executionReport",
-        //         "data" => {
-        //           "e" => "executionReport",
-        //           "E" => 1694681809302,
-        //           "s" => "LTC-USDT",
-        //           "S" => "BUY",
-        //           "o" => "MARKET",
-        //           "q" => 0,
-        //           "p" => 62.29,
-        //           "x" => "TRADE",
-        //           "X" => "FILLED",
-        //           "i" => "1702245001712369664",
-        //           "l" => 0.0802,
-        //           "z" => 0.0802,
-        //           "L" => 62.308,
-        //           "n" => -0.0000802,
-        //           "N" => "LTC",
-        //           "T" => 1694681809256,
-        //           "t" => 38259147,
-        //           "O" => 1694681809248,
-        //           "Z" => 4.9971016,
-        //           "Y" => 4.9971016,
-        //           "Q" => 5,
-        //           "m" => false
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //           "e": "executionReport",
+        //           "E": 1694681809302,
+        //           "s": "LTC-USDT",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": 0,
+        //           "p": 62.29,
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "i": "1702245001712369664",
+        //           "l": 0.0802,
+        //           "z": 0.0802,
+        //           "L": 62.308,
+        //           "n": -0.0000802,
+        //           "N": "LTC",
+        //           "T": 1694681809256,
+        //           "t": 38259147,
+        //           "O": 1694681809248,
+        //           "Z": 4.9971016,
+        //           "Y": 4.9971016,
+        //           "Q": 5,
+        //           "m": false
         //         }
         //       }
         //
         //  swap
         //    {
-        //        "e" => "ORDER_TRADE_UPDATE",
-        //        "E" => 1696843635475,
-        //        "o" => {
-        //           "s" => "LTC-USDT",
-        //           "c" => "",
-        //           "i" => "1711312357852147712",
-        //           "S" => "BUY",
-        //           "o" => "MARKET",
-        //           "q" => "0.10000000",
-        //           "p" => "64.35010000",
-        //           "ap" => "64.36000000",
-        //           "x" => "TRADE",
-        //           "X" => "FILLED",
-        //           "N" => "USDT",
-        //           "n" => "-0.00321800",
-        //           "T" => 0,
-        //           "wt" => "MARK_PRICE",
-        //           "ps" => "LONG",
-        //           "rp" => "0.00000000",
-        //           "z" => "0.10000000"
+        //        "e": "ORDER_TRADE_UPDATE",
+        //        "E": 1696843635475,
+        //        "o": {
+        //           "s": "LTC-USDT",
+        //           "c": "",
+        //           "i": "1711312357852147712",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": "0.10000000",
+        //           "p": "64.35010000",
+        //           "ap": "64.36000000",
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "N": "USDT",
+        //           "n": "-0.00321800",
+        //           "T": 0,
+        //           "wt": "MARK_PRICE",
+        //           "ps": "LONG",
+        //           "rp": "0.00000000",
+        //           "z": "0.10000000"
         //        }
         //    }
         //
@@ -1787,21 +1818,21 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($cachedTrades, $messageHash . ':' . $symbol);
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
         //         "E":1696242817000,
         //         "T":1696242817142,
         //         "a":{
-        //            "B":array(
+        //            "B":[
         //               {
         //                  "a":"USDT",
         //                  "bc":"-1.00000000000000000000",
         //                  "cw":"86.59497382000000050000",
         //                  "wb":"86.59497382000000050000"
         //               }
-        //            ),
+        //            ],
         //            "m":"ASSET_TRANSFER"
         //         }
         //     }
@@ -1811,16 +1842,16 @@ class bingx extends \ccxt\async\bingx {
         //         "E":1696244249320,
         //         "a":{
         //            "m":"WITHDRAW",
-        //            "B":array(
+        //            "B":[
         //               {
         //                  "a":"USDT",
         //                  "wb":"49.81083984",
         //                  "cw":"49.81083984",
         //                  "bc":"-1.00000000"
         //               }
-        //            ),
-        //            "P":array(
-        //            )
+        //            ],
+        //            "P":[
+        //            ]
         //         }
         //     }
         //
@@ -1879,7 +1910,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         if (mb_strpos($dataType, 'executionReport') !== false) {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_dict($message, 'data', array());
             $type = $this->safe_string($data, 'x');
             if ($type === 'TRADE') {
                 $this->handle_my_trades($client, $message);
@@ -1894,14 +1925,14 @@ class bingx extends \ccxt\async\bingx {
         }
         if ($e === 'ORDER_TRADE_UPDATE') {
             $this->handle_order($client, $message);
-            $data = $this->safe_value($message, 'o', array());
+            $data = $this->safe_dict($message, 'o', array());
             $type = $this->safe_string($data, 'x');
             $status = $this->safe_string($data, 'X');
             if (($type === 'TRADE') && ($status === 'FILLED')) {
                 $this->handle_my_trades($client, $message);
             }
         }
-        $msgData = $this->safe_value($message, 'data');
+        $msgData = $this->safe_dict($message, 'data');
         $msgEvent = $this->safe_string($msgData, 'e');
         if ($msgEvent === '24hTicker') {
             $this->handle_ticker($client, $message);
@@ -1911,13 +1942,13 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
-        //         "code" => 0,
-        //         "id" => "b6ed9cb4-f3d0-4641-ac3f-f59eb47a3abd",
-        //         "msg" => "SUCCESS",
-        //         "timestamp" => 1759225965363
+        //         "code": 0,
+        //         "id": "b6ed9cb4-f3d0-4641-ac3f-f59eb47a3abd",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1759225965363
         //     }
         //
         $id = $this->safe_string($message, 'id');

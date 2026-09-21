@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class FoxbitApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetCurrencies", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarkets", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketsTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsTicker24hr", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsMarketOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketsMarketOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsMarketOrderbook", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v3PublicGetMarketsMarketCandlesticks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  v3PublicGetMarketsMarketCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsMarketCandlesticks", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsMarketTradesHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketsMarketTradesHistory (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsMarketTradesHistory", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsMarketTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketsMarketTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsMarketTicker24hr", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetMarketsSparklineWindow (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetMarketsSparklineWindow (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetMarketsSparklineWindow", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PublicGetTravelRuleOperationReasons (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PublicGetTravelRuleOperationReasons (Object... optionalArgs)
     {
         return this.callAsync ("v3PublicGetTravelRuleOperationReasons", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccounts", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetAccountsSymbolTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetAccountsSymbolTransactions (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetAccountsSymbolTransactions", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetOrders", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetOrdersByOrderIdId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetOrdersByOrderIdId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetOrdersByOrderIdId", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetTrades", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetDepositsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetDepositsAddress (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetDepositsAddress", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetDeposits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetDeposits", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetWithdrawals", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetMeFeesTrading (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetMeFeesTrading (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetMeFeesTrading", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetPrimeDeskExecutionsQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivateGetPrimeDeskExecutionsQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivateGetPrimeDeskExecutionsQuoteId", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostOrders", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostOrdersBatch", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostOrdersCancelReplace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostOrdersCancelReplace (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostOrdersCancelReplace", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostWithdrawals", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostDepositsDepositSnTravelRule (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePostDepositsDepositSnTravelRule (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostDepositsDepositSnTravelRule", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePutOrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  v3PrivatePutOrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePutOrdersCancel", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class FoxbitApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  statusPublicGetStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  statusPublicGetStatus (Object... optionalArgs)
     {
         return this.callAsync ("statusPublicGetStatus", optionalArgs);
     }

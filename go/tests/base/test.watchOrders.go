@@ -14,8 +14,8 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchOrders"
-	var now any = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var now int64 = exchange.Milliseconds()
+	var ends any = now + 15000
 	for IsLessThan(now, ends) {
 		var response any = nil
 		var success bool = true
@@ -29,7 +29,7 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -43,20 +43,20 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 
 				response = (UnWrapType(<-exchange.WatchOrdersAsync(symbol)))
 				PanicOnError(response)
-				if IsTrue(IsEqual(response, nil)) {
+				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
 				return nil
 			}()
 
 		}
-		if IsTrue(IsEqual(success, true)) {
-			if IsTrue(IsEqual(response, nil)) {
+		if success == true {
+			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			now = exchange.Milliseconds()
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+			for i := 0; i < GetArrayLength(response); i++ {
 				TestOrder(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
 			AssertTimestampOrder(exchange, method, symbol, response)

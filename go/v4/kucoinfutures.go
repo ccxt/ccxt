@@ -95,31 +95,31 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if this.Markets == nil {
 
 		retRes7312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes7312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
-	var toAccountString any = this.ParseTransferType(toAccount)
+	var toAccountString *string = this.ParseTransferType(toAccount)
 	var response any = nil
-	if IsTrue(IsTrue(IsEqual(toAccountString, "TRADE")) || IsTrue(IsEqual(toAccountString, "MAIN"))) {
-		AddElementToObject(request, "recAccountType", toAccountString)
+	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
+		request["recAccountType"] = toAccountString
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsTrue(IsTrue(IsEqual(toAccount, "future")) || IsTrue(IsEqual(toAccount, "swap"))) || IsTrue(IsEqual(toAccount, "contract"))) {
-		AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
+	} else if (IsEqual(toAccount, "future")) || (IsEqual(toAccount, "swap")) || (IsEqual(toAccount, "contract")) {
+		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(BadRequest(Add(this.Id, " transfer() only supports transfers between future/swap, spot and funding accounts")))
+		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 
@@ -130,7 +130,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	})
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) any {
+func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",
@@ -151,6 +151,7 @@ func (this *Kucoinfutures) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kucoinfutures#fetchBidsAsks
@@ -166,11 +167,7 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchBidsAsksAsync(symbols, params)
+	res := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -195,9 +192,7 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, params)
+	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
 	}

@@ -1101,15 +1101,14 @@ class limitless extends limitless$1["default"] {
         if (askSizeStr !== undefined) {
             askSizeStr = Precise["default"].stringDiv(askSizeStr, '1000000');
         }
-        const now = this.milliseconds();
         const outcomeSymbol = this.safeOutcomeSymbol(undefined, market);
         return this.safePredictionTicker({
             'outcome': outcomeSymbol,
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.parseNumber(bidStr),
@@ -1287,7 +1286,6 @@ class limitless extends limitless$1["default"] {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        const timestamp = this.milliseconds();
         const decimals = this.safeInteger(this.options, 'usdcDecimals', 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         const scaleStr = this.parsePrecision(this.numberToString(-decimals));
@@ -1326,8 +1324,8 @@ class limitless extends limitless$1["default"] {
             'outcome': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook(orderbook, outcomeObj);

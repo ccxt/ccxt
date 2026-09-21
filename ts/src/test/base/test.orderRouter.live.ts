@@ -1,0 +1,202 @@
+// NO_AUTO_TRANSPILE
+//  ---------------------------------------------------------------------------
+//  OrderRouter — live tests against the real router service.
+//
+//  Run:  ORDER_ROUTER_API_KEY=or_live_... npx tsx --test ts/src/test/base/test.orderRouter.live.ts
+//
+//  Skipped in full when ORDER_ROUTER_API_KEY is unset, so an unkeyed checkout
+//  and CI both stay green. The key is never committed.
+//
+//  These prove the CLIENT parses what the service actually sends — the shapes
+//  that a fixture, however carefully captured, can silently go stale on:
+//  a direct route, a bridged route, an unroutable pair, and the three refusal
+//  statuses. NO ORDER IS PLACED AND NO EXCHANGE IS TOUCHED: the router is a
+//  read-only quoting service, and execute() is never called from this file.
+//  ---------------------------------------------------------------------------
+
+import assert from 'assert';
+import { test } from 'node:test';
+import OrderRouter from '../../base/OrderRouter.js';
+import { AuthenticationError, BadRequest } from '../../base/errors.js';
+
+const apiKey = process.env['ORDER_ROUTER_API_KEY'];
+const baseUrl = process.env['ORDER_ROUTER_BASE_URL'] || OrderRouter.DEFAULT_BASE_URL;
+const skip = (apiKey === undefined || apiKey === '') ? 'ORDER_ROUTER_API_KEY is not set' : false;
+
+function client (): OrderRouter {
+    return new OrderRouter ({ 'apiKey': apiKey, 'baseUrl': baseUrl, 'timeoutMs': 20000 });
+}
+
+function assertRouteShape (route: any, from: string, to: string) {
+    assert.strictEqual (route['from'], from);
+    assert.strictEqual (route['to'], to);
+    assert.ok (typeof route['requestId'] === 'string' && route['requestId'].length > 0, 'requestId');
+    assert.ok (typeof route['calculatedAt'] === 'number', 'calculatedAt');
+    assert.ok (Array.isArray (route['hops']), 'hops is an array');
+    assert.ok (typeof route['fillRatio'] === 'number', 'fillRatio');
+    assert.ok (route['exactSide'] === 'in' || route['exactSide'] === 'out', 'exactSide');
+}
+
+test ('live: a direct route parses and plans', { 'skip': skip }, async () => {
+    const router = client ();
+    const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 20, 'includeQuotes': false });
+    assertRouteShape (route, 'USDT', 'BTC');
+    assert.strictEqual (route['unroutableReason'], null, 'USDT to BTC is routable');
+    assert.strictEqual (route['hops'].length, 1, 'a direct market is one hop');
+    const hop = route['hops'][0];
+    assert.strictEqual (hop['side'], 'buy', 'spending USDT for BTC is a buy of BTC/USDT');
+    assert.strictEqual (hop['base'], 'BTC');
+    assert.strictEqual (hop['quote'], 'USDT');
+    assert.ok (hop['legs'].length >= 1, 'at least one leg');
+    const plan = router.buildExecutionPlan (route, {});
+    assert.strictEqual (plan['stepCount'], hop['legs'].length);
+    assert.strictEqual (plan['hopCount'], 1);
+    const step = plan['steps'][0];
+    assert.strictEqual (step['symbol'], 'BTC/USDT');
+    assert.strictEqual (step['side'], 'buy');
+    assert.ok (step['amount'] > 0, 'the leg carries a base amount');
+    assert.ok (step['expectedPrice'] > 0, 'the leg carries a price');
+    assert.ok (step['limitPrice'] > step['expectedPrice'], 'a buy limit sits above the expected price');
+    //  the real numbers must survive the cap check: 20 USDT of BTC is under 25 USD
+    const markets: any = {};
+    markets[step['exchangeId']] = {};
+    markets[step['exchangeId']]['BTC/USDT'] = {
+        'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT',
+        'precision': { 'amount': 0, 'price': 0 },
+        'limits': { 'amount': { 'min': 0, 'max': 0 }, 'price': { 'min': 0, 'max': 0 }, 'cost': { 'min': 0, 'max': 0 } },
+    };
+    const violations = router.checkExecutionPlanSafety (plan, markets, { 'usdRates': { 'USDT': 1 } });
+    for (let i = 0; i < violations.length; i++) {
+        assert.strictEqual (violations[i]['blocking'], false, 'a 20 USDT route has no blocking violation: ' + violations[i]['code']);
+    }
+});
+
+test ('live: a sell-direction route is the same market the other way round', { 'skip': skip }, async () => {
+    const router = client ();
+    const route = await router.fetchRoute ('BTC', 'USDT', { 'amountIn': 0.0002, 'includeQuotes': false });
+    assertRouteShape (route, 'BTC', 'USDT');
+    assert.strictEqual (route['hops'][0]['pair'], 'BTC/USDT');
+    assert.strictEqual (route['hops'][0]['side'], 'sell', 'there is no side parameter — it comes from the asset direction');
+    const plan = router.buildExecutionPlan (route, {});
+    assert.ok (plan['steps'][0]['limitPrice'] < plan['steps'][0]['expectedPrice'], 'a sell limit sits below');
+});
+
+test ('live: a bridged route parses into one step per leg per hop', { 'skip': skip }, async () => {
+    const router = client ();
+    const route = await router.fetchRoute ('DOGE', 'SOL', { 'amountIn': 500, 'includeQuotes': false, 'strategy': 'split_capped', 'maxVenues': 2 });
+    assertRouteShape (route, 'DOGE', 'SOL');
+    assert.strictEqual (route['unroutableReason'], null);
+    assert.ok (route['hops'].length > 1, 'DOGE to SOL has no direct market and must bridge');
+    //  the hops chain: each hop's output asset is the next hop's input asset
+    let carried = 'DOGE';
+    let expectedSteps = 0;
+    for (let i = 0; i < route['hops'].length; i++) {
+        const hop = route['hops'][i];
+        const inAsset = (hop['side'] === 'buy') ? hop['quote'] : hop['base'];
+        const outAsset = (hop['side'] === 'buy') ? hop['base'] : hop['quote'];
+        assert.strictEqual (inAsset, carried, 'hop ' + i.toString () + ' consumes what the previous one produced');
+        carried = outAsset;
+        expectedSteps = expectedSteps + hop['legs'].length;
+    }
+    assert.strictEqual (carried, 'SOL', 'the last hop produces the destination asset');
+    const plan = router.buildExecutionPlan (route, {});
+    assert.strictEqual (plan['hopCount'], route['hops'].length);
+    assert.strictEqual (plan['stepCount'], expectedSteps);
+    //  stepIndex is global and monotonic, hopIndex is non-decreasing
+    let previousHop = -1;
+    for (let i = 0; i < plan['steps'].length; i++) {
+        assert.strictEqual (plan['steps'][i]['stepIndex'], i);
+        assert.ok (plan['steps'][i]['hopIndex'] >= previousHop);
+        previousHop = plan['steps'][i]['hopIndex'];
+    }
+    //  and the reconciliation between the real hops resizes the real next hop
+    const verdict = router.reconcileExecutionStep (plan, 0, router.stepExpectedOut (plan['steps'][0]));
+    assert.strictEqual (verdict['verdict'], 'proceed');
+    assert.ok (verdict['resizedSteps'].length > 0, 'a first hop has something downstream to resize');
+});
+
+test ('live: an unroutable pair comes back as a RouteResult, not an exception', { 'skip': skip }, async () => {
+    const router = client ();
+    //  404 on the wire; a deliberate refusal to quote, and the body is a
+    //  complete RouteResult explaining it
+    const route = await router.fetchRoute ('LTC', 'LINK', { 'amountIn': 100 });
+    assertRouteShape (route, 'LTC', 'LINK');
+    assert.strictEqual (route['unroutableReason'], 'no_market');
+    assert.strictEqual (route['hops'].length, 0);
+    assert.strictEqual (route['amountIn'], 0, 'an unroutable request is never echoed back as an outcome');
+    assert.strictEqual (route['amountOut'], 0);
+    const plan = router.buildExecutionPlan (route, {});
+    assert.strictEqual (plan['stepCount'], 0);
+    assert.strictEqual (plan['unroutableReason'], 'no_market');
+    //  and the empty plan is refused rather than silently approved
+    const violations = router.checkExecutionPlanSafety (plan, {}, { 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (violations.length, 1);
+    assert.strictEqual (violations[0]['code'], 'empty_plan');
+    assert.strictEqual (violations[0]['blocking'], true);
+});
+
+test ('live: exact-out over a bridge is refused as a RouteResult too', { 'skip': skip }, async () => {
+    const router = client ();
+    //  501 on the wire
+    const route = await router.fetchRoute ('DOGE', 'SOL', { 'amountOut': 0.5 });
+    assert.strictEqual (route['unroutableReason'], 'exact_out_multi_hop_unsupported');
+    assert.strictEqual (route['exactSide'], 'out');
+    assert.strictEqual (route['hops'].length, 0);
+});
+
+test ('live: a bad key is an AuthenticationError and a bad strategy is a BadRequest', { 'skip': skip }, async () => {
+    const wrong = new OrderRouter ({ 'apiKey': 'or_live_definitely_not_a_key', 'baseUrl': baseUrl, 'timeoutMs': 20000 });
+    await assert.rejects (async () => {
+        await wrong.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+    }, AuthenticationError);
+    const router = client ();
+    await assert.rejects (async () => {
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10, 'strategy': 'nope' });
+    }, BadRequest);
+});
+
+test ('live: split_optimal returns a multi-leg hop that flattens one step per venue', { 'skip': skip }, async () => {
+    const router = client ();
+    //  a size large enough that no single venue is the whole answer. This is a
+    //  QUOTE ONLY — nothing is executed, so the size is unconstrained by the
+    //  25 USD per-trade cap, which governs orders and not questions.
+    const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 3000000, 'strategy': 'split_optimal', 'includeQuotes': false });
+    assert.strictEqual (route['unroutableReason'], null);
+    const plan = router.buildExecutionPlan (route, {});
+    let totalLegs = 0;
+    for (let i = 0; i < route['hops'].length; i++) {
+        totalLegs = totalLegs + route['hops'][i]['legs'].length;
+    }
+    assert.strictEqual (plan['stepCount'], totalLegs);
+    assert.ok (totalLegs > 1, 'three million dollars does not come from one venue');
+    //  every leg of a hop trades the same market in the same direction
+    for (let i = 0; i < plan['steps'].length; i++) {
+        const step = plan['steps'][i];
+        const hop = route['hops'][step['hopIndex']];
+        assert.strictEqual (step['symbol'], hop['pair']);
+        assert.strictEqual (step['side'], hop['side']);
+        assert.strictEqual (step['exchangeId'], hop['legs'][step['legIndex']]['exchangeId']);
+    }
+    //  and this plan is exactly what the cap exists to stop
+    const markets: any = {};
+    for (let i = 0; i < plan['steps'].length; i++) {
+        const step = plan['steps'][i];
+        if (markets[step['exchangeId']] === undefined) {
+            markets[step['exchangeId']] = {};
+        }
+        markets[step['exchangeId']][step['symbol']] = {
+            'symbol': step['symbol'], 'base': step['base'], 'quote': step['quote'],
+            'precision': { 'amount': 0, 'price': 0 },
+            'limits': { 'amount': { 'min': 0, 'max': 0 }, 'price': { 'min': 0, 'max': 0 }, 'cost': { 'min': 0, 'max': 0 } },
+        };
+    }
+    const violations = router.checkExecutionPlanSafety (plan, markets, { 'usdRates': { 'USDT': 1, 'USDC': 1 } });
+    let blocking = 0;
+    for (let i = 0; i < violations.length; i++) {
+        if (violations[i]['blocking']) {
+            blocking = blocking + 1;
+            assert.strictEqual (violations[i]['code'], 'notional_exceeds_cap');
+        }
+    }
+    assert.ok (blocking > 0, 'a three-million-dollar plan must be blocked by the 25 USD per-trade cap');
+});

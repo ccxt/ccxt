@@ -101,8 +101,8 @@ class lbank extends \ccxt\async\lbank {
         $market = $this->market($symbol);
         $this->check_contract_market($market, 'fetchOHLCVWs');
         $url = $this->urls['api']['ws'];
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'fetchOHLCV:' . $market['symbol'] . ':' . $timeframeId;
         $message = array(
@@ -144,8 +144,8 @@ class lbank extends \ccxt\async\lbank {
         }
         $market = $this->market($symbol);
         $this->check_contract_market($market, 'watchOHLCV');
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
         $url = $this->urls['api']['ws'];
@@ -163,12 +163,12 @@ class lbank extends \ccxt\async\lbank {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(mixed $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // request
         //    {
-        //        "records":array(
-        //           array(
+        //        "records":[
+        //           [
         //              1705364400,
         //              42614,
         //              42624.57,
@@ -177,9 +177,9 @@ class lbank extends \ccxt\async\lbank {
         //              13.2615,
         //              564568.931565,
         //              433
-        //           )
-        //        ),
-        //        "columns":array(
+        //           ]
+        //        ],
+        //        "columns":[
         //           "timestamp",
         //           "open",
         //           "high",
@@ -188,7 +188,7 @@ class lbank extends \ccxt\async\lbank {
         //           "volume",
         //           "turnover",
         //           "count"
-        //        ),
+        //        ],
         //        "SERVER":"V2",
         //        "count":1,
         //        "kbar":"5min",
@@ -198,30 +198,30 @@ class lbank extends \ccxt\async\lbank {
         //    }
         // subscribe
         //      {
-        //          SERVER => 'V2',
-        //          kbar => array(
-        //              a => 26415.891476,
-        //              c => 19315.51,
-        //              t => '2022-10-02T12:44:00.000',
-        //              v => 1.3676,
-        //              h => 19316.66,
-        //              slot => '1min',
-        //              l => 19315.51,
-        //              n => 1,
-        //              o => 19316.66
-        //          ),
-        //          type => 'kbar',
-        //          pair => 'btc_usdt',
-        //          TS => '2022-10-02T12:44:15.865'
+        //          SERVER: 'V2',
+        //          kbar: {
+        //              a: 26415.891476,
+        //              c: 19315.51,
+        //              t: '2022-10-02T12:44:00.000',
+        //              v: 1.3676,
+        //              h: 19316.66,
+        //              slot: '1min',
+        //              l: 19315.51,
+        //              n: 1,
+        //              o: 19316.66
+        //          },
+        //          type: 'kbar',
+        //          pair: 'btc_usdt',
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         $marketId = $this->safe_string($message, 'pair');
         $symbol = $this->safe_symbol($marketId, null, '_');
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
-        $records = $this->safe_value($message, 'records');
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
+        $records = $this->safe_list($message, 'records');
         if ($records !== null) {  // from request
-            $rawOHLCV = $this->safe_value($records, 0, array());
+            $rawOHLCV = $this->safe_list($records, 0, array());
             $parsed = array(
                 $this->safe_integer($rawOHLCV, 0),
                 $this->safe_number($rawOHLCV, 1),
@@ -232,7 +232,7 @@ class lbank extends \ccxt\async\lbank {
             );
             $timeframeId = $this->safe_string($message, 'kbar');
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -243,7 +243,7 @@ class lbank extends \ccxt\async\lbank {
             $messageHash = 'fetchOHLCV:' . $symbol . ':' . $timeframeId;
             $client->resolve($stored, $messageHash);
         } else {  // from subscription
-            $rawOHLCV = $this->safe_value($message, 'kbar', array());
+            $rawOHLCV = $this->safe_dict($message, 'kbar', array());
             $timeframeId = $this->safe_string($rawOHLCV, 'slot');
             $datetime = $this->safe_string($rawOHLCV, 't');
             $parsed = array(
@@ -255,7 +255,7 @@ class lbank extends \ccxt\async\lbank {
                 $this->safe_number($rawOHLCV, 'v'),
             );
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -329,10 +329,10 @@ class lbank extends \ccxt\async\lbank {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "tick":array(
+        //         "tick":{
         //             "to_cny":76643.5,
         //             "high":0.02719761,
         //             "vol":497529.7686,
@@ -344,7 +344,7 @@ class lbank extends \ccxt\async\lbank {
         //             "turnover":13224.0186,
         //             "latest":0.02698749,
         //             "cny":2068.41
-        //         ),
+        //         },
         //         "type":"tick",
         //         "pair":"eth_btc",
         //         "SERVER":"V2",
@@ -365,7 +365,7 @@ class lbank extends \ccxt\async\lbank {
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
-        //         "tick":array(
+        //         "tick":{
         //             "to_cny":76643.5,
         //             "high":0.02719761,
         //             "vol":497529.7686,
@@ -377,7 +377,7 @@ class lbank extends \ccxt\async\lbank {
         //             "turnover":13224.0186,
         //             "latest":0.02698749,
         //             "cny":2068.41
-        //         ),
+        //         },
         //         "type":"tick",
         //         "pair":"eth_btc",
         //         "SERVER":"V2",
@@ -387,7 +387,7 @@ class lbank extends \ccxt\async\lbank {
         $marketId = $this->safe_string($ticker, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
         $datetime = $this->safe_string($ticker, 'TS');
-        $tickerData = $this->safe_value($ticker, 'tick');
+        $tickerData = $this->safe_dict($ticker, 'tick');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse8601($datetime),
@@ -483,27 +483,27 @@ class lbank extends \ccxt\async\lbank {
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // request
         //     {
-        //         columns => array( 'timestamp', 'price', 'volume', 'direction' ),
-        //         SERVER => 'V2',
-        //         count => 100,
-        //         trades => array(),
-        //         type => 'trade',
-        //         pair => 'btc_usdt',
-        //         TS => '2024-01-16T08:48:24.470'
+        //         columns: [ 'timestamp', 'price', 'volume', 'direction' ],
+        //         SERVER: 'V2',
+        //         count: 100,
+        //         trades: [],
+        //         type: 'trade',
+        //         pair: 'btc_usdt',
+        //         TS: '2024-01-16T08:48:24.470'
         //     }
         // subscribe
         //     {
-        //         "trade":array(
+        //         "trade":{
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
         //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
-        //         ),
+        //         },
         //         "type":"trade",
         //         "pair":"btc_usdt",
         //         "SERVER":"V2",
@@ -520,7 +520,7 @@ class lbank extends \ccxt\async\lbank {
             $this->trades[$symbol] = $stored;
         }
         $rawTrade = $this->safe_value($message, 'trade');
-        $rawTrades = $this->safe_value($message, 'trades', array( $rawTrade ));
+        $rawTrades = $this->safe_list($message, 'trades', array( $rawTrade ));
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_ws_trade($rawTrades[$i], $market);
             $trade['symbol'] = $symbol;
@@ -533,10 +533,10 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // request
-        //    array( 'timestamp', 'price', 'volume', 'direction' )
+        //    [ 'timestamp', 'price', 'volume', 'direction' ]
         // subscribe
         //    {
         //        "volume":6.3607,
@@ -619,10 +619,10 @@ class lbank extends \ccxt\async\lbank {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
-        //         "orderUpdate":array(
+        //         "orderUpdate":{
         //             "amount":"0.003",
         //             "orderStatus":2,
         //             "price":"0.02455211",
@@ -631,7 +631,7 @@ class lbank extends \ccxt\async\lbank {
         //             "uuid":"d0db191d-xxxxx-4418-xxxxx-fbb1xxxx2ea9",
         //             "txUuid":"da88f354d5xxxxxxa12128aa5bdcb3",
         //             "volumePrice":"0.00007365633"
-        //         ),
+        //         },
         //         "pair":"eth_btc",
         //         "type":"orderUpdate",
         //         "SERVER":"V2",
@@ -656,10 +656,10 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($myOrders, $messageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "orderUpdate":array(
+        //         "orderUpdate":{
         //             "amount":"0.003",
         //             "orderStatus":2,
         //             "price":"0.02455211",
@@ -668,37 +668,37 @@ class lbank extends \ccxt\async\lbank {
         //             "uuid":"d0db191d-xxxxx-4418-xxxxx-fbb1xxxx2ea9",
         //             "txUuid":"da88f354d5xxxxxxa12128aa5bdcb3",
         //             "volumePrice":"0.00007365633"
-        //         ),
+        //         },
         //         "pair":"eth_btc",
         //         "type":"orderUpdate",
         //         "SERVER":"V2",
         //         "TS":"2019-06-28T14:49:37.816"
         //     }
         //     {
-        //         "SERVER" => "V2",
-        //         "orderUpdate" => array(
-        //            "accAmt" => "0",
-        //            "amount" => "0",
-        //            "avgPrice" => "0",
-        //            "customerID" => "",
-        //            "orderAmt" => "5",
-        //            "orderPrice" => "0.009834",
-        //            "orderStatus" => 0,
-        //            "price" => "0.009834",
-        //            "remainAmt" => "5",
-        //            "role" => "taker",
-        //            "symbol" => "lbk_usdt",
-        //            "type" => "buy_market",
-        //            "updateTime" => 1705676718532,
-        //            "uuid" => "9b94ab2d-a510-4abe-a784-44a9d9c38ec7",
-        //            "volumePrice" => "0"
-        //         ),
-        //         "type" => "orderUpdate",
-        //         "pair" => "lbk_usdt",
-        //         "TS" => "2024-01-19T23:05:18.548"
+        //         "SERVER": "V2",
+        //         "orderUpdate": {
+        //            "accAmt": "0",
+        //            "amount": "0",
+        //            "avgPrice": "0",
+        //            "customerID": "",
+        //            "orderAmt": "5",
+        //            "orderPrice": "0.009834",
+        //            "orderStatus": 0,
+        //            "price": "0.009834",
+        //            "remainAmt": "5",
+        //            "role": "taker",
+        //            "symbol": "lbk_usdt",
+        //            "type": "buy_market",
+        //            "updateTime": 1705676718532,
+        //            "uuid": "9b94ab2d-a510-4abe-a784-44a9d9c38ec7",
+        //            "volumePrice": "0"
+        //         },
+        //         "type": "orderUpdate",
+        //         "pair": "lbk_usdt",
+        //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        $orderUpdate = $this->safe_value($order, 'orderUpdate', array());
+        $orderUpdate = $this->safe_dict($order, 'orderUpdate', array());
         $rawType = $this->safe_string($orderUpdate, 'type', '');
         $typeParts = explode('_', $rawType);
         $side = $this->safe_string($typeParts, 0);
@@ -740,7 +740,7 @@ class lbank extends \ccxt\async\lbank {
         ), $market);
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled',  // Withdrawn
             '0' => 'open',   // Unsettled
@@ -779,20 +779,20 @@ class lbank extends \ccxt\async\lbank {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "data" => array(
-        //             "asset" => "114548.31881315",
-        //             "assetCode" => "usdt",
-        //             "free" => "97430.6739041",
-        //             "freeze" => "17117.64490905",
-        //             "time" => 1627300043270,
-        //             "type" => "ORDER_CREATE"
-        //         ),
-        //         "SERVER" => "V2",
-        //         "type" => "assetUpdate",
-        //         "TS" => "2021-07-26T19:48:03.548"
+        //         "data": {
+        //             "asset": "114548.31881315",
+        //             "assetCode": "usdt",
+        //             "free": "97430.6739041",
+        //             "freeze": "17117.64490905",
+        //             "time": 1627300043270,
+        //             "type": "ORDER_CREATE"
+        //         },
+        //         "SERVER": "V2",
+        //         "type": "assetUpdate",
+        //         "TS": "2021-07-26T19:48:03.548"
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -887,25 +887,25 @@ class lbank extends \ccxt\async\lbank {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // request
         //    {
         //        "SERVER":"V2",
-        //        "asks":array(
-        //           array(
+        //        "asks":[
+        //           [
         //              42585.84,
         //              1.4422
-        //           ),
+        //           ],
         //           ...
-        //        ),
-        //        "bids":array(
-        //           array(
+        //        ],
+        //        "bids":[
+        //           [
         //              42585.83,
         //              1.8054
-        //           ),
+        //           ],
         //          ,,,
-        //        ),
+        //        ],
         //        "count":100,
         //        "type":"depth",
         //        "pair":"btc_usdt",
@@ -913,35 +913,35 @@ class lbank extends \ccxt\async\lbank {
         //    }
         // subscribe
         //     {
-        //         "depth" => array(
-        //             "asks" => array(
-        //                 array(
+        //         "depth": {
+        //             "asks": [
+        //                 [
         //                     0.0252,
         //                     0.5833
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     0.025215,
         //                     4.377
-        //                 ),
+        //                 ],
         //                 ...
-        //             ),
-        //             "bids" => array(
-        //                 array(
+        //             ],
+        //             "bids": [
+        //                 [
         //                     0.025135,
         //                     3.962
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     0.025134,
         //                     3.46
-        //                 ),
+        //                 ],
         //                 ...
-        //             )
-        //         ),
-        //         "count" => 100,
-        //         "type" => "depth",
-        //         "pair" => "eth_btc",
-        //         "SERVER" => "V2",
-        //         "TS" => "2019-06-28T17:49:22.722"
+        //             ]
+        //         },
+        //         "count": 100,
+        //         "type": "depth",
+        //         "pair": "eth_btc",
+        //         "SERVER": "V2",
+        //         "TS": "2019-06-28T17:49:22.722"
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -949,7 +949,7 @@ class lbank extends \ccxt\async\lbank {
         $orderBook = $this->safe_value($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
-        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
@@ -962,13 +962,13 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //    {
-        //        SERVER => 'V2',
-        //        $message => "Missing parameter ['kbar']",
-        //        status => 'error',
-        //        TS => '2024-01-16T08:09:43.314'
+        //        SERVER: 'V2',
+        //        message: "Missing parameter ['kbar']",
+        //        status: 'error',
+        //        TS: '2024-01-16T08:09:43.314'
         //    }
         //
         $errMsg = $this->safe_string($message, 'message', '');
@@ -982,7 +982,7 @@ class lbank extends \ccxt\async\lbank {
 
     private function do_handle_ping(Client $client, mixed $message) {
         //
-        //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
+        //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
         // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
@@ -998,7 +998,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
             $this->handle_error_message($client, $message);
@@ -1031,8 +1031,8 @@ class lbank extends \ccxt\async\lbank {
         // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
-        // overwritten. the flight lives in $client->futures of this exchange's own ws $client under
-        // a key that is not a $messageHash, and settles via $client->resolve / $client->reject only
+        // overwritten. the flight lives in client.futures of this exchange's own ws client under
+        // a key that is not a messageHash, and settles via client.resolve / client.reject only
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
@@ -1040,19 +1040,19 @@ class lbank extends \ccxt\async\lbank {
         $messageHash = 'authenticateFlight';
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             // a flight is already in progress - wake when the leader settles
-            // it => the subscribeKey is then in the bucket
+            // it: the subscribeKey is then in the bucket
             Async\await($client->future($messageHash));
             return $client->subscriptions['authenticated']['key'];
         }
         $future = $client->reusableFuture($messageHash);
         try {
-            $authenticated = $this->safe_value($client->subscriptions, 'authenticated');
+            $authenticated = $this->safe_dict($client->subscriptions, 'authenticated');
             if ($authenticated === null) {
                 $response = Async\await($this->spotPrivatePostSubscribeGetKey($params));
                 //
-                // array("result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198)
+                // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                $result = $this->safe_value($response, 'result');
+                $result = $this->safe_bool($response, 'result');
                 if ($result !== true) {
                     throw new ExchangeError($this->id . ' failed to get subscribe key');
                 }
@@ -1068,16 +1068,16 @@ class lbank extends \ccxt\async\lbank {
                     );
                     $response = Async\await($this->spotPrivatePostSubscribeRefreshKey($this->extend($request, $params)));
                     //
-                    //    array("result" => "true")
+                    //    {"result": "true"}
                     //
                     $result = $this->safe_string($response, 'result');
                     if ($result !== 'true') {
                         throw new ExchangeError($this->id . ' failed to refresh the SubscribeKey');
                     }
-                    $client['subscriptions']['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it $expires
+                    $client['subscriptions']['authenticated']['expires'] = $this->sum($now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
-            // settle the flight through the $client so that every write to the
+            // settle the flight through the client so that every write to the
             // futures map happens inside the base class
             $client->resolve($client->subscriptions['authenticated']['key'], $messageHash);
         } catch (Exception $e) {

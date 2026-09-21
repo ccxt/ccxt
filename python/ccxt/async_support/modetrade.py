@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -436,14 +436,14 @@ class modetrade(Exchange, ImplicitAPI):
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUEST Rate limit exceed.
                     '-1004': BadRequest,  # UNKNOWN_PARAM An unknown parameter was sent.
                     '-1005': BadRequest,  # INVALID_PARAM Some parameters are in wrong format for api.
-                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise self error.
+                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
                     '-1007': BadRequest,  # DUPLICATE_REQUEST The data is already exists or your request is duplicated.
                     '-1008': InvalidOrder,  # QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
                     '-1009': InsufficientFunds,  # CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
                     '-1011': NetworkError,  # RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
                     '-1012': BadRequest,  # RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
                     '-1101': InsufficientFunds,  # RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
-                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value(price * size) is too small.
+                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value (price * size) is too small.
                     '-1103': InvalidOrder,  # PRICE_FILTER The order price is not following the tick size rule for the symbol.
                     '-1104': InvalidOrder,  # SIZE_FILTER The order quantity is not following the step size rule for the symbol.
                     '-1105': InvalidOrder,  # PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
@@ -465,7 +465,7 @@ class modetrade(Exchange, ImplicitAPI):
         super(modetrade, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -477,7 +477,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -501,7 +501,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -513,7 +513,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -611,7 +611,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for modetrade
 
@@ -623,7 +623,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicInfo(params)
         #
         #   {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [
@@ -660,7 +660,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_markets(rows)
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -672,7 +672,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicToken(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -752,7 +752,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -785,7 +785,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "executed_timestamp": "1641481113084",
         #         "order_id": "87001234",
-        #         "order_tag": "default", <-- self param only in "fetchOrderTrades"
+        #         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         #         "executed_price": "1",
         #         "executed_quantity": "12",
         #         "fee_asset": "BTC",
@@ -827,7 +827,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -850,7 +850,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicMarketTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -909,7 +909,7 @@ class modetrade(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: object):
+    def parse_funding_interval(self, interval: Str) -> Str:
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -919,7 +919,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return self.safe_string(intervals, interval, interval)
 
-    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate interval
 
@@ -950,7 +950,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "symbol": "PERP_ETH_USDC",
@@ -966,7 +966,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple markets
 
@@ -982,7 +982,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRates(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1001,7 +1001,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rates(rows, symbols)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1032,7 +1032,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1066,7 +1066,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> dict:
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1098,7 +1098,7 @@ class modetrade(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -1133,7 +1133,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "meta": {
@@ -1158,7 +1158,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -1172,7 +1172,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -1183,7 +1183,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -1215,7 +1215,7 @@ class modetrade(Exchange, ImplicitAPI):
                 }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1238,7 +1238,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "asks": [{
@@ -1267,7 +1267,7 @@ class modetrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
@@ -1293,7 +1293,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1322,7 +1322,7 @@ class modetrade(Exchange, ImplicitAPI):
         # * cancelOrder
         # * fetchOrder
         # * fetchOrders
-        # isFromFetchOrder = ('order_tag' in order); TO_DO
+        # const isFromFetchOrder = ('order_tag' in order); TO_DO
         #
         # stop order after creating it:
         #   {
@@ -1342,7 +1342,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "algoType": "STOP_LOSS",
         #       "side": "BUY",
         #       "quantity": "0.1",
-        #       "isTriggered": False,
+        #       "isTriggered": false,
         #       "triggerPrice": "100",
         #       "triggerStatus": "USELESS",
         #       "type": "LIMIT",
@@ -1355,14 +1355,14 @@ class modetrade(Exchange, ImplicitAPI):
         #       "averageExecutedPrice": "0",
         #       "totalFee": "0",
         #       "feeAsset": '',
-        #       "reduceOnly": False,
+        #       "reduceOnly": false,
         #       "createdTime": "1686149609.744",
         #       "updatedTime": "1686149903.362"
         #   }
         #
         timestamp = self.safe_integer_n(order, ['timestamp', 'created_time', 'createdTime'])
         orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1370,28 +1370,28 @@ class modetrade(Exchange, ImplicitAPI):
         amount = self.safe_string_2(order, 'order_quantity', 'quantity')  # This is base amount
         cost = self.safe_string_2(order, 'order_amount', 'amount')  # This is quote amount
         orderType = self.safe_string_lower_2(order, 'order_type', 'type')
-        status = self.safe_value_2(order, 'status', 'algoStatus')
+        status = self.safe_string_2(order, 'status', 'algoStatus')
         success = self.safe_bool(order, 'success')
         if success is not None:
             status = 'NEW' if (success) else 'REJECTED'
         side = self.safe_string_lower(order, 'side')
-        filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
+        filled = self.omit_zero(self.safe_string_2(order, 'executed', 'totalExecutedQuantity'))
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
         remaining = Precise.string_sub(cost, filled)
-        fee = self.safe_value_2(order, 'total_fee', 'totalFee')
+        fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
         triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice = None
         stopLossPrice = None
-        childOrders = self.safe_value(order, 'childOrders')
+        childOrders = self.safe_list(order, 'childOrders')
         if childOrders is not None:
-            first = self.safe_value(childOrders, 0)
+            first = self.safe_dict(childOrders, 0)
             innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
-                takeProfitOrder = self.safe_value(innerChildOrders, 0)
-                stopLossOrder = self.safe_value(innerChildOrders, 1)
+                takeProfitOrder = self.safe_dict(innerChildOrders, 0)
+                stopLossOrder = self.safe_dict(innerChildOrders, 1)
                 takeProfitPrice = self.safe_number(takeProfitOrder, 'triggerPrice')
                 stopLossPrice = self.safe_number(stopLossOrder, 'triggerPrice')
         lastUpdateTimestamp = self.safe_integer_2(order, 'updatedTime', 'updated_time')
@@ -1464,7 +1464,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         if type is None:
@@ -1559,7 +1559,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1598,7 +1598,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostAlgoOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1612,7 +1612,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1631,7 +1631,7 @@ class modetrade(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         *contract only* create a list of trade orders
 
@@ -1655,8 +1655,8 @@ class modetrade(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
-            stopLoss = self.safe_value(orderParams, 'stopLoss')
-            takeProfit = self.safe_value(orderParams, 'takeProfit')
+            stopLoss = self.safe_dict(orderParams, 'stopLoss')
+            takeProfit = self.safe_dict(orderParams, 'takeProfit')
             isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
@@ -1668,7 +1668,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostBatchOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203988,
         #         "data": {
         #             "rows": [{
@@ -1687,7 +1687,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_orders(rows)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1746,12 +1746,12 @@ class modetrade(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-            # request['side'] = side.upper()
-            # request['symbol'] = market['id']
+            # request['side'] = side.toUpperCase ();
+            # request['symbol'] = market['id'];
             response = await self.v1PrivatePutOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "EDIT_SENT"
@@ -1762,7 +1762,7 @@ class modetrade(Exchange, ImplicitAPI):
         data['timestamp'] = self.safe_integer(response, 'timestamp')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
@@ -1812,7 +1812,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "data": {
         #       "status": "CANCEL_SENT"
@@ -1820,7 +1820,7 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "status": "CANCEL_SENT"
         # }
@@ -1835,7 +1835,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1862,7 +1862,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteBatchOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "status": "CANCEL_ALL_SENT"
@@ -1873,7 +1873,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': response,
         })]
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
@@ -1900,13 +1900,13 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
         # trigger
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #      "status": "CANCEL_ALL_SENT"
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_ALL_SENT"
@@ -1919,7 +1919,7 @@ class modetrade(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
@@ -1961,7 +1961,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "order_id": 78151,
@@ -1989,7 +1989,7 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2037,7 +2037,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "meta": {
@@ -2069,11 +2069,11 @@ class modetrade(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_dict(response, 'data', response)
         orders = self.safe_list(data, 'rows', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2096,7 +2096,7 @@ class modetrade(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2119,7 +2119,7 @@ class modetrade(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'COMPLETED'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2143,7 +2143,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -2166,7 +2166,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
@@ -2201,7 +2201,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2244,7 +2244,7 @@ class modetrade(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2258,7 +2258,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientHolding(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "holding": [{
@@ -2281,11 +2281,11 @@ class modetrade(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['balance_token'] = currency['id']
+            request['token'] = currency['id']
         if since is not None:
             request['start_t'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['size'] = limit
         transactionType = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
         if transactionType is not None:
@@ -2293,7 +2293,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetAssetHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2320,21 +2320,43 @@ class modetrade(Exchange, ImplicitAPI):
         return [currency, self.safe_list(data, 'rows', [])]
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
+        #
+        #     {
+        #         "id": "230707030600002",
+        #         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        #         "side": "WITHDRAW",
+        #         "token": "USDC",
+        #         "amount": 555,
+        #         "fee": 123,
+        #         "trans_status": "FAILED",
+        #         "created_time": 1688699193034,
+        #         "updated_time": 1688699193096,
+        #         "chain_id": "986532"
+        #     }
+        #
         currencyId = self.safe_string(item, 'token')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.safe_currency(currencyId, currency)
         amount = self.safe_number(item, 'amount')
-        side = self.safe_string(item, 'token_side')
-        direction = 'in' if (side == 'DEPOSIT') else 'out'
+        side = self.safe_string(item, 'side')
+        direction = None
+        if side is not None:
+            direction = 'in' if (side == 'DEPOSIT') else 'out'
         timestamp = self.safe_integer(item, 'created_time')
-        fee = self.parse_token_and_fee_temp(item, 'fee_token', 'fee_amount')
+        feeCost = self.parse_number(self.safe_string(item, 'fee'))
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
         return self.safe_ledger_entry({
             'id': self.safe_string(item, 'id'),
             'currency': code,
-            'account': self.safe_string(item, 'account'),
+            'account': None,
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
+            'status': self.parse_transaction_status(self.safe_string(item, 'trans_status')),
             'amount': amount,
             'before': None,
             'after': None,
@@ -2342,18 +2364,20 @@ class modetrade(Exchange, ImplicitAPI):
             'direction': direction,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'type': self.parse_ledger_entry_type(self.safe_string_2(item, 'type', 'side')),
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
+            'DEPOSIT': 'transaction',  # Funds deposited from the chain
+            'WITHDRAW': 'transaction',  # Funds withdrawn to the chain
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2371,14 +2395,32 @@ class modetrade(Exchange, ImplicitAPI):
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
-        # example in fetchLedger
-        code = self.safe_string(transaction, 'token')
-        movementDirection = self.safe_string_lower(transaction, 'token_side')
+        #
+        #     {
+        #         "id": "230707030600002",
+        #         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        #         "side": "WITHDRAW",
+        #         "token": "USDC",
+        #         "amount": 555,
+        #         "fee": 123,
+        #         "trans_status": "FAILED",
+        #         "created_time": 1688699193034,
+        #         "updated_time": 1688699193096,
+        #         "chain_id": "986532"
+        #     }
+        #
+        currencyId = self.safe_string(transaction, 'token')
+        code = self.safe_currency_code(currencyId, currency)
+        movementDirection = self.safe_string_lower(transaction, 'side')
         if movementDirection == 'withdraw':
             movementDirection = 'withdrawal'
-        fee = self.parse_token_and_fee_temp(transaction, 'fee_token', 'fee_amount')
-        addressTo = self.safe_string(transaction, 'target_address')
-        addressFrom = self.safe_string(transaction, 'source_address')
+        feeCost = self.parse_number(self.safe_string(transaction, 'fee'))
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
         timestamp = self.safe_integer(transaction, 'created_time')
         return {
             'info': transaction,
@@ -2387,35 +2429,38 @@ class modetrade(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
-            'tag': self.safe_string(transaction, 'extra'),
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': None,
             'tagFrom': None,
             'tagTo': None,
             'type': movementDirection,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'trans_status')),
             'updated': self.safe_integer(transaction, 'updated_time'),
             'comment': None,
             'internal': None,
             'fee': fee,
-            'network': None,
+            'network': None,  # raw rows carry only a chain id, no mapping to unified network codes exists yet
         }
 
     def parse_transaction_status(self, status: Str):
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
+            'PENDING': 'pending',
+            'PENDING_REBALANCE': 'pending',
             'PROCESSING': 'pending',
             'COMPLETED': 'ok',
+            'FAILED': 'failed',
             'CANCELED': 'canceled',
         }
         if status is None:
             return None
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2432,7 +2477,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2449,7 +2494,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2476,13 +2521,14 @@ class modetrade(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
+        params = self.omit(params, 'side')  # request-side filter, not a unified transaction field
         return self.parse_transactions(rows, currency, since, limit, params)
 
-    async def get_withdraw_nonce(self, params={}):
+    async def get_withdraw_nonce(self, params: dict = {}) -> Num:
         response = await self.v1PrivateGetWithdrawNonce(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_nonce": 1
@@ -2495,17 +2541,17 @@ class modetrade(Exchange, ImplicitAPI):
     def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2573,7 +2619,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostWithdrawRequest(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_id": 123
@@ -2593,7 +2639,7 @@ class modetrade(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -2609,7 +2655,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -2620,7 +2666,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -2637,7 +2683,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2659,7 +2705,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.v1PrivatePostClientLeverage(self.extend(request, params))
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "IMR_withdraw_orders": 0.1,
@@ -2728,7 +2774,7 @@ class modetrade(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
@@ -2749,7 +2795,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositionSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "IMR_withdraw_orders": 0.1,
@@ -2776,7 +2822,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2791,7 +2837,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositions(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "current_margin_ratio_with_orders": 1.2385,
@@ -2831,10 +2877,10 @@ class modetrade(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'rows', [])
         return self.parse_positions(positions, symbols)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)

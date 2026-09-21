@@ -1,10 +1,8 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../base/functions/number.js';
-
 
 function testDecimalToPrecision () {
     const exchange = new ccxt.Exchange ({
@@ -143,7 +141,6 @@ function testDecimalToPrecision () {
 
     assert (exchange.decimalToPrecision ('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00000044');
 
-
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 5, SIGNIFICANT_DIGITS) === '0.12346');
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 6, SIGNIFICANT_DIGITS) === '0.123456');
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 7, SIGNIFICANT_DIGITS) === '0.123456');
@@ -160,8 +157,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 4, SIGNIFICANT_DIGITS) === '1115');
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1114.5');
     assert (exchange.decimalToPrecision ('1115.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1115.5');
-
-
 
     // ----------------------------------------------------------------------------
 
@@ -189,7 +184,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('0.0000009', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000009');
     assert (exchange.decimalToPrecision ('0.0000005', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000005');
     assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 0.00000001, TICK_SIZE, PAD_WITH_ZERO) === '0.00000001');
-
 
     assert (exchange.decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
     assert (exchange.decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');

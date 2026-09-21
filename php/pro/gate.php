@@ -149,7 +149,7 @@ class gate extends \ccxt\async\gate {
         );
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -199,7 +199,7 @@ class gate extends \ccxt\async\gate {
         return $order;
     }
 
-    public function create_orders_ws(array $orders, $params = array()) {
+    public function create_orders_ws(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders_ws(...))($orders, $params);
     }
 
@@ -231,7 +231,7 @@ class gate extends \ccxt\async\gate {
         return $this->parse_orders($rawOrders, $market);
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
@@ -267,7 +267,7 @@ class gate extends \ccxt\async\gate {
         return $this->parse_orders($rawOrders, $market);
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -288,7 +288,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = ($symbol === null) ? null : $this->market($symbol);
-        $trigger = $this->safe_value_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+        $trigger = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
         list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spotOrderPrepareRequest($market, $trigger, $query) : $this->prepareRequest($market, $type, $query);
@@ -301,7 +301,7 @@ class gate extends \ccxt\async\gate {
         return $this->parse_order($res, $market);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -334,7 +334,7 @@ class gate extends \ccxt\async\gate {
         return $this->parse_order($rawOrder, $market);
     }
 
-    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_ws(...))($id, $symbol, $params);
     }
 
@@ -477,6 +477,11 @@ class gate extends \ccxt\async\gate {
                 $limit = 50; // max 50 for options
             }
         }
+        if ($market['spot'] === true) {
+            // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+            $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
+            $limit = min($limit, $maxSpotLimit);
+        }
         $payload = array();
         $channel = '';
         if ($isEuUrl) {
@@ -557,7 +562,7 @@ class gate extends \ccxt\async\gate {
         return Async\await($this->un_subscribe_public_multiple($url, 'orderbook', array( $symbol ), array( $messageHash ), array( $subMessageHash ), $payload, $channel, $params));
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, ?array $subscription = null) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if ($symbol !== null) {
@@ -565,28 +570,28 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_new_spot_order_book(Client $client, mixed $message) {
+    public function handle_new_spot_order_book(Client $client, array $message) {
         //
         //   {
         //      "channel":"spot.obu",
-        //      "result":array(
+        //      "result":{
         //         "t":1777275365213,
         //         "full":true,
         //         "s":"ob.XRP_USDT.50",
         //         "u":9649549324,
-        //         "b":array(
-        //            array(
+        //         "b":[
+        //            [
         //               "1.414",
         //               "1397.899"
-        //            )
-        //         ),
-        //         "a":array(
-        //            array(
+        //            ]
+        //         ],
+        //         "a":[
+        //            [
         //               "1.415",
         //               "17344.926"
-        //            )
-        //         )
-        //      ),
+        //            ]
+        //         ]
+        //      },
         //      "time_ms":1777275365214,
         //      "event":"update"
         //   }
@@ -620,57 +625,57 @@ class gate extends \ccxt\async\gate {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // spot
         //
         //     {
-        //         "time" => 1650189272,
-        //         "channel" => "spot.order_book_update",
-        //         "event" => "update",
-        //         "result" => {
-        //             "t" => 1650189272515,
-        //             "e" => "depthUpdate",
-        //             "E" => 1650189272,
-        //             "s" => "GMT_USDT",
-        //             "U" => 140595902,
-        //             "u" => 140595902,
-        //             "b" => array(
-        //                 array( '2.51518', "228.119" ),
-        //                 array( '2.50587', "1510.11" ),
-        //                 array( '2.49944', "67.6" ),
-        //             ),
-        //             "a" => array(
-        //                 array( '2.5182', "4.199" ),
-        //                 array( "2.51926", "1874" ),
-        //                 array( '2.53528', "96.529" ),
-        //             )
+        //         "time": 1650189272,
+        //         "channel": "spot.order_book_update",
+        //         "event": "update",
+        //         "result": {
+        //             "t": 1650189272515,
+        //             "e": "depthUpdate",
+        //             "E": 1650189272,
+        //             "s": "GMT_USDT",
+        //             "U": 140595902,
+        //             "u": 140595902,
+        //             "b": [
+        //                 [ '2.51518', "228.119" ],
+        //                 [ '2.50587', "1510.11" ],
+        //                 [ '2.49944', "67.6" ],
+        //             ],
+        //             "a": [
+        //                 [ '2.5182', "4.199" ],
+        //                 [ "2.51926", "1874" ],
+        //                 [ '2.53528', "96.529" ],
+        //             ]
         //         }
         //     }
         //
         // swap
         //
         //     {
-        //         "id" => null,
-        //         "time" => 1650188898,
-        //         "channel" => "futures.order_book_update",
-        //         "event" => "update",
-        //         "error" => null,
-        //         "result" => {
-        //             "t" => 1650188898938,
-        //             "s" => "GMT_USDT",
-        //             "U" => 1577718307,
-        //             "u" => 1577719254,
-        //             "b" => array(
-        //                 array( p => "2.5178", s => 0 ),
-        //                 array( p => "2.5179", s => 0 ),
-        //                 array( p => "2.518", s => 0 ),
-        //             ),
-        //             "a" => array(
-        //                 array( p => "2.52", s => 0 ),
-        //                 array( p => "2.5201", s => 0 ),
-        //                 array( p => "2.5203", s => 0 ),
-        //             )
+        //         "id": null,
+        //         "time": 1650188898,
+        //         "channel": "futures.order_book_update",
+        //         "event": "update",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1650188898938,
+        //             "s": "GMT_USDT",
+        //             "U": 1577718307,
+        //             "u": 1577719254,
+        //             "b": [
+        //                 { p: "2.5178", s: 0 },
+        //                 { p: "2.5179", s: 0 },
+        //                 { p: "2.518", s: 0 },
+        //             ],
+        //             "a": [
+        //                 { p: "2.52", s: 0 },
+        //                 { p: "2.5201", s: 0 },
+        //                 { p: "2.5203", s: 0 },
+        //             ]
         //         }
         //     }
         //
@@ -683,7 +688,7 @@ class gate extends \ccxt\async\gate {
         $rawMarketType = $this->safe_string($channelParts, 0);
         $isSpot = $rawMarketType === 'spot';
         $marketType = $isSpot ? 'spot' : 'contract';
-        $delta = $this->safe_value($message, 'result');
+        $delta = $this->safe_dict($message, 'result');
         $deltaStart = $this->safe_integer($delta, 'U');
         $deltaEnd = $this->safe_integer($delta, 'u');
         $marketId = $this->safe_string($delta, 's');
@@ -699,7 +704,7 @@ class gate extends \ccxt\async\gate {
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
             $waitAmount = $isSpot ? $snapshotDelay : 0;
             if ($cacheLength === $waitAmount) {
-                // max $limit is 100
+                // max limit is 100
                 $subscription = $client->subscriptions[$messageHash];
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array()); // needed for c#, number of args needs to match
@@ -722,7 +727,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function get_cache_index(mixed $orderBook, mixed $cache) {
+    public function get_cache_index(mixed $orderBook, mixed $cache): float {
         $nonce = $this->safe_integer($orderBook, 'nonce');
         $firstDelta = $cache[0];
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
@@ -740,7 +745,7 @@ class gate extends \ccxt\async\gate {
         return count($cache);
     }
 
-    public function handle_bid_asks(mixed $bookSide, mixed $bidAsks) {
+    public function handle_bid_asks(mixed $bookSide, array $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $bidAsks[$i];
             if ((gettype($bidAsk) === 'array' && array_keys($bidAsk) === array_keys(array_keys($bidAsk)))) {
@@ -758,8 +763,8 @@ class gate extends \ccxt\async\gate {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');
-        $bids = $this->safe_value($delta, 'b', array());
-        $asks = $this->safe_value($delta, 'a', array());
+        $bids = $this->safe_list($delta, 'b', array());
+        $asks = $this->safe_list($delta, 'a', array());
         $storedBids = $orderbook['bids'];
         $storedAsks = $orderbook['asks'];
         $this->handle_bid_asks($storedBids, $bids);
@@ -807,22 +812,22 @@ class gate extends \ccxt\async\gate {
         return $this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchTickers', $this->extend(array( 'method' => 'tickers' ), $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //    {
-        //        "time" => 1649326221,
-        //        "channel" => "spot.tickers",
-        //        "event" => "update",
-        //        "result" => {
-        //          "currency_pair" => "BTC_USDT",
-        //          "last" => "43444.82",
-        //          "lowest_ask" => "43444.82",
-        //          "highest_bid" => "43444.81",
-        //          "change_percentage" => "-4.0036",
-        //          "base_volume" => "5182.5412425462",
-        //          "quote_volume" => "227267634.93123952",
-        //          "high_24h" => "47698",
-        //          "low_24h" => "42721.03"
+        //        "time": 1649326221,
+        //        "channel": "spot.tickers",
+        //        "event": "update",
+        //        "result": {
+        //          "currency_pair": "BTC_USDT",
+        //          "last": "43444.82",
+        //          "lowest_ask": "43444.82",
+        //          "highest_bid": "43444.81",
+        //          "change_percentage": "-4.0036",
+        //          "base_volume": "5182.5412425462",
+        //          "quote_volume": "227267634.93123952",
+        //          "high_24h": "47698",
+        //          "low_24h": "42721.03"
         //        }
         //    }
         //
@@ -844,21 +849,21 @@ class gate extends \ccxt\async\gate {
         return $this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //    {
-        //        "time" => 1671363004,
-        //        "time_ms" => 1671363004235,
-        //        "channel" => "spot.book_ticker",
-        //        "event" => "update",
-        //        "result" => {
-        //          "t" => 1671363004228,
-        //          "u" => 9793320464,
-        //          "s" => "BTC_USDT",
-        //          "b" => "16716.8",
-        //          "B" => "0.0134",
-        //          "a" => "16716.9",
-        //          "A" => "0.0353"
+        //        "time": 1671363004,
+        //        "time_ms": 1671363004235,
+        //        "channel": "spot.book_ticker",
+        //        "event": "update",
+        //        "result": {
+        //          "t": 1671363004228,
+        //          "u": 9793320464,
+        //          "s": "BTC_USDT",
+        //          "b": "16716.8",
+        //          "B": "0.0134",
+        //          "a": "16716.9",
+        //          "A": "0.0353"
         //        }
         //    }
         //
@@ -902,7 +907,7 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_array($result, 'symbol', $symbols, true);
     }
 
-    public function handle_ticker_and_bid_ask(string $objectName, Client $client, mixed $message) {
+    public function handle_ticker_and_bid_ask(string $objectName, Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('.', $channel);
         $rawMarketType = $this->safe_string($parts, 0);
@@ -989,7 +994,7 @@ class gate extends \ccxt\async\gate {
         $url = $this->get_url_by_market($market);
         $trades = Async\await($this->subscribe_public_multiple($url, $messageHashes, $marketIds, $channel, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -1036,21 +1041,21 @@ class gate extends \ccxt\async\gate {
         return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
-        //     "time" => 1648725035,
-        //     "channel" => "spot.trades",
-        //     "event" => "update",
-        //     "result" => [array(
-        //       "id" => 3130257995,
-        //       "create_time" => 1648725035,
-        //       "create_time_ms" => "1648725035923.0",
-        //       "side" => "sell",
-        //       "currency_pair" => "LTC_USDT",
-        //       "amount" => "0.0116",
-        //       "price" => "130.11"
-        //     )]
+        //     "time": 1648725035,
+        //     "channel": "spot.trades",
+        //     "event": "update",
+        //     "result": [{
+        //       "id": 3130257995,
+        //       "create_time": 1648725035,
+        //       "create_time_ms": "1648725035923.0",
+        //       "side": "sell",
+        //       "currency_pair": "LTC_USDT",
+        //       "amount": "0.0116",
+        //       "price": "130.11"
+        //     }]
         // }
         //
         $result = $this->safe_value($message, 'result');
@@ -1114,20 +1119,20 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
-        //     "time" => 1606292600,
-        //     "channel" => "spot.candlesticks",
-        //     "event" => "update",
-        //     "result" => {
-        //       "t" => "1606292580", // total volume
-        //       "v" => "2362.32035", // volume
-        //       "c" => "19128.1", // close
-        //       "h" => "19128.1", // high
-        //       "l" => "19128.1", // low
-        //       "o" => "19128.1", // open
-        //       "n" => "1m_BTC_USDT" // sub
+        //     "time": 1606292600,
+        //     "channel": "spot.candlesticks",
+        //     "event": "update",
+        //     "result": {
+        //       "t": "1606292580", // total volume
+        //       "v": "2362.32035", // volume
+        //       "c": "19128.1", // close
+        //       "h": "19128.1", // high
+        //       "l": "19128.1", // low
+        //       "o": "19128.1", // open
+        //       "n": "1m_BTC_USDT" // sub
         //     }
         //   }
         //
@@ -1229,25 +1234,25 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // {
-        //     "time" => 1543205083,
-        //     "channel" => "futures.usertrades",
-        //     "event" => "update",
-        //     "error" => null,
-        //     "result" => array(
+        //     "time": 1543205083,
+        //     "channel": "futures.usertrades",
+        //     "event": "update",
+        //     "error": null,
+        //     "result": [
         //       {
-        //         "id" => "3335259",
-        //         "create_time" => 1628736848,
-        //         "create_time_ms" => 1628736848321,
-        //         "contract" => "BTC_USD",
-        //         "order_id" => "4872460",
-        //         "size" => 1,
-        //         "price" => "40000.4",
-        //         "role" => "maker"
+        //         "id": "3335259",
+        //         "create_time": 1628736848,
+        //         "create_time_ms": 1628736848321,
+        //         "contract": "BTC_USD",
+        //         "order_id": "4872460",
+        //         "size": 1,
+        //         "price": "40000.4",
+        //         "role": "maker"
         //       }
-        //     )
+        //     ]
         // }
         //
         $result = $this->safe_list($message, 'result', array());
@@ -1313,75 +1318,75 @@ class gate extends \ccxt\async\gate {
             'swap' => 'futures',
             'option' => 'options',
         ));
-        // todo => add correct margin support
+        // todo: add correct margin support
         $channel = $channelType . '.balances';
         $messageHash = $type . '.balance';
         return Async\await($this->subscribe_private($url, $messageHash, null, $channel, $params, $requiresUid));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot order fill
         //     {
-        //         "time" => 1653664351,
-        //         "time_ms" => 1605248616763,
-        //         "channel" => "spot.balances",
-        //         "event" => "update",
-        //         "result" => array(
+        //         "time": 1653664351,
+        //         "time_ms": 1605248616763,
+        //         "channel": "spot.balances",
+        //         "event": "update",
+        //         "result": [
         //             {
-        //                 "timestamp" => "1667556323",
-        //                 "timestamp_ms" => "1667556323730",
-        //                 "user" => "1000001",
-        //                 "currency" => "USDT",
-        //                 "change" => "0",
-        //                 "total" => "222244.3827652",
-        //                 "available" => "222244.3827",
-        //                 "freeze" => "5",
-        //                 "freeze_change" => "5.000000",
-        //                 "change_type" => "order-create"
+        //                 "timestamp": "1667556323",
+        //                 "timestamp_ms": "1667556323730",
+        //                 "user": "1000001",
+        //                 "currency": "USDT",
+        //                 "change": "0",
+        //                 "total": "222244.3827652",
+        //                 "available": "222244.3827",
+        //                 "freeze": "5",
+        //                 "freeze_change": "5.000000",
+        //                 "change_type": "order-create"
         //             }
-        //         )
+        //         ]
         //     }
         //
-        // $account transfer
+        // account transfer
         //
         //    {
-        //        "id" => null,
-        //        "time" => 1653665088,
-        //        "channel" => "futures.balances",
-        //        "event" => "update",
-        //        "error" => null,
-        //        "result" => array(
+        //        "id": null,
+        //        "time": 1653665088,
+        //        "channel": "futures.balances",
+        //        "event": "update",
+        //        "error": null,
+        //        "result": [
         //          {
-        //            "balance" => 25.035008537,
-        //            "change" => 25,
-        //            "text" => "-",
-        //            "time" => 1653665088,
-        //            "time_ms" => 1653665088286,
-        //            "type" => "dnw",
-        //            "user" => "10406147"
+        //            "balance": 25.035008537,
+        //            "change": 25,
+        //            "text": "-",
+        //            "time": 1653665088,
+        //            "time_ms": 1653665088286,
+        //            "type": "dnw",
+        //            "user": "10406147"
         //          }
-        //        )
+        //        ]
         //   }
         //
         // swap order fill
         //   {
-        //       "id" => null,
-        //       "time" => 1653665311,
-        //       "channel" => "futures.balances",
-        //       "event" => "update",
-        //       "error" => null,
-        //       "result" => array(
+        //       "id": null,
+        //       "time": 1653665311,
+        //       "channel": "futures.balances",
+        //       "event": "update",
+        //       "error": null,
+        //       "result": [
         //         {
-        //           "balance" => 20.031873037,
-        //           "change" => -0.0031355,
-        //           "text" => "LTC_USDT:165551103273",
-        //           "time" => 1653665311,
-        //           "time_ms" => 1653665311437,
-        //           "type" => "fee",
-        //           "user" => "10406147"
+        //           "balance": 20.031873037,
+        //           "change": -0.0031355,
+        //           "text": "LTC_USDT:165551103273",
+        //           "time": 1653665311,
+        //           "time_ms": 1653665311437,
+        //           "type": "fee",
+        //           "user": "10406147"
         //         }
-        //       )
+        //       ]
         //   }
         //
         $result = $this->safe_list($message, 'result', array());
@@ -1498,11 +1503,11 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
@@ -1513,7 +1518,7 @@ class gate extends \ccxt\async\gate {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1521,35 +1526,35 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
-        //        time => 1693158497,
-        //        time_ms => 1693158497204,
-        //        channel => 'futures.positions',
-        //        event => 'update',
-        //        result => [array(
-        //            contract => 'XRP_USDT',
-        //            cross_leverage_limit => 0,
-        //            entry_price => 0.5253,
-        //            history_pnl => 0,
-        //            history_point => 0,
-        //            last_close_pnl => 0,
-        //            leverage => 0,
-        //            leverage_max => 50,
-        //            liq_price => 0.0361,
-        //            maintenance_rate => 0.01,
-        //            margin => 4.89609962852,
-        //            mode => 'single',
-        //            realised_pnl => -0.0026265,
-        //            realised_point => 0,
-        //            risk_limit => 500000,
-        //            size => 1,
-        //            time => 1693158497,
-        //            time_ms => 1693158497195,
-        //            update_id => 1,
-        //            user => '10444586'
-        //        )]
+        //        time: 1693158497,
+        //        time_ms: 1693158497204,
+        //        channel: 'futures.positions',
+        //        event: 'update',
+        //        result: [{
+        //            contract: 'XRP_USDT',
+        //            cross_leverage_limit: 0,
+        //            entry_price: 0.5253,
+        //            history_pnl: 0,
+        //            history_point: 0,
+        //            last_close_pnl: 0,
+        //            leverage: 0,
+        //            leverage_max: 50,
+        //            liq_price: 0.0361,
+        //            maintenance_rate: 0.01,
+        //            margin: 4.89609962852,
+        //            mode: 'single',
+        //            realised_pnl: -0.0026265,
+        //            realised_point: 0,
+        //            risk_limit: 500000,
+        //            size: 1,
+        //            time: 1693158497,
+        //            time_ms: 1693158497195,
+        //            update_id: 1,
+        //            user: '10444586'
+        //        }]
         //    }
         //
         $type = $this->get_market_type_by_url($client->url);
@@ -1561,7 +1566,7 @@ class gate extends \ccxt\async\gate {
             $position = $this->parse_position($rawPosition);
             $symbol = $this->safe_string($position, 'symbol');
             $side = $this->safe_string($position, 'side');
-            // Control when $position is closed no $side is returned
+            // Control when position is closed no side is returned
             if ($side === null) {
                 $prevLongPosition = $this->safe_dict($cache, $symbol . 'long');
                 if ($prevLongPosition !== null) {
@@ -1575,7 +1580,7 @@ class gate extends \ccxt\async\gate {
                     $newPositions[] = $position;
                     $cache->append($position);
                 }
-                // if no prev $position is found, default to long
+                // if no prev position is found, default to long
                 if ($prevLongPosition === null && $prevShortPosition === null) {
                     $position['side'] = 'long';
                     $newPositions[] = $position;
@@ -1647,7 +1652,7 @@ class gate extends \ccxt\async\gate {
         if (($isTrigger === true) && ($typeId === 'options')) {
             throw new NotSupported($this->id . ' watchOrders() does not support trigger $orders for options, see https://github.com/ccxt/ccxt/issues/27202');
         }
-        // gate pushes trigger $orders on dedicated channels, spot.priceorders and futures.autoorders,
+        // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
         $suffix = '.orders';
         if ($isTrigger === true) {
@@ -1676,50 +1681,50 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "time" => 1774613210,
-        //         "time_ms" => 1774613210392,
-        //         "channel" => "spot.orders",
-        //         "event" => "update",
-        //         "result" => array(
+        //         "time": 1774613210,
+        //         "time_ms": 1774613210392,
+        //         "channel": "spot.orders",
+        //         "event": "update",
+        //         "result": [
         //             {
-        //                 "id" => "1036717689726",
-        //                 "text" => "apiv4",
-        //                 "create_time" => "1774613210",
-        //                 "update_time" => "1774613210",
-        //                 "currency_pair" => "BTC_USDT",
-        //                 "type" => "limit",
-        //                 "account" => "unified",
-        //                 "side" => "buy",
-        //                 "amount" => "0.1",
-        //                 "price" => "200",
-        //                 "time_in_force" => "gtc",
-        //                 "left" => "0.1",
-        //                 "filled_amount" => "0",
-        //                 "filled_total" => "0",
-        //                 "avg_deal_price" => "0",
-        //                 "fee" => "0",
-        //                 "fee_currency" => "BTC",
-        //                 "point_fee" => "0",
-        //                 "gt_fee" => "0",
-        //                 "rebated_fee" => "0",
-        //                 "rebated_fee_currency" => "BTC",
-        //                 "create_time_ms" => "1774613210391",
-        //                 "update_time_ms" => "1774613210391",
-        //                 "user" => 10406147,
-        //                 "event" => "put",
-        //                 "stp_id" => 0,
-        //                 "stp_act" => "-",
-        //                 "finish_as" => "open",
-        //                 "biz_info" => "ch:ccxt",
-        //                 "amend_text" => "-"
+        //                 "id": "1036717689726",
+        //                 "text": "apiv4",
+        //                 "create_time": "1774613210",
+        //                 "update_time": "1774613210",
+        //                 "currency_pair": "BTC_USDT",
+        //                 "type": "limit",
+        //                 "account": "unified",
+        //                 "side": "buy",
+        //                 "amount": "0.1",
+        //                 "price": "200",
+        //                 "time_in_force": "gtc",
+        //                 "left": "0.1",
+        //                 "filled_amount": "0",
+        //                 "filled_total": "0",
+        //                 "avg_deal_price": "0",
+        //                 "fee": "0",
+        //                 "fee_currency": "BTC",
+        //                 "point_fee": "0",
+        //                 "gt_fee": "0",
+        //                 "rebated_fee": "0",
+        //                 "rebated_fee_currency": "BTC",
+        //                 "create_time_ms": "1774613210391",
+        //                 "update_time_ms": "1774613210391",
+        //                 "user": 10406147,
+        //                 "event": "put",
+        //                 "stp_id": 0,
+        //                 "stp_act": "-",
+        //                 "finish_as": "open",
+        //                 "biz_info": "ch:ccxt",
+        //                 "amend_text": "-"
         //             }
-        //         )
+        //         ]
         //     }
         //
-        $orders = $this->safe_value($message, 'result', array());
+        $orders = $this->safe_list($message, 'result', array());
         $channel = $this->safe_string($message, 'channel', '');
         $isTrigger = (mb_strpos($channel, 'autoorders') !== false) || (mb_strpos($channel, 'priceorders') !== false);
         $hashPrefix = $isTrigger ? 'triggerOrders' : 'orders';
@@ -1733,8 +1738,8 @@ class gate extends \ccxt\async\gate {
         $parsedOrders = $this->parse_orders($orders);
         for ($i = 0; $i < count($parsedOrders); $i++) {
             $parsed = $parsedOrders[$i];
-            // inject order $status
-            $info = $this->safe_value($parsed, 'info');
+            // inject order status
+            $info = $this->safe_dict($parsed, 'info');
             $event = $this->safe_string($info, 'event');
             if ($event === 'put' || $event === 'update') {
                 $parsed['status'] = 'open';
@@ -1836,7 +1841,7 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         // future / delivery
         //     {
@@ -1844,7 +1849,7 @@ class gate extends \ccxt\async\gate {
         //         "event":"update",
         //         "time":1541505434,
         //         "time_ms":1541505434123,
-        //         "result":array(
+        //         "result":[
         //            {
         //               "entry_price":209,
         //               "fill_price":215.1,
@@ -1861,14 +1866,14 @@ class gate extends \ccxt\async\gate {
         //               "contract":"BTC_USD",
         //               "user":"1040xxxx"
         //            }
-        //         )
+        //         ]
         //     }
         // option
         //    {
         //        "channel":"options.liquidates",
         //        "event":"update",
         //        "time":1630654851,
-        //        "result":array(
+        //        "result":[
         //           {
         //              "user":"1xxxx",
         //              "init_margin":1190,
@@ -1877,7 +1882,7 @@ class gate extends \ccxt\async\gate {
         //              "time":1639051907,
         //              "time_ms":1639051907000
         //           }
-        //        )
+        //        ]
         //    }
         //
         $rawLiquidations = $this->safe_list($message, 'result', array());
@@ -1892,39 +1897,39 @@ class gate extends \ccxt\async\gate {
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
             $cache->append($liquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $symbolLiquidations = $this->safe_value($cache, $symbol, array());
+            $symbolLiquidations = $this->safe_list($cache, $symbol, array());
             $client->resolve($symbolLiquidations, 'myLiquidations::' . $symbol);
         }
         $client->resolve($newLiquidations, 'myLiquidations');
     }
 
-    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null): array {
         //
         // future / delivery
         //    {
-        //        "entry_price" => 209,
-        //        "fill_price" => 215.1,
-        //        "left" => 0,
-        //        "leverage" => 0.0,
-        //        "liq_price" => 213,
-        //        "margin" => 0.007816722941,
-        //        "mark_price" => 213,
-        //        "order_id" => 4093362,
-        //        "order_price" => 215.1,
-        //        "size" => -124,
-        //        "time" => 1541486601,
-        //        "time_ms" => 1541486601123,
-        //        "contract" => "BTC_USD",
-        //        "user" => "1040xxxx"
+        //        "entry_price": 209,
+        //        "fill_price": 215.1,
+        //        "left": 0,
+        //        "leverage": 0.0,
+        //        "liq_price": 213,
+        //        "margin": 0.007816722941,
+        //        "mark_price": 213,
+        //        "order_id": 4093362,
+        //        "order_price": 215.1,
+        //        "size": -124,
+        //        "time": 1541486601,
+        //        "time_ms": 1541486601123,
+        //        "contract": "BTC_USD",
+        //        "user": "1040xxxx"
         //    }
         // option
         //    {
-        //        "user" => "1xxxx",
-        //        "init_margin" => 1190,
-        //        "maint_margin" => 1042.5,
-        //        "order_margin" => 0,
-        //        "time" => 1639051907,
-        //        "time_ms" => 1639051907000
+        //        "user": "1xxxx",
+        //        "init_margin": 1190,
+        //        "maint_margin": 1042.5,
+        //        "order_margin": 0,
+        //        "time": 1639051907,
+        //        "time_ms": 1639051907000
         //    }
         //
         $marketId = $this->safe_string($liquidation, 'contract');
@@ -1946,56 +1951,56 @@ class gate extends \ccxt\async\gate {
         ));
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
-        //        "time" => 1647274664,
-        //        "channel" => "futures.orders",
-        //        "event" => "subscribe",
-        //        "error" => array( $code => 2, $message => "unknown contract BTC_USDT_20220318" ),
+        //        "time": 1647274664,
+        //        "channel": "futures.orders",
+        //        "event": "subscribe",
+        //        "error": { code: 2, message: "unknown contract BTC_USDT_20220318" },
         //    }
         //    {
-        //      "time" => 1647276473,
-        //      "channel" => "futures.orders",
-        //      "event" => "subscribe",
-        //      "error" => array(
-        //        "code" => 4,
-        //        "message" => "array("label":"INVALID_KEY","message":"Invalid key provided")\n"
-        //      ),
-        //      "result" => null
+        //      "time": 1647276473,
+        //      "channel": "futures.orders",
+        //      "event": "subscribe",
+        //      "error": {
+        //        "code": 4,
+        //        "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
+        //      },
+        //      "result": null
         //    }
         //    {
-        //       header => array(
-        //         response_time => '1718551891329',
-        //         status => '400',
-        //         $channel => 'spot.order_place',
-        //         event => 'api',
-        //         client_id => '81.34.68.6-0xc16375e2c0',
-        //         conn_id => '9539116e0e09678f'
-        //       ),
-        //       $data => array( $errs => array( label => 'AUTHENTICATION_FAILED', $message => 'Not login' ) ),
-        //       request_id => '10406147'
+        //       header: {
+        //         response_time: '1718551891329',
+        //         status: '400',
+        //         channel: 'spot.order_place',
+        //         event: 'api',
+        //         client_id: '81.34.68.6-0xc16375e2c0',
+        //         conn_id: '9539116e0e09678f'
+        //       },
+        //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
+        //       request_id: '10406147'
         //     }
         //     {
-        //         "time" => 1739853211,
-        //         "time_ms" => 1739853211201,
-        //         "id" => 1,
-        //         "conn_id" => "62f2c1dabbe186d7",
-        //         "trace_id" => "cdb02a8c0b61086b2fe6f8fad2f98c54",
-        //         "channel" => "spot.trades",
-        //         "event" => "subscribe",
-        //         "payload" => array(
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
         //             "LUNARLENS_USDT",
         //             "ETH_USDT"
-        //         ),
-        //         "error" => array(
-        //             "code" => 2,
-        //             "message" => "unknown currency pair => LUNARLENS_USDT"
-        //         ),
-        //         "result" => array(
-        //             "status" => "fail"
-        //         ),
-        //         "requestId" => "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
         $data = $this->safe_dict($message, 'data');
@@ -2039,11 +2044,11 @@ class gate extends \ccxt\async\gate {
         return false;
     }
 
-    public function handle_balance_subscription(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_balance_subscription(Client $client, array $message, ?array $subscription = null) {
         $this->balance = array();
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
             'balance' => array($this, 'handle_balance_subscription'),
@@ -2068,7 +2073,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_un_subscribe(Client $client, mixed $message) {
+    public function handle_un_subscribe(Client $client, array $message) {
         //
         // {
         //     "time":1725534679,
@@ -2078,12 +2083,12 @@ class gate extends \ccxt\async\gate {
         //     "trace_id":"efe1d282b630b4aa266b84bee177791a",
         //     "channel":"spot.trades",
         //     "event":"unsubscribe",
-        //     "payload":array(
+        //     "payload":[
         //        "LTC_USDT"
-        //     ),
-        //     "result":array(
+        //     ],
+        //     "result":{
         //        "status":"success"
-        //     ),
+        //     },
         //     "requestId":"efe1d282b630b4aa266b84bee177791a"
         // }
         //
@@ -2093,7 +2098,7 @@ class gate extends \ccxt\async\gate {
             $messageHash = $keys[$i];
             if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                 continue;
-                // the previous iteration can have deleted the $messageHash from the subscriptions
+                // the previous iteration can have deleted the messageHash from the subscriptions
             }
             if (str_starts_with($messageHash, 'unsubscribe')) {
                 $subscription = $client->subscriptions[$messageHash];
@@ -2117,90 +2122,90 @@ class gate extends \ccxt\async\gate {
         //
         // subscribe
         //    {
-        //        "time" => 1649062304,
-        //        "id" => 1649062303,
-        //        "channel" => "spot.candlesticks",
-        //        "event" => "subscribe",
-        //        "result" => array( status => "success" )
+        //        "time": 1649062304,
+        //        "id": 1649062303,
+        //        "channel": "spot.candlesticks",
+        //        "event": "subscribe",
+        //        "result": { status: "success" }
         //    }
         //
         // candlestick
         //    {
-        //        "time" => 1649063328,
-        //        "channel" => "spot.candlesticks",
-        //        "event" => "update",
-        //        "result" => {
-        //          "t" => "1649063280",
-        //          "v" => "58932.23174896",
-        //          "c" => "45966.47",
-        //          "h" => "45997.24",
-        //          "l" => "45966.47",
-        //          "o" => "45975.18",
-        //          "n" => "1m_BTC_USDT",
-        //          "a" => "1.281699"
+        //        "time": 1649063328,
+        //        "channel": "spot.candlesticks",
+        //        "event": "update",
+        //        "result": {
+        //          "t": "1649063280",
+        //          "v": "58932.23174896",
+        //          "c": "45966.47",
+        //          "h": "45997.24",
+        //          "l": "45966.47",
+        //          "o": "45975.18",
+        //          "n": "1m_BTC_USDT",
+        //          "a": "1.281699"
         //        }
         //     }
         //
         //  orders
         //   {
-        //       "time" => 1630654851,
-        //       "channel" => "options.orders", or futures.orders or spot.orders
-        //       "event" => "update",
-        //       "result" => array(
+        //       "time": 1630654851,
+        //       "channel": "options.orders", or futures.orders or spot.orders
+        //       "event": "update",
+        //       "result": [
         //          {
-        //             "contract" => "BTC_USDT-20211130-65000-C",
-        //             "create_time" => 1637897000,
+        //             "contract": "BTC_USDT-20211130-65000-C",
+        //             "create_time": 1637897000,
         //               (...)
-        //       )
+        //       ]
         //   }
         // orderbook
         //   {
-        //       "time" => 1649770525,
-        //       "channel" => "spot.order_book_update",
-        //       "event" => "update",
-        //       "result" => {
-        //         "t" => 1649770525653,
-        //         "e" => "depthUpdate",
-        //         "E" => 1649770525,
-        //         "s" => "LTC_USDT",
-        //         "U" => 2622525645,
-        //         "u" => 2622525665,
-        //         "b" => array(
+        //       "time": 1649770525,
+        //       "channel": "spot.order_book_update",
+        //       "event": "update",
+        //       "result": {
+        //         "t": 1649770525653,
+        //         "e": "depthUpdate",
+        //         "E": 1649770525,
+        //         "s": "LTC_USDT",
+        //         "U": 2622525645,
+        //         "u": 2622525665,
+        //         "b": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array]
-        //         ),
-        //         "a" => array(
+        //         ],
+        //         "a": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array]
-        //         )
+        //         ]
         //       }
         //     }
         //
         // balance update
         //
         //    {
-        //        "time" => 1653664351,
-        //        "channel" => "spot.balances",
-        //        "event" => "update",
-        //        "result" => array(
+        //        "time": 1653664351,
+        //        "channel": "spot.balances",
+        //        "event": "update",
+        //        "result": [
         //          {
-        //            "timestamp" => "1653664351",
-        //            "timestamp_ms" => "1653664351017",
-        //            "user" => "10406147",
-        //            "currency" => "LTC",
-        //            "change" => "-0.0002000000000000",
-        //            "total" => "0.09986000000000000000",
-        //            "available" => "0.09986000000000000000"
+        //            "timestamp": "1653664351",
+        //            "timestamp_ms": "1653664351017",
+        //            "user": "10406147",
+        //            "currency": "LTC",
+        //            "change": "-0.0002000000000000",
+        //            "total": "0.09986000000000000000",
+        //            "available": "0.09986000000000000000"
         //          }
-        //        )
+        //        ]
         //    }
         //
         if ($this->handle_error_message($client, $message) === true) {
@@ -2216,13 +2221,13 @@ class gate extends \ccxt\async\gate {
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');
-        // after supporting more $method we can create a mapping for this
+        // after supporting more method we can create a mapping for this
         if ($channel === 'spot.obu') {
             $this->handle_order_book($client, $message);
             return;
         }
         $channelParts = explode('.', $channel);
-        $channelType = $this->safe_value($channelParts, 1);
+        $channelType = $this->safe_string($channelParts, 1);
         $v4Methods = array(
             'usertrades' => array($this, 'handle_my_trades'),
             'candlesticks' => array($this, 'handle_ohlcv'),
@@ -2248,7 +2253,7 @@ class gate extends \ccxt\async\gate {
         }
         if ($requestId !== null) {
             $data = $this->safe_dict($message, 'data');
-            // use safeValue as $result may be Array or an Object
+            // use safeValue as result may be Array or an Object
             $result = $this->safe_value($data, 'result');
             $ack = $this->safe_bool($message, 'ack');
             if ($ack !== true) {
@@ -2279,7 +2284,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_url_by_market_type(?string $type, $isInverse = false) {
+    public function get_url_by_market_type(?string $type, ?bool $isInverse = false): ?string {
         $api = $this->urls['api'];
         $url = $this->safe_value($api, $type);
         if (($type === 'swap') || ($type === 'future')) {
@@ -2307,7 +2312,7 @@ class gate extends \ccxt\async\gate {
     }
 
     public function request_id() {
-        // their support said that $reqid must be an int32, not documented
+        // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -2315,11 +2320,11 @@ class gate extends \ccxt\async\gate {
         return $reqid;
     }
 
-    public function subscribe_public(mixed $url, mixed $messageHash, mixed $payload, mixed $channel, $params = array(), ?array $subscription = null) {
+    public function subscribe_public(?string $url, string $messageHash, array $payload, ?string $channel, $params = array(), ?array $subscription = null) {
         return Async\async(self::do_subscribe_public(...))($url, $messageHash, $payload, $channel, $params, $subscription);
     }
 
-    private function do_subscribe_public(mixed $url, mixed $messageHash, mixed $payload, mixed $channel, $params = array(), ?array $subscription = null) {
+    private function do_subscribe_public(?string $url, string $messageHash, array $payload, ?string $channel, $params = array(), ?array $subscription = null) {
         $requestId = $this->request_id();
         $time = $this->seconds();
         $request = array(
@@ -2340,11 +2345,11 @@ class gate extends \ccxt\async\gate {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
-    public function subscribe_public_multiple(mixed $url, mixed $messageHashes, mixed $payload, mixed $channel, $params = array()) {
+    public function subscribe_public_multiple(?string $url, array $messageHashes, array $payload, ?string $channel, $params = array()) {
         return Async\async(self::do_subscribe_public_multiple(...))($url, $messageHashes, $payload, $channel, $params);
     }
 
-    private function do_subscribe_public_multiple(mixed $url, mixed $messageHashes, mixed $payload, mixed $channel, $params = array()) {
+    private function do_subscribe_public_multiple(?string $url, array $messageHashes, array $payload, ?string $channel, $params = array()) {
         $requestId = $this->request_id();
         $time = $this->seconds();
         $request = array(
@@ -2358,11 +2363,11 @@ class gate extends \ccxt\async\gate {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function un_subscribe_public_multiple(mixed $url, mixed $topic, mixed $symbols, mixed $messageHashes, mixed $subMessageHashes, mixed $payload, mixed $channel, $params = array()) {
+    public function un_subscribe_public_multiple(?string $url, string $topic, array $symbols, array $messageHashes, array $subMessageHashes, mixed $payload, ?string $channel, $params = array()) {
         return Async\async(self::do_un_subscribe_public_multiple(...))($url, $topic, $symbols, $messageHashes, $subMessageHashes, $payload, $channel, $params);
     }
 
-    private function do_un_subscribe_public_multiple(mixed $url, mixed $topic, mixed $symbols, mixed $messageHashes, mixed $subMessageHashes, mixed $payload, mixed $channel, $params = array()) {
+    private function do_un_subscribe_public_multiple(?string $url, string $topic, array $symbols, array $messageHashes, array $subMessageHashes, mixed $payload, ?string $channel, $params = array()) {
         $requestId = $this->request_id();
         $time = $this->seconds();
         $request = array(
@@ -2384,11 +2389,11 @@ class gate extends \ccxt\async\gate {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $sub));
     }
 
-    public function authenticate(mixed $url, mixed $messageType) {
+    public function authenticate(?string $url, ?string $messageType) {
         return Async\async(self::do_authenticate(...))($url, $messageType);
     }
 
-    private function do_authenticate(mixed $url, mixed $messageType) {
+    private function do_authenticate(?string $url, ?string $messageType) {
         $channel = $messageType . '.login';
         $client = $this->client($url);
         $messageHash = 'authenticated';
@@ -2400,17 +2405,17 @@ class gate extends \ccxt\async\gate {
         return $future;
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->futures, $messageHash);
         $future->resolve(true);
     }
 
-    public function request_private(mixed $url, mixed $reqParams, mixed $channel, ?string $requestId = null) {
+    public function request_private(?string $url, array $reqParams, ?string $channel, ?string $requestId = null) {
         return Async\async(self::do_request_private(...))($url, $reqParams, $channel, $requestId);
     }
 
-    private function do_request_private(mixed $url, mixed $reqParams, mixed $channel, ?string $requestId = null) {
+    private function do_request_private(?string $url, array $reqParams, ?string $channel, ?string $requestId = null) {
         $this->check_required_credentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
         $event = 'api';
@@ -2445,11 +2450,11 @@ class gate extends \ccxt\async\gate {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $requestId));
     }
 
-    public function subscribe_private(mixed $url, mixed $messageHash, mixed $payload, mixed $channel, mixed $params, $requiresUid = false) {
+    public function subscribe_private(?string $url, string $messageHash, mixed $payload, ?string $channel, array $params, ?bool $requiresUid = false) {
         return Async\async(self::do_subscribe_private(...))($url, $messageHash, $payload, $channel, $params, $requiresUid);
     }
 
-    private function do_subscribe_private(mixed $url, mixed $messageHash, mixed $payload, mixed $channel, mixed $params, $requiresUid = false) {
+    private function do_subscribe_private(?string $url, string $messageHash, mixed $payload, ?string $channel, array $params, ?bool $requiresUid = false) {
         $this->check_required_credentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if ($requiresUid) {

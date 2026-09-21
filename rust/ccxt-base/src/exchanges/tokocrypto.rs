@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct TokocryptoCore {
@@ -1128,12 +1132,12 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut list: Value = self.safe_value_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1082: bool = true;
-            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&list)) } {
+            let mut __for_first_1086: bool = true;
+            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&list)) } {
             let mut market: Value = get_value(&list, &i);
             let mut market: Value = get_value(&list, &i);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
@@ -1149,11 +1153,11 @@ impl TokocryptoCore {
             let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
             let mut status: Value = self.safe_string_k(market.clone(), "spotTradingEnable", &[]);
             let mut active: Value = Value::Bool(is_equal(&status, &Value::Str("1".to_string())));
-            let mut permissions: Value = self.safe_value_k(market.clone(), "permissions", &[Value::List(vec![])]);
+            let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1081: bool = true;
-                while { if !__for_first_1081 { j = add(&j, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&j, &get_array_length(&permissions)) } {
+                let mut __for_first_1085: bool = true;
+                while { if !__for_first_1085 { j = add(&j, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&j, &get_array_length(&permissions)) } {
                 if is_equal(&get_value(&permissions, &j), &Value::Str("TRD_GRP_003".to_string())) {
                     active = Value::Bool(false);
                     break;
@@ -1228,10 +1232,10 @@ impl TokocryptoCore {
                 m
             });
             if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("PRICE_FILTER".to_string())))) {
-                let mut filter: Value = self.safe_value_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]);
+                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), self.safe_number_k(filter.clone(), "tickSize", &[]));
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
@@ -2028,11 +2032,11 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balances: Value = self.safe_value_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1087: bool = true;
+            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -3403,8 +3407,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1084: bool = true;
-                while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_1088: bool = true;
+                while { if !__for_first_1088 { i = add(&i, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

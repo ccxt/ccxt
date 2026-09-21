@@ -161,7 +161,7 @@ class tokocrypto extends Exchange {
                     ),
                 ),
                 'www' => 'https://tokocrypto.com',
-                // 'referral' => 'https://www.binance.us/?ref=35005074',
+                // 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc' => 'https://www.tokocrypto.com/apidocs/',
                 'fees' => 'https://www.tokocrypto.com/fees/newschedule',
             ),
@@ -233,13 +233,13 @@ class tokocrypto extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                // 'fetchTradesMethod' => 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
+                // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
-                // 'fetchPositions' => 'positionRisk', // or 'account'
+                // 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -393,228 +393,228 @@ class tokocrypto extends Exchange {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
-                    'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
-                    'System abnormality' => '\\ccxt\\ExchangeError', // array("code":-1000,"msg":"System abnormality")
-                    'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
+                    'System is under maintenance.' => '\\ccxt\\OnMaintenance', // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality' => '\\ccxt\\ExchangeError', // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // {"msg":"You are not authorized to execute this request."}
                     'API key does not exist' => '\\ccxt\\AuthenticationError',
                     'Order would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable',
-                    'Stop price would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2010,"msg":"Stop price would trigger immediately.")
-                    'Order would immediately match and take.' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2010,"msg":"Order would immediately match and take.")
+                    'Stop price would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable', // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.' => '\\ccxt\\OrderImmediatelyFillable', // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
-                    "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
-                    'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
-                    'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
-                    'This action disabled is on this account.' => '\\ccxt\\AccountSuspended', // array("code":-2010,"msg":"This action disabled is on this account.")
-                    '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                    '-1001' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
-                    '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
-                    '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
-                    '-1004' => '\\ccxt\\DDoSProtection', // array("code":-1004,"msg":"Server is busy, please wait and try again")
-                    '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                    '-1006' => '\\ccxt\\BadResponse', // array("code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown.")
-                    '-1007' => '\\ccxt\\RequestTimeout', // array("code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown.")
-                    '-1010' => '\\ccxt\\BadResponse', // array("code":-1010,"msg":"ERROR_MSG_RECEIVED.")
-                    '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                    '-1013' => '\\ccxt\\InvalidOrder', // array("code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL")
-                    '-1014' => '\\ccxt\\InvalidOrder', // array("code":-1014,"msg":"Unsupported order combination.")
-                    '-1015' => '\\ccxt\\RateLimitExceeded', // array("code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'")
-                    '-1016' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1016,"msg":"'This service is no longer available.',")
-                    '-1020' => '\\ccxt\\BadRequest', // array("code":-1020,"msg":"'This operation is not supported.'")
-                    '-1021' => '\\ccxt\\InvalidNonce', // array("code":-1021,"msg":"'your time is ahead of server'")
-                    '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
-                    '-1023' => '\\ccxt\\BadRequest', // array("code":-1023,"msg":"Start time is greater than end time.")
-                    '-1099' => '\\ccxt\\AuthenticationError', // array("code":-1099,"msg":"Not found, authenticated, or authorized")
-                    '-1100' => '\\ccxt\\BadRequest', // array("code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'")
-                    '-1101' => '\\ccxt\\BadRequest', // array("code":-1101,"msg":"Too many parameters; expected %s and received %s.")
-                    '-1102' => '\\ccxt\\BadRequest', // array("code":-1102,"msg":"Param %s or %s must be sent, but both were empty")
-                    '-1103' => '\\ccxt\\BadRequest', // array("code":-1103,"msg":"An unknown parameter was sent.")
-                    '-1104' => '\\ccxt\\BadRequest', // array("code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9")
-                    '-1105' => '\\ccxt\\BadRequest', // array("code":-1105,"msg":"Parameter %s was empty.")
-                    '-1106' => '\\ccxt\\BadRequest', // array("code":-1106,"msg":"Parameter %s sent when not required.")
-                    '-1108' => '\\ccxt\\BadRequest', // array("code":-1108,"msg":"Invalid asset.")
-                    '-1109' => '\\ccxt\\AuthenticationError', // array("code":-1109,"msg":"Invalid account.")
-                    '-1110' => '\\ccxt\\BadRequest', // array("code":-1110,"msg":"Invalid symbolType.")
-                    '-1111' => '\\ccxt\\BadRequest', // array("code":-1111,"msg":"Precision is over the maximum defined for this asset.")
-                    '-1112' => '\\ccxt\\InvalidOrder', // array("code":-1112,"msg":"No orders on book for symbol.")
-                    '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                    '-1114' => '\\ccxt\\BadRequest', // array("code":-1114,"msg":"TimeInForce parameter sent when not required.")
-                    '-1115' => '\\ccxt\\BadRequest', // array("code":-1115,"msg":"Invalid timeInForce.")
-                    '-1116' => '\\ccxt\\BadRequest', // array("code":-1116,"msg":"Invalid orderType.")
-                    '-1117' => '\\ccxt\\BadRequest', // array("code":-1117,"msg":"Invalid side.")
-                    '-1118' => '\\ccxt\\BadRequest', // array("code":-1118,"msg":"New client order ID was empty.")
-                    '-1119' => '\\ccxt\\BadRequest', // array("code":-1119,"msg":"Original client order ID was empty.")
-                    '-1120' => '\\ccxt\\BadRequest', // array("code":-1120,"msg":"Invalid interval.")
-                    '-1121' => '\\ccxt\\BadSymbol', // array("code":-1121,"msg":"Invalid symbol.")
-                    '-1125' => '\\ccxt\\AuthenticationError', // array("code":-1125,"msg":"This listenKey does not exist.")
-                    '-1127' => '\\ccxt\\BadRequest', // array("code":-1127,"msg":"More than %s hours between startTime and endTime.")
-                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"array("code":-1128,"msg":"Combination of optional parameters invalid.")")
-                    '-1130' => '\\ccxt\\BadRequest', // array("code":-1130,"msg":"Data sent for paramter %s is not valid.")
-                    '-1131' => '\\ccxt\\BadRequest', // array("code":-1131,"msg":"recvWindow must be less than 60000")
-                    '-1136' => '\\ccxt\\BadRequest', // array("code":-1136,"msg":"Invalid newOrderRespType")
-                    '-2008' => '\\ccxt\\AuthenticationError', // array("code":-2008,"msg":"Invalid Api-Key ID.")
-                    '-2010' => '\\ccxt\\ExchangeError', // array("code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...")
-                    '-2011' => '\\ccxt\\OrderNotFound', // array("code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'")
-                    '-2013' => '\\ccxt\\OrderNotFound', // array("code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'")
-                    '-2014' => '\\ccxt\\AuthenticationError', // array("code":-2014,"msg":"API-key format invalid.")
-                    '-2015' => '\\ccxt\\AuthenticationError', // array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                    '-2016' => '\\ccxt\\BadRequest', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
-                    '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
-                    '-2019' => '\\ccxt\\InsufficientFunds', // array("code":-2019,"msg":"Margin is insufficient.")
-                    '-2020' => '\\ccxt\\OrderNotFillable', // array("code":-2020,"msg":"Unable to fill.")
-                    '-2021' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2021,"msg":"Order would immediately trigger.")
-                    '-2022' => '\\ccxt\\InvalidOrder', // array("code":-2022,"msg":"ReduceOnly Order is rejected.")
-                    '-2023' => '\\ccxt\\InsufficientFunds', // array(is_array(liquidation mode now.") && array_key_exists("code":-2023,"msg":"User ?? '', liquidation mode now."))
-                    '-2024' => '\\ccxt\\InsufficientFunds', // array("code":-2024,"msg":"Position is not sufficient.")
-                    '-2025' => '\\ccxt\\InvalidOrder', // array("code":-2025,"msg":"Reach max open order limit.")
-                    '-2026' => '\\ccxt\\InvalidOrder', // array("code":-2026,"msg":"This OrderType is not supported when reduceOnly.")
-                    '-2027' => '\\ccxt\\InvalidOrder', // array("code":-2027,"msg":"Exceeded the maximum allowable position at current leverage.")
-                    '-2028' => '\\ccxt\\InsufficientFunds', // array("code":-2028,"msg":"Leverage is smaller than permitted => insufficient margin balance")
-                    '-3000' => '\\ccxt\\ExchangeError', // array("code":-3000,"msg":"Internal server error.")
-                    '-3001' => '\\ccxt\\AuthenticationError', // array("code":-3001,"msg":"Please enable 2FA first.")
-                    '-3002' => '\\ccxt\\BadSymbol', // array("code":-3002,"msg":"We don't have this asset.")
-                    '-3003' => '\\ccxt\\BadRequest', // array("code":-3003,"msg":"Margin account does not exist.")
-                    '-3004' => '\\ccxt\\ExchangeError', // array("code":-3004,"msg":"Trade not allowed.")
-                    '-3005' => '\\ccxt\\InsufficientFunds', // array("code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount.")
-                    '-3006' => '\\ccxt\\InsufficientFunds', // array("code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount.")
-                    '-3007' => '\\ccxt\\ExchangeError', // array("code":-3007,"msg":"You have pending transaction, please try again later..")
-                    '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
-                    '-3009' => '\\ccxt\\BadRequest', // array("code":-3009,"msg":"This asset are not allowed to transfer into margin account currently.")
-                    '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
-                    '-3011' => '\\ccxt\\BadRequest', // array("code":-3011,"msg":"Your input date is invalid.")
-                    '-3012' => '\\ccxt\\ExchangeError', // array("code":-3012,"msg":"Borrow is banned for this asset.")
-                    '-3013' => '\\ccxt\\BadRequest', // array("code":-3013,"msg":"Borrow amount less than minimum borrow amount.")
-                    '-3014' => '\\ccxt\\AccountSuspended', // array("code":-3014,"msg":"Borrow is banned for this account.")
-                    '-3015' => '\\ccxt\\ExchangeError', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
-                    '-3016' => '\\ccxt\\BadRequest', // array("code":-3016,"msg":"Repay amount less than minimum repay amount.")
-                    '-3017' => '\\ccxt\\ExchangeError', // array("code":-3017,"msg":"This asset are not allowed to transfer into margin account currently.")
-                    '-3018' => '\\ccxt\\AccountSuspended', // array(is_array(has been banned for this account.") && array_key_exists("code":-3018,"msg":"Transferring ?? '', has been banned for this account."))
-                    '-3019' => '\\ccxt\\AccountSuspended', // array("code":-3019,"msg":"Transferring out has been banned for this account.")
-                    '-3020' => '\\ccxt\\InsufficientFunds', // array("code":-3020,"msg":"Transfer out amount exceeds max amount.")
-                    '-3021' => '\\ccxt\\BadRequest', // array("code":-3021,"msg":"Margin account are not allowed to trade this trading pair.")
-                    '-3022' => '\\ccxt\\AccountSuspended', // array("code":-3022,"msg":"You account's trading is banned.")
-                    '-3023' => '\\ccxt\\BadRequest', // array("code":-3023,"msg":"You can't transfer out/place order under current margin level.")
-                    '-3024' => '\\ccxt\\ExchangeError', // array("code":-3024,"msg":"The unpaid debt is too small after this repayment.")
-                    '-3025' => '\\ccxt\\BadRequest', // array("code":-3025,"msg":"Your input date is invalid.")
-                    '-3026' => '\\ccxt\\BadRequest', // array("code":-3026,"msg":"Your input param is invalid.")
-                    '-3027' => '\\ccxt\\BadSymbol', // array("code":-3027,"msg":"Not a valid margin asset.")
-                    '-3028' => '\\ccxt\\BadSymbol', // array("code":-3028,"msg":"Not a valid margin pair.")
-                    '-3029' => '\\ccxt\\ExchangeError', // array("code":-3029,"msg":"Transfer failed.")
-                    '-3036' => '\\ccxt\\AccountSuspended', // array("code":-3036,"msg":"This account is not allowed to repay.")
-                    '-3037' => '\\ccxt\\ExchangeError', // array("code":-3037,"msg":"PNL is clearing. Wait a second.")
-                    '-3038' => '\\ccxt\\BadRequest', // array("code":-3038,"msg":"Listen key not found.")
-                    '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
-                    '-3042' => '\\ccxt\\BadRequest', // array("code":-3042,"msg":"PriceIndex not available for this margin pair.")
-                    '-3043' => '\\ccxt\\BadRequest', // array(is_array(not allowed.") && array_key_exists("code":-3043,"msg":"Transferring ?? '', not allowed."))
-                    '-3044' => '\\ccxt\\DDoSProtection', // array("code":-3044,"msg":"System busy.")
-                    '-3045' => '\\ccxt\\ExchangeError', // array("code":-3045,"msg":"The system doesn't have enough asset now.")
-                    '-3999' => '\\ccxt\\ExchangeError', // array("code":-3999,"msg":"This function is only available for invited users.")
-                    '-4001' => '\\ccxt\\BadRequest', // array("code":-4001 ,"msg":"Invalid operation.")
-                    '-4002' => '\\ccxt\\BadRequest', // array("code":-4002 ,"msg":"Invalid get.")
-                    '-4003' => '\\ccxt\\BadRequest', // array("code":-4003 ,"msg":"Your input email is invalid.")
-                    '-4004' => '\\ccxt\\AuthenticationError', // array("code":-4004,"msg":"You don't login or auth.")
-                    '-4005' => '\\ccxt\\RateLimitExceeded', // array("code":-4005 ,"msg":"Too many new requests.")
-                    '-4006' => '\\ccxt\\BadRequest', // array("code":-4006 ,"msg":"Support main account only.")
-                    '-4007' => '\\ccxt\\BadRequest', // array("code":-4007 ,"msg":"Address validation is not passed.")
-                    '-4008' => '\\ccxt\\BadRequest', // array("code":-4008 ,"msg":"Address tag validation is not passed.")
-                    '-4010' => '\\ccxt\\BadRequest', // array("code":-4010 ,"msg":"White list mail has been confirmed.") // [TODO] possible bug => it should probably be "has not been confirmed"
-                    '-4011' => '\\ccxt\\BadRequest', // array("code":-4011 ,"msg":"White list mail is invalid.")
-                    '-4012' => '\\ccxt\\BadRequest', // array("code":-4012 ,"msg":"White list is not opened.")
-                    '-4013' => '\\ccxt\\AuthenticationError', // array("code":-4013 ,"msg":"2FA is not opened.")
-                    '-4014' => '\\ccxt\\PermissionDenied', // array("code":-4014 ,"msg":"Withdraw is not allowed within 2 min login.")
-                    '-4015' => '\\ccxt\\ExchangeError', // array("code":-4015 ,"msg":"Withdraw is limited.")
-                    '-4016' => '\\ccxt\\PermissionDenied', // array("code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited.")
-                    '-4017' => '\\ccxt\\PermissionDenied', // array("code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited.")
-                    '-4018' => '\\ccxt\\BadSymbol', // array("code":-4018,"msg":"We don't have this asset.")
-                    '-4019' => '\\ccxt\\BadSymbol', // array("code":-4019,"msg":"Current asset is not open for withdrawal.")
-                    '-4021' => '\\ccxt\\BadRequest', // array("code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s.")
-                    '-4022' => '\\ccxt\\BadRequest', // array("code":-4022,"msg":"Not less than the minimum pick-up quantity %s.")
-                    '-4023' => '\\ccxt\\ExchangeError', // array("code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount.")
-                    '-4024' => '\\ccxt\\InsufficientFunds', // array("code":-4024,"msg":"You don't have this asset.")
-                    '-4025' => '\\ccxt\\InsufficientFunds', // array("code":-4025,"msg":"The number of hold asset is less than zero.")
-                    '-4026' => '\\ccxt\\InsufficientFunds', // array("code":-4026,"msg":"You have insufficient balance.")
-                    '-4027' => '\\ccxt\\ExchangeError', // array("code":-4027,"msg":"Failed to obtain tranId.")
-                    '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"The amount of withdrawal must be greater than the Commission.")
-                    '-4029' => '\\ccxt\\BadRequest', // array("code":-4029,"msg":"The withdrawal record does not exist.")
-                    '-4030' => '\\ccxt\\ExchangeError', // array("code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs")
-                    '-4031' => '\\ccxt\\ExchangeError', // array("code":-4031,"msg":"Cancellation failed.")
-                    '-4032' => '\\ccxt\\ExchangeError', // array("code":-4032,"msg":"Withdraw verification exception.")
-                    '-4033' => '\\ccxt\\BadRequest', // array("code":-4033,"msg":"Illegal address.")
-                    '-4034' => '\\ccxt\\ExchangeError', // array("code":-4034,"msg":"The address is suspected of fake.")
-                    '-4035' => '\\ccxt\\PermissionDenied', // array("code":-4035,"msg":"This address is not on the whitelist. Please join and try again.")
-                    '-4036' => '\\ccxt\\BadRequest', // array("code":-4036,"msg":"The new address needs to be withdrawn in {0} hours.")
-                    '-4037' => '\\ccxt\\ExchangeError', // array("code":-4037,"msg":"Re-sending Mail failed.")
-                    '-4038' => '\\ccxt\\ExchangeError', // array("code":-4038,"msg":"Please try again in 5 minutes.")
-                    '-4039' => '\\ccxt\\BadRequest', // array("code":-4039,"msg":"The user does not exist.")
-                    '-4040' => '\\ccxt\\BadRequest', // array("code":-4040,"msg":"This address not charged.")
-                    '-4041' => '\\ccxt\\ExchangeError', // array("code":-4041,"msg":"Please try again in one minute.")
-                    '-4042' => '\\ccxt\\ExchangeError', // array("code":-4042,"msg":"This asset cannot get deposit address again.")
-                    '-4043' => '\\ccxt\\BadRequest', // array("code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours.")
-                    '-4044' => '\\ccxt\\BadRequest', // array("code":-4044,"msg":"This is a blacklist country.")
-                    '-4045' => '\\ccxt\\ExchangeError', // array("code":-4045,"msg":"Failure to acquire assets.")
-                    '-4046' => '\\ccxt\\AuthenticationError', // array("code":-4046,"msg":"Agreement not confirmed.")
-                    '-4047' => '\\ccxt\\BadRequest', // array("code":-4047,"msg":"Time interval must be within 0-90 days")
-                    '-5001' => '\\ccxt\\BadRequest', // array("code":-5001,"msg":"Don't allow transfer to micro assets.")
-                    '-5002' => '\\ccxt\\InsufficientFunds', // array("code":-5002,"msg":"You have insufficient balance.")
-                    '-5003' => '\\ccxt\\InsufficientFunds', // array("code":-5003,"msg":"You don't have this asset.")
-                    '-5004' => '\\ccxt\\BadRequest', // array("code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose.")
-                    '-5005' => '\\ccxt\\InsufficientFunds', // array("code":-5005,"msg":"The residual balances of %s is too low, Please re-choose.")
-                    '-5006' => '\\ccxt\\BadRequest', // array("code":-5006,"msg":"Only transfer once in 24 hours.")
-                    '-5007' => '\\ccxt\\BadRequest', // array("code":-5007,"msg":"Quantity must be greater than zero.")
-                    '-5008' => '\\ccxt\\InsufficientFunds', // array("code":-5008,"msg":"Insufficient amount of returnable assets.")
-                    '-5009' => '\\ccxt\\BadRequest', // array("code":-5009,"msg":"Product does not exist.")
-                    '-5010' => '\\ccxt\\ExchangeError', // array("code":-5010,"msg":"Asset transfer fail.")
-                    '-5011' => '\\ccxt\\BadRequest', // array("code":-5011,"msg":"future account not exists.")
-                    '-5012' => '\\ccxt\\ExchangeError', // array("code":-5012,"msg":"Asset transfer is in pending.")
-                    '-5013' => '\\ccxt\\InsufficientFunds', // array("code":-5013,"msg":"Asset transfer failed => insufficient balance"") // undocumented
-                    '-5021' => '\\ccxt\\BadRequest', // array("code":-5021,"msg":"This parent sub have no relation")
-                    '-6001' => '\\ccxt\\BadRequest', // array("code":-6001,"msg":"Daily product not exists.")
-                    '-6003' => '\\ccxt\\BadRequest', // array("code":-6003,"msg":"Product not exist or you don't have permission")
-                    '-6004' => '\\ccxt\\ExchangeError', // array("code":-6004,"msg":"Product not in purchase status")
-                    '-6005' => '\\ccxt\\InvalidOrder', // array("code":-6005,"msg":"Smaller than min purchase limit")
-                    '-6006' => '\\ccxt\\BadRequest', // array("code":-6006,"msg":"Redeem amount error")
-                    '-6007' => '\\ccxt\\BadRequest', // array(is_array(redeem time") && array_key_exists("code":-6007,"msg":"Not ?? '', redeem time"))
-                    '-6008' => '\\ccxt\\BadRequest', // array("code":-6008,"msg":"Product not in redeem status")
-                    '-6009' => '\\ccxt\\RateLimitExceeded', // array("code":-6009,"msg":"Request frequency too high")
-                    '-6011' => '\\ccxt\\BadRequest', // array("code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user")
-                    '-6012' => '\\ccxt\\InsufficientFunds', // array("code":-6012,"msg":"Balance not enough")
-                    '-6013' => '\\ccxt\\ExchangeError', // array("code":-6013,"msg":"Purchasing failed")
-                    '-6014' => '\\ccxt\\BadRequest', // array("code":-6014,"msg":"Exceed up-limit allowed to purchased")
-                    '-6015' => '\\ccxt\\BadRequest', // array("code":-6015,"msg":"Empty request body")
-                    '-6016' => '\\ccxt\\BadRequest', // array("code":-6016,"msg":"Parameter err")
-                    '-6017' => '\\ccxt\\BadRequest', // array(is_array(whitelist") && array_key_exists("code":-6017,"msg":"Not ?? '', whitelist"))
-                    '-6018' => '\\ccxt\\BadRequest', // array("code":-6018,"msg":"Asset not enough")
-                    '-6019' => '\\ccxt\\AuthenticationError', // array("code":-6019,"msg":"Need confirm")
-                    '-6020' => '\\ccxt\\BadRequest', // array("code":-6020,"msg":"Project not exists")
-                    '-7001' => '\\ccxt\\BadRequest', // array("code":-7001,"msg":"Date range is not supported.")
-                    '-7002' => '\\ccxt\\BadRequest', // array("code":-7002,"msg":"Data request type is not supported.")
-                    '-9000' => '\\ccxt\\InsufficientFunds', // array("code":-9000,"msg":"user have no avaliable amount")"
-                    '-10017' => '\\ccxt\\BadRequest', // array("code":-10017,"msg":"Repay amount should not be larger than liability.")
-                    '-11008' => '\\ccxt\\InsufficientFunds', // array("code":-11008,"msg":"Exceeding the account's maximum borrowable limit.") // undocumented
-                    '-12014' => '\\ccxt\\RateLimitExceeded', // array("code":-12014,"msg":"More than 1 request in 3 seconds")
-                    '-13000' => '\\ccxt\\BadRequest', // array("code":-13000,"msg":"Redeption of the token is forbiden now")
-                    '-13001' => '\\ccxt\\BadRequest', // array("code":-13001,"msg":"Exceeds individual 24h redemption limit of the token")
-                    '-13002' => '\\ccxt\\BadRequest', // array("code":-13002,"msg":"Exceeds total 24h redemption limit of the token")
-                    '-13003' => '\\ccxt\\BadRequest', // array("code":-13003,"msg":"Subscription of the token is forbiden now")
-                    '-13004' => '\\ccxt\\BadRequest', // array("code":-13004,"msg":"Exceeds individual 24h subscription limit of the token")
-                    '-13005' => '\\ccxt\\BadRequest', // array("code":-13005,"msg":"Exceeds total 24h subscription limit of the token")
-                    '-13006' => '\\ccxt\\InvalidOrder', // array("code":-13006,"msg":"Subscription amount is too small")
-                    '-13007' => '\\ccxt\\AuthenticationError', // array("code":-13007,"msg":"The Agreement is not signed")
-                    '-21001' => '\\ccxt\\BadRequest', // array("code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT")
-                    '-21002' => '\\ccxt\\BadRequest', // array("code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE")
-                    '-21003' => '\\ccxt\\BadRequest', // array("code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO")
-                    '100001003' => '\\ccxt\\BadRequest', // array("code":100001003,"msg":"Verification failed") // undocumented
-                    '2202' => '\\ccxt\\InsufficientFunds', // array("code":2202,"msg":"Insufficient balance","data":array("code":-2010,"msg":"Account has insufficient balance for requested action."),"timestamp":1662733681161)
-                    '3210' => '\\ccxt\\InvalidOrder', // array("code":3210,"msg":"The total volume is too low","data":array("code":-1013,"msg":"Filter failure => MIN_NOTIONAL"),"timestamp":1662734704462)
-                    '3203' => '\\ccxt\\InvalidOrder', // array("code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758)
-                    '3211' => '\\ccxt\\InvalidOrder', // array("code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179)
-                    '3207' => '\\ccxt\\InvalidOrder', // array("code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856)
-                    '3218' => '\\ccxt\\OrderNotFound', // array("code":3218,"msg":"Order does not exist","timestamp":1662739749275)
-                    '1106' => '\\ccxt\\BadRequest', // array("code":1106,"msg":"Incorrect Page number") — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
+                    "You don't have permission." => '\\ccxt\\PermissionDenied', // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.' => '\\ccxt\\AccountSuspended', // {"code":-2010,"msg":"This action disabled is on this account."}
+                    '-1000' => '\\ccxt\\ExchangeNotAvailable', // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001' => '\\ccxt\\ExchangeNotAvailable', // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                    '-1002' => '\\ccxt\\AuthenticationError', // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
+                    '-1003' => '\\ccxt\\RateLimitExceeded', // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1004' => '\\ccxt\\DDoSProtection', // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005' => '\\ccxt\\PermissionDenied', // {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006' => '\\ccxt\\BadResponse', // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007' => '\\ccxt\\RequestTimeout', // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010' => '\\ccxt\\BadResponse', // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011' => '\\ccxt\\PermissionDenied', // {"code":-1011,"msg":"This IP cannot access this route."}
+                    '-1013' => '\\ccxt\\InvalidOrder', // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
+                    '-1014' => '\\ccxt\\InvalidOrder', // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1015' => '\\ccxt\\RateLimitExceeded', // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                    '-1016' => '\\ccxt\\ExchangeNotAvailable', // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1020' => '\\ccxt\\BadRequest', // {"code":-1020,"msg":"'This operation is not supported.'"}
+                    '-1021' => '\\ccxt\\InvalidNonce', // {"code":-1021,"msg":"'your time is ahead of server'"}
+                    '-1022' => '\\ccxt\\AuthenticationError', // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023' => '\\ccxt\\BadRequest', // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1099' => '\\ccxt\\AuthenticationError', // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    '-1100' => '\\ccxt\\BadRequest', // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                    '-1101' => '\\ccxt\\BadRequest', // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                    '-1102' => '\\ccxt\\BadRequest', // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                    '-1103' => '\\ccxt\\BadRequest', // {"code":-1103,"msg":"An unknown parameter was sent."}
+                    '-1104' => '\\ccxt\\BadRequest', // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                    '-1105' => '\\ccxt\\BadRequest', // {"code":-1105,"msg":"Parameter %s was empty."}
+                    '-1106' => '\\ccxt\\BadRequest', // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                    '-1108' => '\\ccxt\\BadRequest', // {"code":-1108,"msg":"Invalid asset."}
+                    '-1109' => '\\ccxt\\AuthenticationError', // {"code":-1109,"msg":"Invalid account."}
+                    '-1110' => '\\ccxt\\BadRequest', // {"code":-1110,"msg":"Invalid symbolType."}
+                    '-1111' => '\\ccxt\\BadRequest', // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                    '-1112' => '\\ccxt\\InvalidOrder', // {"code":-1112,"msg":"No orders on book for symbol."}
+                    '-1113' => '\\ccxt\\BadRequest', // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                    '-1114' => '\\ccxt\\BadRequest', // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
+                    '-1115' => '\\ccxt\\BadRequest', // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116' => '\\ccxt\\BadRequest', // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117' => '\\ccxt\\BadRequest', // {"code":-1117,"msg":"Invalid side."}
+                    '-1118' => '\\ccxt\\BadRequest', // {"code":-1118,"msg":"New client order ID was empty."}
+                    '-1119' => '\\ccxt\\BadRequest', // {"code":-1119,"msg":"Original client order ID was empty."}
+                    '-1120' => '\\ccxt\\BadRequest', // {"code":-1120,"msg":"Invalid interval."}
+                    '-1121' => '\\ccxt\\BadSymbol', // {"code":-1121,"msg":"Invalid symbol."}
+                    '-1125' => '\\ccxt\\AuthenticationError', // {"code":-1125,"msg":"This listenKey does not exist."}
+                    '-1127' => '\\ccxt\\BadRequest', // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                    '-1128' => '\\ccxt\\BadRequest', // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
+                    '-1130' => '\\ccxt\\BadRequest', // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
+                    '-1131' => '\\ccxt\\BadRequest', // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1136' => '\\ccxt\\BadRequest', // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                    '-2008' => '\\ccxt\\AuthenticationError', // {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-2010' => '\\ccxt\\ExchangeError', // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                    '-2011' => '\\ccxt\\OrderNotFound', // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
+                    '-2013' => '\\ccxt\\OrderNotFound', // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2014' => '\\ccxt\\AuthenticationError', // {"code":-2014,"msg":"API-key format invalid."}
+                    '-2015' => '\\ccxt\\AuthenticationError', // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016' => '\\ccxt\\BadRequest', // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                    '-2018' => '\\ccxt\\InsufficientFunds', // {"code":-2018,"msg":"Balance is insufficient"}
+                    '-2019' => '\\ccxt\\InsufficientFunds', // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2020' => '\\ccxt\\OrderNotFillable', // {"code":-2020,"msg":"Unable to fill."}
+                    '-2021' => '\\ccxt\\OrderImmediatelyFillable', // {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2022' => '\\ccxt\\InvalidOrder', // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                    '-2023' => '\\ccxt\\InsufficientFunds', // {"code":-2023,"msg":"User in liquidation mode now."}
+                    '-2024' => '\\ccxt\\InsufficientFunds', // {"code":-2024,"msg":"Position is not sufficient."}
+                    '-2025' => '\\ccxt\\InvalidOrder', // {"code":-2025,"msg":"Reach max open order limit."}
+                    '-2026' => '\\ccxt\\InvalidOrder', // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                    '-2027' => '\\ccxt\\InvalidOrder', // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                    '-2028' => '\\ccxt\\InsufficientFunds', // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                    '-3000' => '\\ccxt\\ExchangeError', // {"code":-3000,"msg":"Internal server error."}
+                    '-3001' => '\\ccxt\\AuthenticationError', // {"code":-3001,"msg":"Please enable 2FA first."}
+                    '-3002' => '\\ccxt\\BadSymbol', // {"code":-3002,"msg":"We don't have this asset."}
+                    '-3003' => '\\ccxt\\BadRequest', // {"code":-3003,"msg":"Margin account does not exist."}
+                    '-3004' => '\\ccxt\\ExchangeError', // {"code":-3004,"msg":"Trade not allowed."}
+                    '-3005' => '\\ccxt\\InsufficientFunds', // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006' => '\\ccxt\\InsufficientFunds', // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                    '-3007' => '\\ccxt\\ExchangeError', // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                    '-3008' => '\\ccxt\\InsufficientFunds', // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3009' => '\\ccxt\\BadRequest', // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3010' => '\\ccxt\\ExchangeError', // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3011' => '\\ccxt\\BadRequest', // {"code":-3011,"msg":"Your input date is invalid."}
+                    '-3012' => '\\ccxt\\ExchangeError', // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3013' => '\\ccxt\\BadRequest', // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                    '-3014' => '\\ccxt\\AccountSuspended', // {"code":-3014,"msg":"Borrow is banned for this account."}
+                    '-3015' => '\\ccxt\\ExchangeError', // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3016' => '\\ccxt\\BadRequest', // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                    '-3017' => '\\ccxt\\ExchangeError', // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3018' => '\\ccxt\\AccountSuspended', // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                    '-3019' => '\\ccxt\\AccountSuspended', // {"code":-3019,"msg":"Transferring out has been banned for this account."}
+                    '-3020' => '\\ccxt\\InsufficientFunds', // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3021' => '\\ccxt\\BadRequest', // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                    '-3022' => '\\ccxt\\AccountSuspended', // {"code":-3022,"msg":"You account's trading is banned."}
+                    '-3023' => '\\ccxt\\BadRequest', // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                    '-3024' => '\\ccxt\\ExchangeError', // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                    '-3025' => '\\ccxt\\BadRequest', // {"code":-3025,"msg":"Your input date is invalid."}
+                    '-3026' => '\\ccxt\\BadRequest', // {"code":-3026,"msg":"Your input param is invalid."}
+                    '-3027' => '\\ccxt\\BadSymbol', // {"code":-3027,"msg":"Not a valid margin asset."}
+                    '-3028' => '\\ccxt\\BadSymbol', // {"code":-3028,"msg":"Not a valid margin pair."}
+                    '-3029' => '\\ccxt\\ExchangeError', // {"code":-3029,"msg":"Transfer failed."}
+                    '-3036' => '\\ccxt\\AccountSuspended', // {"code":-3036,"msg":"This account is not allowed to repay."}
+                    '-3037' => '\\ccxt\\ExchangeError', // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                    '-3038' => '\\ccxt\\BadRequest', // {"code":-3038,"msg":"Listen key not found."}
+                    '-3041' => '\\ccxt\\InsufficientFunds', // {"code":-3041,"msg":"Balance is not enough"}
+                    '-3042' => '\\ccxt\\BadRequest', // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                    '-3043' => '\\ccxt\\BadRequest', // {"code":-3043,"msg":"Transferring in not allowed."}
+                    '-3044' => '\\ccxt\\DDoSProtection', // {"code":-3044,"msg":"System busy."}
+                    '-3045' => '\\ccxt\\ExchangeError', // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                    '-3999' => '\\ccxt\\ExchangeError', // {"code":-3999,"msg":"This function is only available for invited users."}
+                    '-4001' => '\\ccxt\\BadRequest', // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002' => '\\ccxt\\BadRequest', // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003' => '\\ccxt\\BadRequest', // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4004' => '\\ccxt\\AuthenticationError', // {"code":-4004,"msg":"You don't login or auth."}
+                    '-4005' => '\\ccxt\\RateLimitExceeded', // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006' => '\\ccxt\\BadRequest', // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007' => '\\ccxt\\BadRequest', // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008' => '\\ccxt\\BadRequest', // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010' => '\\ccxt\\BadRequest', // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011' => '\\ccxt\\BadRequest', // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012' => '\\ccxt\\BadRequest', // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013' => '\\ccxt\\AuthenticationError', // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014' => '\\ccxt\\PermissionDenied', // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015' => '\\ccxt\\ExchangeError', // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016' => '\\ccxt\\PermissionDenied', // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017' => '\\ccxt\\PermissionDenied', // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4018' => '\\ccxt\\BadSymbol', // {"code":-4018,"msg":"We don't have this asset."}
+                    '-4019' => '\\ccxt\\BadSymbol', // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                    '-4021' => '\\ccxt\\BadRequest', // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                    '-4022' => '\\ccxt\\BadRequest', // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                    '-4023' => '\\ccxt\\ExchangeError', // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                    '-4024' => '\\ccxt\\InsufficientFunds', // {"code":-4024,"msg":"You don't have this asset."}
+                    '-4025' => '\\ccxt\\InsufficientFunds', // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                    '-4026' => '\\ccxt\\InsufficientFunds', // {"code":-4026,"msg":"You have insufficient balance."}
+                    '-4027' => '\\ccxt\\ExchangeError', // {"code":-4027,"msg":"Failed to obtain tranId."}
+                    '-4028' => '\\ccxt\\BadRequest', // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                    '-4029' => '\\ccxt\\BadRequest', // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                    '-4030' => '\\ccxt\\ExchangeError', // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                    '-4031' => '\\ccxt\\ExchangeError', // {"code":-4031,"msg":"Cancellation failed."}
+                    '-4032' => '\\ccxt\\ExchangeError', // {"code":-4032,"msg":"Withdraw verification exception."}
+                    '-4033' => '\\ccxt\\BadRequest', // {"code":-4033,"msg":"Illegal address."}
+                    '-4034' => '\\ccxt\\ExchangeError', // {"code":-4034,"msg":"The address is suspected of fake."}
+                    '-4035' => '\\ccxt\\PermissionDenied', // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                    '-4036' => '\\ccxt\\BadRequest', // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                    '-4037' => '\\ccxt\\ExchangeError', // {"code":-4037,"msg":"Re-sending Mail failed."}
+                    '-4038' => '\\ccxt\\ExchangeError', // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                    '-4039' => '\\ccxt\\BadRequest', // {"code":-4039,"msg":"The user does not exist."}
+                    '-4040' => '\\ccxt\\BadRequest', // {"code":-4040,"msg":"This address not charged."}
+                    '-4041' => '\\ccxt\\ExchangeError', // {"code":-4041,"msg":"Please try again in one minute."}
+                    '-4042' => '\\ccxt\\ExchangeError', // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                    '-4043' => '\\ccxt\\BadRequest', // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                    '-4044' => '\\ccxt\\BadRequest', // {"code":-4044,"msg":"This is a blacklist country."}
+                    '-4045' => '\\ccxt\\ExchangeError', // {"code":-4045,"msg":"Failure to acquire assets."}
+                    '-4046' => '\\ccxt\\AuthenticationError', // {"code":-4046,"msg":"Agreement not confirmed."}
+                    '-4047' => '\\ccxt\\BadRequest', // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-5001' => '\\ccxt\\BadRequest', // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
+                    '-5002' => '\\ccxt\\InsufficientFunds', // {"code":-5002,"msg":"You have insufficient balance."}
+                    '-5003' => '\\ccxt\\InsufficientFunds', // {"code":-5003,"msg":"You don't have this asset."}
+                    '-5004' => '\\ccxt\\BadRequest', // {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
+                    '-5005' => '\\ccxt\\InsufficientFunds', // {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
+                    '-5006' => '\\ccxt\\BadRequest', // {"code":-5006,"msg":"Only transfer once in 24 hours."}
+                    '-5007' => '\\ccxt\\BadRequest', // {"code":-5007,"msg":"Quantity must be greater than zero."}
+                    '-5008' => '\\ccxt\\InsufficientFunds', // {"code":-5008,"msg":"Insufficient amount of returnable assets."}
+                    '-5009' => '\\ccxt\\BadRequest', // {"code":-5009,"msg":"Product does not exist."}
+                    '-5010' => '\\ccxt\\ExchangeError', // {"code":-5010,"msg":"Asset transfer fail."}
+                    '-5011' => '\\ccxt\\BadRequest', // {"code":-5011,"msg":"future account not exists."}
+                    '-5012' => '\\ccxt\\ExchangeError', // {"code":-5012,"msg":"Asset transfer is in pending."}
+                    '-5013' => '\\ccxt\\InsufficientFunds', // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                    '-5021' => '\\ccxt\\BadRequest', // {"code":-5021,"msg":"This parent sub have no relation"}
+                    '-6001' => '\\ccxt\\BadRequest', // {"code":-6001,"msg":"Daily product not exists."}
+                    '-6003' => '\\ccxt\\BadRequest', // {"code":-6003,"msg":"Product not exist or you don't have permission"}
+                    '-6004' => '\\ccxt\\ExchangeError', // {"code":-6004,"msg":"Product not in purchase status"}
+                    '-6005' => '\\ccxt\\InvalidOrder', // {"code":-6005,"msg":"Smaller than min purchase limit"}
+                    '-6006' => '\\ccxt\\BadRequest', // {"code":-6006,"msg":"Redeem amount error"}
+                    '-6007' => '\\ccxt\\BadRequest', // {"code":-6007,"msg":"Not in redeem time"}
+                    '-6008' => '\\ccxt\\BadRequest', // {"code":-6008,"msg":"Product not in redeem status"}
+                    '-6009' => '\\ccxt\\RateLimitExceeded', // {"code":-6009,"msg":"Request frequency too high"}
+                    '-6011' => '\\ccxt\\BadRequest', // {"code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user"}
+                    '-6012' => '\\ccxt\\InsufficientFunds', // {"code":-6012,"msg":"Balance not enough"}
+                    '-6013' => '\\ccxt\\ExchangeError', // {"code":-6013,"msg":"Purchasing failed"}
+                    '-6014' => '\\ccxt\\BadRequest', // {"code":-6014,"msg":"Exceed up-limit allowed to purchased"}
+                    '-6015' => '\\ccxt\\BadRequest', // {"code":-6015,"msg":"Empty request body"}
+                    '-6016' => '\\ccxt\\BadRequest', // {"code":-6016,"msg":"Parameter err"}
+                    '-6017' => '\\ccxt\\BadRequest', // {"code":-6017,"msg":"Not in whitelist"}
+                    '-6018' => '\\ccxt\\BadRequest', // {"code":-6018,"msg":"Asset not enough"}
+                    '-6019' => '\\ccxt\\AuthenticationError', // {"code":-6019,"msg":"Need confirm"}
+                    '-6020' => '\\ccxt\\BadRequest', // {"code":-6020,"msg":"Project not exists"}
+                    '-7001' => '\\ccxt\\BadRequest', // {"code":-7001,"msg":"Date range is not supported."}
+                    '-7002' => '\\ccxt\\BadRequest', // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000' => '\\ccxt\\InsufficientFunds', // {"code":-9000,"msg":"user have no avaliable amount"}"
+                    '-10017' => '\\ccxt\\BadRequest', // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
+                    '-11008' => '\\ccxt\\InsufficientFunds', // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
+                    '-12014' => '\\ccxt\\RateLimitExceeded', // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
+                    '-13000' => '\\ccxt\\BadRequest', // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
+                    '-13001' => '\\ccxt\\BadRequest', // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
+                    '-13002' => '\\ccxt\\BadRequest', // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}
+                    '-13003' => '\\ccxt\\BadRequest', // {"code":-13003,"msg":"Subscription of the token is forbiden now"}
+                    '-13004' => '\\ccxt\\BadRequest', // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}
+                    '-13005' => '\\ccxt\\BadRequest', // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
+                    '-13006' => '\\ccxt\\InvalidOrder', // {"code":-13006,"msg":"Subscription amount is too small"}
+                    '-13007' => '\\ccxt\\AuthenticationError', // {"code":-13007,"msg":"The Agreement is not signed"}
+                    '-21001' => '\\ccxt\\BadRequest', // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21002' => '\\ccxt\\BadRequest', // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
+                    '-21003' => '\\ccxt\\BadRequest', // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
+                    '100001003' => '\\ccxt\\BadRequest', // {"code":100001003,"msg":"Verification failed"} // undocumented
+                    '2202' => '\\ccxt\\InsufficientFunds', // {"code":2202,"msg":"Insufficient balance","data":{"code":-2010,"msg":"Account has insufficient balance for requested action."},"timestamp":1662733681161}
+                    '3210' => '\\ccxt\\InvalidOrder', // {"code":3210,"msg":"The total volume is too low","data":{"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"},"timestamp":1662734704462}
+                    '3203' => '\\ccxt\\InvalidOrder', // {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
+                    '3211' => '\\ccxt\\InvalidOrder', // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
+                    '3207' => '\\ccxt\\InvalidOrder', // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
+                    '3218' => '\\ccxt\\OrderNotFound', // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
+                    '1106' => '\\ccxt\\BadRequest', // {"code":1106,"msg":"Incorrect Page number"} — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
-                    'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
+                    'MAX_POSITION' => '\\ccxt\\InvalidOrder', // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 ),
             ),
             'features' => array(
@@ -698,7 +698,7 @@ class tokocrypto extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -714,10 +714,10 @@ class tokocrypto extends Exchange {
         $response = $this->publicGetOpenV1CommonTime($params);
         //
         // {
-        //     "code" => 0,
-        //     "msg" => "Success",
-        //     "data" => null,
-        //     "timestamp" => 1737378074159
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
         // }
         //
         return $this->safe_integer($response, 'timestamp');
@@ -737,42 +737,42 @@ class tokocrypto extends Exchange {
         //     {
         //         "code":0,
         //         "msg":"Success",
-        //         "data":array(
-        //             "list":array(
-        //                 array(
+        //         "data":{
+        //             "list":[
+        //                 {
         //                     "type":1,
         //                     "symbol":"1INCH_BTC",
         //                     "baseAsset":"1INCH",
         //                     "basePrecision":8,
         //                     "quoteAsset":"BTC",
         //                     "quotePrecision":8,
-        //                     "filters":array(
-        //                         array("filterType":"PRICE_FILTER","minPrice":"0.00000001","maxPrice":"1000.00000000","tickSize":"0.00000001","applyToMarket":false),
-        //                         array("filterType":"PERCENT_PRICE","multiplierUp":5,"multiplierDown":0.2,"avgPriceMins":"5","applyToMarket":false),
-        //                         array("filterType":"LOT_SIZE","minQty":"0.10000000","maxQty":"90000000.00000000","stepSize":"0.10000000","applyToMarket":false),
-        //                         array("filterType":"MIN_NOTIONAL","avgPriceMins":"5","minNotional":"0.00010000","applyToMarket":true),
-        //                         array("filterType":"ICEBERG_PARTS","applyToMarket":false,"limit":"10"),
-        //                         array("filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"79460.14117231","stepSize":"0.00000000","applyToMarket":false),
-        //                         array("filterType":"TRAILING_DELTA","applyToMarket":false),
-        //                         array("filterType":"MAX_NUM_ORDERS","applyToMarket":false),
-        //                         array("filterType":"MAX_NUM_ALGO_ORDERS","applyToMarket":false,"maxNumAlgoOrders":"5")
-        //                     ),
+        //                     "filters":[
+        //                         {"filterType":"PRICE_FILTER","minPrice":"0.00000001","maxPrice":"1000.00000000","tickSize":"0.00000001","applyToMarket":false},
+        //                         {"filterType":"PERCENT_PRICE","multiplierUp":5,"multiplierDown":0.2,"avgPriceMins":"5","applyToMarket":false},
+        //                         {"filterType":"LOT_SIZE","minQty":"0.10000000","maxQty":"90000000.00000000","stepSize":"0.10000000","applyToMarket":false},
+        //                         {"filterType":"MIN_NOTIONAL","avgPriceMins":"5","minNotional":"0.00010000","applyToMarket":true},
+        //                         {"filterType":"ICEBERG_PARTS","applyToMarket":false,"limit":"10"},
+        //                         {"filterType":"MARKET_LOT_SIZE","minQty":"0.00000000","maxQty":"79460.14117231","stepSize":"0.00000000","applyToMarket":false},
+        //                         {"filterType":"TRAILING_DELTA","applyToMarket":false},
+        //                         {"filterType":"MAX_NUM_ORDERS","applyToMarket":false},
+        //                         {"filterType":"MAX_NUM_ALGO_ORDERS","applyToMarket":false,"maxNumAlgoOrders":"5"}
+        //                     ],
         //                     "orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],
         //                     "icebergEnable":1,
         //                     "ocoEnable":1,
         //                     "spotTradingEnable":1,
         //                     "marginTradingEnable":1,
         //                     "permissions":["SPOT","MARGIN"]
-        //                 ),
-        //             )
-        //         ),
+        //                 },
+        //             ]
+        //         },
         //         "timestamp":1659492212507
         //     }
         //
         if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $list = $this->safe_list($data, 'list', array());
         $result = array();
         for ($i = 0; $i < count($list); $i++) {
@@ -786,7 +786,7 @@ class tokocrypto extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
-            $filters = $this->safe_value($market, 'filters', array());
+            $filters = $this->safe_list($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $status = $this->safe_string($market, 'spotTradingEnable');
             $active = ($status === '1');
@@ -854,9 +854,9 @@ class tokocrypto extends Exchange {
                 $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
                 $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
-                // since they updated $filter types in November 2018
+                // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except null
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 $entry['limits']['price'] = array(
                     'min' => $this->safe_number($filter, 'minPrice'),
                     'max' => $this->safe_number($filter, 'maxPrice'),
@@ -864,7 +864,7 @@ class tokocrypto extends Exchange {
                 $entry['precision']['price'] = $filter['tickSize'];
             }
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+                $filter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
                 $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
                 $entry['limits']['amount'] = array(
                     'min' => $this->safe_number($filter, 'minQty'),
@@ -872,14 +872,14 @@ class tokocrypto extends Exchange {
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
+                $filter = $this->safe_dict($filtersByType, 'MARKET_LOT_SIZE', array());
                 $entry['limits']['market'] = array(
                     'min' => $this->safe_number($filter, 'minQty'),
                     'max' => $this->safe_number($filter, 'maxQty'),
                 );
             }
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+                $filter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
                 $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
             }
             $result[] = $entry;
@@ -920,29 +920,29 @@ class tokocrypto extends Exchange {
         //         "lastUpdateId":333598053905,
         //         "E":1618631511986,
         //         "T":1618631511964,
-        //         "bids":array(
+        //         "bids":[
         //             ["2493.56","20.189"],
         //             ["2493.54","1.000"],
         //             ["2493.51","0.005"]
-        //         ),
-        //         "asks":array(
+        //         ],
+        //         "asks":[
         //             ["2493.57","0.877"],
         //             ["2493.62","0.063"],
         //             ["2493.71","12.054"],
-        //         )
+        //         ]
         //     }
         // type not 1
         //     {
         //         "code":0,
         //         "msg":"Success",
-        //         "data":array(
+        //         "data":{
         //            "lastUpdateId":3204783,
-        //            "bids":array(),
-        //            "asks" => array()
-        //         ),
+        //            "bids":[],
+        //            "asks": []
+        //         },
         //         "timestamp":1692262634599
         //     }
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_dict($response, 'data', $response);
         $timestamp = $this->safe_integer_2($response, 'T', 'timestamp');
         $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
@@ -955,92 +955,92 @@ class tokocrypto extends Exchange {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
         //
         //     {
-        //         "a" => 26129,         // Aggregate tradeId
-        //         "p" => "0.01633102",  // Price
-        //         "q" => "4.70443515",  // Quantity
-        //         "f" => 27781,         // First tradeId
-        //         "l" => 27781,         // Last tradeId
-        //         "T" => 1498793709153, // Timestamp
-        //         "m" => true,          // Was the buyer the maker?
-        //         "M" => true           // Was the $trade the best $price match?
+        //         "a": 26129,         // Aggregate tradeId
+        //         "p": "0.01633102",  // Price
+        //         "q": "4.70443515",  // Quantity
+        //         "f": 27781,         // First tradeId
+        //         "l": 27781,         // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true,          // Was the buyer the maker?
+        //         "M": true           // Was the trade the best price match?
         //     }
         //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
         //
         //     {
-        //         "id" => 28457,
-        //         "price" => "4.00000100",
-        //         "qty" => "12.00000000",
-        //         "time" => 1499865549590,
-        //         "isBuyerMaker" => true,
-        //         "isBestMatch" => true
+        //         "id": 28457,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "time": 1499865549590,
+        //         "isBuyerMaker": true,
+        //         "isBestMatch": true
         //     }
         //
         // private trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-$trade-list-user_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
         //
         //     {
-        //         "symbol" => "BNBBTC",
-        //         "id" => 28457,
-        //         "orderId" => 100234,
-        //         "price" => "4.00000100",
-        //         "qty" => "12.00000000",
-        //         "commission" => "10.10000000",
-        //         "commissionAsset" => "BNB",
-        //         "time" => 1499865549590,
-        //         "isBuyer" => true,
-        //         "isMaker" => false,
-        //         "isBestMatch" => true
+        //         "symbol": "BNBBTC",
+        //         "id": 28457,
+        //         "orderId": 100234,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
         //     }
         //
         // futures trades
-        // https://binance-docs.github.io/apidocs/futures/en/#account-$trade-list-user_data
+        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
         //
         //     {
-        //       "accountId" => 20,
-        //       "buyer" => False,
-        //       "commission" => "-0.07819010",
-        //       "commissionAsset" => "USDT",
-        //       "counterPartyId" => 653,
-        //       "id" => 698759,
-        //       "maker" => False,
-        //       "orderId" => 25851813,
-        //       "price" => "7819.01",
-        //       "qty" => "0.002",
-        //       "quoteQty" => "0.01563",
-        //       "realizedPnl" => "-0.91539999",
-        //       "side" => "SELL",
-        //       "symbol" => "BTCUSDT",
-        //       "time" => 1569514978020
+        //       "accountId": 20,
+        //       "buyer": False,
+        //       "commission": "-0.07819010",
+        //       "commissionAsset": "USDT",
+        //       "counterPartyId": 653,
+        //       "id": 698759,
+        //       "maker": False,
+        //       "orderId": 25851813,
+        //       "price": "7819.01",
+        //       "qty": "0.002",
+        //       "quoteQty": "0.01563",
+        //       "realizedPnl": "-0.91539999",
+        //       "side": "SELL",
+        //       "symbol": "BTCUSDT",
+        //       "time": 1569514978020
         //     }
         //     {
-        //       "symbol" => "BTCUSDT",
-        //       "id" => 477128891,
-        //       "orderId" => 13809777875,
-        //       "side" => "SELL",
-        //       "price" => "38479.55",
-        //       "qty" => "0.001",
-        //       "realizedPnl" => "-0.00009534",
-        //       "marginAsset" => "USDT",
-        //       "quoteQty" => "38.47955",
-        //       "commission" => "-0.00076959",
-        //       "commissionAsset" => "USDT",
-        //       "time" => 1612733566708,
-        //       "positionSide" => "BOTH",
-        //       "maker" => true,
-        //       "buyer" => false
+        //       "symbol": "BTCUSDT",
+        //       "id": 477128891,
+        //       "orderId": 13809777875,
+        //       "side": "SELL",
+        //       "price": "38479.55",
+        //       "qty": "0.001",
+        //       "realizedPnl": "-0.00009534",
+        //       "marginAsset": "USDT",
+        //       "quoteQty": "38.47955",
+        //       "commission": "-0.00076959",
+        //       "commissionAsset": "USDT",
+        //       "time": 1612733566708,
+        //       "positionSide": "BOTH",
+        //       "maker": true,
+        //       "buyer": false
         //     }
         //
-        // array( respType => FULL )
+        // { respType: FULL }
         //
         //     {
-        //       "price" => "4000.00000000",
-        //       "qty" => "1.00000000",
-        //       "commission" => "4.00000000",
-        //       "commissionAsset" => "USDT",
-        //       "tradeId" => "1234",
+        //       "price": "4000.00000000",
+        //       "qty": "1.00000000",
+        //       "commission": "4.00000000",
+        //       "commissionAsset": "USDT",
+        //       "tradeId": "1234",
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
@@ -1053,7 +1053,7 @@ class tokocrypto extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
+        $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = ($buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
@@ -1062,7 +1062,7 @@ class tokocrypto extends Exchange {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
-                $side = ($trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true $side
+                $side = ($trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         $fee = null;
@@ -1113,40 +1113,40 @@ class tokocrypto extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit' => 500,     // default = 500, maximum = 1000
+            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'limit': 500,     // default = 500, maximum = 1000
         );
-        // the venue routes $market $data by the $symbol type reported by fetchMarkets,
-        // not by the quote currency => type 1 markets are served by the binance host
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
         $request['symbol'] = $this->get_market_id_by_type($market);
         if ($this->is_native_market($market)) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            // open/v1/market/trades answers an empty $list for every $market, the
-            // aggregate endpoint is the one that carries $data for these markets
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
             $responseInner = $this->publicGetOpenV1MarketAggTrades($this->extend($request, $params));
             //
             //    {
-            //       "code" => 0,
-            //       "msg" => "Success",
-            //       "data" => {
-            //           "list" => array(
-            //                array(
-            //                    "a" => 14433,             // aggregate tradeId
-            //                    "p" => "495.00",          // price
-            //                    "q" => "42.00000000",     // quantity
-            //                    "f" => 15578,             // first tradeId
-            //                    "l" => 15578,             // last tradeId
-            //                    "T" => 1787292236948,     // timestamp
-            //                    "m" => false              // was the buyer the maker?
+            //       "code": 0,
+            //       "msg": "Success",
+            //       "data": {
+            //           "list": [
+            //                {
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
-            //            )
-            //        ),
-            //        "timestamp" => 1787318052414
+            //            ]
+            //        },
+            //        "timestamp": 1787318052414
             //    }
             //
             $data = $this->safe_dict($responseInner, 'data', array());
@@ -1162,7 +1162,7 @@ class tokocrypto extends Exchange {
         if (($method === 'binanceGetAggTrades') && ($since !== null)) {
             $request['startTime'] = $since;
             // https://github.com/ccxt/ccxt/issues/6400
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-$list
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             $request['endTime'] = $this->sum($since, 3600000);
             $response = $this->binanceGetAggTrades($this->extend($request, $params));
         } else {
@@ -1170,41 +1170,41 @@ class tokocrypto extends Exchange {
         }
         //
         // Caveats:
-        // - default $limit (500) applies only if no other parameters set, trades up
-        //   to the maximum $limit may be returned to satisfy other parameters
-        // - if both $limit and time window is set and time window contains more
-        //   trades than the $limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
         //
         // aggregate trades
         //
-        //     array(
+        //     [
         //         {
-        //             "a" => 26129,         // Aggregate tradeId
-        //             "p" => "0.01633102",  // Price
-        //             "q" => "4.70443515",  // Quantity
-        //             "f" => 27781,         // First tradeId
-        //             "l" => 27781,         // Last tradeId
-        //             "T" => 1498793709153, // Timestamp
-        //             "m" => true,          // Was the buyer the maker?
-        //             "M" => true           // Was the trade the best price match?
+        //             "a": 26129,         // Aggregate tradeId
+        //             "p": "0.01633102",  // Price
+        //             "q": "4.70443515",  // Quantity
+        //             "f": 27781,         // First tradeId
+        //             "l": 27781,         // Last tradeId
+        //             "T": 1498793709153, // Timestamp
+        //             "m": true,          // Was the buyer the maker?
+        //             "M": true           // Was the trade the best price match?
         //         }
-        //     )
+        //     ]
         //
         // recent public trades and historical public trades
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => 28457,
-        //             "price" => "4.00000100",
-        //             "qty" => "12.00000000",
-        //             "time" => 1499865549590,
-        //             "isBuyerMaker" => true,
-        //             "isBestMatch" => true
+        //             "id": 28457,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "time": 1499865549590,
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
         //         }
-        //     )
+        //     ]
         //
         $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
@@ -1213,48 +1213,48 @@ class tokocrypto extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "ETHBTC",
-        //         "priceChange" => "0.00068700",
-        //         "priceChangePercent" => "2.075",
-        //         "weightedAvgPrice" => "0.03342681",
-        //         "prevClosePrice" => "0.03310300",
-        //         "lastPrice" => "0.03378900",
-        //         "lastQty" => "0.07700000",
-        //         "bidPrice" => "0.03378900",
-        //         "bidQty" => "7.16800000",
-        //         "askPrice" => "0.03379000",
-        //         "askQty" => "24.00000000",
-        //         "openPrice" => "0.03310200",
-        //         "highPrice" => "0.03388900",
-        //         "lowPrice" => "0.03306900",
-        //         "volume" => "205478.41000000",
-        //         "quoteVolume" => "6868.48826294",
-        //         "openTime" => 1601469986932,
-        //         "closeTime" => 1601556386932,
-        //         "firstId" => 196098772,
-        //         "lastId" => 196186315,
-        //         "count" => 87544
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
         //     }
         //
         // coinm
         //     {
-        //         "baseVolume" => "214549.95171161",
-        //         "closeTime" => "1621965286847",
-        //         "count" => "1283779",
-        //         "firstId" => "152560106",
-        //         "highPrice" => "39938.3",
-        //         "lastId" => "153843955",
-        //         "lastPrice" => "37993.4",
-        //         "lastQty" => "1",
-        //         "lowPrice" => "36457.2",
-        //         "openPrice" => "37783.4",
-        //         "openTime" => "1621878840000",
-        //         "pair" => "BTCUSD",
-        //         "priceChange" => "210.0",
-        //         "priceChangePercent" => "0.556",
-        //         "symbol" => "BTCUSD_PERP",
-        //         "volume" => "81990451",
-        //         "weightedAvgPrice" => "38215.08713747"
+        //         "baseVolume": "214549.95171161",
+        //         "closeTime": "1621965286847",
+        //         "count": "1283779",
+        //         "firstId": "152560106",
+        //         "highPrice": "39938.3",
+        //         "lastId": "153843955",
+        //         "lastPrice": "37993.4",
+        //         "lastQty": "1",
+        //         "lowPrice": "36457.2",
+        //         "openPrice": "37783.4",
+        //         "openTime": "1621878840000",
+        //         "pair": "BTCUSD",
+        //         "priceChange": "210.0",
+        //         "priceChangePercent": "0.556",
+        //         "symbol": "BTCUSD_PERP",
+        //         "volume": "81990451",
+        //         "weightedAvgPrice": "38215.08713747"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
@@ -1330,8 +1330,8 @@ class tokocrypto extends Exchange {
          */
         $marketInfo = $this->safe_dict($market, 'info', array());
         $symbolType = $this->safe_string($marketInfo, 'type');
-        // a $market with an unknown symbol type falls back to the binance backed
-        // host, the route that answers with data for every symbol type 1 $market
+        // a market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 market
         // and errors out loudly for the others, whereas open/v1 would answer an
         // empty list for them
         return ($symbolType !== null) && ($symbolType !== '1');
@@ -1378,7 +1378,7 @@ class tokocrypto extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          *
          * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
@@ -1397,7 +1397,7 @@ class tokocrypto extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
-        //     array(
+        //     [
         //         1591478520000, // open time
         //         "0.02501300",  // open
         //         "0.02501800",  // high
@@ -1410,11 +1410,11 @@ class tokocrypto extends Exchange {
         //         "10.92900000", // taker buy base asset volume
         //         "0.27336462",  // taker buy quote asset volume
         //         "0"            // ignore
-        //     )
+        //     ]
         //
         //  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
-        //     array(
-        //         array(
+        //     [
+        //         [
         //         1591256460000,          // Open time
         //         "9653.29201333",        // Open
         //         "9654.56401333",        // High
@@ -1427,8 +1427,8 @@ class tokocrypto extends Exchange {
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
-        //         )
-        //     )
+        //         ]
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -1459,7 +1459,7 @@ class tokocrypto extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
+        // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
@@ -1472,11 +1472,11 @@ class tokocrypto extends Exchange {
             'limit' => $limit,
         );
         if ($price === 'index') {
-            $request['pair'] = $market['id'];   // Index $price takes this argument instead of $symbol
+            $request['pair'] = $market['id'];   // Index price takes this argument instead of symbol
         } else {
             $request['symbol'] = $this->get_market_id_by_type($market);
         }
-        // $duration = $this->parse_timeframe($timeframe);
+        // const duration = this.parseTimeframe (timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -1492,34 +1492,34 @@ class tokocrypto extends Exchange {
         //
         // binanceGetKlines
         //
-        //     array(
+        //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
-        //     )
+        //     ]
         //
         // publicGetOpenV1MarketKlines
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "Success",
-        //         "data" => array(
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": [
         //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
-        //         ),
-        //         "timestamp" => 1787822924930
+        //         ],
+        //         "timestamp": 1787822924930
         //     }
         //
         // publicGetOpenV1MarketKlines, legacy envelope
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "Success",
-        //         "data" => array(
-        //             "list" => array(
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "list": [
         //                 [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
-        //             )
-        //         ),
-        //         "timestamp" => 1659492212507
+        //             ]
+        //         },
+        //         "timestamp": 1659492212507
         //     }
         //
         $data = array();
@@ -1564,7 +1564,7 @@ class tokocrypto extends Exchange {
         //     {
         //         "code":0,
         //         "msg":"Success",
-        //         "data":array(
+        //         "data":{
         //             "makerCommission":"0.00100000",
         //             "takerCommission":"0.00100000",
         //             "buyerCommission":"0.00000000",
@@ -1573,26 +1573,26 @@ class tokocrypto extends Exchange {
         //             "canWithdraw":1,
         //             "canDeposit":1,
         //             "status":1,
-        //             "accountAssets":array(
-        //                 array("asset":"1INCH","free":"0","locked":"0"),
-        //                 array("asset":"AAVE","free":"0","locked":"0"),
-        //                 array("asset":"ACA","free":"0","locked":"0")
-        //             ),
-        //         ),
+        //             "accountAssets":[
+        //                 {"asset":"1INCH","free":"0","locked":"0"},
+        //                 {"asset":"AAVE","free":"0","locked":"0"},
+        //                 {"asset":"ACA","free":"0","locked":"0"}
+        //             ],
+        //         },
         //         "timestamp":1659666786943
         //     }
         //
         return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
-    public function parse_balance_custom(mixed $response, ?string $type = null, ?string $marginMode = null) {
+    public function parse_balance_custom(array $response, ?string $type = null, ?string $marginMode = null): array {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $balances = $this->safe_list($data, 'accountAssets', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -1634,98 +1634,98 @@ class tokocrypto extends Exchange {
         // spot
         //
         //     {
-        //         "symbol" => "LTCBTC",
-        //         "orderId" => 1,
-        //         "clientOrderId" => "myOrder1",
-        //         "price" => "0.1",
-        //         "origQty" => "1.0",
-        //         "executedQty" => "0.0",
-        //         "cummulativeQuoteQty" => "0.0",
-        //         "status" => "NEW",
-        //         "timeInForce" => "GTC",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "stopPrice" => "0.0",
-        //         "icebergQty" => "0.0",
-        //         "time" => 1499827319559,
-        //         "updateTime" => 1499827319559,
-        //         "isWorking" => true
+        //         "symbol": "LTCBTC",
+        //         "orderId": 1,
+        //         "clientOrderId": "myOrder1",
+        //         "price": "0.1",
+        //         "origQty": "1.0",
+        //         "executedQty": "0.0",
+        //         "cummulativeQuoteQty": "0.0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": 1499827319559,
+        //         "updateTime": 1499827319559,
+        //         "isWorking": true
         //     }
         // createOrder
         //     {
-        //         "orderId" => "145265071",
-        //         "bOrderListId" => "0",
-        //         "clientId" => "49c09c3c2cd54419a59c05441f517b3c",
-        //         "bOrderId" => "35247529",
-        //         "symbol" => "USDT_BIDR",
-        //         "symbolType" => "1",
-        //         "side" => "0",
-        //         "type" => "1",
-        //         "price" => "11915",
-        //         "origQty" => "2",
-        //         "origQuoteQty" => "23830.00",
-        //         "executedQty" => "0.00000000",
-        //         "executedPrice" => "0",
-        //         "executedQuoteQty" => "0.00",
-        //         "timeInForce" => "1",
-        //         "stopPrice" => "0",
-        //         "icebergQty" => "0",
-        //         "status" => "0",
-        //         "createTime" => "1662711074372"
+        //         "orderId": "145265071",
+        //         "bOrderListId": "0",
+        //         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        //         "bOrderId": "35247529",
+        //         "symbol": "USDT_BIDR",
+        //         "symbolType": "1",
+        //         "side": "0",
+        //         "type": "1",
+        //         "price": "11915",
+        //         "origQty": "2",
+        //         "origQuoteQty": "23830.00",
+        //         "executedQty": "0.00000000",
+        //         "executedPrice": "0",
+        //         "executedQuoteQty": "0.00",
+        //         "timeInForce": "1",
+        //         "stopPrice": "0",
+        //         "icebergQty": "0",
+        //         "status": "0",
+        //         "createTime": "1662711074372"
         //     }
         //
-        // createOrder with array( "newOrderRespType" => "FULL" )
+        // createOrder with { "newOrderRespType": "FULL" }
         //
         //     {
-        //       "symbol" => "BTCUSDT",
-        //       "orderId" => 5403233939,
-        //       "orderListId" => -1,
-        //       "clientOrderId" => "x-R4BD3S825e669e75b6c14f69a2c43e",
-        //       "transactTime" => 1617151923742,
-        //       "price" => "0.00000000",
-        //       "origQty" => "0.00050000",
-        //       "executedQty" => "0.00050000",
-        //       "cummulativeQuoteQty" => "29.47081500",
-        //       "status" => "FILLED",
-        //       "timeInForce" => "GTC",
-        //       "type" => "MARKET",
-        //       "side" => "BUY",
-        //       "fills" => array(
+        //       "symbol": "BTCUSDT",
+        //       "orderId": 5403233939,
+        //       "orderListId": -1,
+        //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "transactTime": 1617151923742,
+        //       "price": "0.00000000",
+        //       "origQty": "0.00050000",
+        //       "executedQty": "0.00050000",
+        //       "cummulativeQuoteQty": "29.47081500",
+        //       "status": "FILLED",
+        //       "timeInForce": "GTC",
+        //       "type": "MARKET",
+        //       "side": "BUY",
+        //       "fills": [
         //         {
-        //           "price" => "58941.63000000",
-        //           "qty" => "0.00050000",
-        //           "commission" => "0.00007050",
-        //           "commissionAsset" => "BNB",
-        //           "tradeId" => 737466631
+        //           "price": "58941.63000000",
+        //           "qty": "0.00050000",
+        //           "commission": "0.00007050",
+        //           "commissionAsset": "BNB",
+        //           "tradeId": 737466631
         //         }
-        //       )
+        //       ]
         //     }
         //
         // delivery
         //
         //     {
-        //       "orderId" => "18742727411",
-        //       "symbol" => "ETHUSD_PERP",
-        //       "pair" => "ETHUSD",
-        //       "status" => "FILLED",
-        //       "clientOrderId" => "x-xcKtGhcu3e2d1503fdd543b3b02419",
-        //       "price" => "0",
-        //       "avgPrice" => "4522.14",
-        //       "origQty" => "1",
-        //       "executedQty" => "1",
-        //       "cumBase" => "0.00221134",
-        //       "timeInForce" => "GTC",
-        //       "type" => "MARKET",
-        //       "reduceOnly" => false,
-        //       "closePosition" => false,
-        //       "side" => "SELL",
-        //       "positionSide" => "BOTH",
-        //       "stopPrice" => "0",
-        //       "workingType" => "CONTRACT_PRICE",
-        //       "priceProtect" => false,
-        //       "origType" => "MARKET",
-        //       "time" => "1636061952660",
-        //       "updateTime" => "1636061952660"
+        //       "orderId": "18742727411",
+        //       "symbol": "ETHUSD_PERP",
+        //       "pair": "ETHUSD",
+        //       "status": "FILLED",
+        //       "clientOrderId": "x-xcKtGhcu3e2d1503fdd543b3b02419",
+        //       "price": "0",
+        //       "avgPrice": "4522.14",
+        //       "origQty": "1",
+        //       "executedQty": "1",
+        //       "cumBase": "0.00221134",
+        //       "timeInForce": "GTC",
+        //       "type": "MARKET",
+        //       "reduceOnly": false,
+        //       "closePosition": false,
+        //       "side": "SELL",
+        //       "positionSide": "BOTH",
+        //       "stopPrice": "0",
+        //       "workingType": "CONTRACT_PRICE",
+        //       "priceProtect": false,
+        //       "origType": "MARKET",
+        //       "time": "1636061952660",
+        //       "updateTime": "1636061952660"
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1736,8 +1736,8 @@ class tokocrypto extends Exchange {
         $average = $this->safe_string($order, 'avgPrice');
         $price = $this->safe_string_2($order, 'price', 'executedPrice');
         $amount = $this->safe_string($order, 'origQty');
-        // - Spot/Margin $market => cummulativeQuoteQty
-        //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
+        // - Spot/Margin market: cummulativeQuoteQty
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         $cost = $this->safe_string_n($order, array( 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ));
         $id = $this->safe_string($order, 'orderId');
         $type = $this->parse_order_type($this->safe_string_lower($order, 'type'));
@@ -1747,7 +1747,7 @@ class tokocrypto extends Exchange {
         } elseif ($side === '1') {
             $side = 'sell';
         }
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_list($order, 'fills', array());
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === 'GTX') {
@@ -1781,7 +1781,7 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             '2' => 'market',
             '1' => 'limit',
@@ -1791,7 +1791,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1856,7 +1856,7 @@ class tokocrypto extends Exchange {
             $request['side'] = 1;
         }
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
+            $broker = $this->safe_dict($this->options, 'broker');
             if ($broker !== null) {
                 $brokerId = $this->safe_string($broker, 'marketType');
                 if ($brokerId !== null) {
@@ -1866,20 +1866,20 @@ class tokocrypto extends Exchange {
         } else {
             $request['clientId'] = $clientOrderId;
         }
-        // additional required fields depending on the order $type
+        // additional required fields depending on the order type
         $priceIsRequired = false;
         $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         //
         // spot/margin
         //
-        //     LIMIT                timeInForce, quantity, $price
+        //     LIMIT                timeInForce, quantity, price
         //     MARKET               quantity or quoteOrderQty
         //     STOP_LOSS            quantity, stopPrice
-        //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, stopPrice
+        //     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
         //     TAKE_PROFIT          quantity, stopPrice
-        //     TAKE_PROFIT_LIMIT    timeInForce, quantity, $price, stopPrice
-        //     LIMIT_MAKER          quantity, $price
+        //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
+        //     LIMIT_MAKER          quantity, price
         //
         if ($uppercaseType === 'MARKET') {
             if ($side === 'buy') {
@@ -1942,37 +1942,37 @@ class tokocrypto extends Exchange {
         $response = $this->privatePostOpenV1Orders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "Success",
-        //         "data" => array(
-        //             "orderId" => 145264846,
-        //             "bOrderListId" => 0,
-        //             "clientId" => "4ee2ab5e55e74b358eaf98079c670d17",
-        //             "bOrderId" => 35247499,
-        //             "symbol" => "USDT_BIDR",
-        //             "symbolType" => 1,
-        //             "side" => 0,
-        //             "type" => 1,
-        //             "price" => "11915",
-        //             "origQty" => "2",
-        //             "origQuoteQty" => "23830.00",
-        //             "executedQty" => "0.00000000",
-        //             "executedPrice" => "0",
-        //             "executedQuoteQty" => "0.00",
-        //             "timeInForce" => 1,
-        //             "stopPrice" => 0,
-        //             "icebergQty" => "0",
-        //             "status" => 0,
-        //             "createTime" => 1662710994848
-        //         ),
-        //         "timestamp" => 1662710994975
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": 145264846,
+        //             "bOrderListId": 0,
+        //             "clientId": "4ee2ab5e55e74b358eaf98079c670d17",
+        //             "bOrderId": 35247499,
+        //             "symbol": "USDT_BIDR",
+        //             "symbolType": 1,
+        //             "side": 0,
+        //             "type": 1,
+        //             "price": "11915",
+        //             "origQty": "2",
+        //             "origQuoteQty": "23830.00",
+        //             "executedQty": "0.00000000",
+        //             "executedPrice": "0",
+        //             "executedQuoteQty": "0.00",
+        //             "timeInForce": 1,
+        //             "stopPrice": 0,
+        //             "icebergQty": "0",
+        //             "status": 0,
+        //             "createTime": 1662710994848
+        //         },
+        //         "timestamp": 1662710994975
         //     }
         //
         $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#query-order-signed
@@ -1989,36 +1989,36 @@ class tokocrypto extends Exchange {
         $response = $this->privateGetOpenV1Orders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "Success",
-        //         "data" => array(
-        //             "list" => [array(
-        //                 "orderId" => "145221985",
-        //                 "clientId" => "201515331fd64d03aedbe687a38152e3",
-        //                 "bOrderId" => "35239632",
-        //                 "bOrderListId" => "0",
-        //                 "symbol" => "USDT_BIDR",
-        //                 "symbolType" => 1,
-        //                 "side" => 0,
-        //                 "type" => 1,
-        //                 "price" => "11907",
-        //                 "origQty" => "2",
-        //                 "origQuoteQty" => "23814",
-        //                 "executedQty" => "0",
-        //                 "executedPrice" => "0",
-        //                 "executedQuoteQty" => "0",
-        //                 "timeInForce" => 1,
-        //                 "stopPrice" => "0",
-        //                 "icebergQty" => "0",
-        //                 "status" => 0,
-        //                 "createTime" => 1662699360000
-        //             )]
-        //         ),
-        //         "timestamp" => 1662710056523
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "list": [{
+        //                 "orderId": "145221985",
+        //                 "clientId": "201515331fd64d03aedbe687a38152e3",
+        //                 "bOrderId": "35239632",
+        //                 "bOrderListId": "0",
+        //                 "symbol": "USDT_BIDR",
+        //                 "symbolType": 1,
+        //                 "side": 0,
+        //                 "type": 1,
+        //                 "price": "11907",
+        //                 "origQty": "2",
+        //                 "origQuoteQty": "23814",
+        //                 "executedQty": "0",
+        //                 "executedPrice": "0",
+        //                 "executedQuoteQty": "0",
+        //                 "timeInForce": 1,
+        //                 "stopPrice": "0",
+        //                 "icebergQty": "0",
+        //                 "status": 0,
+        //                 "createTime": 1662699360000
+        //             }]
+        //         },
+        //         "timestamp": 1662710056523
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $list = $this->safe_value($data, 'list', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $list = $this->safe_list($data, 'list', array());
         $rawOrder = $this->safe_dict($list, 0, array());
         return $this->parse_order($rawOrder);
     }
@@ -2044,13 +2044,13 @@ class tokocrypto extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            // 'type' => -1, // -1 = all, 1 = open, 2 = closed
-            // 'side' => 1, // or 2
-            // 'startTime' => $since,
-            // 'endTime' => $this->milliseconds(),
-            // 'fromId' => 'starting order ID', // if defined, the "direct" field becomes mandatory
-            // 'direct' => 'prev', // prev, next
-            // 'limit' => 500, // default 500, max 1000
+            // 'type': -1, // -1 = all, 1 = open, 2 = closed
+            // 'side': 1, // or 2
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+            // 'fromId': 'starting order ID', // if defined, the "direct" field becomes mandatory
+            // 'direct': 'prev', // prev, next
+            // 'limit': 500, // default 500, max 1000
         );
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2061,38 +2061,38 @@ class tokocrypto extends Exchange {
         $response = $this->privateGetOpenV1Orders($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "success",
-        //         "data" => {
-        //             "list" => array(
-        //                 array(
-        //                     "orderId" => "4", // order id
-        //                     "bOrderId" => "100001", // binance order id
-        //                     "bOrderListId" => -1, // Unless part of an OCO, the value will always be -1.
-        //                     "clientId" => "1aa4f99ad7bc4fab903395afd25d0597", // client custom order id
-        //                     "symbol" => "ADA_USDT",
-        //                     "symbolType" => 1,
-        //                     "side" => 1,
-        //                     "type" => 1,
-        //                     "price" => "0.1",
-        //                     "origQty" => "10",
-        //                     "origQuoteQty" => "1",
-        //                     "executedQty" => "0",
-        //                     "executedPrice" => "0",
-        //                     "executedQuoteQty" => "0",
-        //                     "timeInForce" => 1,
-        //                     "stopPrice" => "0.0000000000000000",
-        //                     "icebergQty" => "0.0000000000000000",
-        //                     "status" => 0,
-        //                     "isWorking" => 0,
-        //                     "createTime" => 1572692016811
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "4", // order id
+        //                     "bOrderId": "100001", // binance order id
+        //                     "bOrderListId": -1, // Unless part of an OCO, the value will always be -1.
+        //                     "clientId": "1aa4f99ad7bc4fab903395afd25d0597", // client custom order id
+        //                     "symbol": "ADA_USDT",
+        //                     "symbolType": 1,
+        //                     "side": 1,
+        //                     "type": 1,
+        //                     "price": "0.1",
+        //                     "origQty": "10",
+        //                     "origQuoteQty": "1",
+        //                     "executedQty": "0",
+        //                     "executedPrice": "0",
+        //                     "executedQuoteQty": "0",
+        //                     "timeInForce": 1,
+        //                     "stopPrice": "0.0000000000000000",
+        //                     "icebergQty": "0.0000000000000000",
+        //                     "status": 0,
+        //                     "isWorking": 0,
+        //                     "createTime": 1572692016811
         //                 }
-        //             )
-        //         ),
-        //         "timestamp" => 1572860756458
+        //             ]
+        //         },
+        //         "timestamp": 1572860756458
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'list', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2129,7 +2129,7 @@ class tokocrypto extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#cancel-order-signed
@@ -2146,36 +2146,36 @@ class tokocrypto extends Exchange {
         $response = $this->privatePostOpenV1OrdersCancel($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "Success",
-        //         "data" => array(
-        //             "orderId" => "145221985",
-        //             "bOrderListId" => "0",
-        //             "clientId" => "201515331fd64d03aedbe687a38152e3",
-        //             "bOrderId" => "35239632",
-        //             "symbol" => "USDT_BIDR",
-        //             "symbolType" => 1,
-        //             "type" => 1,
-        //             "side" => 0,
-        //             "price" => "11907.0000000000000000",
-        //             "origQty" => "2.0000000000000000",
-        //             "origQuoteQty" => "23814.0000000000000000",
-        //             "executedPrice" => "0.0000000000000000",
-        //             "executedQty" => "0.00000000",
-        //             "executedQuoteQty" => "0.00",
-        //             "timeInForce" => 1,
-        //             "stopPrice" => "0.0000000000000000",
-        //             "icebergQty" => "0.0000000000000000",
-        //             "status" => 3
-        //         ),
-        //         "timestamp" => 1662710683634
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": "145221985",
+        //             "bOrderListId": "0",
+        //             "clientId": "201515331fd64d03aedbe687a38152e3",
+        //             "bOrderId": "35239632",
+        //             "symbol": "USDT_BIDR",
+        //             "symbolType": 1,
+        //             "type": 1,
+        //             "side": 0,
+        //             "price": "11907.0000000000000000",
+        //             "origQty": "2.0000000000000000",
+        //             "origQuoteQty": "23814.0000000000000000",
+        //             "executedPrice": "0.0000000000000000",
+        //             "executedQty": "0.00000000",
+        //             "executedQuoteQty": "0.00",
+        //             "timeInForce": 1,
+        //             "stopPrice": "0.0000000000000000",
+        //             "icebergQty": "0.0000000000000000",
+        //             "status": 3
+        //         },
+        //         "timestamp": 1662710683634
         //     }
         //
         $rawOrder = $this->safe_dict($response, 'data', array());
         return $this->parse_order($rawOrder);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
@@ -2211,30 +2211,30 @@ class tokocrypto extends Exchange {
         $response = $this->privateGetOpenV1OrdersTrades($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "success",
-        //         "data" => {
-        //             "list" => array(
-        //                 array(
-        //                     "tradeId" => "3",
-        //                     "orderId" => "2",
-        //                     "symbol" => "ADA_USDT",
-        //                     "price" => "0.04398",
-        //                     "qty" => "250",
-        //                     "quoteQty" => "10.995",
-        //                     "commission" => "0.25",
-        //                     "commissionAsset" => "ADA",
-        //                     "isBuyer" => 1,
-        //                     "isMaker" => 0,
-        //                     "isBestMatch" => 1,
-        //                     "time" => "1572920872276"
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "tradeId": "3",
+        //                     "orderId": "2",
+        //                     "symbol": "ADA_USDT",
+        //                     "price": "0.04398",
+        //                     "qty": "250",
+        //                     "quoteQty": "10.995",
+        //                     "commission": "0.25",
+        //                     "commissionAsset": "ADA",
+        //                     "isBuyer": 1,
+        //                     "isMaker": 0,
+        //                     "isBestMatch": 1,
+        //                     "time": "1572920872276"
         //                 }
-        //             )
-        //         ),
-        //         "timestamp" => 1573723498893
+        //             ]
+        //         },
+        //         "timestamp": 1573723498893
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'list', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -2255,9 +2255,9 @@ class tokocrypto extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
-            // 'network' => 'ETH', // 'BSC', 'XMR', you can get $network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
+            // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         );
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
@@ -2265,24 +2265,24 @@ class tokocrypto extends Exchange {
             $params = $this->omit($params, 'network');
         }
         // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         $response = $this->privateGetOpenV1DepositsAddress($this->extend($request, $params));
         //
         //     {
         //         "code":0,
         //         "msg":"Success",
-        //         "data":array(
+        //         "data":{
         //             "uid":"182395",
         //             "asset":"USDT",
         //             "network":"ETH",
         //             "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
         //             "addressTag":"",
         //             "status":1
-        //         ),
+        //         },
         //         "timestamp":1660685915746
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'addressTag', '');
         if (strlen($tag) === 0) {
@@ -2338,9 +2338,9 @@ class tokocrypto extends Exchange {
         //     {
         //         "code":0,
         //         "msg":"Success",
-        //         "data":array(
-        //             "list":array(
-        //                 array(
+        //         "data":{
+        //             "list":[
+        //                 {
         //                     "id":5167969,
         //                     "asset":"BIDR",
         //                     "network":"BSC",
@@ -2351,13 +2351,13 @@ class tokocrypto extends Exchange {
         //                     "transferType":1,
         //                     "status":1,
         //                     "insertTime":"1659429390000"
-        //                 ),
-        //             )
-        //         ),
+        //                 },
+        //             ]
+        //         },
         //         "timestamp":1659758865998
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $deposits = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
@@ -2397,8 +2397,8 @@ class tokocrypto extends Exchange {
         //         "code":0,
         //         "msg":"Success",
         //         "data":{
-        //             "list":array(
-        //                 array(
+        //             "list":[
+        //                 {
         //                     "id":4245859,
         //                     "clientId":"198",
         //                     "asset":"BIDR",
@@ -2412,17 +2412,17 @@ class tokocrypto extends Exchange {
         //                     "status":10,
         //                     "createTime":1659521314413
         //                 }
-        //             )
-        //         ),
+        //             ]
+        //         },
         //         "timestamp":1659759062187
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $withdrawals = $this->safe_list($data, 'list', array());
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2438,7 +2438,7 @@ class tokocrypto extends Exchange {
                 '10' => 'ok', // Completed
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2447,44 +2447,44 @@ class tokocrypto extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "id" => 5167969,
-        //         "asset" => "BIDR",
-        //         "network" => "BSC",
-        //         "address" => "0x101a925704f6ff13295ab8dd7a60988d116aaedf",
-        //         "addressTag" => "",
-        //         "txId" => "113409337867",
-        //         "amount" => "15000",
-        //         "transferType" => 1,
-        //         "status" => 1,
-        //         "insertTime" => "1659429390000"
+        //         "id": 5167969,
+        //         "asset": "BIDR",
+        //         "network": "BSC",
+        //         "address": "0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //         "addressTag": "",
+        //         "txId": "113409337867",
+        //         "amount": "15000",
+        //         "transferType": 1,
+        //         "status": 1,
+        //         "insertTime": "1659429390000"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id" => 4245859,
-        //         "clientId" => "198",
-        //         "asset" => "BIDR",
-        //         "network" => "BSC",
-        //         "address" => "0xff1c75149cc492e7d5566145b859fcafc900b6e9",
-        //         "addressTag" => "",
-        //         "amount" => "10000",
-        //         "fee" => "0",
-        //         "txId" => "113501794501",
-        //         "transferType" => 1,
-        //         "status" => 10,
-        //         "createTime" => 1659521314413
+        //         "id": 4245859,
+        //         "clientId": "198",
+        //         "asset": "BIDR",
+        //         "network": "BSC",
+        //         "address": "0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        //         "addressTag": "",
+        //         "amount": "10000",
+        //         "fee": "0",
+        //         "txId": "113501794501",
+        //         "transferType": 1,
+        //         "status": 10,
+        //         "createTime": 1659521314413
         //     }
         //
         // withdraw
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "成功",
-        //         "data" => array(
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
         //             "withdrawId":"12"
-        //         ),
-        //         "timestamp" => 1571745049095
+        //         },
+        //         "timestamp": 1571745049095
         //     }
         //
         $address = $this->safe_string($transaction, 'address');
@@ -2530,7 +2530,7 @@ class tokocrypto extends Exchange {
         }
         $id = $this->safe_string($transaction, 'id');
         if ($id === null) {
-            $data = $this->safe_value($transaction, 'data', array());
+            $data = $this->safe_dict($transaction, 'data', array());
             $id = $this->safe_string($data, 'withdrawId');
             $type = 'withdrawal';
         }
@@ -2579,10 +2579,10 @@ class tokocrypto extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
-            // 'clientId' => 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
-            // 'network' => 'string',
+            // 'clientId': 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            // 'network': 'string',
             'address' => $address,
-            // 'addressTag' => 'string', // for coins like XRP, XMR, etc
+            // 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount' => $this->number_to_string($amount),
         );
         if ($tag !== null) {
@@ -2596,18 +2596,18 @@ class tokocrypto extends Exchange {
         $response = $this->privatePostOpenV1Withdraws($this->extend($request, $query));
         //
         //     {
-        //         "code" => 0,
-        //         "msg" => "成功",
-        //         "data" => array(
+        //         "code": 0,
+        //         "msg": "成功",
+        //         "data": {
         //             "withdrawId":"12"
-        //         ),
-        //         "timestamp" => 1571745049095
+        //         },
+        //         "timestamp": 1571745049095
         //     }
         //
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
@@ -2619,7 +2619,7 @@ class tokocrypto extends Exchange {
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
         if ($userDataStream) {
             if (($this->apiKey !== null) && ($this->apiKey !== '')) {
-                // v1 special case for $userDataStream
+                // v1 special case for userDataStream
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -2674,8 +2674,8 @@ class tokocrypto extends Exchange {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
-        // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
-        // following block contains legacy checks against $message patterns in "msg" property
+        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
@@ -2689,10 +2689,10 @@ class tokocrypto extends Exchange {
             }
         }
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
-        // check $success value for wapi endpoints
-        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
         if ($success !== true) {
             $messageInner = $this->safe_string($response, 'msg');
@@ -2714,7 +2714,7 @@ class tokocrypto extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $this->id . ' ' . $message);
         }
-        // checks against $error codes
+        // checks against error codes
         $error = $this->safe_string($response, 'code');
         if ($error !== null) {
             // https://github.com/ccxt/ccxt/issues/6501
@@ -2722,19 +2722,19 @@ class tokocrypto extends Exchange {
             if (($error === '200') || Precise::string_equals($error, '0')) {
                 return null;
             }
-            // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-            // despite that their $message is very confusing, it is raised by Binance
+            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if (($error === '-2015') && ($this->options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new DDoSProtection($this->id . ' ' . $body);
             }
             $feedback = $this->id . ' ' . $body;
             if ($message === 'No need to change margin type.') {
-                // not an $error
+                // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
-                // binanceusdm array("code":-4046,"msg":"No need to change margin type.")
+                // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet($feedback);
             }
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
@@ -2746,7 +2746,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {

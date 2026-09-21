@@ -573,7 +573,7 @@ export default class bitfinex extends Exchange {
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    override amountToPrecision (symbol: Str, amount: any) {
+    override amountToPrecision (symbol: Str, amount: any): string {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
@@ -582,7 +582,7 @@ export default class bitfinex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
-    override priceToPrecision (symbol: Str, price: any) {
+    override priceToPrecision (symbol: Str, price: any): string {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
@@ -601,7 +601,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         //
         //    [1] // operative
         //    [0] // maintenance
@@ -625,7 +625,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const labels = [
             'pub:info:pair',
             // sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
@@ -750,7 +750,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const labels = [
             'pub:list:currency',
             'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
@@ -879,7 +879,7 @@ export default class bitfinex extends Exchange {
         return this.parseCurrenciesCustom (ids, indexed, indexedNetworks);
     }
 
-    parseCurrenciesCustom (ids: any, indexed: any, indexedNetworks: any) {
+    parseCurrenciesCustom (ids: any[], indexed: Dict, indexedNetworks: Dict): Dict {
         const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id: string = ids[i];
@@ -899,7 +899,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    parseCurrencyCustom (id: any, indexed: any, indexedNetworks: any): Currency {
+    parseCurrencyCustom (id: any, indexed: Dict, indexedNetworks: Dict): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);
@@ -981,7 +981,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         if (this.markets === undefined) {
@@ -1036,7 +1036,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         if (this.markets === undefined) {
@@ -1123,7 +1123,7 @@ export default class bitfinex extends Exchange {
         //
         const result = this.safeList (transfer, 'result');
         const timestamp = this.safeInteger (result, 0);
-        const info = this.safeValue (result, 4);
+        const info = this.safeList (result, 4);
         const fromAccount = this.safeString (info, 1);
         const toAccount = this.safeString (info, 2);
         const currencyId = this.safeString (info, 5);
@@ -1150,15 +1150,15 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency: any, type: any) {
+    convertDerivativesId (currency: Dict, type: string): Str {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        const info = this.safeValue (currency, 'info');
+        const info = this.safeList (currency, 'info');
         const transferId = this.safeString (info, 0);
-        const underlying = this.safeValue (info, 4, []);
+        const underlying = this.safeList (info, 4, []);
         let currencyId: Str = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString (underlying, 0, transferId);
@@ -1185,7 +1185,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1348,7 +1348,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1412,7 +1412,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1521,7 +1521,7 @@ export default class bitfinex extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1578,7 +1578,7 @@ export default class bitfinex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1656,7 +1656,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, state as IndexType, status);
     }
 
-    parseOrderFlags (flags: any) {
+    parseOrderFlags (flags: Str) {
         // flags can be added to each other...
         const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
@@ -1667,10 +1667,10 @@ export default class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeValue (flagValues, flags, undefined);
+        return this.safeList (flagValues, flags, undefined);
     }
 
-    parseTimeInForce (orderType: any) {
+    parseTimeInForce (orderType: Str): string {
         const orderTypes: Dict = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
@@ -1693,7 +1693,7 @@ export default class bitfinex extends Exchange {
         const amount = Precise.stringAbs (signedAmount);
         const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString (orderList, 8);
-        const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
+        const type = this.safeString (this.safeDict (this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce (orderType);
         const rawFlags = this.safeString (orderList, 12);
         const flags = this.parseOrderFlags (rawFlags);
@@ -1747,7 +1747,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1867,7 +1867,7 @@ export default class bitfinex extends Exchange {
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1929,7 +1929,7 @@ export default class bitfinex extends Exchange {
         }
         const orders = this.safeList (response, 4, []);
         const order = this.safeList (orders, 0);
-        const newOrder = { 'result': order };
+        const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
 
@@ -1942,7 +1942,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2006,7 +2006,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2032,7 +2032,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2059,7 +2059,7 @@ export default class bitfinex extends Exchange {
         }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
         const order = this.safeValue (response, 4);
-        const newOrder = { 'result': order };
+        const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
 
@@ -2073,7 +2073,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2159,7 +2159,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'id': [ parseInt (id) ],
         };
@@ -2182,7 +2182,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'id': [ parseInt (id) ],
         };
@@ -2206,7 +2206,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2279,7 +2279,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2363,7 +2363,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
@@ -2398,7 +2398,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2436,7 +2436,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2455,15 +2455,15 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
+        const currencyNetwork = this.safeDict (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2495,7 +2495,7 @@ export default class bitfinex extends Exchange {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeValue (response, 4, []);
+        const result = this.safeList (response, 4, []);
         const poolAddress = this.safeString (result, 5);
         const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
@@ -2593,7 +2593,7 @@ export default class bitfinex extends Exchange {
         let network: Str = undefined;
         let comment: Str = undefined;
         if (transactionLength === 8) {
-            const data = this.safeValue (transaction, 4, []);
+            const data = this.safeList (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2675,7 +2675,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2749,9 +2749,9 @@ export default class bitfinex extends Exchange {
         //
         const result: Dict = {};
         const fiat = this.safeDict (this.options, 'fiat', {});
-        const feeData = this.safeValue (response, 4, []);
-        const makerData = this.safeValue (feeData, 0, []);
-        const takerData = this.safeValue (feeData, 1, []);
+        const feeData = this.safeList (response, 4, []);
+        const makerData = this.safeList (feeData, 0, []);
+        const takerData = this.safeList (feeData, 1, []);
         const makerFee = this.safeNumber (makerData, 0);
         const makerFeeFiat = this.safeNumber (makerData, 2);
         const makerFeeDeriv = this.safeNumber (makerData, 5);
@@ -2794,7 +2794,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2859,7 +2859,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         this.checkAddress (address);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2868,8 +2868,8 @@ export default class bitfinex extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
+        const currencyNetwork = this.safeDict (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2885,7 +2885,7 @@ export default class bitfinex extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee === true) {
             request['fee_deduct'] = 1;
@@ -2946,7 +2946,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2994,7 +2994,7 @@ export default class bitfinex extends Exchange {
         return this.parsePositions (positionsList, symbols);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -3065,11 +3065,11 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {
@@ -3099,7 +3099,7 @@ export default class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (statusCode: int, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
@@ -3211,7 +3211,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3269,7 +3269,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRates() requires a symbols argument');
         }
@@ -3327,7 +3327,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -3510,7 +3510,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3565,7 +3565,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3622,7 +3622,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3675,7 +3675,7 @@ export default class bitfinex extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterest:
         //
@@ -3761,7 +3761,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3803,7 +3803,7 @@ export default class bitfinex extends Exchange {
         return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     [
         //         [
@@ -3855,7 +3855,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async setMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3879,7 +3879,7 @@ export default class bitfinex extends Exchange {
         return this.parseMarginModification (data, market);
     }
 
-    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // setMargin
         //
@@ -3916,7 +3916,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3971,7 +3971,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const order = this.safeList (response, 0);
-        const newOrder = { 'result': order };
+        const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
 
@@ -3996,7 +3996,7 @@ export default class bitfinex extends Exchange {
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4100,7 +4100,7 @@ export default class bitfinex extends Exchange {
             throw new ExchangeError (this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList (response, 4, []);
-        const newOrder = { 'result': order };
+        const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
 }

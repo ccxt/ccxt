@@ -8,8 +8,8 @@ export default class bydfi extends bydfiRest {
         method: string;
     };
     requestId(): any;
-    watchPublic(messageHashes: any, channels: any, params?: {}, subscription?: {}): Promise<any>;
-    watchPrivate(messageHashes: any, params?: {}): Promise<any>;
+    watchPublic(messageHashes: string[], channels: Strings, params?: Dict, subscription?: Dict): Promise<any>;
+    watchPrivate(messageHashes: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name bydfi#watchTicker
@@ -19,7 +19,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bydfi#unWatchTicker
@@ -40,7 +40,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name bydfi#unWatchTickers
@@ -53,7 +53,7 @@ export default class bydfi extends bydfiRest {
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     getMessageHashesForTickersUnsubscription(): List;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name bydfi#watchOHLCV
@@ -66,7 +66,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bydfi#unWatchOHLCV
@@ -89,7 +89,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name bydfi#unWatchOHLCVForSymbols
@@ -100,7 +100,7 @@ export default class bydfi extends bydfiRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name bydfi#watchOrderBook
@@ -111,7 +111,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bydfi#unWatchOrderBook
@@ -132,7 +132,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bydfi#unWatchOrderBookForSymbols
@@ -144,7 +144,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name bydfi#watchOrders
@@ -156,7 +156,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bydfi#watchOrdersForSymbols
@@ -168,8 +168,8 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -182,9 +182,9 @@ export default class bydfi extends bydfiRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
     parseWsPositionSide(rawPositionSide: Str): Str;
     /**
      * @method
@@ -194,13 +194,13 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
+    watchBalance(params?: Dict): Promise<Balances>;
     fetchBalanceSnapshot(client: Client): void;
-    loadBalanceSnapshot(client: Client, messageHash: any): Promise<void>;
-    handleBalance(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    loadBalanceSnapshot(client: Client, messageHash: string): Promise<void>;
+    handleBalance(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    handlePong(client: Client, message: Dict): Dict;
+    handleErrorMessage(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: Dict): void;
 }

@@ -1,7 +1,8 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -43,6 +44,18 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaLocalTypes (cachedTranspiler);
         patchJavaLiteralLocalTypes (cachedTranspiler);
         installJavaNumericLocalTypes (cachedTranspiler);
+        // SS-06 / SS-09 / SS-12 cast-removal slices: same order as the main thread's
+        // setupTranspiler so both print paths emit byte-identical Java
+        patchJavaConsumerStringCasts (cachedTranspiler);
+        patchJavaMapChannelStringCasts (cachedTranspiler);
+        patchJavaStringReceiverCasts (cachedTranspiler);
+        // java-09: last-installed declaration observer (same order as the main thread)
+        installJavaDeclaredLocalTypes (cachedTranspiler);
+        // hx7 java-03: same row-builder parameter boxing as the main thread's setupTranspiler()
+        installJavaObjectParamPositions (cachedTranspiler);
+        // java-13: the same printed-Java String proof the main thread installs at the end
+        // of setupTranspiler() — both print paths must emit byte-identical Java
+        installJavaExpressionTypeResolver (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

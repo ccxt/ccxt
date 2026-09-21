@@ -3600,7 +3600,7 @@ class aster extends aster$1["default"] {
         }
         const entryPriceString = this.safeString(position, 'entryPrice');
         const entryPrice = this.parseNumber(entryPriceString);
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
@@ -3919,7 +3919,7 @@ class aster extends aster$1["default"] {
         let percentage = undefined;
         let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         if (Precise["default"].stringEquals(notionalString, '0')) {
             entryPrice = undefined;
@@ -4019,7 +4019,7 @@ class aster extends aster$1["default"] {
      * @name aster#fetchAccountPositions
      * @ignore
      * @description fetch account positions
-     https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
