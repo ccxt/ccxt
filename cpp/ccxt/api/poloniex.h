@@ -411,6 +411,11 @@ public:
         return this->callEndpoint (std::string ("swapPublicGetV3MarketFundingRate"), parameters);
     }
 
+    // Calls the swapPublicGetV3MarketFundingRateHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> swapPublicGetV3MarketFundingRateHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("swapPublicGetV3MarketFundingRateHistory"), parameters);
+    }
+
     // Calls the swapPublicGetV3MarketOpenInterest endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> swapPublicGetV3MarketOpenInterest (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("swapPublicGetV3MarketOpenInterest"), parameters);
@@ -424,6 +429,11 @@ public:
     // Calls the swapPublicGetV3MarketRiskLimit endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> swapPublicGetV3MarketRiskLimit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("swapPublicGetV3MarketRiskLimit"), parameters);
+    }
+
+    // Calls the swapPublicGetV3MarketLimitPrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> swapPublicGetV3MarketLimitPrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("swapPublicGetV3MarketLimitPrice"), parameters);
     }
 
     // Calls the swapPrivateGetV3AccountBalance endpoint. Returns a JSON object.
@@ -451,6 +461,11 @@ public:
         return this->callEndpoint (std::string ("swapPrivateGetV3TradeOrderHistory"), parameters);
     }
 
+    // Calls the swapPrivateGetV3TradeOrderDetails endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> swapPrivateGetV3TradeOrderDetails (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("swapPrivateGetV3TradeOrderDetails"), parameters);
+    }
+
     // Calls the swapPrivateGetV3TradePositionOpens endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> swapPrivateGetV3TradePositionOpens (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("swapPrivateGetV3TradePositionOpens"), parameters);
@@ -469,6 +484,11 @@ public:
     // Calls the swapPrivateGetV3PositionMode endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> swapPrivateGetV3PositionMode (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("swapPrivateGetV3PositionMode"), parameters);
+    }
+
+    // Calls the swapPrivateGetV3PositionRiskLimit endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> swapPrivateGetV3PositionRiskLimit (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("swapPrivateGetV3PositionRiskLimit"), parameters);
     }
 
     // Calls the swapPrivatePostV3TradeOrder endpoint. Returns a JSON object.

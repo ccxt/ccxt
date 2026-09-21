@@ -96,9 +96,19 @@ public:
         return this->callEndpoint (std::string ("privatePostGetOrder"), parameters);
     }
 
+    // Calls the privatePostGetOrderByClientOrderId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostGetOrderByClientOrderId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostGetOrderByClientOrderId"), parameters);
+    }
+
     // Calls the privatePostCancelOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostCancelOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostCancelOrder"), parameters);
+    }
+
+    // Calls the privatePostCancelByClientOrderId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostCancelByClientOrderId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostCancelByClientOrderId"), parameters);
     }
 
     // Calls the privatePostWithdrawFee endpoint. Returns a JSON object.

@@ -106,9 +106,19 @@ public:
         return this->callEndpoint (std::string ("privateGetAuthAccountCurrencyCurrencyType"), parameters);
     }
 
+    // Calls the privateGetAuthAccountFiltered endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetAuthAccountFiltered (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAuthAccountFiltered"), parameters);
+    }
+
     // Calls the privateGetAuthOrder endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetAuthOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetAuthOrder"), parameters);
+    }
+
+    // Calls the privateGetAuthOrderActive endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetAuthOrderActive (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAuthOrderActive"), parameters);
     }
 
     // Calls the privateGetAuthOrderGetOrderId endpoint. Returns a JSON object.
@@ -201,9 +211,19 @@ public:
         return this->callEndpoint (std::string ("privatePostAuthOrderCancelAllCurrencyQuote"), parameters);
     }
 
+    // Calls the privatePostAuthOrderCancelBulk endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAuthOrderCancelBulk (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthOrderCancelBulk"), parameters);
+    }
+
     // Calls the privatePostAuthOrderPlace endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostAuthOrderPlace (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthOrderPlace"), parameters);
+    }
+
+    // Calls the privatePostAuthOrderPlaceBulk endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAuthOrderPlaceBulk (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthOrderPlaceBulk"), parameters);
     }
 
     // Calls the privatePostAuthSpotDeposit endpoint. Returns a JSON object.

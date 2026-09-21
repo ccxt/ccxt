@@ -226,7 +226,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("auth/account/filtered"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("auth/order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("auth/order/active"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -309,7 +317,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("auth/order/cancelBulk"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("auth/order/place"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("auth/order/placeBulk"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -937,7 +953,7 @@ public:
                  ccxt::any balancesByType =
                      this->groupBy(response, std::string("type"));
                  ccxt::any balances =
-                     this->safeValue(balancesByType, accountType, ccxt::list{});
+                     this->safeList(balancesByType, accountType, ccxt::list{});
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
                       postFixIncrement(i)) {
                    ccxt::any balance = ::getValue(balances, i);

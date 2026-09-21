@@ -221,6 +221,11 @@ public:
         return this->callEndpoint (std::string ("spotPrivatePostSupplementGetDepositAddress"), parameters);
     }
 
+    // Calls the spotPrivatePostSupplementAddDepositAddress endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSupplementAddDepositAddress (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSupplementAddDepositAddress"), parameters);
+    }
+
     // Calls the spotPrivatePostSupplementAssetDetail endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivatePostSupplementAssetDetail (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivatePostSupplementAssetDetail"), parameters);
@@ -284,6 +289,31 @@ public:
     // Calls the spotPrivatePostSupplementTransactionHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivatePostSupplementTransactionHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivatePostSupplementTransactionHistory"), parameters);
+    }
+
+    // Calls the spotPrivatePostSpotWalletWithdraw endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSpotWalletWithdraw (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSpotWalletWithdraw"), parameters);
+    }
+
+    // Calls the spotPrivatePostSpotWalletDepositHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSpotWalletDepositHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSpotWalletDepositHistory"), parameters);
+    }
+
+    // Calls the spotPrivatePostSpotWalletWithdraws endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSpotWalletWithdraws (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSpotWalletWithdraws"), parameters);
+    }
+
+    // Calls the spotPrivatePostSpotTradeOrdersInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSpotTradeOrdersInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSpotTradeOrdersInfo"), parameters);
+    }
+
+    // Calls the spotPrivatePostSpotTradeOrdersInfoHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostSpotTradeOrdersInfoHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostSpotTradeOrdersInfoHistory"), parameters);
     }
 
     // Calls the contractPublicGetCfdOpenApiV1PubGetTime endpoint. Returns a JSON object.

@@ -331,6 +331,16 @@ public:
         return this->callEndpoint (std::string ("v2_1PrivatePostTransactionCoinWithdrawalLimit"), parameters);
     }
 
+    // Calls the v2_1PrivatePostEventOrderRewardPrograms endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2_1PrivatePostEventOrderRewardPrograms (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2_1PrivatePostEventOrderRewardPrograms"), parameters);
+    }
+
+    // Calls the v2_1PrivatePostEventOrderRewardHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2_1PrivatePostEventOrderRewardHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2_1PrivatePostEventOrderRewardHistory"), parameters);
+    }
+
 };
 
 } // namespace ccxt

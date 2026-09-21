@@ -193,6 +193,22 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("deepcoin/market/mark-price"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("deepcoin/market/open-interest-volume"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("deepcoin/market/long-short-ratio"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("deepcoin/market/taker-volume"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("deepcoin/market/step-margin"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -220,6 +236,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("deepcoin/account/all-balances"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("deepcoin/account/bills"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -228,11 +248,27 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("deepcoin/account/trade-fee"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/account/leverage-info"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/account/positions-history"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("deepcoin/trade/fills"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
                            {std::string("deepcoin/trade/orderByID"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/trade/order"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -324,6 +360,11 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string(
+                                "deepcoin/sub-account/sub-account-apikey"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -359,6 +400,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("deepcoin/trade/amend-trigger-order"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("deepcoin/trade/batch-close-position"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -368,6 +413,14 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("deepcoin/trade/close-position-by-ids"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/trade/increase-position"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/trade/merge-positions"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -388,6 +441,21 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("deepcoin/asset/transfer"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "deepcoin/sub-account/create-sub-account"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "deepcoin/sub-account/sub-account-apikey"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("deepcoin/sub-account/"
+                                        "delete-sub-account-apikey"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -1128,7 +1196,7 @@ public:
     //         "ts": "1760367816000"
     //     }
     //
-    ccxt::any timestamp = this->safeInteger(ticker, std::string("ts"));
+    ccxt::any timestamp = this->safeIntegerOmitZero(ticker, std::string("ts"));
     ccxt::any marketId = this->safeString(ticker, std::string("instId"));
     market = this->safeMarket(marketId, market, std::string("-"));
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
@@ -2589,7 +2657,7 @@ public:
                  //                 "instId": "ETH-USDT",
                  //                 "tgtCcy": "",
                  //                 "ccy": "",
-                 //                 "ordId": "1001434573319675",
+                 //                 "ordId": "1001434573319676",
                  //                 "clOrdId": "",
                  //                 "tag": "",
                  //                 "px": "4056.620000000000",
@@ -3700,7 +3768,8 @@ public:
          this->safeString(position, std::string("posSide"))},
         {std::string("notional"), ccxt::any{}},
         {std::string("leverage"),
-         this->omitZero(this->safeString(position, std::string("lever")))},
+         this->parseNumber(
+             this->omitZero(this->safeString(position, std::string("lever"))))},
         {std::string("unrealizedPnl"), ccxt::any{}},
         {std::string("realizedPnl"), ccxt::any{}},
         {std::string("collateral"), ccxt::any{}},
@@ -3708,12 +3777,12 @@ public:
          this->safeNumber(position, std::string("avgPx"))},
         {std::string("markPrice"), ccxt::any{}},
         {std::string("liquidationPrice"),
-         this->safeString(position, std::string("liqPx"))},
+         this->safeNumber(position, std::string("liqPx"))},
         {std::string("marginMode"),
          this->safeString(position, std::string("mgnMode"))},
         {std::string("hedged"), true},
         {std::string("maintenanceMargin"),
-         this->safeString(position, std::string("useMargin"))},
+         this->safeNumber(position, std::string("useMargin"))},
         {std::string("maintenanceMarginPercentage"), ccxt::any{}},
         {std::string("initialMargin"), ccxt::any{}},
         {std::string("initialMarginPercentage"), ccxt::any{}},
@@ -4319,7 +4388,7 @@ public:
     ccxt::any requestPath = path;
     if (isTrue(isEqual(method, std::string("GET")))) {
       ccxt::any query = this->urlencode(params);
-      if (isTrue(isGreaterThan(getArrayLength(query), 0))) {
+      if (isTrue(isGreaterThan(getStringLength(query), 0))) {
         requestPath = add(requestPath, add(std::string("?"), query));
       }
     }

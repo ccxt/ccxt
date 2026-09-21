@@ -375,6 +375,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
+                                {std::string("private/get-fee-credit-balances"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
                                 {std::string("private/fiat/fiat-deposit-info"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(10, 3)},
@@ -462,6 +466,36 @@ public:
                                  }},
                                 {std::string(
                                      "private/change-isolated-margin-leverage"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string("private/bot/create-trading-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string("private/bot/update-trading-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string(
+                                     "private/bot/terminate-trading-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string("private/bot/pause-trading-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string("private/bot/resume-trading-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string("private/bot/get-trading-bots"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(10, 3)},
+                                 }},
+                                {std::string(
+                                     "private/bot/get-trading-bot-executions"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(10, 3)},
                                  }},
@@ -2008,7 +2042,7 @@ public:
         this->safeDict(response, std::string("result"), ccxt::dict{});
     ccxt::any data =
         this->safeList(responseResult, std::string("data"), ccxt::list{});
-    ccxt::any positionBalances = this->safeValue(
+    ccxt::any positionBalances = this->safeList(
         ::getValue(data, 0), std::string("position_balances"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},

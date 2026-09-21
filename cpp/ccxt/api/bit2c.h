@@ -26,6 +26,11 @@ public:
         return this->callEndpoint (std::string ("publicGetExchangesPairOrderbook"), parameters);
     }
 
+    // Calls the publicGetExchangesPairOrderbookTop endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetExchangesPairOrderbookTop (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetExchangesPairOrderbookTop"), parameters);
+    }
+
     // Calls the publicGetExchangesPairTrades endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetExchangesPairTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetExchangesPairTrades"), parameters);
@@ -44,6 +49,11 @@ public:
     // Calls the privatePostFundsAddCoinFundsRequest endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostFundsAddCoinFundsRequest (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostFundsAddCoinFundsRequest"), parameters);
+    }
+
+    // Calls the privatePostFundsWithdrawCoin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostFundsWithdrawCoin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostFundsWithdrawCoin"), parameters);
     }
 
     // Calls the privatePostOrderAddFund endpoint. Returns a JSON object.
@@ -129,6 +139,11 @@ public:
     // Calls the privateGetOrderOrderHistory endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetOrderOrderHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetOrderOrderHistory"), parameters);
+    }
+
+    // Calls the privateGetOrderHistoryByOrderId endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetOrderHistoryByOrderId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetOrderHistoryByOrderId"), parameters);
     }
 
 };

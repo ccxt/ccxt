@@ -1126,6 +1126,11 @@ public:
         return this->callEndpoint (std::string ("sapiGetPortfolioDeltaMode"), parameters);
     }
 
+    // Calls the sapiGetPortfolioMarginCallLevel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> sapiGetPortfolioMarginCallLevel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("sapiGetPortfolioMarginCallLevel"), parameters);
+    }
+
     // Calls the sapiGetStakingProductList endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> sapiGetStakingProductList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiGetStakingProductList"), parameters);
@@ -1911,6 +1916,11 @@ public:
         return this->callEndpoint (std::string ("sapiPostPortfolioDeltaMode"), parameters);
     }
 
+    // Calls the sapiPostPortfolioMarginCallLevel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> sapiPostPortfolioMarginCallLevel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("sapiPostPortfolioMarginCallLevel"), parameters);
+    }
+
     // Calls the sapiPostLendingAutoInvestPlanAdd endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> sapiPostLendingAutoInvestPlanAdd (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPostLendingAutoInvestPlanAdd"), parameters);
@@ -2029,6 +2039,11 @@ public:
     // Calls the sapiPutUserDataStreamIsolated endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> sapiPutUserDataStreamIsolated (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("sapiPutUserDataStreamIsolated"), parameters);
+    }
+
+    // Calls the sapiDeletePortfolioMarginCallLevel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> sapiDeletePortfolioMarginCallLevel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("sapiDeletePortfolioMarginCallLevel"), parameters);
     }
 
     // Calls the sapiDeleteMarginOpenOrders endpoint. Returns a JSON array.
@@ -3276,6 +3291,11 @@ public:
         return this->callEndpoint (std::string ("eapiPrivatePostBlockOrderExecute"), parameters);
     }
 
+    // Calls the eapiPrivatePostStockContract endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> eapiPrivatePostStockContract (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("eapiPrivatePostStockContract"), parameters);
+    }
+
     // Calls the eapiPrivatePutListenKey endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> eapiPrivatePutListenKey (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("eapiPrivatePutListenKey"), parameters);
@@ -3386,9 +3406,29 @@ public:
         return this->callEndpoint (std::string ("publicGetExchangeInfo"), parameters);
     }
 
+    // Calls the publicGetExecutionRules endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetExecutionRules (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetExecutionRules"), parameters);
+    }
+
     // Calls the publicGetAvgPrice endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetAvgPrice (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetAvgPrice"), parameters);
+    }
+
+    // Calls the publicGetReferencePrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetReferencePrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetReferencePrice"), parameters);
+    }
+
+    // Calls the publicGetReferencePriceCalculation endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetReferencePriceCalculation (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetReferencePriceCalculation"), parameters);
+    }
+
+    // Calls the publicGetHistoricalBlockTrades endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetHistoricalBlockTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetHistoricalBlockTrades"), parameters);
     }
 
     // Calls the publicPutUserDataStream endpoint. Returns a JSON object.
@@ -3599,6 +3639,21 @@ public:
     // Calls the papiGetUmConditionalAllOrders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> papiGetUmConditionalAllOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("papiGetUmConditionalAllOrders"), parameters);
+    }
+
+    // Calls the papiGetUmAlgoAlgoOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> papiGetUmAlgoAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiGetUmAlgoAlgoOrder"), parameters);
+    }
+
+    // Calls the papiGetUmAlgoOpenAlgoOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> papiGetUmAlgoOpenAlgoOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiGetUmAlgoOpenAlgoOrders"), parameters);
+    }
+
+    // Calls the papiGetUmAlgoAllAlgoOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> papiGetUmAlgoAllAlgoOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiGetUmAlgoAllAlgoOrders"), parameters);
     }
 
     // Calls the papiGetCmConditionalOpenOrder endpoint. Returns a JSON object.
@@ -3881,6 +3936,11 @@ public:
         return this->callEndpoint (std::string ("papiPostUmConditionalOrder"), parameters);
     }
 
+    // Calls the papiPostUmAlgoOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> papiPostUmAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiPostUmAlgoOrder"), parameters);
+    }
+
     // Calls the papiPostCmOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> papiPostCmOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("papiPostCmOrder"), parameters);
@@ -4009,6 +4069,16 @@ public:
     // Calls the papiDeleteUmConditionalAllOpenOrders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> papiDeleteUmConditionalAllOpenOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("papiDeleteUmConditionalAllOpenOrders"), parameters);
+    }
+
+    // Calls the papiDeleteUmAlgoOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> papiDeleteUmAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiDeleteUmAlgoOrder"), parameters);
+    }
+
+    // Calls the papiDeleteUmAlgoAllOpenOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> papiDeleteUmAlgoAllOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("papiDeleteUmAlgoAllOpenOrders"), parameters);
     }
 
     // Calls the papiDeleteCmOrder endpoint. Returns a JSON object.

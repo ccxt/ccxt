@@ -201,6 +201,11 @@ public:
         return this->callEndpoint (std::string ("v1PublicGetTvSymbolInfo"), parameters);
     }
 
+    // Calls the v1PublicGetTvKlineHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PublicGetTvKlineHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PublicGetTvKlineHistory"), parameters);
+    }
+
     // Calls the v1PublicGetPublicFundingRateHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PublicGetPublicFundingRateHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PublicGetPublicFundingRateHistory"), parameters);
@@ -249,6 +254,11 @@ public:
     // Calls the v1PublicPostRegisterAccount endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PublicPostRegisterAccount (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PublicPostRegisterAccount"), parameters);
+    }
+
+    // Calls the v1PublicPostPublicQuery endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PublicPostPublicQuery (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PublicPostPublicQuery"), parameters);
     }
 
     // Calls the v1PrivateGetClientKeyInfo endpoint. Returns a JSON object.
@@ -341,6 +351,11 @@ public:
         return this->callEndpoint (std::string ("v1PrivateGetPnlSettlementHistory"), parameters);
     }
 
+    // Calls the v1PrivateGetInternalTransferHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetInternalTransferHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetInternalTransferHistory"), parameters);
+    }
+
     // Calls the v1PrivateGetVolumeUserDaily endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetVolumeUserDaily (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetVolumeUserDaily"), parameters);
@@ -406,6 +421,11 @@ public:
         return this->callEndpoint (std::string ("v1PrivateGetBrokerUserInfo"), parameters);
     }
 
+    // Calls the v1PrivateGetBrokerDailyFeeRevenue endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetBrokerDailyFeeRevenue (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetBrokerDailyFeeRevenue"), parameters);
+    }
+
     // Calls the v1PrivateGetOrderbookSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetOrderbookSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetOrderbookSymbol"), parameters);
@@ -414,6 +434,61 @@ public:
     // Calls the v1PrivateGetKline endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetKline (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetKline"), parameters);
+    }
+
+    // Calls the v1PrivateGetClientLeverages endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetClientLeverages (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetClientLeverages"), parameters);
+    }
+
+    // Calls the v1PrivateGetClientMarginModes endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetClientMarginModes (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetClientMarginModes"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelAdmin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelAdmin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelAdmin"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelAdminInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelAdminInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelAdminInfo"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelAdminRefereeList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelAdminRefereeList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelAdminRefereeList"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelAdminSummary endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelAdminSummary (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelAdminSummary"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelMaxRebateRate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelMaxRebateRate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelMaxRebateRate"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelRebateInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelRebateInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelRebateInfo"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelRefereeList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelRefereeList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelRefereeList"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelStatistics endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelStatistics (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelStatistics"), parameters);
+    }
+
+    // Calls the v1PrivateGetReferralMultiLevelVolumePrerequisite endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetReferralMultiLevelVolumePrerequisite (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetReferralMultiLevelVolumePrerequisite"), parameters);
     }
 
     // Calls the v1PrivatePostOrderlyKey endpoint. Returns a JSON object.
@@ -466,6 +541,11 @@ public:
         return this->callEndpoint (std::string ("v1PrivatePostSettlePnl"), parameters);
     }
 
+    // Calls the v1PrivatePostInternalTransfer endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostInternalTransfer (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostInternalTransfer"), parameters);
+    }
+
     // Calls the v1PrivatePostNotificationInboxMarkRead endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostNotificationInboxMarkRead (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostNotificationInboxMarkRead"), parameters);
@@ -479,6 +559,21 @@ public:
     // Calls the v1PrivatePostClientLeverage endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostClientLeverage (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostClientLeverage"), parameters);
+    }
+
+    // Calls the v1PrivatePostClientLeverages endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostClientLeverages (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostClientLeverages"), parameters);
+    }
+
+    // Calls the v1PrivatePostClientMarginMode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostClientMarginMode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostClientMarginMode"), parameters);
+    }
+
+    // Calls the v1PrivatePostPositionMargin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPositionMargin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPositionMargin"), parameters);
     }
 
     // Calls the v1PrivatePostClientMaintenanceConfig endpoint. Returns a JSON object.
@@ -539,6 +634,51 @@ public:
     // Calls the v1PrivatePostReferralEditSplit endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostReferralEditSplit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostReferralEditSplit"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralEditRefereeDescription endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralEditRefereeDescription (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralEditRefereeDescription"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelAdmin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelAdmin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelAdmin"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelAdminUpdate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelAdminUpdate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelAdminUpdate"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelAdminCreateAffiliate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelAdminCreateAffiliate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelAdminCreateAffiliate"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelAdminResetAffiliate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelAdminResetAffiliate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelAdminResetAffiliate"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelAdminUpdateAffiliate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelClaimCode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelClaimCode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelClaimCode"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelRebateRateSetDefault endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelRebateRateSetDefault (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelRebateRateSetDefault"), parameters);
+    }
+
+    // Calls the v1PrivatePostReferralMultiLevelRebateRateUpdate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostReferralMultiLevelRebateRateUpdate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostReferralMultiLevelRebateRateUpdate"), parameters);
     }
 
     // Calls the v1PrivatePutOrder endpoint. Returns a JSON object.

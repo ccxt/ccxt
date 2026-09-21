@@ -491,6 +491,30 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v3/builder/userTrades"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v3/builder/approvedUserList"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v3/stpMode"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("v3/asset/migrateUser/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("v3/strategyOpenOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v3/strategyHistoryOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -610,6 +634,30 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v3/registerAndApproveAgent"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("v3/asset/migrateUser"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("v3/chase"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/stpMode"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/placeStrategyOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("v3/updateStrategyOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
@@ -645,6 +693,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v3/batchOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/guardedCancelOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/guardedBatchOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -3984,20 +4040,15 @@ public:
     if (isTrue(postOnly)) {
       ::setValue(request, std::string("timeInForce"), std::string("GTX"));
     }
-    //
-    // spot
-    // LIMIT timeInForce, quantity, price
-    // MARKET quantity or quoteOrderQty
-    // STOP and TAKE_PROFIT quantity, price, stopPrice
-    // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-    // future
-    // LIMIT timeInForce, quantity, price
-    // MARKET quantity
-    // STOP/TAKE_PROFIT quantity, price, stopPrice
-    // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-    // TRAILING_STOP_MARKET callbackRate
-    //
-    // additional required fields depending on the order type
+    // additional required fields per order type
+    // spot: LIMIT timeInForce, quantity, price; MARKET quantity or
+    // quoteOrderQty;
+    //       STOP/TAKE_PROFIT quantity, price, stopPrice;
+    //       STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+    // future: LIMIT timeInForce, quantity, price; MARKET quantity;
+    // STOP/TAKE_PROFIT quantity, price, stopPrice;
+    //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET
+    //       callbackRate
     ccxt::any closePosition =
         this->safeBool(params, std::string("closePosition"), false);
     ccxt::any timeInForceIsRequired = false;
@@ -5653,10 +5704,11 @@ public:
    * @name aster#fetchAccountPositions
    * @ignore
    * @description fetch account positions
-  https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+   * @see
+   * https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
-  endpoint
+   * endpoint
    * @returns {object} data on account positions
    */
   virtual std::shared_future<ccxt::any>

@@ -1243,6 +1243,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 150},
                             }},
+                           {std::string("portfolio/margin-call-level"),
+                            ccxt::dict{
+                                {std::string("cost"), 150},
+                            }},
                            {std::string("staking/productList"),
                             ccxt::dict{
                                 {std::string("cost"), 0.1},
@@ -1898,6 +1902,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 150},
                             }},
+                           {std::string("portfolio/margin-call-level"),
+                            ccxt::dict{
+                                {std::string("cost"), 150},
+                            }},
                            {std::string("lending/auto-invest/plan/add"),
                             ccxt::dict{
                                 {std::string("cost"), 0.1},
@@ -2001,6 +2009,10 @@ public:
                        }},
                       {std::string("delete"),
                        ccxt::dict{
+                           {std::string("portfolio/margin-call-level"),
+                            ccxt::dict{
+                                {std::string("cost"), 150},
+                            }},
                            {std::string("margin/openOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 0.1},
@@ -3197,6 +3209,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("stock/contract"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
@@ -3306,9 +3322,26 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("executionRules"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.4},
+                                {std::string("noSymbol"), 8},
+                            }},
                            {std::string("avgPrice"),
                             ccxt::dict{
                                 {std::string("cost"), 0.4},
+                            }},
+                           {std::string("referencePrice"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.4},
+                            }},
+                           {std::string("referencePrice/calculation"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.4},
+                            }},
+                           {std::string("historicalBlockTrades"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
                             }},
                        }},
                       {std::string("put"),
@@ -3509,6 +3542,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                                 {std::string("noSymbol"), 40},
+                            }},
+                           {std::string("um/algo/algoOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("um/algo/openAlgoOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("um/algo/allAlgoOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
                             }},
                            {std::string("cm/conditional/openOrder"),
                             ccxt::dict{
@@ -3741,6 +3786,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("um/algo/order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("cm/order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -3848,6 +3897,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("um/conditional/allOpenOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("um/algo/order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("um/algo/allOpenOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -7374,9 +7431,6 @@ public:
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(assets));
            postFixIncrement(i)) {
         ccxt::any asset = ::getValue(assets, i);
-        ccxt::any marketId = this->safeString(asset, std::string("symbol"));
-        ccxt::any symbol = this->safeSymbol(marketId, ccxt::any{}, ccxt::any{},
-                                            std::string("spot"));
         ccxt::any base =
             this->safeDict(asset, std::string("baseAsset"), ccxt::dict{});
         ccxt::any quote =
@@ -7385,14 +7439,14 @@ public:
             this->safeString(base, std::string("asset")));
         ccxt::any quoteCode = this->safeCurrencyCode(
             this->safeString(quote, std::string("asset")));
-        ccxt::any subResult = ccxt::dict{};
         if (isTrue(!isEqual(baseCode, ccxt::any{}))) {
-          ::setValue(subResult, baseCode, this->parseBalanceHelper(base));
+          result = this->mergeBalanceAccount(result, baseCode,
+                                             this->parseBalanceHelper(base));
         }
         if (isTrue(!isEqual(quoteCode, ccxt::any{}))) {
-          ::setValue(subResult, quoteCode, this->parseBalanceHelper(quote));
+          result = this->mergeBalanceAccount(result, quoteCode,
+                                             this->parseBalanceHelper(quote));
         }
-        ::setValue(result, symbol, this->safeBalance(subResult));
       }
     } else if (isTrue(isEqual(type, std::string("savings")))) {
       ccxt::any positionAmountVos = this->safeList(
@@ -7464,8 +7518,7 @@ public:
     }
     ::setValue(result, std::string("timestamp"), timestamp);
     ::setValue(result, std::string("datetime"), this->iso8601(timestamp));
-    return (isTrue(isolated) ? ccxt::any(result)
-                             : ccxt::any(this->safeBalance(result)));
+    return this->safeBalance(result);
   }
 
   /**
@@ -8298,6 +8351,27 @@ public:
         .share();
   }
 
+  virtual void checkNoStockSymbols(ccxt::any symbols, ccxt::any methodName) {
+    if (isTrue(isEqual(symbols, ccxt::any{}))) {
+      return;
+    }
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(symbols));
+         postFixIncrement(i)) {
+      ccxt::any symbolMarket = this->market(::getValue(symbols, i));
+      ccxt::any stock =
+          this->safeBool(symbolMarket, std::string("stock"), false);
+      if (isTrue(isEqual(stock, true))) {
+        throw NotSupported(toString(
+            add(add(add(add(add(this->id, std::string(" ")), methodName),
+                        std::string(
+                            "() does not support tokenized stock symbols (")),
+                    ::getValue(symbols, i)),
+                std::string("), the equity quote endpoint accepts a single "
+                            "symbol per request, use fetchTicker() instead"))));
+      }
+    }
+  }
+
   /**
    * @method
    * @name binance#fetchBidsAsks
@@ -8320,7 +8394,8 @@ public:
    * endpoint
    * @param {string} [params.subType] "linear" or "inverse"
    * @returns {object} a dictionary of [ticker structures]{@link
-   * https://docs.ccxt.com/?id=ticker-structure}
+   * https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not
+   * supported here, use fetchTicker() per symbol instead
    */
   std::shared_future<ccxt::any>
   fetchBidsAsks(ccxt::any symbols = ccxt::any{},
@@ -8333,6 +8408,8 @@ public:
                  }
                  symbols = this->marketSymbols(symbols, ccxt::any{}, true, true,
                                                true);
+                 this->checkNoStockSymbols(symbols,
+                                           std::string("fetchBidsAsks"));
                  ccxt::any market = this->getMarketFromSymbols(symbols);
                  ccxt::any type = ccxt::any{};
                  ccxt::any typeparamsVariable = this->handleMarketTypeAndParams(
@@ -8519,7 +8596,8 @@ public:
    * @param {string} [params.type] 'spot', 'option', use params["subType"] for
    * swap and future markets
    * @returns {object} a dictionary of [ticker structures]{@link
-   * https://docs.ccxt.com/?id=ticker-structure}
+   * https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not
+   * supported here, use fetchTicker() per symbol instead
    */
   std::shared_future<ccxt::any>
   fetchTickers(ccxt::any symbols = ccxt::any{},
@@ -8532,6 +8610,8 @@ public:
                  }
                  symbols = this->marketSymbols(symbols, ccxt::any{}, true, true,
                                                true);
+                 this->checkNoStockSymbols(symbols,
+                                           std::string("fetchTickers"));
                  ccxt::any market = this->getMarketFromSymbols(symbols);
                  ccxt::any type = ccxt::any{};
                  ccxt::any typeparamsVariable = this->handleMarketTypeAndParams(
@@ -21717,8 +21797,8 @@ public:
    * for, all markets are returned if not assigned
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object} a [greeks structure]{@link
-   * https://docs.ccxt.com/?id=greeks-structure}
+   * @returns {object} a dictionary of [greeks structures]{@link
+   * https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
    */
   std::shared_future<ccxt::any>
   fetchAllGreeks(ccxt::any symbols = ccxt::any{},
@@ -23296,6 +23376,12 @@ public:
       if (count >= 2)
         return awaitValue(
             this->fetchTicker(::getValue(args, 0), ::getValue(args, 1)));
+    }
+    if (which == "checkNoStockSymbols") {
+      if (true) {
+        this->checkNoStockSymbols(::getValue(args, 0), ::getValue(args, 1));
+        return ccxt::any{};
+      }
     }
     if (which == "fetchBidsAsks") {
       if (count <= 0)

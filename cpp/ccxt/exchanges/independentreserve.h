@@ -196,6 +196,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("GetDepositFees"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("GetFiatWithdrawalFees"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("GetCryptoWithdrawalFees"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -266,11 +274,27 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("GetTradesByOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("GetBrokerageFees"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("GetDigitalCurrencyWithdrawal"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("GetFiatWithdrawal"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("GetDepositLimits"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("GetWithdrawalLimits"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -283,6 +307,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("CancelOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("CancelOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},

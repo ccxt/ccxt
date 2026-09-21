@@ -261,6 +261,11 @@ public:
         return this->callEndpoint (std::string ("privatePutUsersMarginMode"), parameters);
     }
 
+    // Calls the privatePutUsersTradingPreferences endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePutUsersTradingPreferences (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePutUsersTradingPreferences"), parameters);
+    }
+
     // Calls the privateDeleteOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDeleteOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteOrders"), parameters);

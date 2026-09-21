@@ -223,6 +223,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("derivatives/market_hours/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "derivatives/market_hours/{market_symbol}/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -234,6 +243,23 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("contacts/{contact_uuid}/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel_rule/utxo/xpub_registrations/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel_rule/utxo/xpub_registrations/"
+                                        "{registration_id}/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel_rule/address_verification/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("crypto-transactions/deposits/"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -289,6 +315,11 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("crypto-transactions/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("crypto-transactions/deposits/"
+                                        "{deposit_id}/reject/"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -413,6 +444,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_max_order_amount/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("order_data/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account_order_data/"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1065,6 +1104,15 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("travel_rule/contacts/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel_rule/utxo/xpub_registrations/"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel_rule/utxo/xpub_registrations/"
+                                        "{registration_id}/revoke/"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -2427,6 +2475,7 @@ public:
    * @param {int} [limit] the maximum amount of candles to fetch
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
+   * @param {int} [params.until] timestamp in ms of the latest candle to fetch
    * @returns {int[][]} A list of candles ordered as timestamp, open, high, low,
    * close, volume
    */
@@ -2448,34 +2497,58 @@ public:
                       this->safeString(this->timeframes, timeframe, timeframe)},
                  };
                  ccxt::any duration = this->parseTimeframe(timeframe);
+                 ccxt::any until =
+                     this->safeInteger(params, std::string("until"));
+                 ccxt::any untilIsDefined = (!isEqual(until, ccxt::any{}));
                  if (isTrue(isEqual(limit, ccxt::any{}))) {
+                   limit = 1000;
                    if (isTrue(isEqual(since, ccxt::any{}))) {
-                     ::setValue(request, std::string("limit"),
-                                1000); // we need to specify an allowed amount
-                                       // of `limit` if no `since` is set and
-                                       // there is no default limit by exchange
+                     ::setValue(request, std::string("limit"), limit);
+                     if (isTrue(untilIsDefined)) {
+                       ccxt::any end = this->parseToInt(divide(until, 1000));
+                       ::setValue(
+                           request, std::string("start"),
+                           subtract(subtract(end, (multiply(duration, limit))),
+                                    1));
+                       ::setValue(request, std::string("end"), end);
+                     }
                    } else {
-                     limit = 1000;
                      ccxt::any start = this->parseToInt(divide(since, 1000));
                      ::setValue(request, std::string("start"), start);
-                     ::setValue(
-                         request, std::string("end"),
-                         this->sum(start,
-                                   multiply(duration, (subtract(limit, 1)))));
+                     if (isTrue(untilIsDefined)) {
+                       ::setValue(request, std::string("end"),
+                                  this->parseToInt(divide(until, 1000)));
+                     } else {
+                       ::setValue(
+                           request, std::string("end"),
+                           this->sum(start,
+                                     subtract(multiply(duration, limit), 1)));
+                     }
                      ::setValue(request, std::string("limit"), limit);
                    }
                  } else {
                    if (isTrue(!isEqual(since, ccxt::any{}))) {
                      ccxt::any start = this->parseToInt(divide(since, 1000));
                      ::setValue(request, std::string("start"), start);
+                     ccxt::any end = this->sum(
+                         start, subtract(multiply(duration, limit), 1));
+                     if (isTrue(untilIsDefined)) {
+                       end =
+                           mathMin(end, this->parseToInt(divide(until, 1000)));
+                     }
+                     ::setValue(request, std::string("end"), end);
+                   } else if (isTrue(untilIsDefined)) {
+                     ccxt::any end = this->parseToInt(divide(until, 1000));
+                     ::setValue(request, std::string("end"), end);
                      ::setValue(
-                         request, std::string("end"),
-                         this->sum(start,
-                                   multiply(duration, (subtract(limit, 1)))));
+                         request, std::string("start"),
+                         subtract(subtract(end, (multiply(duration, limit))),
+                                  1));
                    }
                    ::setValue(request, std::string("limit"),
                               mathMin(limit, 1000)); // min 1, max 1000
                  }
+                 params = this->omit(params, std::string("until"));
                  ccxt::any response = awaitValue(
                      this->publicGetOhlcPair(this->extend(request, params)));
                  //
@@ -3975,6 +4048,9 @@ public:
     //         "next_funding_time": "1644406050"
     //     }
     //
+    // the websocket funding_rate channel additionally carries mark_price and
+    // index_price
+    //
     ccxt::any currentTime =
         this->safeIntegerProduct(fundingRate, std::string("timestamp"), 1000);
     ccxt::any nextFundingRateTimestamp = this->safeIntegerProduct(
@@ -3983,8 +4059,10 @@ public:
     return ccxt::dict{
         {std::string("info"), fundingRate},
         {std::string("symbol"), this->safeSymbol(marketId, market)},
-        {std::string("markPrice"), ccxt::any{}},
-        {std::string("indexPrice"), ccxt::any{}},
+        {std::string("markPrice"),
+         this->safeNumber(fundingRate, std::string("mark_price"))},
+        {std::string("indexPrice"),
+         this->safeNumber(fundingRate, std::string("index_price"))},
         {std::string("interestRate"), ccxt::any{}},
         {std::string("estimatedSettlePrice"), ccxt::any{}},
         {std::string("timestamp"), currentTime},
@@ -4406,7 +4484,7 @@ public:
         arrayPush(errors, reasonInner);
       } else {
         ccxt::any all =
-            this->safeValue(reasonInner, std::string("__all__"), ccxt::list{});
+            this->safeList(reasonInner, std::string("__all__"), ccxt::list{});
         for (ccxt::any i = 0; isLessThan(i, getArrayLength(all));
              postFixIncrement(i)) {
           arrayPush(errors, ::getValue(all, i));

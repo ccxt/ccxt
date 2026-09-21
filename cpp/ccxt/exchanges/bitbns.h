@@ -185,7 +185,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("userHistoryNew"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("listOpenOrders/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("listOpenOrdersOther/{symbol}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -201,7 +209,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("placeSellOrderOther/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("placeBuyOrder/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("placeBuyOrderOther/{symbol}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -214,6 +230,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("cancelOrder/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("cancelOrderOther/{symbol}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},

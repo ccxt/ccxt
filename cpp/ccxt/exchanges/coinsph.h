@@ -500,6 +500,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("openapi/fiat/v2/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("openapi/fiat/v1/cancel_qr_code"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("openapi/migration/v4/sellorder"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -3245,7 +3253,7 @@ public:
       }
     }
     ccxt::any encodedQuery = this->urlencode(query);
-    if (isTrue(!isEqual(getArrayLength(encodedQuery), 0))) {
+    if (isTrue(!isEqual(getStringLength(encodedQuery), 0))) {
       return add(add(encodedQuery, std::string("&")), encodedArrayParams);
     } else {
       return encodedArrayParams;

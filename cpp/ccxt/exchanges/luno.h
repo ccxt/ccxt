@@ -896,7 +896,7 @@ public:
                  //     }
                  //
                  ccxt::any result = ccxt::list{};
-                 ccxt::any markets = this->safeValue(
+                 ccxt::any markets = this->safeList(
                      response, std::string("markets"), ccxt::list{});
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(markets));
                       postFixIncrement(i)) {
@@ -1047,7 +1047,7 @@ public:
                [=]() mutable -> ccxt::any {
                  ccxt::any response =
                      awaitValue(this->privateGetBalance(params));
-                 ccxt::any wallets = this->safeValue(
+                 ccxt::any wallets = this->safeList(
                      response, std::string("balance"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(wallets));
@@ -1072,7 +1072,7 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any wallets =
-        this->safeValue(response, std::string("balance"), ccxt::list{});
+        this->safeList(response, std::string("balance"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
         {std::string("timestamp"), ccxt::any{}},

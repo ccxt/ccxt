@@ -125,6 +125,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("edge/query"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
@@ -184,6 +188,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("trades"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("symbols"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -264,6 +272,7 @@ public:
                       {std::string("1002"), std::string("RestrictedLocation")},
                       {std::string("1003"), std::string("RestrictedLocation")},
                       {std::string("1004"), std::string("OnMaintenance")},
+                      {std::string("1005"), std::string("BadRequest")},
                       {std::string("2000"), std::string("InvalidOrder")},
                       {std::string("2001"), std::string("InvalidOrder")},
                       {std::string("2002"), std::string("InvalidOrder")},
@@ -388,6 +397,7 @@ public:
                       {std::string("2123"), std::string("BadRequest")},
                       {std::string("2124"), std::string("InvalidOrder")},
                       {std::string("2125"), std::string("OperationRejected")},
+                      {std::string("2126"), std::string("OrderNotFound")},
                       {std::string("3000"), std::string("BadRequest")},
                       {std::string("3001"), std::string("BadRequest")},
                       {std::string("3002"), std::string("ArgumentsRequired")},
@@ -442,7 +452,9 @@ public:
    * loss order is triggered at
    * @param {float} [params.takeProfitPrice] *swap only* The price at which a
    * take profit order is triggered at
-   * @param {string} [params.triggerDirection] trigger direction, above, below
+   * @param {string} [params.triggerDirection] the direction of the trigger
+   * price, 'ascending' or 'descending', also accepts the 'above'/'up' and
+   * 'below'/'down' aliases
    * @param {int} [::getValue(params, std::string("id"))] client-provided
    * request id, returned by the exchange in the response
    * @returns {object} an [order structure]{@link
@@ -603,19 +615,22 @@ public:
                      isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) ||
                      isTrue(isTakeProfitOrder);
                  if (isTrue(isStopOrder)) {
-                   ccxt::any triggerDirection = this->safeStringLower(
-                       params, std::string("triggerDirection"));
-                   if (isTrue(isEqual(triggerDirection, ccxt::any{}))) {
-                     throw ArgumentsRequired(toString(add(
-                         this->id,
-                         std::string(" createOrder() requires triggerDirection "
-                                     "for trigger order"))));
-                   }
+                   ccxt::any triggerDirection = ccxt::any{};
+                   ccxt::any triggerDirectionparamsVariable =
+                       this->handleTriggerDirectionAndParams(params);
+                   triggerDirection =
+                       ::getValue(triggerDirectionparamsVariable, 0);
+                   params = ::getValue(triggerDirectionparamsVariable, 1);
+                   ccxt::any directionSuffix =
+                       (isTrue((isEqual(triggerDirection,
+                                        std::string("ascending"))))
+                            ? ccxt::any(std::string("above"))
+                            : ccxt::any(std::string("below")));
                    ccxt::any triggerPriceX18 = this->convertToX18(triggerPrice);
                    ccxt::any priceRequirement = ccxt::dict{};
                    ::setValue(
                        priceRequirement,
-                       add(std::string("oracle_price_"), triggerDirection),
+                       add(std::string("oracle_price_"), directionSuffix),
                        triggerPriceX18);
                    ccxt::any trigger = ccxt::dict{
                        {std::string("price_trigger"),
@@ -720,6 +735,9 @@ public:
    * exchange-specific alias params.place_requires_unfilled, defaults to true
    * @param {int} [::getValue(params, std::string("id"))] client-provided
    * request id, returned by the exchange in the response
+   * @param {float} [params.triggerPrice] not supported, editing trigger orders
+   * throws std::string("NotSupported"), the same applies to params.stopPrice,
+   * params.stopLossPrice and params.takeProfitPrice
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/#/?id=order-structure}
    */
@@ -793,6 +811,18 @@ public:
                        add(this->id,
                            std::string(
                                " editOrder() supports limit orders only"))));
+                 }
+                 ccxt::any triggerPrice = this->safeStringN(
+                     params, ccxt::list{std::string("triggerPrice"),
+                                        std::string("stopPrice"),
+                                        std::string("stopLossPrice"),
+                                        std::string("takeProfitPrice")});
+                 if (isTrue(!isEqual(triggerPrice, ccxt::any{}))) {
+                   throw NotSupported(toString(add(
+                       this->id,
+                       std::string(" editOrder() and editOrderWs() do not "
+                                   "support trigger orders, cancel the trigger "
+                                   "order and create a new one instead"))));
                  }
                  if (isTrue(isEqual(amount, ccxt::any{}))) {
                    throw ArgumentsRequired(toString(
@@ -1347,7 +1377,8 @@ public:
    * @param {string} symbol unified market symbol of the market orders were made
    * in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {boolean} [params.trigger] set to true if you would like to fetch
@@ -1408,7 +1439,8 @@ public:
                      {std::string("product_ids"), productIds},
                  };
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("limit"), limit);
+                   ::setValue(request, std::string("limit"),
+                              mathMin(limit, 500));
                  }
                  ccxt::any contracts = awaitValue(this->queryContracts());
                  ccxt::any chainId =
@@ -1505,7 +1537,7 @@ public:
                      params, std::string("stop"), std::string("trigger"));
                  if (isTrue(isEqual(trigger, true))) {
                    return awaitValue(this->fetchOrders(
-                       symbol, since, ccxt::any{},
+                       symbol, since, limit,
                        this->extend(
                            params,
                            ccxt::dict{
@@ -1622,7 +1654,7 @@ public:
                      params, std::string("stop"), std::string("trigger"));
                  if (isTrue(isEqual(trigger, true))) {
                    return awaitValue(this->fetchOrders(
-                       symbol, since, ccxt::any{},
+                       symbol, since, limit,
                        this->extend(
                            params,
                            ccxt::dict{
@@ -1699,18 +1731,18 @@ public:
   /**
    * @method
    * @name nado#fetchCanceledOrders
-   * @description fetches information on multiple canceled orders made by the
-   * user
+   * @description fetches information on multiple canceled trigger orders made
+   * by the user, the exchange keeps canceled-order history for trigger orders
+   * only
    * @see
    * https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
    * @param {string} symbol unified market symbol of the market the orders were
    * made in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @param {boolean} [params.trigger] set to true if you would like to fetch
-   * portfolio margin account trigger or conditional orders
    * @returns {object[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -1720,10 +1752,11 @@ public:
     return std::async(std::launch::deferred,
                       [=]() mutable -> ccxt::any {
                         return awaitValue(this->fetchOrders(
-                            symbol, since, ccxt::any{},
+                            symbol, since, limit,
                             this->extend(
                                 params,
                                 ccxt::dict{
+                                    {std::string("trigger"), true},
                                     {std::string("status_types"),
                                      ccxt::list{std::string("cancelled"),
                                                 std::string("internal_error")}},
@@ -1735,18 +1768,18 @@ public:
   /**
    * @method
    * @name nado#fetchCanceledAndClosedOrders
-   * @description fetches information on multiple canceled orders made by the
-   * user
+   * @description fetches information on multiple canceled and closed trigger
+   * orders made by the user, the exchange keeps canceled-order history for
+   * trigger orders only
    * @see
    * https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
    * @param {string} symbol unified market symbol of the market the orders were
    * made in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @param {boolean} [params.trigger] set to true if you would like to fetch
-   * portfolio margin account trigger or conditional orders
    * @returns {object[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -1756,10 +1789,11 @@ public:
     return std::async(std::launch::deferred,
                       [=]() mutable -> ccxt::any {
                         return awaitValue(this->fetchOrders(
-                            symbol, since, ccxt::any{},
+                            symbol, since, limit,
                             this->extend(
                                 params,
                                 ccxt::dict{
+                                    {std::string("trigger"), true},
                                     {std::string("status_types"),
                                      ccxt::list{std::string("cancelled"),
                                                 std::string("internal_error"),
@@ -2673,6 +2707,7 @@ public:
                [=]() mutable -> ccxt::any {
                  awaitValue(this->loadMarkets());
                  ccxt::any market = this->market(symbol);
+                 symbol = ::getValue(market, std::string("symbol"));
                  ccxt::any tickers =
                      awaitValue(this->fetchTickers(ccxt::list{symbol}, params));
                  ccxt::any ticker = this->safeDict(tickers, symbol);
@@ -2682,7 +2717,7 @@ public:
                            std::string(" fetchTicker() ticker not found for ")),
                        symbol)));
                  }
-                 return this->safeTicker(ticker, market);
+                 return ticker;
                })
         .share();
   }
@@ -3154,7 +3189,7 @@ public:
    * @param {string} symbol unified symbol of the market to fetch OHLCV data for
    * @param {string} timeframe the length of time each candle represents
    * @param {int} [since] timestamp in ms of the earliest candle to fetch
-   * @param {int} [limit] the maximum amount of candles to fetch
+   * @param {int} [limit] the maximum amount of candles to fetch, max 500
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {int} [params.until] timestamp in ms of the latest candle to fetch
@@ -3186,7 +3221,7 @@ public:
                  };
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
                    ::setValue(::getValue(request, std::string("candlesticks")),
-                              std::string("limit"), limit);
+                              std::string("limit"), mathMin(limit, 500));
                  }
                  if (isTrue(!isEqual(until, ccxt::any{}))) {
                    ::setValue(::getValue(request, std::string("candlesticks")),
@@ -4056,8 +4091,14 @@ public:
 
   virtual ccxt::any createOrderNonce(ccxt::any recvWindow) {
     ccxt::any expires = this->sum(this->milliseconds(), recvWindow);
-    return ccxt::Precise::stringMul(this->numberToString(expires),
-                                    std::string("1048576"));
+    ccxt::any highBits = ccxt::Precise::stringMul(this->numberToString(expires),
+                                                  std::string("1048576"));
+    // the exchange defines the nonce to be the recv time moved left by 20 bits
+    // plus a random value on the low bits, otherwise two orders created
+    // during the same millisecond would collide on the same nonce and get
+    // rejected
+    ccxt::any entropy = this->randNumber(6);
+    return ccxt::Precise::stringAdd(highBits, this->numberToString(entropy));
   }
 
   virtual ccxt::any createOrderAppendix(ccxt::any isTriggerOrder,

@@ -16,7 +16,7 @@ std::shared_future<ccxt::any> testFetchMyTrades(ccxt::any exchange,
                for (ccxt::any i = 0; isLessThan(i, getArrayLength(trades));
                     postFixIncrement(i)) {
                  testTrade(exchange, skippedProperties, method,
-                           ::getValue(trades, i), symbol, now);
+                           ::getValue(trades, i), symbol, now, false);
                }
                assertTimestampOrder(exchange, method, symbol, trades);
                return true;

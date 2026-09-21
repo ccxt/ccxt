@@ -272,6 +272,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/orders/pending"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/orders/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/twap"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -398,6 +406,10 @@ public:
                            {std::string("v2/orders/cancel"),
                             ccxt::dict{
                                 {std::string("cost"), 6},
+                            }},
+                           {std::string("v2/orders/search"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
                             }},
                            {std::string("v1/twap"),
                             ccxt::dict{
@@ -4534,6 +4546,9 @@ public:
     ccxt::any queryKeysLength = getArrayLength(queryKeys);
     ccxt::any hasQuery = (isGreaterThan(queryKeysLength, 0));
     if (isTrue(isEqual(api, std::string("public")))) {
+      headers = ccxt::dict{
+          {std::string("OPEN-API-PARTNER"), std::string("CCXT")},
+      };
       if (isTrue(hasQuery)) {
         url = add(url, add(std::string("?"), this->urlencode(query)));
       }
@@ -4545,6 +4560,7 @@ public:
       if (isTrue(isVersionedApi)) {
         headers = ccxt::dict{
             {std::string("Accept"), std::string("application/json")},
+            {std::string("OPEN-API-PARTNER"), std::string("CCXT")},
         };
         ccxt::any request = ccxt::dict{
             {std::string("access_key"), this->apiKey},
@@ -4600,6 +4616,7 @@ public:
             {std::string("Api-Key"), this->apiKey},
             {std::string("Api-Sign"), signature64},
             {std::string("Api-Nonce"), nonce},
+            {std::string("OPEN-API-PARTNER"), std::string("CCXT")},
         };
       }
     }

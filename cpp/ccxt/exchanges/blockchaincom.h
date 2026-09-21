@@ -143,6 +143,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("internal/orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("orders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},

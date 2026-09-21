@@ -192,4 +192,21 @@ void testSafeTicker() {
                              std::string("6.0")));
   assertTrue(preciseEqualStr(exchange, result9, std::string("last"),
                              std::string("6.0")));
+  // CASE 10 - by open and average, the pair that derives close from average
+  ccxt::any ticker10 = ccxt::dict{
+      {std::string("open"), 5},
+      {std::string("average"), 5.5},
+  };
+  ccxt::any result10 = exchange.safeTicker(ticker10);
+  assertTrue(preciseEqualStr(exchange, result10, std::string("close"),
+                             std::string("6.0")));
+  assertTrue(preciseEqualStr(exchange, result10, std::string("last"),
+                             std::string("6.0")));
+  // the supplied average must survive untouched, and this path deliberately
+  // leaves change and percentage underived - pin that boundary
+  assertTrue(preciseEqualStr(exchange, result10, std::string("average"),
+                             std::string("5.5")));
+  assertTrue(isEqual(::getValue(result10, std::string("change")), ccxt::any{}));
+  assertTrue(
+      isEqual(::getValue(result10, std::string("percentage")), ccxt::any{}));
 }

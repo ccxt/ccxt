@@ -36,6 +36,11 @@ public:
         return this->callEndpoint (std::string ("publicGetApiV1BorrowLendMarketsHistory"), parameters);
     }
 
+    // Calls the publicGetApiV1BorrowLendApy endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetApiV1BorrowLendApy (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1BorrowLendApy"), parameters);
+    }
+
     // Calls the publicGetApiV1Markets endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetApiV1Markets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetApiV1Markets"), parameters);
@@ -59,6 +64,31 @@ public:
     // Calls the publicGetApiV1Depth endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetApiV1Depth (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetApiV1Depth"), parameters);
+    }
+
+    // Calls the publicGetApiV1Prediction endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetApiV1Prediction (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1Prediction"), parameters);
+    }
+
+    // Calls the publicGetApiV1PredictionTags endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetApiV1PredictionTags (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1PredictionTags"), parameters);
+    }
+
+    // Calls the publicGetApiV1MarketSessions endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetApiV1MarketSessions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1MarketSessions"), parameters);
+    }
+
+    // Calls the publicGetApiV1MarketHolidays endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetApiV1MarketHolidays (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1MarketHolidays"), parameters);
+    }
+
+    // Calls the publicGetApiV1Securities endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetApiV1Securities (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetApiV1Securities"), parameters);
     }
 
     // Calls the publicGetApiV1Klines endpoint. Returns a JSON array.
@@ -136,6 +166,11 @@ public:
         return this->callEndpoint (std::string ("privateGetApiV1BorrowLendPositions"), parameters);
     }
 
+    // Calls the privateGetApiV1BorrowLendPositionLiquidationPrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV1BorrowLendPositionLiquidationPrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV1BorrowLendPositionLiquidationPrice"), parameters);
+    }
+
     // Calls the privateGetApiV1Capital endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetApiV1Capital (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetApiV1Capital"), parameters);
@@ -196,9 +231,19 @@ public:
         return this->callEndpoint (std::string ("privateGetWapiV1HistoryFunding"), parameters);
     }
 
+    // Calls the privateGetWapiV1HistoryPosition endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetWapiV1HistoryPosition (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetWapiV1HistoryPosition"), parameters);
+    }
+
     // Calls the privateGetWapiV1HistoryOrders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetWapiV1HistoryOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWapiV1HistoryOrders"), parameters);
+    }
+
+    // Calls the privateGetApiV1Rfqs endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV1Rfqs (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV1Rfqs"), parameters);
     }
 
     // Calls the privateGetWapiV1HistoryRfq endpoint. Returns a JSON array.
@@ -211,6 +256,16 @@ public:
         return this->callEndpoint (std::string ("privateGetWapiV1HistoryQuote"), parameters);
     }
 
+    // Calls the privateGetWapiV1HistoryRfqFill endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetWapiV1HistoryRfqFill (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetWapiV1HistoryRfqFill"), parameters);
+    }
+
+    // Calls the privateGetWapiV1HistoryQuoteFill endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetWapiV1HistoryQuoteFill (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetWapiV1HistoryQuoteFill"), parameters);
+    }
+
     // Calls the privateGetWapiV1HistorySettlement endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetWapiV1HistorySettlement (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWapiV1HistorySettlement"), parameters);
@@ -219,6 +274,16 @@ public:
     // Calls the privateGetWapiV1HistoryStrategies endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetWapiV1HistoryStrategies (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWapiV1HistoryStrategies"), parameters);
+    }
+
+    // Calls the privateGetApiV1Strategy endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV1Strategy (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV1Strategy"), parameters);
+    }
+
+    // Calls the privateGetApiV1Strategies endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV1Strategies (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV1Strategies"), parameters);
     }
 
     // Calls the privateGetApiV1Order endpoint. Returns a JSON object.
@@ -281,6 +346,11 @@ public:
         return this->callEndpoint (std::string ("privatePostApiV1RfqQuote"), parameters);
     }
 
+    // Calls the privatePostApiV1Strategy endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostApiV1Strategy (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostApiV1Strategy"), parameters);
+    }
+
     // Calls the privateDeleteApiV1Order endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDeleteApiV1Order (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteApiV1Order"), parameters);
@@ -289,6 +359,16 @@ public:
     // Calls the privateDeleteApiV1Orders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateDeleteApiV1Orders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteApiV1Orders"), parameters);
+    }
+
+    // Calls the privateDeleteApiV1Strategy endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateDeleteApiV1Strategy (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateDeleteApiV1Strategy"), parameters);
+    }
+
+    // Calls the privateDeleteApiV1Strategies endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateDeleteApiV1Strategies (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateDeleteApiV1Strategies"), parameters);
     }
 
     // Calls the privatePatchApiV1Account endpoint. Returns a JSON object.

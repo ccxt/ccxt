@@ -121,6 +121,26 @@ public:
         return this->callEndpoint (std::string ("v4PublicNetGetCandles"), parameters);
     }
 
+    // Calls the v4PrivatePostAccounts endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v4PrivatePostAccounts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v4PrivatePostAccounts"), parameters);
+    }
+
+    // Calls the v4PrivatePostAccountsAccountIdSymbolTransfersInternal endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v4PrivatePostAccountsAccountIdSymbolTransfersInternal (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v4PrivatePostAccountsAccountIdSymbolTransfersInternal"), parameters);
+    }
+
+    // Calls the v4PrivatePostOauth2Token endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v4PrivatePostOauth2Token (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v4PrivatePostOauth2Token"), parameters);
+    }
+
+    // Calls the v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId"), parameters);
+    }
+
 };
 
 } // namespace ccxt

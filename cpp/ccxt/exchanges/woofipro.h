@@ -286,6 +286,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("public/points/rankings"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("public/points/stages"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("public/referral/check_ref_code"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -338,6 +346,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("tv/kline_history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("public/funding_rate_history"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -371,6 +383,18 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("public/futures/{symbol}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("staking/valor2/batch_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("staking/valor2/pool_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("staking/valor2/revenue_buyback"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -457,6 +481,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("transfer_nonce"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("pnl_settlement/history"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -514,6 +542,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string("broker/daily_fee_revenue"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                                 {std::string("orderbook/{symbol}"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -523,6 +555,60 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("client/margin_modes"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("client/leverages"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("client/points/user_statistics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("staking/valor2/redeem"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/admin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/admin/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/referee_list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/max_rebate_rate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/rebate_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/referee_list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/statistics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/"
+                                             "volume_prerequisite"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -584,6 +670,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 120},
                                  }},
+                                {std::string("client/leverages"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 120},
+                                 }},
                                 {std::string("client/margin_mode"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -640,6 +730,49 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string(
+                                     "referral/edit_referee_description"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/"
+                                             "create/affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/reset/"
+                                             "affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/update"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/"
+                                             "update/affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/claim_code"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/rebate_rate/"
+                                             "set_default"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/rebate_rate/update"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                             }},
                            {std::string("put"),
                             ccxt::dict{
@@ -683,6 +816,19 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("client/batch-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                       }},
+                  }},
+                 {std::string("v2"),
+                  ccxt::dict{
+                      {std::string("private"),
+                       ccxt::dict{
+                           {std::string("post"),
+                            ccxt::dict{
+                                {std::string("internal_transfer"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -2537,7 +2683,7 @@ public:
     if (isTrue(!isEqual(childOrders, ccxt::any{}))) {
       ccxt::any first = this->safeValue(childOrders, 0);
       ccxt::any innerChildOrders =
-          this->safeValue(first, std::string("childOrders"), ccxt::list{});
+          this->safeList(first, std::string("childOrders"), ccxt::list{});
       ccxt::any innerChildOrdersLength = getArrayLength(innerChildOrders);
       if (isTrue(isGreaterThan(innerChildOrdersLength, 0))) {
         ccxt::any takeProfitOrder = this->safeValue(innerChildOrders, 0);
@@ -2610,7 +2756,7 @@ public:
       };
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   virtual ccxt::any parseOrderType(ccxt::any type) {

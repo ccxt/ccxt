@@ -303,6 +303,30 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/fapi/trade/open_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/plan_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/history_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/history_trade"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/position_history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/fapi/account/balance"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -383,6 +407,34 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v1/fapi/trade/batch_leverage_margin"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/place_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/batch_place_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/edit_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/batch_edit_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/cancel_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/batch_cancel_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/fapi/trade/cancel_all_order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -782,61 +834,61 @@ public:
   std::shared_future<ccxt::any>
   fetchOrderBook(ccxt::any symbol, ccxt::any limit = ccxt::any{},
                  ccxt::any params = ccxt::dict{}) override {
-    return std::async(std::launch::deferred,
-                      [=]() mutable -> ccxt::any {
-                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
-                          awaitValue(this->loadMarkets());
-                        }
-                        ccxt::any market = this->market(symbol);
-                        ccxt::any request = ccxt::dict{
-                            {std::string("symbol"),
-                             ::getValue(market, std::string("id"))},
-                        };
-                        if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                          ::setValue(request, std::string("limit"),
-                                     this->getClosestLimit(limit));
-                        }
-                        ccxt::any response =
-                            awaitValue(this->publicGetV1FapiMarketDepth(
-                                this->extend(request, params)));
-                        //
-                        //     {
-                        //         "code": 200,
-                        //         "message": "success",
-                        //         "data": {
-                        //             "lastUpdateId": "221780076",
-                        //             "symbol": "ETH-USDT",
-                        //             "asks": [
-                        //                 {
-                        //                     "price": "2958.21",
-                        //                     "amount": "39478"
-                        //                 },
-                        //                 ...
-                        //             ],
-                        //             "bids": [
-                        //                 {
-                        //                     "price": "2958.19",
-                        //                     "amount": "174498"
-                        //                 },
-                        //                 ...
-                        //             ],
-                        //             "e": "221780076"
-                        //         },
-                        //         "success": true
-                        //     }
-                        //
-                        ccxt::any data = this->safeDict(
-                            response, std::string("data"), ccxt::dict{});
-                        ccxt::any timestamp = this->milliseconds();
-                        ccxt::any orderBook = this->parseOrderBook(
-                            data, ::getValue(market, std::string("symbol")),
-                            timestamp, std::string("bids"), std::string("asks"),
-                            std::string("price"), std::string("amount"));
-                        ::setValue(orderBook, std::string("nonce"),
-                                   this->safeInteger(
-                                       data, std::string("lastUpdateId")));
-                        return orderBook;
-                      })
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any market = this->market(symbol);
+                 ccxt::any request = ccxt::dict{
+                     {std::string("symbol"),
+                      ::getValue(market, std::string("id"))},
+                 };
+                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
+                   ::setValue(request, std::string("limit"),
+                              this->getClosestLimit(limit));
+                 }
+                 ccxt::any response =
+                     awaitValue(this->publicGetV1FapiMarketDepth(
+                         this->extend(request, params)));
+                 //
+                 //     {
+                 //         "code": 200,
+                 //         "message": "success",
+                 //         "data": {
+                 //             "lastUpdateId": "221780076",
+                 //             "symbol": "ETH-USDT",
+                 //             "asks": [
+                 //                 {
+                 //                     "price": "2958.21",
+                 //                     "amount": "39478"
+                 //                 },
+                 //                 ...
+                 //             ],
+                 //             "bids": [
+                 //                 {
+                 //                     "price": "2958.19",
+                 //                     "amount": "174498"
+                 //                 },
+                 //                 ...
+                 //             ],
+                 //             "e": "221780076"
+                 //         },
+                 //         "success": true
+                 //     }
+                 //
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
+                 ccxt::any orderBook = this->parseOrderBook(
+                     data, ::getValue(market, std::string("symbol")),
+                     ccxt::any{}, std::string("bids"), std::string("asks"),
+                     std::string("price"), std::string("amount"));
+                 ::setValue(
+                     orderBook, std::string("nonce"),
+                     this->safeInteger(data, std::string("lastUpdateId")));
+                 return orderBook;
+               })
         .share();
   }
 
@@ -3614,11 +3666,10 @@ public:
   }
 
   ccxt::any parseBalance(ccxt::any response) override {
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
     };
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(response));
          postFixIncrement(i)) {
@@ -3697,10 +3748,6 @@ public:
                      transferOptions, std::string("fillResponseFromRequest"),
                      true);
                  if (isTrue(isEqual(fillResponseFromRequest, true))) {
-                   ccxt::any timestamp = this->milliseconds();
-                   ::setValue(transfer, std::string("timestamp"), timestamp);
-                   ::setValue(transfer, std::string("datetime"),
-                              this->iso8601(timestamp));
                    ::setValue(transfer, std::string("currency"), code);
                    ::setValue(transfer, std::string("fromAccount"),
                               fromAccount);

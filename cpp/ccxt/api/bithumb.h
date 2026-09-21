@@ -156,6 +156,16 @@ public:
         return this->callEndpoint (std::string ("privateGetV1Orders"), parameters);
     }
 
+    // Calls the privateGetV2OrdersPending endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2OrdersPending (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2OrdersPending"), parameters);
+    }
+
+    // Calls the privateGetV2OrdersHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2OrdersHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2OrdersHistory"), parameters);
+    }
+
     // Calls the privateGetV1Twap endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetV1Twap (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetV1Twap"), parameters);
@@ -309,6 +319,11 @@ public:
     // Calls the privatePostV2OrdersCancel endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV2OrdersCancel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV2OrdersCancel"), parameters);
+    }
+
+    // Calls the privatePostV2OrdersSearch endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostV2OrdersSearch (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2OrdersSearch"), parameters);
     }
 
     // Calls the privatePostV1Twap endpoint. Returns a JSON object.

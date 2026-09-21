@@ -26,6 +26,11 @@ public:
         return this->callEndpoint (std::string ("publicGetV2UserApiExchangeMarketPrice"), parameters);
     }
 
+    // Calls the publicGetV2UserApiExchangeMarketsPrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV2UserApiExchangeMarketsPrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV2UserApiExchangeMarketsPrice"), parameters);
+    }
+
     // Calls the publicGetV1ExchangeMarketAssets endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetV1ExchangeMarketAssets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetV1ExchangeMarketAssets"), parameters);
@@ -81,6 +86,46 @@ public:
         return this->callEndpoint (std::string ("privateGetV2UserApiTransactionList"), parameters);
     }
 
+    // Calls the privateGetV2UserApiBalance endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiBalance (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiBalance"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiConvertDirectionList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiConvertDirectionList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiConvertDirectionList"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiConvertOrderList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiConvertOrderList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiConvertOrderList"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiAmlCheckBalance endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiAmlCheckBalance (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiAmlCheckBalance"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiAmlCheckCurrencies endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiAmlCheckCurrencies (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiAmlCheckCurrencies"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiAmlCheckPackages endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiAmlCheckPackages (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiAmlCheckPackages"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiAmlCheckRequest endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiAmlCheckRequest (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiAmlCheckRequest"), parameters);
+    }
+
+    // Calls the privateGetV2UserApiAmlCheckRequestId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2UserApiAmlCheckRequestId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2UserApiAmlCheckRequestId"), parameters);
+    }
+
     // Calls the privatePostV2UserApiExchangeOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV2UserApiExchangeOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV2UserApiExchangeOrders"), parameters);
@@ -91,9 +136,39 @@ public:
         return this->callEndpoint (std::string ("privatePostV2UserApiExchangeOrdersMarket"), parameters);
     }
 
+    // Calls the privatePostV2UserApiConvert endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2UserApiConvert (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2UserApiConvert"), parameters);
+    }
+
+    // Calls the privatePostV2UserApiConvertCalculate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2UserApiConvertCalculate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2UserApiConvertCalculate"), parameters);
+    }
+
+    // Calls the privatePostV2UserApiConvertLimit endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2UserApiConvertLimit (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2UserApiConvertLimit"), parameters);
+    }
+
+    // Calls the privatePostV2UserApiAmlCheckRequest endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2UserApiAmlCheckRequest (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2UserApiAmlCheckRequest"), parameters);
+    }
+
+    // Calls the privatePostV2UserApiAmlCheckRequestIdReportSend endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2UserApiAmlCheckRequestIdReportSend (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2UserApiAmlCheckRequestIdReportSend"), parameters);
+    }
+
     // Calls the privateDeleteV2UserApiExchangeOrdersOrderId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDeleteV2UserApiExchangeOrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteV2UserApiExchangeOrdersOrderId"), parameters);
+    }
+
+    // Calls the privateDeleteV2UserApiConvertOrderUuid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateDeleteV2UserApiConvertOrderUuid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateDeleteV2UserApiConvertOrderUuid"), parameters);
     }
 
 };

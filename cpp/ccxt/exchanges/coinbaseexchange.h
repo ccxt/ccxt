@@ -226,6 +226,19 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("wrapped-assets"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/{wrapped_asset_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/{wrapped_asset_id}/"
+                                        "conversion-rate"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -233,6 +246,10 @@ public:
                       {std::string("get"),
                        ccxt::dict{
                            {std::string("address-book"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("address-book/counterparty"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -352,6 +369,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("travel-rules"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("users/self/exchange-limits"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -361,6 +382,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("users/self/trailing-volume"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("users/{user_id}/trading-volumes"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -424,6 +449,27 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("loans/options"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/redeem"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/redeem/{redeem_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/stake-wrap"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "wrapped-assets/stake-wrap/{stake_wrap_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -440,6 +486,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("coinbase-accounts/{id}/addresses"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("address-book"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -479,11 +529,36 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("withdrawals/counterparty"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("withdrawals/crypto"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("withdrawals/payment-method"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("transfers/{transfer_id}/travel-rules"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel-rules"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "users/{user_id}/settlement-preferences"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/redeem"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wrapped-assets/stake-wrap"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -514,6 +589,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("address-book/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("travel-rules/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
@@ -522,6 +605,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("profiles/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("address-book/{id}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1282,7 +1369,6 @@ public:
              : ccxt::any(::getValue(market, std::string("symbol"))));
     if (isTrue(isArray(ticker))) {
       last = this->safeString(ticker, 4);
-      timestamp = this->milliseconds();
     } else {
       timestamp = this->parse8601(this->safeValue(ticker, std::string("time")));
       bid = this->safeString(ticker, std::string("bid"));

@@ -391,6 +391,11 @@ public:
         return this->callEndpoint (std::string ("privatePostAuthROrdersHist"), parameters);
     }
 
+    // Calls the privatePostAuthROrdersOtcSymbolHist endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthROrdersOtcSymbolHist (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthROrdersOtcSymbolHist"), parameters);
+    }
+
     // Calls the privatePostAuthROrderSymbolIdTrades endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostAuthROrderSymbolIdTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthROrderSymbolIdTrades"), parameters);
@@ -464,6 +469,11 @@ public:
     // Calls the privatePostAuthRPositionsSnap endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostAuthRPositionsSnap (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthRPositionsSnap"), parameters);
+    }
+
+    // Calls the privatePostAuthWPositionUpdateFundingType endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthWPositionUpdateFundingType (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthWPositionUpdateFundingType"), parameters);
     }
 
     // Calls the privatePostAuthWDerivCollateralSet endpoint. Returns a JSON array.
@@ -621,9 +631,19 @@ public:
         return this->callEndpoint (std::string ("privatePostAuthWDepositAddress"), parameters);
     }
 
+    // Calls the privatePostAuthRDepositAddressAll endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthRDepositAddressAll (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthRDepositAddressAll"), parameters);
+    }
+
     // Calls the privatePostAuthWDepositInvoice endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostAuthWDepositInvoice (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthWDepositInvoice"), parameters);
+    }
+
+    // Calls the privatePostAuthRExtInvoicePayments endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthRExtInvoicePayments (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthRExtInvoicePayments"), parameters);
     }
 
     // Calls the privatePostAuthWWithdraw endpoint. Returns a JSON array.
@@ -639,6 +659,11 @@ public:
     // Calls the privatePostAuthRMovementsHist endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostAuthRMovementsHist (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthRMovementsHist"), parameters);
+    }
+
+    // Calls the privatePostAuthRMovementsInfo endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthRMovementsInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthRMovementsInfo"), parameters);
     }
 
     // Calls the privatePostAuthRAlerts endpoint. Returns a JSON array.
@@ -694,6 +719,21 @@ public:
     // Calls the privatePostAuthWPulseDel endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostAuthWPulseDel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAuthWPulseDel"), parameters);
+    }
+
+    // Calls the privatePostAuthWExtWalletsDepositsRequest endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthWExtWalletsDepositsRequest (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthWExtWalletsDepositsRequest"), parameters);
+    }
+
+    // Calls the privatePostAuthWExtWalletsWithdrawalsRequest endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthWExtWalletsWithdrawalsRequest (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthWExtWalletsWithdrawalsRequest"), parameters);
+    }
+
+    // Calls the privatePostAuthRExtWalletsTransfersFreeCount endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAuthRExtWalletsTransfersFreeCount (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAuthRExtWalletsTransfersFreeCount"), parameters);
     }
 
 };

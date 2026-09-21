@@ -336,6 +336,16 @@ public:
         return this->callEndpoint (std::string ("privatePostOpenapiFiatV1History"), parameters);
     }
 
+    // Calls the privatePostOpenapiFiatV2History endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostOpenapiFiatV2History (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOpenapiFiatV2History"), parameters);
+    }
+
+    // Calls the privatePostOpenapiFiatV1CancelQrCode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostOpenapiFiatV1CancelQrCode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOpenapiFiatV1CancelQrCode"), parameters);
+    }
+
     // Calls the privatePostOpenapiMigrationV4Sellorder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostOpenapiMigrationV4Sellorder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOpenapiMigrationV4Sellorder"), parameters);

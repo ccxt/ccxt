@@ -151,6 +151,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("vasp_info/{vasp_master_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("country_info/{code}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("corp_type_id_info/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -490,7 +502,7 @@ public:
         {std::string("datetime"), ccxt::any{}},
     };
     ccxt::any funds =
-        this->safeValue(balances, std::string("funds"), ccxt::dict{});
+        this->safeDict(balances, std::string("funds"), ccxt::dict{});
     ccxt::any currencyIds = getObjectKeys(funds);
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(currencyIds));
          postFixIncrement(i)) {

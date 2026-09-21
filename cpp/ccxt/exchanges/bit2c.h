@@ -145,6 +145,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("Exchanges/{pair}/orderbook-top"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("Exchanges/{pair}/trades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -164,6 +168,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("Funds/AddCoinFundsRequest"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("Funds/WithdrawCoin"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -235,6 +243,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("Order/OrderHistory"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("Order/HistoryByOrderId"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -826,8 +838,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any fees = this->safeValue(response, std::string("Fees"),
-                                                  ccxt::dict{});
+                 ccxt::any fees = this->safeDict(response, std::string("Fees"),
+                                                 ccxt::dict{});
                  ccxt::any keys = getObjectKeys(fees);
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));

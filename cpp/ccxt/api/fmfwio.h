@@ -256,6 +256,11 @@ public:
         return this->callEndpoint (std::string ("privateGetMarginHistoryClearing"), parameters);
     }
 
+    // Calls the privateGetMarginSettings endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetMarginSettings (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetMarginSettings"), parameters);
+    }
+
     // Calls the privateGetFuturesBalance endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetFuturesBalance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetFuturesBalance"), parameters);
@@ -321,6 +326,11 @@ public:
         return this->callEndpoint (std::string ("privateGetFuturesHistoryClearing"), parameters);
     }
 
+    // Calls the privateGetUserApiKeys endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetUserApiKeys (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetUserApiKeys"), parameters);
+    }
+
     // Calls the privateGetWalletBalance endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetWalletBalance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWalletBalance"), parameters);
@@ -329,6 +339,11 @@ public:
     // Calls the privateGetWalletBalanceCurrency endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetWalletBalanceCurrency (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWalletBalanceCurrency"), parameters);
+    }
+
+    // Calls the privateGetWalletCryptoAddressWhiteList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetWalletCryptoAddressWhiteList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetWalletCryptoAddressWhiteList"), parameters);
     }
 
     // Calls the privateGetWalletCryptoAddress endpoint. Returns a JSON array.
@@ -364,6 +379,11 @@ public:
     // Calls the privateGetWalletCryptoFeeEstimate endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetWalletCryptoFeeEstimate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetWalletCryptoFeeEstimate"), parameters);
+    }
+
+    // Calls the privateGetWalletCryptoFeeWithdrawHash endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetWalletCryptoFeeWithdrawHash (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetWalletCryptoFeeWithdrawHash"), parameters);
     }
 
     // Calls the privateGetWalletAirdrops endpoint. Returns a JSON array.
@@ -461,6 +481,11 @@ public:
         return this->callEndpoint (std::string ("privatePostWalletCryptoFeesEstimate"), parameters);
     }
 
+    // Calls the privatePostWalletCryptoFeeEstimateBulk endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostWalletCryptoFeeEstimateBulk (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostWalletCryptoFeeEstimateBulk"), parameters);
+    }
+
     // Calls the privatePostWalletAirdropsIdClaim endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostWalletAirdropsIdClaim (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostWalletAirdropsIdClaim"), parameters);
@@ -479,6 +504,16 @@ public:
     // Calls the privatePostSubAccountTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostSubAccountTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostSubAccountTransfer"), parameters);
+    }
+
+    // Calls the privatePostSubAccountTransferSubToSuper endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostSubAccountTransferSubToSuper (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostSubAccountTransferSubToSuper"), parameters);
+    }
+
+    // Calls the privatePostSubAccountTransferSubToSub endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostSubAccountTransferSubToSub (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostSubAccountTransferSubToSub"), parameters);
     }
 
     // Calls the privatePostSubAccountAcl endpoint. Returns a JSON array.
@@ -561,9 +596,24 @@ public:
         return this->callEndpoint (std::string ("privatePutMarginAccountIsolatedSymbol"), parameters);
     }
 
+    // Calls the privatePutMarginSettingsAmm endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePutMarginSettingsAmm (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePutMarginSettingsAmm"), parameters);
+    }
+
+    // Calls the privatePutMarginMarginSettingsAmr endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePutMarginMarginSettingsAmr (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePutMarginMarginSettingsAmr"), parameters);
+    }
+
     // Calls the privatePutFuturesAccountIsolatedSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePutFuturesAccountIsolatedSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePutFuturesAccountIsolatedSymbol"), parameters);
+    }
+
+    // Calls the privatePutFuturesMarginSettingsAmr endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePutFuturesMarginSettingsAmr (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePutFuturesMarginSettingsAmr"), parameters);
     }
 
     // Calls the privatePutWalletCryptoWithdrawId endpoint. Returns a JSON object.

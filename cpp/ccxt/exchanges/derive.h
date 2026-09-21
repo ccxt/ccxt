@@ -187,6 +187,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_wallets_from_session_key"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("login"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -195,11 +199,31 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("all_statistics"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("user_statistics"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("all_user_statistics"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_all_currencies"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_currency"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_asset"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_assets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -219,6 +243,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_tickers"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_latest_signed_feeds"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -232,6 +260,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_spot_feed_history_candles"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_index_chart_data"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_tradingview_chart_data"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -255,6 +291,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_perp_impact_twap"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_transaction"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -264,6 +304,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("margin_watch"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("order_quote"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -292,6 +336,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_swell_percent_points"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_stdrv_snapshots"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -327,11 +375,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_vault_pools"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_vault_rates"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("estimate_integrator_points"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("create_subaccount_debug"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("create_account_with_secret"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -359,6 +419,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_all_referral_codes"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_referral_performance"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_time"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -372,6 +440,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_maker_program_scores"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_detailed_maker_snapshot_history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("getRateLimits"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -406,6 +482,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_notificationsv"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_notifications"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -457,6 +537,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_trigger_orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_algo_orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("cancel"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -478,6 +566,18 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("cancel_trigger_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("cancel_algo_order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("cancel_all_algo_orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("cancel_all_trigger_orders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -541,6 +641,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("order_quote"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("replace_quote"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("rfq_get_best_quote"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -601,6 +709,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("change_session_key_label"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("register_scoped_session_key"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -626,6 +738,22 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("register_invite"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_contact_info"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("create_contact_info"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("update_contact_info"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("delete_contact_info"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -2833,7 +2961,7 @@ public:
       };
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   ccxt::any parseOrder(ccxt::any rawOrder,

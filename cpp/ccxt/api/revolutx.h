@@ -76,6 +76,11 @@ public:
         return this->callEndpoint (std::string ("privateGet10TradesPrivateSymbol"), parameters);
     }
 
+    // Calls the privateGet10Transactions endpoint. Returns a JSON object or a JSON array.
+    virtual std::shared_future<ccxt::any> privateGet10Transactions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGet10Transactions"), parameters);
+    }
+
     // Calls the privatePost10Orders endpoint. Returns a JSON object or a JSON array.
     virtual std::shared_future<ccxt::any> privatePost10Orders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePost10Orders"), parameters);

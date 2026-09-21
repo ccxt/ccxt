@@ -105,7 +105,7 @@ public:
                  {std::string("fetchPositionHistory"), true},
                  {std::string("fetchPositionMode"), true},
                  {std::string("fetchPositions"), true},
-                 {std::string("fetchPositionsHistory"), true},
+                 {std::string("fetchPositionsHistory"), false},
                  {std::string("fetchTicker"), true},
                  {std::string("fetchTickers"), true},
                  {std::string("fetchTime"), true},
@@ -372,6 +372,38 @@ public:
                                           {std::string("cost"), 1},
                                       }},
                                      {std::string("ticker/price"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/bookTicker"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/depth"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/historicalKlines"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/historicalTrades"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/klines"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/price"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/ticker"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 1},
+                                      }},
+                                     {std::string("quote/trades"),
                                       ccxt::dict{
                                           {std::string("cost"), 1},
                                       }},
@@ -643,6 +675,10 @@ public:
                                       ccxt::dict{
                                           {std::string("cost"), 2},
                                       }},
+                                     {std::string("trade/positionHistory"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
                                      {std::string("user/income/export"),
                                       ccxt::dict{
                                           {std::string("cost"), 2},
@@ -849,6 +885,19 @@ public:
                                           {std::string("cost"), 2},
                                       }},
                                      {std::string("trade/cancelOrder"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                 }},
+                            }},
+                       }},
+                      {std::string("v2"),
+                       ccxt::dict{
+                           {std::string("private"),
+                            ccxt::dict{
+                                {std::string("post"),
+                                 ccxt::dict{
+                                     {std::string("trade/order"),
                                       ccxt::dict{
                                           {std::string("cost"), 2},
                                       }},
@@ -1271,6 +1320,46 @@ public:
                             }},
                        }},
                   }},
+                 {std::string("wealth"),
+                  ccxt::dict{
+                      {std::string("v1"),
+                       ccxt::dict{
+                           {std::string("private"),
+                            ccxt::dict{
+                                {std::string("get"),
+                                 ccxt::dict{
+                                     {std::string(
+                                          "product/dual-currency/pre-order"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                     {std::string(
+                                          "product/dual-currency/position"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                     {std::string("product/dual-currency/"
+                                                  "order-records"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                 }},
+                                {std::string("post"),
+                                 ccxt::dict{
+                                     {std::string("product/dual-currency/"
+                                                  "invest-asset-list"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                     {std::string(
+                                          "product/dual-currency/order"),
+                                      ccxt::dict{
+                                          {std::string("cost"), 2},
+                                      }},
+                                 }},
+                            }},
+                       }},
+                  }},
              }},
             {std::string("timeframes"),
              ccxt::dict{
@@ -1421,7 +1510,7 @@ public:
                            {std::string("trailing"), true},
                            {std::string("leverage"), false},
                            {std::string("marketBuyRequiresPrice"), false},
-                           {std::string("marketBuyByCost"), true},
+                           {std::string("marketBuyByCost"), false},
                            {std::string("selfTradePrevention"), false},
                            {std::string("iceberg"), false},
                        }},
@@ -1460,7 +1549,7 @@ public:
                            {std::string("untilDays"), 7},
                            {std::string("trigger"), false},
                            {std::string("trailing"), false},
-                           {std::string("symbolRequired"), true},
+                           {std::string("symbolRequired"), false},
                        }},
                       {std::string("fetchClosedOrders"),
                        ccxt::dict{
@@ -1471,7 +1560,7 @@ public:
                            {std::string("untilDays"), 7},
                            {std::string("trigger"), false},
                            {std::string("trailing"), false},
-                           {std::string("symbolRequired"), true},
+                           {std::string("symbolRequired"), false},
                        }},
                       {std::string("fetchOHLCV"),
                        ccxt::dict{
@@ -1481,6 +1570,7 @@ public:
                  {std::string("defaultForInverse"),
                   ccxt::dict{
                       {std::string("extends"), std::string("defaultForLinear")},
+                      {std::string("sandbox"), false},
                       {std::string("createOrders"), ccxt::any{}},
                       {std::string("fetchOHLCV"),
                        ccxt::dict{
@@ -1497,12 +1587,14 @@ public:
                  {std::string("spot"),
                   ccxt::dict{
                       {std::string("extends"), std::string("defaultForLinear")},
+                      {std::string("sandbox"), false},
                       {std::string("fetchCurrencies"),
                        ccxt::dict{
                            {std::string("private"), true},
                        }},
                       {std::string("createOrder"),
                        ccxt::dict{
+                           {std::string("marketBuyByCost"), true},
                            {std::string("triggerPriceType"), ccxt::any{}},
                            {std::string("attachedStopLossTakeProfit"),
                             ccxt::any{}},
@@ -1532,24 +1624,6 @@ public:
                        ccxt::dict{
                            {std::string("extends"),
                             std::string("defaultForInverse")},
-                       }},
-                  }},
-                 {std::string("defaultForFuture"),
-                  ccxt::dict{
-                      {std::string("extends"), std::string("defaultForLinear")},
-                      {std::string("fetchOrders"), ccxt::any{}},
-                  }},
-                 {std::string("future"),
-                  ccxt::dict{
-                      {std::string("linear"),
-                       ccxt::dict{
-                           {std::string("extends"),
-                            std::string("defaultForFuture")},
-                       }},
-                      {std::string("inverse"),
-                       ccxt::dict{
-                           {std::string("extends"),
-                            std::string("defaultForFuture")},
                        }},
                   }},
              }},
@@ -1860,9 +1934,9 @@ public:
     ccxt::any currency = this->safeString(market, std::string("currency"));
     ccxt::any checkIsInverse = false;
     ccxt::any checkIsLinear = true;
-    ccxt::any minTickSize =
+    ccxt::any inverseContractSize =
         this->safeNumber(market, std::string("minTickSize"));
-    if (isTrue(!isEqual(minTickSize, ccxt::any{}))) {
+    if (isTrue(!isEqual(inverseContractSize, ccxt::any{}))) {
       // inverse swap market
       currency = baseId;
       checkIsInverse = true;
@@ -1891,9 +1965,12 @@ public:
       symbol = add(symbol, add(std::string(":"), settle));
     }
     ccxt::any fees = this->safeDict(this->fees, type, ccxt::dict{});
-    ccxt::any contractSize =
-        (isTrue((swap)) ? ccxt::any(this->parseNumber(std::string("1")))
-                        : ccxt::any(ccxt::any{}));
+    ccxt::any contractSize = ccxt::any{};
+    if (isTrue(swap)) {
+      contractSize = (isTrue((checkIsInverse))
+                          ? ccxt::any(inverseContractSize)
+                          : ccxt::any(this->parseNumber(std::string("1"))));
+    }
     ccxt::any isActive = false;
     if (isTrue(isTrue((isEqual(
                    this->safeString(market, std::string("apiStateOpen")),
@@ -1980,7 +2057,7 @@ public:
               }},
              {std::string("price"),
               ccxt::dict{
-                  {std::string("min"), minTickSize},
+                  {std::string("min"), ccxt::any{}},
                   {std::string("max"), ccxt::any{}},
               }},
              {std::string("cost"),
@@ -2530,27 +2607,34 @@ public:
                       isTrue((isEqual(::getValue(market, std::string("swap")),
                                       true)))) &&
                isTrue((inOp(trade, std::string("volume")))))) {
-      if (isTrue(isEqual(::getValue(market, std::string("linear")), true))) {
-        // private linear swap trades report 'amount' as the notional (quote)
-        // value, not the base amount; 'volume' is the exchange's own
-        // base-currency fill quantity (bingx linear contractSize is always 1),
-        // use it directly instead of 'notional / price', which picks up
-        // rounding noise from the notional field
-        amount = this->safeString(trade, std::string("volume"));
-      } else {
-        // private trade returns num of contracts instead of base currency (as
-        // the order-related methods do)
-        ccxt::any contractSize =
-            this->safeString(::getValue(market, std::string("info")),
-                             std::string("tradeMinQuantity"));
-        ccxt::any volume = this->safeString(trade, std::string("volume"));
-        amount = ccxt::Precise::stringMul(volume, contractSize);
+      // Linear volume is the base quantity (contractSize 1); inverse volume is
+      // the contract count. safeTrade applies contractSize when calculating
+      // inverse cost.
+      amount = this->safeString(trade, std::string("volume"));
+    }
+    ccxt::any price = this->safeStringN(
+        trade, ccxt::list{std::string("price"), std::string("p"),
+                          std::string("tradePrice")});
+    if (isTrue(isTrue(isTrue((!isEqual(market, ccxt::any{}))) &&
+                      isTrue((isEqual(::getValue(market, std::string("linear")),
+                                      true)))) &&
+               isTrue((isEqual(this->safeString(trade, std::string("x")),
+                               std::string("TRADE")))))) {
+      ccxt::any lastAmount = this->safeString(trade, std::string("l"));
+      ccxt::any lastPrice = this->safeString(trade, std::string("L"));
+      if (isTrue(isTrue((!isEqual(lastAmount, ccxt::any{}))) &&
+                 isTrue((!isEqual(lastPrice, ccxt::any{}))))) {
+        // Linear WS l/L describe the last fill, not the original order's q/p.
+        amount = lastAmount;
+        price = lastPrice;
       }
     }
     return this->safeTrade(
         ccxt::dict{
             {std::string("id"),
-             this->safeString2(trade, std::string("id"), std::string("t"))},
+             this->safeStringN(trade,
+                               ccxt::list{std::string("id"), std::string("t"),
+                                          std::string("fillId")})},
             {std::string("info"), trade},
             {std::string("timestamp"), time},
             {std::string("datetime"), this->iso8601(time)},
@@ -2563,10 +2647,7 @@ public:
              this->safeStringLower(trade, std::string("o"))},
             {std::string("side"), this->parseOrderSide(side)},
             {std::string("takerOrMaker"), takeOrMaker},
-            {std::string("price"),
-             this->safeStringN(trade, ccxt::list{std::string("price"),
-                                                 std::string("p"),
-                                                 std::string("tradePrice")})},
+            {std::string("price"), price},
             {std::string("amount"), amount},
             {std::string("cost"), cost},
             {std::string("fee"),
@@ -2594,6 +2675,7 @@ public:
    * @param {string} symbol unified symbol of the market to fetch the order book
    * for
    * @param {int} [limit] the maximum amount of order book entries to return
+   * (max 1000)
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} an [order book structure]{@link
@@ -2613,9 +2695,6 @@ public:
                      {std::string("symbol"),
                       ::getValue(market, std::string("id"))},
                  };
-                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("limit"), limit);
-                 }
                  ccxt::any response = ccxt::any{};
                  ccxt::any marketType = ccxt::any{};
                  ccxt::any marketTypeparamsVariable =
@@ -2623,6 +2702,17 @@ public:
                          std::string("fetchOrderBook"), market, params);
                  marketType = ::getValue(marketTypeparamsVariable, 0);
                  params = ::getValue(marketTypeparamsVariable, 1);
+                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
+                   if (isTrue(isEqual(marketType, std::string("spot")))) {
+                     ::setValue(request, std::string("limit"),
+                                mathMin(limit, 1000)); // api maximum 1000
+                   } else {
+                     ::setValue(
+                         request, std::string("limit"),
+                         this->findNearestCeiling(
+                             ccxt::list{5, 10, 20, 50, 100, 500, 1000}, limit));
+                   }
+                 }
                  if (isTrue(isEqual(marketType, std::string("spot")))) {
                    response = awaitValue(this->spotV1PublicGetMarketDepth(
                        this->extend(request, params)));
@@ -2849,12 +2939,22 @@ public:
     //         "markPrice": "16884.5",
     //         "indexPrice": "16886.9",
     //         "lastFundingRate": "0.0001",
-    //         "nextFundingTime": 1672041600000
+    //         "nextFundingTime": 1672041600000,
+    //         "fundingIntervalHours": 8,
+    //         "updateTime": 1672012800000
     //     }
     //
     ccxt::any marketId = this->safeString(contract, std::string("symbol"));
     ccxt::any nextFundingTimestamp =
         this->safeInteger(contract, std::string("nextFundingTime"));
+    ccxt::any timestamp =
+        this->safeInteger(contract, std::string("updateTime"));
+    ccxt::any interval =
+        this->safeString(contract, std::string("fundingIntervalHours"));
+    ccxt::any intervalString = ccxt::any{};
+    if (isTrue(!isEqual(interval, ccxt::any{}))) {
+      intervalString = add(interval, std::string("h"));
+    }
     return ccxt::dict{
         {std::string("info"), contract},
         {std::string("symbol"),
@@ -2866,8 +2966,8 @@ public:
          this->safeNumber(contract, std::string("indexPrice"))},
         {std::string("interestRate"), ccxt::any{}},
         {std::string("estimatedSettlePrice"), ccxt::any{}},
-        {std::string("timestamp"), ccxt::any{}},
-        {std::string("datetime"), ccxt::any{}},
+        {std::string("timestamp"), timestamp},
+        {std::string("datetime"), this->iso8601(timestamp)},
         {std::string("fundingRate"),
          this->safeNumber(contract, std::string("lastFundingRate"))},
         {std::string("fundingTimestamp"), ccxt::any{}},
@@ -2879,7 +2979,7 @@ public:
         {std::string("previousFundingRate"), ccxt::any{}},
         {std::string("previousFundingTimestamp"), ccxt::any{}},
         {std::string("previousFundingDatetime"), ccxt::any{}},
-        {std::string("interval"), ccxt::any{}},
+        {std::string("interval"), intervalString},
     };
   }
 
@@ -3009,13 +3109,15 @@ public:
    * @see
    * https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
    * @param {string} symbol unified symbol of the market to fetch the funding
-   * history for
+   * history for, inverse (Coin-M) markets are not supported
    * @param {int} [since] timestamp in ms of the earliest funding to fetch
    * @param {int} [limit] the maximum amount of [funding history
    * structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to
    * fetch
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
+   * @param {string} [params.subType] 'linear' or 'inverse' (default is
+   * 'linear'), 'inverse' is not supported
    * @param {int} [params.until] timestamp in ms of the latest funding to fetch
    * @returns {object[]} a list of [funding history structures]{@link
    * https://docs.ccxt.com/?id=funding-history-structure}
@@ -3028,6 +3130,28 @@ public:
                [=]() mutable -> ccxt::any {
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any market = ccxt::any{};
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                   market = this->market(symbol);
+                 }
+                 ccxt::any subType = ccxt::any{};
+                 ccxt::any subTypeparamsVariable = this->handleSubTypeAndParams(
+                     std::string("fetchFundingHistory"), market, params);
+                 subType = ::getValue(subTypeparamsVariable, 0);
+                 params = ::getValue(subTypeparamsVariable, 1);
+                 ccxt::any isInverse =
+                     (isTrue((!isEqual(market, ccxt::any{})))
+                          ? ccxt::any((isEqual(
+                                ::getValue(market, std::string("inverse")),
+                                true)))
+                          : ccxt::any(
+                                (isEqual(subType, std::string("inverse")))));
+                 if (isTrue(isInverse)) {
+                   throw NotSupported(toString(
+                       add(this->id,
+                           std::string(" fetchFundingHistory() is not "
+                                       "supported for inverse swap markets"))));
                  }
                  ccxt::any paginate = false;
                  ccxt::any paginateparamsVariable = this->handleOptionAndParams(
@@ -3043,9 +3167,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("incomeType"), std::string("FUNDING_FEE")},
                  };
-                 ccxt::any market = ccxt::any{};
-                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
-                   market = this->market(symbol);
+                 if (isTrue(!isEqual(market, ccxt::any{}))) {
                    ::setValue(request, std::string("symbol"),
                               ::getValue(market, std::string("id")));
                  }
@@ -4230,7 +4352,8 @@ public:
   /**
    * @method
    * @name bingx#createMarketOrderWithCost
-   * @description create a market order by providing the symbol, side and cost
+   * @description create a spot market order by providing the symbol, side and
+   * cost
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {string} side 'buy' or 'sell'
    * @param {float} cost how much you want to trade in units of the quote
@@ -4256,7 +4379,8 @@ public:
   /**
    * @method
    * @name bingx#createMarketBuyOrderWithCost
-   * @description create a market buy order by providing the symbol and cost
+   * @description create a spot market buy order by providing the symbol and
+   * cost
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {float} cost how much you want to trade in units of the quote
    * currency
@@ -4281,7 +4405,8 @@ public:
   /**
    * @method
    * @name bingx#createMarketSellOrderWithCost
-   * @description create a market sell order by providing the symbol and cost
+   * @description create a spot market sell order by providing the symbol and
+   * cost
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {float} cost how much you want to trade in units of the quote
    * currency
@@ -4332,6 +4457,15 @@ public:
      * @returns {object} request to be sent to the exchange
      */
     ccxt::any market = this->market(symbol);
+    ccxt::any cost = this->safeString2(params, std::string("cost"),
+                                       std::string("quoteOrderQty"));
+    if (isTrue(isTrue((isEqual(::getValue(market, std::string("contract")),
+                               true))) &&
+               isTrue((!isEqual(cost, ccxt::any{}))))) {
+      throw NotSupported(toString(
+          add(this->id, std::string(" createOrder() with cost or quoteOrderQty "
+                                    "is not supported for contract markets"))));
+    }
     ccxt::any postOnly = ccxt::any{};
     ccxt::any marketType = ccxt::any{};
     ccxt::any marketTypeparamsVariable = this->handleMarketTypeAndParams(
@@ -4385,9 +4519,8 @@ public:
       ::setValue(request, std::string("timeInForce"), std::string("GTC"));
     }
     if (isTrue(isSpot)) {
-      ccxt::any cost = this->safeString2(params, std::string("cost"),
-                                         std::string("quoteOrderQty"));
-      params = this->omit(params, std::string("cost"));
+      params = this->omit(params, ccxt::list{std::string("cost"),
+                                             std::string("quoteOrderQty")});
       if (isTrue(!isEqual(cost, ccxt::any{}))) {
         ::setValue(request, std::string("quoteOrderQty"),
                    this->parseToNumeric(this->costToPrecision(symbol, cost)));
@@ -4602,9 +4735,13 @@ public:
           }
           ccxt::any slQuantity = this->safeString(
               stopLossDict, std::string("quantity"), stringifiedAmount);
-          ::setValue(slRequest, std::string("quantity"),
-                     this->parseToNumeric(
-                         this->amountToPrecision(symbol, slQuantity)));
+          ccxt::any slQuantityRequest = this->parseToNumeric(slQuantity);
+          if (isTrue(
+                  !isEqual(::getValue(market, std::string("inverse")), true))) {
+            slQuantityRequest = this->parseToNumeric(
+                this->amountToPrecision(symbol, slQuantity));
+          }
+          ::setValue(slRequest, std::string("quantity"), slQuantityRequest);
           ::setValue(request, std::string("stopLoss"), this->json(slRequest));
         }
         if (isTrue(hasTakeProfit)) {
@@ -4633,9 +4770,13 @@ public:
           }
           ccxt::any tkQuantity = this->safeString(
               takeProfitDict, std::string("quantity"), stringifiedAmount);
-          ::setValue(tpRequest, std::string("quantity"),
-                     this->parseToNumeric(
-                         this->amountToPrecision(symbol, tkQuantity)));
+          ccxt::any tkQuantityRequest = this->parseToNumeric(tkQuantity);
+          if (isTrue(
+                  !isEqual(::getValue(market, std::string("inverse")), true))) {
+            tkQuantityRequest = this->parseToNumeric(
+                this->amountToPrecision(symbol, tkQuantity));
+          }
+          ::setValue(tpRequest, std::string("quantity"), tkQuantityRequest);
           ::setValue(request, std::string("takeProfit"), this->json(tpRequest));
         }
       }
@@ -4710,8 +4851,10 @@ public:
    * take profit / stop loss order will be triggered
    * @param {float} [params.stopLossPrice] stop loss trigger price
    * @param {float} [params.takeProfitPrice] take profit trigger price
-   * @param {float} [params.cost] the quote quantity that can be used as an
-   * alternative for the amount
+   * @param {float} [params.cost] *spot only* the quote quantity that can be
+   * used as an alternative for the amount
+   * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an
+   * alternative to params.cost
    * @param {float} [params.trailingAmount] *swap only* the quote amount to
    * trail away from the current market price
    * @param {float} [params.trailingPercent] *swap only* the percent to trail
@@ -4723,8 +4866,8 @@ public:
    * @param {object} [params.stopLoss] *stopLoss object in params* containing
    * the triggerPrice at which the attached stop loss order will be triggered
    * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-   * @param {boolean} [params.test] *swap only* whether to use the test endpoint
-   * or not, default is false
+   * @param {boolean} [params.test] *linear swap only* whether to use the test
+   * endpoint or not, default is false
    * @param {string} [params.positionSide] *contracts only* "BOTH" for one way
    * mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged
    * mode
@@ -4748,6 +4891,19 @@ public:
                  ccxt::any market = this->market(symbol);
                  ccxt::any test =
                      this->safeBool(params, std::string("test"), false);
+                 if (isTrue(
+                         isTrue(test) &&
+                         isTrue((isTrue((!isEqual(
+                                     ::getValue(market, std::string("swap")),
+                                     true))) ||
+                                 isTrue((isEqual(
+                                     ::getValue(market, std::string("inverse")),
+                                     true))))))) {
+                   throw NotSupported(toString(
+                       add(this->id,
+                           std::string(" createOrder() only supports test "
+                                       "orders for linear swap markets"))));
+                 }
                  params = this->omit(params, std::string("test"));
                  ccxt::any request = this->createOrderRequest(
                      symbol, type, side, amount, price, params);
@@ -5482,7 +5638,8 @@ public:
              this->safeString2(order, std::string("avgPrice"),
                                std::string("ap"))},
             {std::string("cost"),
-             this->safeString(order, std::string("cummulativeQuoteQty"))},
+             this->safeString2(order, std::string("cummulativeQuoteQty"),
+                               std::string("Z"))},
             {std::string("amount"),
              this->safeStringN(order, ccxt::list{std::string("origQty"),
                                                  std::string("q"),
@@ -5805,7 +5962,8 @@ public:
    * @see
    * https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
    * @param {string[]} ids order ids
-   * @param {string} symbol unified market symbol, default is undefined
+   * @param {string} symbol unified market symbol, inverse (Coin-M) markets are
+   * not supported
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {string[]} [params.clientOrderIds] client order ids
@@ -5828,6 +5986,12 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  ccxt::any market = this->market(symbol);
+                 if (isTrue(isEqual(::getValue(market, std::string("inverse")),
+                                    true))) {
+                   throw NotSupported(toString(add(
+                       this->id, std::string(" cancelOrders() is not supported "
+                                             "for inverse swap markets"))));
+                 }
                  ccxt::any request = ccxt::dict{
                      {std::string("symbol"),
                       ::getValue(market, std::string("id"))},
@@ -6067,8 +6231,8 @@ public:
    * @see
    * https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
    * (returns less fields than above)
-   * @param {string} symbol unified market symbol of the market orders were made
-   * in
+   * @param {string} [symbol] unified market symbol of the market orders were
+   * made in
    * @param {int} [since] the earliest time in ms to fetch orders for
    * @param {int} [limit] the maximum number of order structures to retrieve
    * @param {object} [params] extra parameters specific to the exchange API
@@ -6412,7 +6576,7 @@ public:
    * https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
    * @see
    * https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-   * @param {string} symbol unified market symbol of the closed orders
+   * @param {string} [symbol] unified market symbol of the closed orders
    * @param {int} [since] timestamp in ms of the earliest order
    * @param {int} [limit] the max number of closed orders to return
    * @param {object} [params] extra parameters specific to the exchange API
@@ -6453,7 +6617,7 @@ public:
    * https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
    * @see
    * https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-   * @param {string} symbol unified market symbol of the canceled orders
+   * @param {string} [symbol] unified market symbol of the canceled orders
    * @param {int} [since] timestamp in ms of the earliest order
    * @param {int} [limit] the max number of canceled orders to return
    * @param {object} [params] extra parameters specific to the exchange API
@@ -6702,10 +6866,13 @@ public:
    * (default 10, max 100)
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @param {string} params.fromAccount (mandatory) transfer from (spot, swap
-   * (linear or inverse), future, or funding)
-   * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear
-   * or inverse), future, or funding)
+   * @param {string} [params.fromAccount] transfer from (spot, swap (linear or
+   * inverse), future, or funding), required unless transferId is provided
+   * @param {string} [params.toAccount] transfer to (spot, swap(linear or
+   * inverse), future, or funding), required unless transferId is provided
+   * @param {string} [params.transferId] the transfer ID, either transferId or
+   * both fromAccount and toAccount are required
+   * @param {int} [params.until] the latest time in ms to fetch transfers for
    * @param {boolean} [params.paginate] whether to paginate the results (default
    * false)
    * @returns {object[]} a list of [transfer structures]{@link
@@ -6733,15 +6900,21 @@ public:
                      this->safeString(params, std::string("fromAccount"));
                  ccxt::any toAccount =
                      this->safeString(params, std::string("toAccount"));
+                 ccxt::any transferId =
+                     this->safeString(params, std::string("transferId"));
                  ccxt::any fromId =
                      this->safeString(accountsByType, fromAccount, fromAccount);
                  ccxt::any toId =
                      this->safeString(accountsByType, toAccount, toAccount);
-                 if (isTrue(isTrue(isEqual(fromId, ccxt::any{})) ||
-                            isTrue(isEqual(toId, ccxt::any{})))) {
-                   throw ExchangeError(toString(
-                       add(this->id, std::string(" fromAccount & toAccount "
-                                                 "parameters are required"))));
+                 if (isTrue(isTrue((isEqual(transferId, ccxt::any{}))) &&
+                            isTrue((isTrue((isEqual(fromId, ccxt::any{}))) ||
+                                    isTrue((isEqual(toId, ccxt::any{}))))))) {
+                   throw ExchangeError(toString(add(
+                       this->id,
+                       std::string(
+                           " fetchTransfers() requires params[\"transferId\"] "
+                           "or both params[\"fromAccount\"] and "
+                           "params[\"toAccount\"]"))));
                  }
                  if (isTrue(!isEqual(fromAccount, ccxt::any{}))) {
                    ::setValue(request, std::string("fromAccount"), fromId);
@@ -6749,9 +6922,6 @@ public:
                  if (isTrue(!isEqual(toAccount, ccxt::any{}))) {
                    ::setValue(request, std::string("toAccount"), toId);
                  }
-                 params =
-                     this->omit(params, ccxt::list{std::string("fromAccount"),
-                                                   std::string("toAccount")});
                  ccxt::any maxLimit = 100;
                  ccxt::any paginate = false;
                  ccxt::any paginateparamsVariable = this->handleOptionAndParams(
@@ -6761,14 +6931,18 @@ public:
                  params = ::getValue(paginateparamsVariable, 1);
                  if (isTrue(paginate)) {
                    return awaitValue(this->fetchPaginatedCallDynamic(
-                       std::string("fetchTransfers"), ccxt::any{}, since, limit,
+                       std::string("fetchTransfers"), code, since, limit,
                        params, maxLimit));
                  }
+                 params =
+                     this->omit(params, ccxt::list{std::string("fromAccount"),
+                                                   std::string("toAccount")});
                  if (isTrue(!isEqual(since, ccxt::any{}))) {
                    ::setValue(request, std::string("startTime"), since);
                  }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("pageSize"), limit);
+                   ::setValue(request, std::string("pageSize"),
+                              mathMin(limit, maxLimit));
                  }
                  ccxt::any requestparamsVariable = this->handleUntilOption(
                      std::string("endTime"), request, params);
@@ -8422,7 +8596,8 @@ public:
    * https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde
    * // swap
    * @param {string} id order id
-   * @param {string} symbol unified symbol of the market to create an order in
+   * @param {string} symbol unified symbol of the market to create an order in,
+   * inverse (Coin-M) markets are not supported
    * @param {string} type 'market' or 'limit'
    * @param {string} side 'buy' or 'sell'
    * @param {float} amount how much of the currency you want to trade in units
@@ -8481,6 +8656,12 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  ccxt::any market = this->market(symbol);
+                 if (isTrue(isEqual(::getValue(market, std::string("inverse")),
+                                    true))) {
+                   throw NotSupported(toString(add(
+                       this->id, std::string(" editOrder() is not supported "
+                                             "for inverse swap markets"))));
+                 }
                  ccxt::any request = this->createOrderRequest(
                      symbol, type, side, amount, price, params);
                  ::setValue(request, std::string("cancelOrderId"), id);

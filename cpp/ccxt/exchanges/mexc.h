@@ -276,6 +276,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("apiKeyInfo"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("order"),
                                  ccxt::dict{
                                      {std::string("cost"), 2},
@@ -518,6 +522,10 @@ public:
                                      {std::string("cost"), 10},
                                  }},
                                 {std::string("strategy/group"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("strategy/group/uid"),
                                  ccxt::dict{
                                      {std::string("cost"), 20},
                                  }},
@@ -1905,7 +1913,7 @@ public:
     ccxt::any code = this->safeCurrencyCode(id);
     ccxt::any networks = ccxt::dict{};
     ccxt::any chains =
-        this->safeValue(rawCurrency, std::string("networkList"), ccxt::list{});
+        this->safeList(rawCurrency, std::string("networkList"), ccxt::list{});
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(chains));
          postFixIncrement(j)) {
       ccxt::any chain = ::getValue(chains, j);
@@ -2073,7 +2081,7 @@ public:
                  // actual individual precision, refer to fetchCurrencies()
                  // method).
                  //
-                 ccxt::any data = this->safeValue(
+                 ccxt::any data = this->safeList(
                      response, std::string("symbols"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
@@ -2255,8 +2263,8 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -5346,7 +5354,14 @@ public:
                           //         ]
                           //     }
                           //
-                          return this->safeValue(response, std::string("data"));
+                          // wrap the swap asset list so this helper always
+                          // returns an account dict with a `balances` array —
+                          // fetchAccounts reads response['balances']
+                          return ccxt::dict{
+                              {std::string("balances"),
+                               this->safeValue(response, std::string("data"),
+                                               ccxt::list{})},
+                          };
                         }
                         return ccxt::any{};
                       })
@@ -5384,7 +5399,7 @@ public:
                  }
                  ccxt::any response =
                      awaitValue(this->fetchAccountHelper(marketType, query));
-                 ccxt::any data = this->safeValue(
+                 ccxt::any data = this->safeList(
                      response, std::string("balances"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
@@ -5534,11 +5549,11 @@ public:
     //
     ccxt::any wallet = ccxt::any{};
     if (isTrue(isEqual(marketType, std::string("margin")))) {
-      wallet = this->safeValue(response, std::string("assets"), ccxt::list{});
+      wallet = this->safeList(response, std::string("assets"), ccxt::list{});
     } else if (isTrue(isEqual(marketType, std::string("swap")))) {
-      wallet = this->safeValue(response, std::string("data"), ccxt::list{});
+      wallet = this->safeList(response, std::string("data"), ccxt::list{});
     } else {
-      wallet = this->safeValue(response, std::string("balances"), ccxt::list{});
+      wallet = this->safeList(response, std::string("balances"), ccxt::list{});
     }
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
@@ -5547,8 +5562,6 @@ public:
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(wallet));
            postFixIncrement(i)) {
         ccxt::any entry = ::getValue(wallet, i);
-        ccxt::any marketId = this->safeString(entry, std::string("symbol"));
-        ccxt::any symbol = this->safeSymbol(marketId);
         ccxt::any base =
             this->safeValue(entry, std::string("baseAsset"), ccxt::dict{});
         ccxt::any quote =
@@ -5557,16 +5570,16 @@ public:
             this->safeString(base, std::string("asset")));
         ccxt::any quoteCode = this->safeCurrencyCode(
             this->safeString(quote, std::string("asset")));
-        ccxt::any subResult = ccxt::dict{};
         if (isTrue(!isEqual(baseCode, ccxt::any{}))) {
-          ::setValue(subResult, baseCode, this->parseBalanceHelper(base));
+          result = this->mergeBalanceAccount(result, baseCode,
+                                             this->parseBalanceHelper(base));
         }
         if (isTrue(!isEqual(quoteCode, ccxt::any{}))) {
-          ::setValue(subResult, quoteCode, this->parseBalanceHelper(quote));
+          result = this->mergeBalanceAccount(result, quoteCode,
+                                             this->parseBalanceHelper(quote));
         }
-        ::setValue(result, symbol, this->safeBalance(subResult));
       }
-      return result;
+      return this->safeBalance(result);
     } else if (isTrue(isEqual(marketType, std::string("swap")))) {
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(wallet));
            postFixIncrement(i)) {
@@ -6208,7 +6221,7 @@ public:
                  //
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
-                 ccxt::any resultList = this->safeValue(
+                 ccxt::any resultList = this->safeList(
                      data, std::string("resultList"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0;
@@ -6431,7 +6444,7 @@ public:
                  //
                  ccxt::any data =
                      this->safeValue(response, std::string("data"));
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      data, std::string("resultList"), ccxt::list{});
                  ccxt::any rates = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
@@ -8152,7 +8165,7 @@ public:
     //    }
     //
     ccxt::any networkList =
-        this->safeValue(transaction, std::string("networkList"), ccxt::list{});
+        this->safeList(transaction, std::string("networkList"), ccxt::list{});
     ccxt::any result = ccxt::dict{};
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(networkList));
          postFixIncrement(j)) {
@@ -8260,7 +8273,7 @@ public:
     //    }
     //
     ccxt::any networkList =
-        this->safeValue(fee, std::string("networkList"), ccxt::list{});
+        this->safeList(fee, std::string("networkList"), ccxt::list{});
     ccxt::any result = this->depositWithdrawFee(fee);
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(networkList));
          postFixIncrement(j)) {

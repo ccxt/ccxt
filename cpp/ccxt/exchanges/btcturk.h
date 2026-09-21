@@ -156,6 +156,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 0.1},
                             }},
+                           {std::string("ticker/currency"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.1},
+                            }},
                            {std::string("trades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -186,7 +190,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("order/{orderId}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("users/transactions/trade"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("users/transactions/crypto"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("users/transactions/fiat"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("crypto-deposit-declarations"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -206,6 +226,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("cancelOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("crypto-deposit-declarations/confirm"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},

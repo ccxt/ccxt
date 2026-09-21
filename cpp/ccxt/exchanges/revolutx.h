@@ -108,6 +108,7 @@ public:
                            {std::string("1.0/orders/fills/{venue_order_id}"),
                             1},
                            {std::string("1.0/trades/private/{symbol}"), 1},
+                           {std::string("1.0/transactions"), 1},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -1046,7 +1047,8 @@ public:
                               this->milliseconds());
                  }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("limit"), limit);
+                   ::setValue(request, std::string("limit"),
+                              mathMin(limit, 1900));
                  }
                  ccxt::any cursor =
                      this->safeString(params, std::string("cursor"));

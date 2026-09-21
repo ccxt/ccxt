@@ -490,6 +490,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 2.7},
                             }},
+                           {std::string("auth/r/orders/otc/{symbol}/hist"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
                            {std::string("auth/r/order/{symbol}:{id}/trades"),
                             ccxt::dict{
                                 {std::string("cost"), 2.7},
@@ -547,6 +551,10 @@ public:
                                 {std::string("cost"), 2.7},
                             }},
                            {std::string("auth/r/positions/snap"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
+                           {std::string("auth/w/position/update/funding/type"),
                             ccxt::dict{
                                 {std::string("cost"), 2.7},
                             }},
@@ -674,9 +682,17 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 24},
                             }},
+                           {std::string("auth/r/deposit/address/all"),
+                            ccxt::dict{
+                                {std::string("cost"), 24},
+                            }},
                            {std::string("auth/w/deposit/invoice"),
                             ccxt::dict{
                                 {std::string("cost"), 24},
+                            }},
+                           {std::string("auth/r/ext/invoice/payments"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
                             }},
                            {std::string("auth/w/withdraw"),
                             ccxt::dict{
@@ -687,6 +703,10 @@ public:
                                 {std::string("cost"), 2.7},
                             }},
                            {std::string("auth/r/movements/hist"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
+                           {std::string("auth/r/movements/info"),
                             ccxt::dict{
                                 {std::string("cost"), 2.7},
                             }},
@@ -733,6 +753,20 @@ public:
                                 {std::string("cost"), 16},
                             }},
                            {std::string("auth/w/pulse/del"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
+                           {std::string("auth/w/ext/wallets/deposits/request"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
+                           {std::string(
+                                "auth/w/ext/wallets/withdrawals/request"),
+                            ccxt::dict{
+                                {std::string("cost"), 2.7},
+                            }},
+                           {std::string(
+                                "auth/r/ext/wallets/transfers/free/count"),
                             ccxt::dict{
                                 {std::string("cost"), 2.7},
                             }},
@@ -1629,7 +1663,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any accountsByType = this->safeValue(
+                 ccxt::any accountsByType = this->safeDict(
                      this->options, std::string("v2AccountsByType"),
                      ccxt::dict{});
                  ccxt::any requestedType = this->safeString(
@@ -1715,7 +1749,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any accountsByType = this->safeValue(
+                 ccxt::any accountsByType = this->safeDict(
                      this->options, std::string("v2AccountsByType"),
                      ccxt::dict{});
                  ccxt::any fromId =
@@ -2001,9 +2035,17 @@ public:
     //     ]
     //
     ccxt::any length = getArrayLength(ticker);
-    ccxt::any firstValue = this->safeNumber(ticker, 0);
-    ccxt::any isFetchTicker = !isEqual(
-        firstValue, ccxt::any{}); // if it's Nan, then it's string (symbol)
+    // the list shapes (fetchTickers) carry the market id in slot 0, the
+    // singular shapes (fetchTicker) do not. safeNumber is not a portable
+    // discriminator here: in PHP a non numeric string casts to 0.0 instead of
+    // undefined, so 'fUSD' would look like a number and the whole array would
+    // be read off by one.
+    ccxt::any firstValue = this->safeString(ticker, 0);
+    ccxt::any hasMarketId =
+        isTrue((!isEqual(firstValue, ccxt::any{}))) &&
+        isTrue((isTrue(startsWith(firstValue, std::string("t"))) ||
+                isTrue(startsWith(firstValue, std::string("f")))));
+    ccxt::any isFetchTicker = !isTrue(hasMarketId);
     ccxt::any symbol = ccxt::any{};
     ccxt::any minusIndex = 0;
     if (isTrue(isFetchTicker)) {
@@ -2028,7 +2070,11 @@ public:
       bid = this->safeString(ticker, subtract(2, minusIndex));
       ask = this->safeString(ticker, subtract(5, minusIndex));
       change = this->safeString(ticker, subtract(8, minusIndex));
-      percentage = this->safeString(ticker, subtract(9, minusIndex));
+      // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+      // branch reads at index 6 and scales
+      percentage = ccxt::Precise::stringMul(
+          this->safeString(ticker, subtract(9, minusIndex)),
+          std::string("100"));
       volume = this->safeString(ticker, subtract(11, minusIndex));
       high = this->safeString(ticker, subtract(12, minusIndex));
       low = this->safeString(ticker, subtract(13, minusIndex));
@@ -2458,7 +2504,7 @@ public:
 
   virtual ccxt::any parseOrderStatus(ccxt::any status) {
     if (isTrue(isEqual(status, ccxt::any{}))) {
-      return status;
+      return ccxt::any{};
     }
     ccxt::any parts = split(status, std::string(" "));
     ccxt::any state = this->safeString(parts, 0);
@@ -3944,7 +3990,7 @@ public:
                  //     ]
                  //
                  ccxt::any result = ccxt::dict{};
-                 ccxt::any fiat = this->safeValue(
+                 ccxt::any fiat = this->safeDict(
                      this->options, std::string("fiat"), ccxt::dict{});
                  ccxt::any feeData = this->safeValue(response, 4, ccxt::list{});
                  ccxt::any makerData =

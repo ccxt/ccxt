@@ -437,6 +437,17 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("{settle}/adl_risk_states"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                           {std::string("post"),
+                            ccxt::dict{
+                                {std::string("{settle}/funding_rates"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("delivery"),
@@ -548,6 +559,18 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("structured/products"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("dual/project-recommend"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("fixed-term/product"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("fixed-term/product/{asset}/list"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -673,6 +696,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("getLowCapExchangeList"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("transfers"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -819,6 +846,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
                                  }},
+                                {std::string("delta_neutral"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("estimated_quick_repayment"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
                                 {std::string("account_mode"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
@@ -839,6 +874,18 @@ public:
                                      {std::string("cost"), divide(20, 15)},
                                  }},
                                 {std::string("collateral_currencies"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("delta_neutral"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("leverage/user_setting"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("quick_repayment"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
                                  }},
@@ -899,6 +946,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("pov_orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("pov_orders/{order_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -930,6 +985,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 0.4},
                                  }},
+                                {std::string("pov_orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
                             }},
                            {std::string("delete"),
                             ccxt::dict{
@@ -946,6 +1005,14 @@ public:
                                      {std::string("cost"), divide(20, 75)},
                                  }},
                                 {std::string("price_orders/{order_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 75)},
+                                 }},
+                                {std::string("pov_orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 75)},
+                                 }},
+                                {std::string("pov_orders/{order_id}"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 75)},
                                  }},
@@ -1229,6 +1296,31 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/change_log"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/chase/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/chase/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -1309,6 +1401,41 @@ public:
                                      {std::string("cost"), 0.4},
                                  }},
                                 {std::string("{settle}/price_orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/stop"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/stop_all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/trail/update"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/chase/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/chase/stop"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 0.4},
+                                 }},
+                                {std::string(
+                                     "{settle}/autoorder/v1/chase/stop_all"),
                                  ccxt::dict{
                                      {std::string("cost"), 0.4},
                                  }},
@@ -1511,6 +1638,13 @@ public:
                                      {std::string("cost"), divide(20, 15)},
                                  }},
                             }},
+                           {std::string("put"),
+                            ccxt::dict{
+                                {std::string("orders/{order_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                            }},
                            {std::string("delete"),
                             ccxt::dict{
                                 {std::string("orders"),
@@ -1587,6 +1721,42 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
                                  }},
+                                {std::string("dual/order-refund-preview"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("fixed-term/user/lend"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("fixed-term/user/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/coins"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/config"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/list_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
                                 {std::string("uni/currencies"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
@@ -1615,6 +1785,42 @@ public:
                                      {std::string("cost"), divide(20, 15)},
                                  }},
                                 {std::string("staking/swap"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("dual/order-refund"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("dual/modify-order-reinvest"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("fixed-term/user/lend"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("fixed-term/user/pre-redeem"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/min_invest_amount"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/add_position"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/stop"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
+                                {std::string("autoinvest/plans/update"),
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
                                  }},
@@ -1828,6 +2034,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), divide(20, 15)},
                                  }},
+                                {std::string("partner/data/aggregated"),
+                                 ccxt::dict{
+                                     {std::string("cost"), divide(20, 15)},
+                                 }},
                             }},
                        }},
                       {std::string("otc"),
@@ -1847,6 +2057,14 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("order/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/bank_supplement_checklist"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -1870,6 +2088,30 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("order/cancel"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/delete"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/set_default"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/personal/bank_supplement"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("bank/enterprise/bank_supplement"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("upload/pre_upload"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -5674,11 +5916,6 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any entry = ::getValue(data, i);
                    if (isTrue(isolated)) {
-                     ccxt::any marketId =
-                         this->safeString(entry, std::string("currency_pair"));
-                     ccxt::any symbolInner = this->safeSymbol(
-                         marketId, ccxt::any{}, std::string("_"),
-                         std::string("margin"));
                      ccxt::any base = this->safeValue(
                          entry, std::string("base"), ccxt::dict{});
                      ccxt::any quote = this->safeValue(
@@ -5687,23 +5924,17 @@ public:
                          this->safeString(base, std::string("currency")));
                      ccxt::any quoteCode = this->safeCurrencyCode(
                          this->safeString(quote, std::string("currency")));
-                     ccxt::any subResult = ccxt::dict{};
-                     ::setValue(subResult, baseCode,
-                                this->parseBalanceHelper(base));
-                     ::setValue(subResult, quoteCode,
-                                this->parseBalanceHelper(quote));
-                     ::setValue(result, symbolInner,
-                                this->safeBalance(subResult));
+                     result = this->mergeBalanceAccount(
+                         result, baseCode, this->parseBalanceHelper(base));
+                     result = this->mergeBalanceAccount(
+                         result, quoteCode, this->parseBalanceHelper(quote));
                    } else {
                      ccxt::any code = this->safeCurrencyCode(
                          this->safeString(entry, std::string("currency")));
                      ::setValue(result, code, this->parseBalanceHelper(entry));
                    }
                  }
-                 ccxt::any returnResult =
-                     (isTrue(isolated) ? ccxt::any(result)
-                                       : ccxt::any(this->safeBalance(result)));
-                 return returnResult;
+                 return this->safeBalance(result);
                })
         .share();
   }
@@ -10863,8 +11094,11 @@ public:
               isTrue((isEqual(method, std::string("PATCH")))))) {
         if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(query)), 0))) {
           // https://github.com/ccxt/ccxt/issues/27663
-          rawQueryString = this->rawencode(query);
-          queryString = this->urlencode(query);
+          // sort explicitly (true) so the signedFlag order matches the url
+          // order in Go, where map iteration is not ordered (keysort's order is
+          // otherwise lost)
+          rawQueryString = this->rawencode(query, true);
+          queryString = this->urlencode(query, true);
           // https://github.com/ccxt/ccxt/issues/25570
           if (isTrue(isTrue(isGreaterThanOrEqual(
                          getIndexOf(queryString, std::string("currencies=")),
@@ -10881,7 +11115,7 @@ public:
         }
       } else {
         ccxt::any urlQueryParams =
-            this->safeValue(query, std::string("query"), ccxt::dict{});
+            this->safeDict(query, std::string("query"), ccxt::dict{});
         if (isTrue(isGreaterThan(getArrayLength(getObjectKeys(urlQueryParams)),
                                  0))) {
           queryString = this->urlencode(urlQueryParams);

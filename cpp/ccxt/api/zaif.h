@@ -56,6 +56,21 @@ public:
         return this->callEndpoint (std::string ("publicGetTradesPair"), parameters);
     }
 
+    // Calls the publicGetVaspInfoVaspMasterId endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetVaspInfoVaspMasterId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetVaspInfoVaspMasterId"), parameters);
+    }
+
+    // Calls the publicGetCountryInfoCode endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetCountryInfoCode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetCountryInfoCode"), parameters);
+    }
+
+    // Calls the publicGetCorpTypeIdInfoId endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetCorpTypeIdInfoId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetCorpTypeIdInfoId"), parameters);
+    }
+
     // Calls the privatePostActiveOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostActiveOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostActiveOrders"), parameters);

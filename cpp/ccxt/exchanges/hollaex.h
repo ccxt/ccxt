@@ -236,6 +236,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("subaccounts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("user/trades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -252,6 +256,10 @@ public:
                       {std::string("post"),
                        ccxt::dict{
                            {std::string("user/withdrawal"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("subaccount/transfer"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -497,7 +505,7 @@ public:
                  //         "status": true
                  //     }
                  //
-                 ccxt::any pairs = this->safeValue(
+                 ccxt::any pairs = this->safeDict(
                      response, std::string("pairs"), ccxt::dict{});
                  ccxt::any keys = getObjectKeys(pairs);
                  ccxt::any result = ccxt::list{};

@@ -106,6 +106,11 @@ public:
         return this->callEndpoint (std::string ("spotPrivateGetUid"), parameters);
     }
 
+    // Calls the spotPrivateGetApiKeyInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetApiKeyInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetApiKeyInfo"), parameters);
+    }
+
     // Calls the spotPrivateGetOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivateGetOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivateGetOrder"), parameters);
@@ -404,6 +409,11 @@ public:
     // Calls the spotPrivatePostStrategyGroup endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivatePostStrategyGroup (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivatePostStrategyGroup"), parameters);
+    }
+
+    // Calls the spotPrivatePostStrategyGroupUid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostStrategyGroupUid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostStrategyGroupUid"), parameters);
     }
 
     // Calls the spotPrivatePostCapitalWithdrawApply endpoint. Returns a JSON object.

@@ -36,6 +36,11 @@ public:
         return this->callEndpoint (std::string ("publicGetSystemStatus"), parameters);
     }
 
+    // Calls the publicGetMaintenanceSchedule endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetMaintenanceSchedule (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetMaintenanceSchedule"), parameters);
+    }
+
     // Calls the publicGetAssets endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetAssets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetAssets"), parameters);
@@ -184,6 +189,11 @@ public:
     // Calls the privatePostGetApiKeyInfo endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostGetApiKeyInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostGetApiKeyInfo"), parameters);
+    }
+
+    // Calls the privatePostListWalletAccounts endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostListWalletAccounts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostListWalletAccounts"), parameters);
     }
 
     // Calls the privatePostAddOrder endpoint. Returns a JSON object.

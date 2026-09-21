@@ -189,6 +189,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/user-api/exchange/markets/price"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/exchange/market/assets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -241,6 +245,38 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/user-api/balance"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/convert/direction-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/convert/order-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/balance"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/currencies"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/packages"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/request"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/request/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -252,11 +288,36 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/user-api/convert"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/convert/calculate"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/convert/limit"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/request"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/aml/check/request/{id}/"
+                                        "report/send"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("delete"),
                        ccxt::dict{
                            {std::string(
                                 "v2/user-api/exchange/orders/{orderId}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/user-api/convert/{orderUuid}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1534,7 +1595,7 @@ public:
                    std::string("application/json"));
       } else {
         ccxt::any query = this->urlencode(params);
-        if (isTrue(!isEqual(getArrayLength(query), 0))) {
+        if (isTrue(!isEqual(getStringLength(query), 0))) {
           url = add(url, add(std::string("?"), query));
         }
       }
@@ -1544,7 +1605,7 @@ public:
       ::setValue(headers, std::string("sign"), signature);
     } else {
       ccxt::any query = this->urlencode(params);
-      if (isTrue(!isEqual(getArrayLength(query), 0))) {
+      if (isTrue(!isEqual(getStringLength(query), 0))) {
         url = add(url, add(std::string("?"), query));
       }
     }

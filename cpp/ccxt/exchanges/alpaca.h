@@ -167,7 +167,94 @@ public:
              }},
             {std::string("api"),
              ccxt::dict{
-                 {std::string("broker"), ccxt::dict{}},
+                 {std::string("broker"),
+                  ccxt::dict{
+                      {std::string("private"),
+                       ccxt::dict{
+                           {std::string("get"),
+                            ccxt::dict{
+                                {std::string("v1/accounts/{account_id}/"
+                                             "tokenization/requests"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1/accounts/{account_id}/tokenization/"
+                                     "requests/{tokenization_request_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1/accounts/{account_id}/tokenization/"
+                                     "requests:by_client_request_id"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1/accounts/{account_id}/tokenization/"
+                                     "requests:by_issuer_request_id"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1/fpsl/analytics/{account_id}/loans"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/ipos"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/ipos/{offering_reference}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/wallets/travel-rule/vasps"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1beta1/acats"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1beta1/acats/contrabrokers"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1beta1/acats/{account_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1beta1/acats/{account_id}/{acats_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1beta1/acats/{account_id}/"
+                                             "{acats_id}/assets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                           {std::string("post"),
+                            ccxt::dict{
+                                {std::string("v1beta1/acats/{account_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                           {std::string("patch"),
+                            ccxt::dict{
+                                {std::string(
+                                     "v1/accounts/{account_id}/wallets/"
+                                     "whitelists/{whitelisted_address_id}/"
+                                     "travel-rule-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                       }},
+                  }},
                  {std::string("trader"),
                   ccxt::dict{
                       {std::string("private"),
@@ -258,6 +345,36 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("v1/locates"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/locates/{locate_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/locates/quotes"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/tokenization/requests"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/tokenization/requests/"
+                                             "{tokenization_request_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/tokenization/"
+                                             "requests:by_client_request_id"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/wallets/travel-rule/vasps"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -278,6 +395,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("v2/wallets/transfers"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v1/locates"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -304,6 +425,12 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("v2/account/configurations"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/wallets/whitelists/"
+                                             "{whitelisted_address_id}/"
+                                             "travel-rule-info"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -392,6 +519,16 @@ public:
                            {std::string("get"),
                             ccxt::dict{
                                 {std::string("v1beta1/corporate-actions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1beta1/fixed_income/latest/prices"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v1beta1/fixed_income/latest/quotes"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -634,8 +771,8 @@ public:
                            {std::string("timeInForce"),
                             ccxt::dict{
                                 {std::string("IOC"), true},
-                                {std::string("FOK"), true},
-                                {std::string("PO"), true},
+                                {std::string("FOK"), false},
+                                {std::string("PO"), false},
                                 {std::string("GTD"), false},
                             }},
                            {std::string("hedged"), false},
@@ -717,6 +854,7 @@ public:
                       {std::string("40010001"), std::string("BadRequest")},
                       {std::string("40110000"),
                        std::string("PermissionDenied")},
+                      {std::string("42210000"), std::string("BadRequest")},
                       {std::string("42910000"),
                        std::string("RateLimitExceeded")},
                   }},
@@ -1713,6 +1851,8 @@ public:
    * endpoint
    * @param {float} [params.triggerPrice] The price at which a trigger order is
    * triggered at
+   * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports
+   * only these two for crypto orders, defaults to 'GTC'
    * @param {float} [params.cost] *market orders only* the cost of the order in
    * units of the quote currency
    * @returns {object} an [order structure]{@link
@@ -1777,6 +1917,11 @@ public:
                                                 std::string("timeInForce"));
                 defaultTIF = ::getValue(defaultTIFparamsVariable, 0);
                 params = ::getValue(defaultTIFparamsVariable, 1);
+                if (isTrue(!isEqual(defaultTIF, ccxt::any{}))) {
+                  // the venue only accepts lowercase values, normalize the
+                  // unified uppercase spellings
+                  defaultTIF = toLowerCase(defaultTIF);
+                }
                 ::setValue(request, std::string("time_in_force"), defaultTIF);
                 params =
                     this->omit(params, ccxt::list{std::string("timeInForce"),
@@ -1946,6 +2091,8 @@ public:
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {int} [params.until] the latest time in ms to fetch orders for
+   * @param {string} [params.direction] the ordering of the results, 'asc' or
+   * 'desc', defaults to 'asc' when since is set
    * @returns {Order[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -1972,12 +2119,21 @@ public:
                      this->safeInteger(params, std::string("until"));
                  if (isTrue(!isEqual(until, ccxt::any{}))) {
                    params = this->omit(params, std::string("until"));
-                   ::setValue(request, std::string("endTime"),
+                   ::setValue(request, std::string("until"),
                               this->iso8601(until));
                  }
                  if (isTrue(!isEqual(since, ccxt::any{}))) {
                    ::setValue(request, std::string("after"),
                               this->iso8601(since));
+                   ccxt::any direction =
+                       this->safeString(params, std::string("direction"));
+                   if (isTrue(isEqual(direction, ccxt::any{}))) {
+                     // the server default is desc, so a limit would truncate
+                     // the newest window instead of the range starting at since
+                     // — request oldest-first like krakenfutures does
+                     ::setValue(request, std::string("direction"),
+                                std::string("asc"));
+                   }
                  }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
                    ::setValue(request, std::string("limit"), limit);
@@ -2041,6 +2197,8 @@ public:
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {int} [params.until] the latest time in ms to fetch orders for
+   * @param {string} [params.direction] the ordering of the results, 'asc' or
+   * 'desc', defaults to 'asc' when since is set
    * @returns {Order[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -2073,6 +2231,8 @@ public:
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {int} [params.until] the latest time in ms to fetch orders for
+   * @param {string} [params.direction] the ordering of the results, 'asc' or
+   * 'desc', defaults to 'asc' when since is set
    * @returns {Order[]} a list of [order structures]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -2108,8 +2268,8 @@ public:
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {string} [params.triggerPrice] the price to trigger a stop order
-   * @param {string} [params.timeInForce] for crypto trading either 'gtc' or
-   * 'ioc' can be used
+   * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports
+   * only these two for crypto orders, defaults to 'GTC'
    * @param {string} [params.clientOrderId] a unique identifier for the order,
    * automatically generated if not sent
    * @returns {object} an [order structure]{@link
@@ -2156,8 +2316,10 @@ public:
                  timeInForce = ::getValue(timeInForceparamsVariable, 0);
                  params = ::getValue(timeInForceparamsVariable, 1);
                  if (isTrue(!isEqual(timeInForce, ccxt::any{}))) {
+                   // the venue only accepts lowercase values, normalize the
+                   // unified uppercase spellings
                    ::setValue(request, std::string("time_in_force"),
-                              timeInForce);
+                              toLowerCase(timeInForce));
                  }
                  ::setValue(request, std::string("client_order_id"),
                             this->generateClientOrderId(params));
@@ -2241,7 +2403,9 @@ public:
              this->safeString(order, std::string("client_order_id"))},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), datetime},
-            {std::string("lastTradeTimeStamp"), ccxt::any{}},
+            {std::string("lastTradeTimestamp"),
+             this->parse8601(
+                 this->safeString(order, std::string("filled_at")))},
             {std::string("status"), status},
             {std::string("symbol"), symbol},
             {std::string("type"), orderType},
@@ -2273,10 +2437,22 @@ public:
     ccxt::any statuses = ccxt::dict{
         {std::string("pending_new"), std::string("open")},
         {std::string("accepted"), std::string("open")},
+        {std::string("accepted_for_bidding"), std::string("open")},
         {std::string("new"), std::string("open")},
         {std::string("partially_filled"), std::string("open")},
         {std::string("activated"), std::string("open")},
+        {std::string("done_for_day"), std::string("open")},
+        {std::string("stopped"), std::string("open")},
+        {std::string("suspended"), std::string("open")},
+        {std::string("held"), std::string("open")},
+        {std::string("pending_replace"), std::string("open")},
+        {std::string("pending_cancel"), std::string("canceling")},
         {std::string("filled"), std::string("closed")},
+        {std::string("calculated"), std::string("closed")},
+        {std::string("canceled"), std::string("canceled")},
+        {std::string("replaced"), std::string("canceled")},
+        {std::string("expired"), std::string("expired")},
+        {std::string("rejected"), std::string("rejected")},
     };
     return this->safeString(statuses, status, status);
   }
@@ -2284,6 +2460,9 @@ public:
   virtual ccxt::any parseTimeInForce(ccxt::any timeInForce) {
     ccxt::any timeInForces = ccxt::dict{
         {std::string("day"), std::string("Day")},
+        {std::string("gtc"), std::string("GTC")},
+        {std::string("ioc"), std::string("IOC")},
+        {std::string("fok"), std::string("FOK")},
     };
     return this->safeString(timeInForces, timeInForce, timeInForce);
   }
@@ -2934,10 +3113,15 @@ public:
    * trading or funds locked in orders
    * @see https://docs.::getValue(alpaca,
    * std::string("markets"))/reference/getaccount-1
+   * @see https://docs.::getValue(alpaca,
+   * std::string("markets"))/reference/getallopenpositions
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} a [balance structure]{@link
-   * https://docs.ccxt.com/?id=balance-structure}
+   * https://docs.ccxt.com/?id=balance-structure}. note that `info` is the
+   * composite `{ account, positions }` wrapper of both raw venue payloads, not
+   * the bare account payload it was before crypto positions were included —
+   * read `info['account']['cash']` where `info['cash']` used to be read
    */
   std::shared_future<ccxt::any>
   fetchBalance(ccxt::any params = ccxt::dict{}) override {
@@ -2946,8 +3130,14 @@ public:
                         if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
-                        ccxt::any response =
+                        // the two calls stay sequential deliberately — the
+                        // static request harness records one request per case,
+                        // and concurrent calls make the recorded url
+                        // nondeterministic per language
+                        ccxt::any account =
                             awaitValue(this->traderPrivateGetV2Account(params));
+                        ccxt::any positions =
+                            awaitValue(this->traderPrivateGetV2Positions());
                         //
                         //     {
                         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2996,24 +3186,107 @@ public:
                         //         "pending_reg_taf_fees": "0"
                         //     }
                         //
+                        ccxt::any response = ccxt::dict{
+                            {std::string("account"), account},
+                            {std::string("positions"), positions},
+                        };
                         return this->parseBalance(response);
                       })
         .share();
   }
 
   ccxt::any parseBalance(ccxt::any response) override {
+    //
+    // crypto holdings live on the positions endpoint, the account endpoint
+    // carries only the cash currency
+    //
+    //     "positions": [
+    //         {
+    //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+    //             "symbol": "BTCUSD",
+    //             "exchange": "CRYPTO",
+    //             "asset_class": "crypto",
+    //             "asset_marginable": false,
+    //             "qty": "0.000207296",
+    //             "avg_entry_price": "80037",
+    //             "side": "long",
+    //             "market_value": "16.592345",
+    //             "cost_basis": "16.59135",
+    //             "unrealized_pl": "0.000995",
+    //             "unrealized_plpc": "0.00006",
+    //             "current_price": "80041.8",
+    //             "qty_available": "0.000207296"
+    //         }
+    //     ]
+    //
+    ccxt::any account =
+        this->safeDict(response, std::string("account"), ccxt::dict{});
+    ccxt::any positions =
+        this->safeList(response, std::string("positions"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
     };
-    ccxt::any account = this->account();
-    ccxt::any currencyId = this->safeString(response, std::string("currency"));
+    ccxt::any currencyId = this->safeString(account, std::string("currency"));
     ccxt::any code = this->safeCurrencyCode(currencyId);
-    ::setValue(account, std::string("free"),
-               this->safeString(response, std::string("cash")));
-    ::setValue(account, std::string("total"),
-               this->safeString(response, std::string("equity")));
     if (isTrue(!isEqual(code, ccxt::any{}))) {
-      ::setValue(result, code, account);
+      ccxt::any cashAccount = this->account();
+      ::setValue(cashAccount, std::string("free"),
+                 this->safeString(
+                     account,
+                     std::string(
+                         "cash"))); // cash already excludes the amounts held
+                                    // for open orders, verified live 2026-09-16
+      ccxt::any equity = this->safeString(account, std::string("equity"));
+      ccxt::any positionsValue =
+          this->safeString(account, std::string("position_market_value"));
+      ::setValue(
+          cashAccount, std::string("total"),
+          ccxt::Precise::stringSub(
+              equity,
+              positionsValue)); // equity minus the positions market value
+                                // equals cash plus open-order holds; stringSub
+                                // degrades to undefined when either field is
+                                // absent and safeBalance then derives the total
+                                // from free
+      ::setValue(result, code, cashAccount);
+    }
+    for (ccxt::any i = 0; isLessThan(i, getArrayLength(positions));
+         postFixIncrement(i)) {
+      ccxt::any position = ::getValue(positions, i);
+      ccxt::any positionSymbol =
+          this->safeString(position, std::string("symbol"));
+      if (isTrue(isEqual(positionSymbol, ccxt::any{}))) {
+        continue;
+      }
+      ccxt::any baseId = ccxt::any{};
+      if (isTrue(isGreaterThanOrEqual(
+              getIndexOf(positionSymbol, std::string("/")), 0))) {
+        ccxt::any parts = split(positionSymbol, std::string("/"));
+        baseId = this->safeString(parts, 0);
+      } else {
+        // crypto position symbols come compressed with a USD tail, e.g. BTCUSD
+        // or USDTUSD
+        ccxt::any baseLength = subtract(getStringLength(positionSymbol), 3);
+        if (isTrue(
+                isTrue((isGreaterThan(baseLength, 0))) &&
+                isTrue((isEqual(slice(positionSymbol, baseLength, ccxt::any{}),
+                                std::string("USD")))))) {
+          baseId = slice(positionSymbol, 0, baseLength);
+        }
+      }
+      if (isTrue(isEqual(baseId, ccxt::any{}))) {
+        continue;
+      }
+      ccxt::any positionCode = this->safeCurrencyCode(baseId);
+      if (isTrue(isTrue((!isEqual(positionCode, ccxt::any{}))) &&
+                 !isTrue((inOp(result, positionCode))))) {
+        ccxt::any positionAccount = this->account();
+        ::setValue(positionAccount, std::string("free"),
+                   this->safeString(position, std::string("qty_available")));
+        ::setValue(positionAccount, std::string("total"),
+                   this->safeString(position, std::string("qty")));
+        ::setValue(result, positionCode, positionAccount);
+      }
     }
     return this->safeBalance(result);
   }

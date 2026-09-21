@@ -239,6 +239,11 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 10},
                             }},
+                           {std::string("executionRules"),
+                            ccxt::dict{
+                                {std::string("cost"), 2},
+                                {std::string("noSymbol"), 40},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
@@ -348,6 +353,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("open/v1/user-data-stream"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("open/v1/user-listen-token"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -988,7 +997,7 @@ public:
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
                  ccxt::any list =
-                     this->safeValue(data, std::string("list"), ccxt::list{});
+                     this->safeList(data, std::string("list"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(list));
                       postFixIncrement(i)) {
@@ -1014,7 +1023,7 @@ public:
                    ccxt::any status = this->safeString(
                        market, std::string("spotTradingEnable"));
                    ccxt::any active = (isEqual(status, std::string("1")));
-                   ccxt::any permissions = this->safeValue(
+                   ccxt::any permissions = this->safeList(
                        market, std::string("permissions"), ccxt::list{});
                    for (ccxt::any j = 0;
                         isLessThan(j, getArrayLength(permissions));
@@ -1043,7 +1052,6 @@ public:
                         (isEqual(marginTradingEnable, std::string("1")))},
                        {std::string("swap"), false},
                        {std::string("future"), false},
-                       {std::string("delivery"), false},
                        {std::string("option"), false},
                        {std::string("active"), active},
                        {std::string("contract"), false},
@@ -1102,7 +1110,7 @@ public:
                    };
                    if (isTrue(
                            inOp(filtersByType, std::string("PRICE_FILTER")))) {
-                     ccxt::any filter = this->safeValue(
+                     ccxt::any filter = this->safeDict(
                          filtersByType, std::string("PRICE_FILTER"),
                          ccxt::dict{});
                      ::setValue(
@@ -2085,7 +2093,7 @@ public:
     ccxt::any data =
         this->safeValue(response, std::string("data"), ccxt::dict{});
     ccxt::any balances =
-        this->safeValue(data, std::string("accountAssets"), ccxt::list{});
+        this->safeList(data, std::string("accountAssets"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
          postFixIncrement(i)) {
       ccxt::any balance = ::getValue(balances, i);

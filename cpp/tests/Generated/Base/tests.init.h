@@ -26,11 +26,13 @@ std::shared_future<ccxt::any> baseTestsInit() {
                       testNumberToBE();
                       testDecimalToPrecision();
                       testCapitalize();
+                      testIncrementingNonce();
                       testIsDictionary();
                       testNumberToString();
                       testPrecise();
                       testSafeMethods();
                       testSafeTicker();
+                      testMergeBalanceAccount();
                       testBase58ToBinary();
                       testToArray();
                       testBinaryToBase58();
@@ -47,6 +49,7 @@ std::shared_future<ccxt::any> baseTestsInit() {
                       testInArray();
                       testFilterBy();
                       testHandleMethods();
+                      testHandleHttpStatusCode();
                       testNetworkMethods();
                       testRemoveRepeatedElementsFromArray();
                       testIsEmpty();

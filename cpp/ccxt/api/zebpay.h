@@ -31,6 +31,11 @@ public:
         return this->callEndpoint (std::string ("publicSpotGetV2MarketOrderbook"), parameters);
     }
 
+    // Calls the publicSpotGetV2MarketOrderbookTicker endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicSpotGetV2MarketOrderbookTicker (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicSpotGetV2MarketOrderbookTicker"), parameters);
+    }
+
     // Calls the publicSpotGetV2MarketTrades endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicSpotGetV2MarketTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicSpotGetV2MarketTrades"), parameters);
@@ -86,6 +91,16 @@ public:
         return this->callEndpoint (std::string ("publicSwapGetV1ExchangeTradefees"), parameters);
     }
 
+    // Calls the publicSwapGetV1ExchangeExchangeInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicSwapGetV1ExchangeExchangeInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicSwapGetV1ExchangeExchangeInfo"), parameters);
+    }
+
+    // Calls the publicSwapGetV1ExchangePairs endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicSwapGetV1ExchangePairs (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicSwapGetV1ExchangePairs"), parameters);
+    }
+
     // Calls the publicSwapGetV1MarketOrderBook endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicSwapGetV1MarketOrderBook (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicSwapGetV1MarketOrderBook"), parameters);
@@ -99,6 +114,11 @@ public:
     // Calls the publicSwapGetV1MarketMarkets endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicSwapGetV1MarketMarkets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicSwapGetV1MarketMarkets"), parameters);
+    }
+
+    // Calls the publicSwapGetV1MarketMarketInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicSwapGetV1MarketMarketInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicSwapGetV1MarketMarketInfo"), parameters);
     }
 
     // Calls the publicSwapGetV1MarketAggTrade endpoint. Returns a JSON object.
@@ -129,6 +149,11 @@ public:
     // Calls the privateSpotGetV2ExTradefee endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateSpotGetV2ExTradefee (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateSpotGetV2ExTradefee"), parameters);
+    }
+
+    // Calls the privateSpotGetV2ExMyfeeSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateSpotGetV2ExMyfeeSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateSpotGetV2ExMyfeeSymbol"), parameters);
     }
 
     // Calls the privateSpotGetV2ExOrder endpoint. Returns a JSON object.
@@ -171,6 +196,11 @@ public:
         return this->callEndpoint (std::string ("privateSwapGetV1TradeOrderOpenOrders"), parameters);
     }
 
+    // Calls the privateSwapGetV1TradeOrderHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateSwapGetV1TradeOrderHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateSwapGetV1TradeOrderHistory"), parameters);
+    }
+
     // Calls the privateSwapGetV1TradeUserLeverages endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateSwapGetV1TradeUserLeverages (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateSwapGetV1TradeUserLeverages"), parameters);
@@ -189,6 +219,11 @@ public:
     // Calls the privateSwapGetV1TradeHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateSwapGetV1TradeHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateSwapGetV1TradeHistory"), parameters);
+    }
+
+    // Calls the privateSwapGetV1TradeTransactionHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateSwapGetV1TradeTransactionHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateSwapGetV1TradeTransactionHistory"), parameters);
     }
 
     // Calls the privateSwapPostV1TradeOrder endpoint. Returns a JSON object.
@@ -224,6 +259,16 @@ public:
     // Calls the privateSwapDeleteV1TradeOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateSwapDeleteV1TradeOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateSwapDeleteV1TradeOrder"), parameters);
+    }
+
+    // Calls the privateSwapDeleteV1TradeOrderAll endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateSwapDeleteV1TradeOrderAll (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateSwapDeleteV1TradeOrderAll"), parameters);
+    }
+
+    // Calls the privateSwapPatchV1TradeOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateSwapPatchV1TradeOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateSwapPatchV1TradeOrder"), parameters);
     }
 
 };

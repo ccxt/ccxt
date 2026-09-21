@@ -501,6 +501,26 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("v5/spot-x/launchpool/project/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/spot-x/puzzle/project/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/spot-x/token-splash/project/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/instruments-info"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/orderbook"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -1086,6 +1106,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("v5/user/invitation/code"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("v5/affiliate/aff-user-list"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -1100,6 +1124,11 @@ public:
                             }},
                            {std::string("v5/spot-margin-trade/"
                                         "flexible-available-inventory"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/spot-margin-trade/"
+                                        "fixed-available-inventory"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -1256,6 +1285,16 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 10},
                             }},
+                           {std::string(
+                                "v5/crypto-loan-fixed/available-inventory"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string(
+                                "v5/crypto-loan-flexible/available-inventory"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
                            {std::string("v5/ins-loan/product-infos"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -1334,6 +1373,53 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("v5/earn/hourly-yield"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/order-realtime"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/order-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/settlements"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/spot-x/launchpool/user/current-staking"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/spot-x/token-splash/user/activity-params"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/rfq/rfq-detail-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/engine-status"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/pay-token-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/alpha/prediction/sports/timeline-stages"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -1955,6 +2041,82 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("v5/earn/place-order"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/quotes"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/event/cancel"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/spot-x/launchpool/user/activity-log"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/spot-x/launchpool/user/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/event-detail"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/order-estimate"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/buy"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/sell"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/order-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/order-book"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/token-price"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/price-history"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/position-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/position-history"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/alpha/prediction/portfolio-summary"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/side-market-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v5/alpha/prediction/sports/match-list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v5/alpha/prediction/sports/"
+                                        "group-stage-detail"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -6481,6 +6643,11 @@ public:
    * tradingStop
    * (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint,
    * makes difference when submitting single tp/sl order
+   * @param {boolean} [params.rpiTakerAccess] set to true to match a taker order
+   * against retail price improvement quotes
+   * (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/),
+   * supported order combinations: (1) orderType=Market; (2) orderType=Limit
+   * with timeInForce=IOC or FOK
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -12595,8 +12762,8 @@ public:
    * endpoint
    * @param {string} [params.baseCoin] the baseCoin of the symbol, default is
    * BTC
-   * @returns {object} a [greeks structure]{@link
-   * https://docs.ccxt.com/?id=greeks-structure}
+   * @returns {object} a dictionary of [greeks structures]{@link
+   * https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
    */
   std::shared_future<ccxt::any>
   fetchAllGreeks(ccxt::any symbols = ccxt::any{},
@@ -14578,14 +14745,12 @@ public:
       }
     }
     if (isTrue(isEqual(method, std::string("POST")))) {
-      ccxt::any brokerId =
-          this->safeString(this->options, std::string("brokerId"));
-      if (isTrue(!isEqual(brokerId, ccxt::any{}))) {
-        headers =
-            (isTrue((isEqual(headers, ccxt::any{}))) ? ccxt::any(ccxt::dict{})
-                                                     : ccxt::any(headers));
-        ::setValue(headers, std::string("Referer"), brokerId);
-      }
+      ccxt::any brokerId = this->safeString(
+          this->options, std::string("brokerId"), std::string("CCXT"));
+      headers =
+          (isTrue((isEqual(headers, ccxt::any{}))) ? ccxt::any(ccxt::dict{})
+                                                   : ccxt::any(headers));
+      ::setValue(headers, std::string("Referer"), brokerId);
     }
     return ccxt::dict{
         {std::string("url"), url},

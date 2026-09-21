@@ -51,6 +51,26 @@ public:
         return this->callEndpoint (std::string ("publicGetDeepcoinMarketMarkPriceCandles"), parameters);
     }
 
+    // Calls the publicGetDeepcoinMarketMarkPrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetDeepcoinMarketMarkPrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDeepcoinMarketMarkPrice"), parameters);
+    }
+
+    // Calls the publicGetDeepcoinMarketOpenInterestVolume endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetDeepcoinMarketOpenInterestVolume (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDeepcoinMarketOpenInterestVolume"), parameters);
+    }
+
+    // Calls the publicGetDeepcoinMarketLongShortRatio endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetDeepcoinMarketLongShortRatio (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDeepcoinMarketLongShortRatio"), parameters);
+    }
+
+    // Calls the publicGetDeepcoinMarketTakerVolume endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetDeepcoinMarketTakerVolume (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDeepcoinMarketTakerVolume"), parameters);
+    }
+
     // Calls the publicGetDeepcoinMarketStepMargin endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetDeepcoinMarketStepMargin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetDeepcoinMarketStepMargin"), parameters);
@@ -76,6 +96,11 @@ public:
         return this->callEndpoint (std::string ("privateGetDeepcoinAccountBalances"), parameters);
     }
 
+    // Calls the privateGetDeepcoinAccountAllBalances endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinAccountAllBalances (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinAccountAllBalances"), parameters);
+    }
+
     // Calls the privateGetDeepcoinAccountBills endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetDeepcoinAccountBills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDeepcoinAccountBills"), parameters);
@@ -86,6 +111,21 @@ public:
         return this->callEndpoint (std::string ("privateGetDeepcoinAccountPositions"), parameters);
     }
 
+    // Calls the privateGetDeepcoinAccountTradeFee endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinAccountTradeFee (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinAccountTradeFee"), parameters);
+    }
+
+    // Calls the privateGetDeepcoinAccountLeverageInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinAccountLeverageInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinAccountLeverageInfo"), parameters);
+    }
+
+    // Calls the privateGetDeepcoinAccountPositionsHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinAccountPositionsHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinAccountPositionsHistory"), parameters);
+    }
+
     // Calls the privateGetDeepcoinTradeFills endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetDeepcoinTradeFills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDeepcoinTradeFills"), parameters);
@@ -94,6 +134,11 @@ public:
     // Calls the privateGetDeepcoinTradeOrderByID endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetDeepcoinTradeOrderByID (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetDeepcoinTradeOrderByID"), parameters);
+    }
+
+    // Calls the privateGetDeepcoinTradeOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinTradeOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinTradeOrder"), parameters);
     }
 
     // Calls the privateGetDeepcoinTradeFinishOrderByID endpoint. Returns a JSON object.
@@ -201,6 +246,11 @@ public:
         return this->callEndpoint (std::string ("privateGetDeepcoinListenkeyExtend"), parameters);
     }
 
+    // Calls the privateGetDeepcoinSubAccountSubAccountApikey endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetDeepcoinSubAccountSubAccountApikey (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetDeepcoinSubAccountSubAccountApikey"), parameters);
+    }
+
     // Calls the privatePostDeepcoinAccountSetLeverage endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostDeepcoinAccountSetLeverage (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDeepcoinAccountSetLeverage"), parameters);
@@ -241,6 +291,11 @@ public:
         return this->callEndpoint (std::string ("privatePostDeepcoinTradeTriggerOrder"), parameters);
     }
 
+    // Calls the privatePostDeepcoinTradeAmendTriggerOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinTradeAmendTriggerOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinTradeAmendTriggerOrder"), parameters);
+    }
+
     // Calls the privatePostDeepcoinTradeBatchClosePosition endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostDeepcoinTradeBatchClosePosition (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDeepcoinTradeBatchClosePosition"), parameters);
@@ -254,6 +309,16 @@ public:
     // Calls the privatePostDeepcoinTradeClosePositionByIds endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostDeepcoinTradeClosePositionByIds (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDeepcoinTradeClosePositionByIds"), parameters);
+    }
+
+    // Calls the privatePostDeepcoinTradeIncreasePosition endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinTradeIncreasePosition (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinTradeIncreasePosition"), parameters);
+    }
+
+    // Calls the privatePostDeepcoinTradeMergePositions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinTradeMergePositions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinTradeMergePositions"), parameters);
     }
 
     // Calls the privatePostDeepcoinCopytradingLeaderSettings endpoint. Returns a JSON object.
@@ -279,6 +344,21 @@ public:
     // Calls the privatePostDeepcoinAssetTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostDeepcoinAssetTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostDeepcoinAssetTransfer"), parameters);
+    }
+
+    // Calls the privatePostDeepcoinSubAccountCreateSubAccount endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinSubAccountCreateSubAccount (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinSubAccountCreateSubAccount"), parameters);
+    }
+
+    // Calls the privatePostDeepcoinSubAccountSubAccountApikey endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinSubAccountSubAccountApikey (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinSubAccountSubAccountApikey"), parameters);
+    }
+
+    // Calls the privatePostDeepcoinSubAccountDeleteSubAccountApikey endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostDeepcoinSubAccountDeleteSubAccountApikey (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostDeepcoinSubAccountDeleteSubAccountApikey"), parameters);
     }
 
 };

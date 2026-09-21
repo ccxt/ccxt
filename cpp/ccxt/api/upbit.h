@@ -216,6 +216,31 @@ public:
         return this->callEndpoint (std::string ("privateGetApiKeys"), parameters);
     }
 
+    // Calls the privateGetPockets endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetPockets (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetPockets"), parameters);
+    }
+
+    // Calls the privateGetPocketsApiKeys endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetPocketsApiKeys (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetPocketsApiKeys"), parameters);
+    }
+
+    // Calls the privateGetPocketsAssets endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetPocketsAssets (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetPocketsAssets"), parameters);
+    }
+
+    // Calls the privateGetPocketsUniversalTransfers endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetPocketsUniversalTransfers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetPocketsUniversalTransfers"), parameters);
+    }
+
+    // Calls the privateGetPocketsTransfers endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetPocketsTransfers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetPocketsTransfers"), parameters);
+    }
+
     // Calls the privatePostOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOrders"), parameters);
@@ -259,6 +284,16 @@ public:
     // Calls the privatePostTravelRuleDepositTxid endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostTravelRuleDepositTxid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTravelRuleDepositTxid"), parameters);
+    }
+
+    // Calls the privatePostPocketsUniversalTransfers endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostPocketsUniversalTransfers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostPocketsUniversalTransfers"), parameters);
+    }
+
+    // Calls the privatePostPocketsTransfers endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostPocketsTransfers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostPocketsTransfers"), parameters);
     }
 
     // Calls the privateDeleteOrder endpoint. Returns a JSON object.

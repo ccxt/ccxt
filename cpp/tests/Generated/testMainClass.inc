@@ -122,6 +122,8 @@ initInner(ccxt::any exchangeId, ccxt::any symbolArgv, ccxt::any methodArgv) {
                };
                ccxt::any exchange =
                    initExchange(exchangeId, exchangeArgs, this->wsTests);
+               setExchangeProp(exchange, std::string("fetchHistoryCacheSize"),
+                               5);
                if (isTrue(getProperty(exchange, std::string("alias")))) {
                  dump(this->addPadding(std::string("[INFO] skipping alias"),
                                        25));
@@ -599,9 +601,7 @@ virtual std::shared_future<ccxt::any> testSafe(ccxt::any methodName,
                             ? ccxt::any(std::string(""))
                             : ccxt::any(
                                   add(add(std::string(" (Last url: "),
-                                          getProperty(
-                                              exchange,
-                                              std::string("last_request_url"))),
+                                          this->getLastRequestUrl(exchange)),
                                       std::string(" )"))));
                    if (isTrue(isOperationFailed)) {
                      // if last retry was gone with same `tempFailure` error,
@@ -706,6 +706,23 @@ virtual std::shared_future<ccxt::any> testSafe(ccxt::any methodName,
                return true;
              })
       .share();
+}
+
+virtual ccxt::any getLastRequestUrl(ccxt::any exchange) {
+  ccxt::any fetchCache =
+      callDynamically(exchange, std::string("getFetchCache"), ccxt::list{});
+  ccxt::any url = std::string("");
+  if (isTrue(isGreaterThan(getArrayLength(fetchCache), 0))) {
+    ccxt::any lastEntry =
+        ::getValue(fetchCache, subtract(getArrayLength(fetchCache), 1));
+    ccxt::any lastRequest = ::getValue(lastEntry, std::string("request"));
+    if (isTrue(!isEqual(lastRequest, ccxt::any{}))) {
+      url = callDynamically(
+          exchange, std::string("safeString"),
+          ccxt::list{lastRequest, std::string("url"), std::string("")});
+    }
+  }
+  return url;
 }
 
 virtual std::shared_future<ccxt::any> runPublicTests(ccxt::any exchange,
@@ -2985,6 +3002,41 @@ testRequestStatically(ccxt::any exchange, ccxt::any method, ccxt::any data,
                      exchange, type, skipKeys,
                      ::getValue(data, std::string("url")), requestUrl,
                      callOutput, output);
+                 // optional per-test header pinning. only the keys the fixture
+                 // lists are compared, so a fixture can pin one auth header
+                 // without freezing the whole header set. this is the only
+                 // cross-language assertion on header *names*, which the php
+                 // transpiler can silently corrupt when a header literal
+                 // contains a local/parameter name of sign ()
+                 ccxt::any storedHeaders =
+                     callDynamically(exchange, std::string("safeDict"),
+                                     ccxt::list{data, std::string("headers")});
+                 if (isTrue(!isEqual(storedHeaders, ccxt::any{}))) {
+                   ccxt::any sentHeaders =
+                       (isTrue((!isEqual(
+                            getProperty(exchange,
+                                        std::string("last_request_headers")),
+                            ccxt::any{})))
+                            ? ccxt::any(getProperty(
+                                  exchange,
+                                  std::string("last_request_headers")))
+                            : ccxt::any(ccxt::dict{}));
+                   ccxt::any storedHeaderKeys = getObjectKeys(storedHeaders);
+                   for (ccxt::any i = 0;
+                        isLessThan(i, getArrayLength(storedHeaderKeys));
+                        postFixIncrement(i)) {
+                     ccxt::any headerKey = ::getValue(storedHeaderKeys, i);
+                     ccxt::any storedHeaderValue =
+                         ::getValue(storedHeaders, headerKey);
+                     ccxt::any sentHeaderValue =
+                         callDynamically(exchange, std::string("safeString"),
+                                         ccxt::list{sentHeaders, headerKey});
+                     this->assertStaticError(
+                         isEqual(sentHeaderValue, storedHeaderValue),
+                         add(std::string("header mismatch for "), headerKey),
+                         storedHeaderValue, sentHeaderValue);
+                   }
+                 }
                } catch (const std::exception &e) {
                  this->requestTestsFailed = true;
                  ccxt::any errorMessage = add(
@@ -3023,8 +3075,21 @@ virtual std::shared_future<ccxt::any> testResponseStatically(ccxt::any exchange,
                ccxt::any expectedResult = callDynamically(
                    exchange, std::string("safeValue"),
                    ccxt::list{data, std::string("parsedResponse")});
-               ccxt::any mockedExchange = setFetchResponse(
-                   exchange, ::getValue(data, std::string("httpResponse")));
+               // 'httpResponseByUrl' serves a body per url fragment for methods
+               // that call several endpoints; the typed ports narrow each body
+               // to the shape its api leaf declares, so one shared
+               // 'httpResponse' cannot cover two differently-shaped endpoints
+               ccxt::any responsesByUrl = callDynamically(
+                   exchange, std::string("safeDict"),
+                   ccxt::list{data, std::string("httpResponseByUrl")});
+               ccxt::any mockedExchange = exchange;
+               if (isTrue(!isEqual(responsesByUrl, ccxt::any{}))) {
+                 mockedExchange =
+                     setFetchResponseByUrl(exchange, responsesByUrl);
+               } else {
+                 mockedExchange = setFetchResponse(
+                     exchange, ::getValue(data, std::string("httpResponse")));
+               }
                if (isTrue(this->info)) {
                  dump(std::string("[INFO] STATIC RESPONSE TEST:"), method,
                       std::string(":"),
@@ -3391,6 +3456,14 @@ testExchangeWsStatically(ccxt::any exchangeName, ccxt::any exchangeData,
                            isTrue((isEqual(this->lang, std::string("PHP")))))) {
                      continue;
                    }
+                   ccxt::any isDisabledRust = callDynamically(
+                       exchange, std::string("safeString"),
+                       ccxt::list{result, std::string("disabledRS")});
+                   if (isTrue(isTrue((!isEqual(isDisabledRust, ccxt::any{}))) &&
+                              isTrue((
+                                  isEqual(this->lang, std::string("RUST")))))) {
+                     continue;
+                   }
                    callDynamically(exchange,
                                    std::string("extendExchangeOptions"),
                                    ccxt::list{globalOptions});
@@ -3442,7 +3515,7 @@ virtual ccxt::any initOfflineExchange(ccxt::any exchangeName,
   ccxt::any libraryPath = ccxt::any{};
   // const wasmExecPath = getRootDir () +
   // '/src/test/static/binaries/wasm_exec.js'; const ligherWasmPath = getRootDir
-  // () + 'ts/src/test/static/binaries/lighter.wasm'; const binaryPath =
+  // () + 'ts/src/test/static/binaries/lighter-signer.wasm'; const binaryPath =
   // getRootDir () +
   // '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so'; const
   // librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
@@ -3451,7 +3524,7 @@ virtual ccxt::any initOfflineExchange(ccxt::any exchangeName,
   if (isTrue(isEqual(exchangeName, std::string("lighter")))) {
     if (isTrue(isEqual(this->lang, std::string("JS")))) {
       wasmExecPath = add(basePath, std::string("wasm_exec.js"));
-      libraryPath = add(basePath, std::string("lighter.wasm"));
+      libraryPath = add(basePath, std::string("lighter-signer.wasm"));
     } else {
       if (isTrue(isWindows())) {
         libraryPath =
@@ -4209,7 +4282,8 @@ virtual std::shared_future<ccxt::any> runBrokerIdTests() {
                               this->testBackpack(),
                               this->testToobit(),
                               this->testWeex(),
-                              this->testFoxbit()};
+                              this->testFoxbit(),
+                              this->testBithumb()};
                awaitValue(promiseAll(promises));
                ccxt::any successMessage =
                    add(add(std::string("["), this->lang),
@@ -4513,6 +4587,109 @@ virtual std::shared_future<ccxt::any> testBybit() {
                    isEqual(::getValue(reqHeaders, std::string("Referer")), id),
                    add(add(std::string("bybit - id: "), id),
                        std::string(" not in headers.")));
+               if (!isTrue(isSync())) {
+                 awaitValue(close(exchange));
+               }
+               return true;
+             })
+      .share();
+}
+
+virtual std::shared_future<ccxt::any> testBithumb() {
+  return std::async(
+             std::launch::deferred,
+             [=]() mutable -> ccxt::any {
+               ccxt::any exchange =
+                   this->initOfflineExchange(std::string("bithumb"));
+               ccxt::any id = std::string("CCXT");
+               ccxt::any reqHeaders = ccxt::dict{};
+               try {
+                 // default path: generation 2, the versioned (jwt-signedFlag)
+                 // endpoints
+                 awaitValue(callDynamically(
+                     exchange, std::string("createOrder"),
+                     ccxt::list{std::string("BTC/KRW"), std::string("limit"),
+                                std::string("buy"), 1, 20000}));
+               } catch (const std::exception &e) {
+                 // we expect an error here, we're only interested in the
+                 // headers
+                 reqHeaders =
+                     (isTrue(
+                          (isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               ccxt::any{})) &&
+                           isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               null))))
+                          ? ccxt::any(getProperty(
+                                exchange, std::string("last_request_headers")))
+                          : ccxt::any(ccxt::dict{}));
+               }
+               assertTrue(isEqual(::getValue(reqHeaders,
+                                             std::string("OPEN-API-PARTNER")),
+                                  id),
+                          add(add(std::string("bithumb - id: "), id),
+                              std::string(" not in headers (v2 endpoints).")));
+               reqHeaders = ccxt::dict{};
+               try {
+                 // legacy path: generation 1, the hmac-signedFlag endpoints
+                 awaitValue(callDynamically(
+                     exchange, std::string("createOrder"),
+                     ccxt::list{std::string("BTC/KRW"), std::string("limit"),
+                                std::string("buy"), 1, 20000,
+                                ccxt::dict{
+                                    {std::string("generation"), 1},
+                                }}));
+               } catch (const std::exception &e) {
+                 reqHeaders =
+                     (isTrue(
+                          (isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               ccxt::any{})) &&
+                           isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               null))))
+                          ? ccxt::any(getProperty(
+                                exchange, std::string("last_request_headers")))
+                          : ccxt::any(ccxt::dict{}));
+               }
+               assertTrue(
+                   isEqual(
+                       ::getValue(reqHeaders, std::string("OPEN-API-PARTNER")),
+                       id),
+                   add(add(std::string("bithumb - id: "), id),
+                       std::string(" not in headers (legacy endpoints).")));
+               reqHeaders = ccxt::dict{};
+               try {
+                 // public endpoints carry the partner header as well
+                 awaitValue(
+                     callDynamically(exchange, std::string("fetchTicker"),
+                                     ccxt::list{std::string("BTC/KRW")}));
+               } catch (const std::exception &e) {
+                 reqHeaders =
+                     (isTrue(
+                          (isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               ccxt::any{})) &&
+                           isTrue(!isEqual(
+                               getProperty(exchange,
+                                           std::string("last_request_headers")),
+                               null))))
+                          ? ccxt::any(getProperty(
+                                exchange, std::string("last_request_headers")))
+                          : ccxt::any(ccxt::dict{}));
+               }
+               assertTrue(
+                   isEqual(
+                       ::getValue(reqHeaders, std::string("OPEN-API-PARTNER")),
+                       id),
+                   add(add(std::string("bithumb - id: "), id),
+                       std::string(" not in headers (public endpoints).")));
                if (!isTrue(isSync())) {
                  awaitValue(close(exchange));
                }

@@ -12,6 +12,7 @@ void testParseDate();
 void testMicroseconds();
 void testMilliseconds();
 void testSeconds();
+void testConvertExpireDate();
 void testYymmdd();
 void testYyyymmdd();
 void testYmd();
@@ -139,6 +140,13 @@ void testParse8601() {
                      514862627060));
   assertTrue(isEqual(exchange.parse8601(std::string("1986-04-26T01:23:47.6Z")),
                      514862627600));
+  // a negative offset is a zone like any other
+  assertTrue(
+      isEqual(exchange.parse8601(std::string("1986-04-26T01:23:47.559-04:00")),
+              514877027559));
+  assertTrue(
+      isEqual(exchange.parse8601(std::string("1986-04-26T01:23:47.559+00:00")),
+              514862627559));
   assertTrue(
       isEqual(exchange.parse8601(std::string("1977-13-13T00:00:00.000Z")),
               ccxt::any{}));
@@ -192,6 +200,30 @@ void testSeconds() {
   ccxt::any valueString = toString(value);
   assertTrue(isGreaterThan(value, 0));
   assertTrue(isEqual(getStringLength(valueString), 10));
+}
+void testConvertExpireDate() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  // callers write this into expiryDatetime, which types.ts documents with
+  // milliseconds
+  assertTrue(isEqual(exchange.convertExpireDate(std::string("260503")),
+                     std::string("2026-05-03T00:00:00.000Z")));
+  assertTrue(isEqual(exchange.convertExpireDate(std::string("240426")),
+                     std::string("2024-04-26T00:00:00.000Z")));
+  // both spellings of midnight parse to the same instant
+  assertTrue(isEqual(
+      exchange.parse8601(exchange.convertExpireDate(std::string("260503"))),
+      1777766400000));
+  assertTrue(isEqual(
+      exchange.parse8601(std::string("2026-05-03T00:00:00Z")),
+      exchange.parse8601(exchange.convertExpireDate(std::string("260503")))));
+  // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+  // invariant the change exists to establish, and it fails on the old spelling
+  assertTrue(isEqual(exchange.convertExpireDate(std::string("260503")),
+                     exchange.iso8601(exchange.parse8601(
+                         exchange.convertExpireDate(std::string("260503"))))));
+  assertTrue(isEqual(exchange.convertExpireDate(ccxt::any{}), ccxt::any{}));
 }
 void testYymmdd() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -255,4 +287,5 @@ void testDatetime() {
   testSeconds();
   testYymmdd();
   testYyyymmdd();
+  testConvertExpireDate();
 }

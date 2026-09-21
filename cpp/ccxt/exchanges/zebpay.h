@@ -132,6 +132,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string("v2/market/orderbook/ticker"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                                 {std::string("v2/market/trades"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
@@ -182,6 +186,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string("v1/exchange/exchangeInfo"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v1/exchange/pairs"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                                 {std::string("v1/market/orderBook"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
@@ -191,6 +203,10 @@ public:
                                      {std::string("cost"), 10},
                                  }},
                                 {std::string("v1/market/markets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v1/market/marketInfo"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
@@ -230,6 +246,10 @@ public:
                                      {std::string("cost"), 10},
                                  }},
                                 {std::string("v2/ex/tradefee"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v2/ex/myfee/{symbol}"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
@@ -274,6 +294,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string("v1/trade/order/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                                 {std::string("v1/trade/userLeverages"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
@@ -287,6 +311,10 @@ public:
                                      {std::string("cost"), 10},
                                  }},
                                 {std::string("v1/trade/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v1/trade/transaction/history"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
@@ -319,6 +347,17 @@ public:
                                  }},
                             }},
                            {std::string("delete"),
+                            ccxt::dict{
+                                {std::string("v1/trade/order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v1/trade/order/all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                            }},
+                           {std::string("patch"),
                             ccxt::dict{
                                 {std::string("v1/trade/order"),
                                  ccxt::dict{
@@ -2720,7 +2759,6 @@ public:
     //         "status": "ok"
     //    }
     //
-    ccxt::any timestamp = this->milliseconds();
     return ccxt::dict{
         {std::string("info"), info},
         {std::string("symbol"), this->safeString(market, std::string("id"))},
@@ -2730,8 +2768,8 @@ public:
         {std::string("total"), ccxt::any{}},
         {std::string("code"), this->safeString(info, std::string("code"))},
         {std::string("status"), this->safeString(info, std::string("status"))},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
     };
   }
 

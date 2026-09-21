@@ -228,6 +228,67 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("v1/prediction-markets/events"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/events/{eventTicker}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/events/"
+                                        "{eventTicker}/strike"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/events/newly-listed"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/events/"
+                                        "recently-settled"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/events/upcoming"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/categories"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/volume/{date}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/volume/{date}/hourly"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/terms"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/maker-rebate/rates"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/"
+                                        "liquidity-rewards/config"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("v1/prediction-markets/"
+                                        "liquidity-rewards/events"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -236,6 +297,33 @@ public:
                        ccxt::dict{
                            {std::string("v1/perpetuals/fundingpaymentreport/"
                                         "records.xlsx"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/terms/status"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/maker-rebate/"
+                                        "summary/total"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/"
+                                        "liquidity-rewards/summary/daily"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/"
+                                        "liquidity-rewards/summary/total"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/network/{token}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/networks/{network}/assets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -484,6 +572,66 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v1/positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/order"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/order/batch"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/order/cancel"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/order/batch/cancel"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/orders/active"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/orders/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/positions/settled"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/metrics/volume"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/prediction-markets/terms/accept"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "v1/prediction-markets/maker-rebate/payouts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/transfers"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/withdraw/{network}/{ticker}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "v2/withdraw/{network}/{ticker}/feeEstimate"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1079,7 +1227,7 @@ public:
                  if (isTrue(inOp(this->urls, std::string("test")))) {
                    return ccxt::list{}; // sandbox does not have usdt markets
                  }
-                 ccxt::any fetchUsdtMarkets = this->safeValue(
+                 ccxt::any fetchUsdtMarkets = this->safeList(
                      this->options, std::string("fetchUsdtMarkets"),
                      ccxt::list{});
                  ccxt::any result = ccxt::list{};
@@ -2741,17 +2889,14 @@ public:
                         if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
-                        ccxt::any groupedByNetwork = awaitValue(
+                        ccxt::any indexedByNetwork = awaitValue(
                             this->fetchDepositAddressesByNetwork(code, params));
                         ccxt::any networkCode = ccxt::any{};
                         ccxt::any networkCodeparamsVariable =
                             this->handleNetworkCodeAndParams(params);
                         networkCode = ::getValue(networkCodeparamsVariable, 0);
                         params = ::getValue(networkCodeparamsVariable, 1);
-                        ccxt::any networkGroup = this->indexBy(
-                            this->safeValue(groupedByNetwork, networkCode),
-                            std::string("currency"));
-                        return this->safeValue(networkGroup, code);
+                        return this->safeValue(indexedByNetwork, networkCode);
                       })
         .share();
   }
@@ -2805,7 +2950,10 @@ public:
                          {std::string("network"), networkCode},
                          {std::string("currency"), code},
                      });
-                 return this->groupBy(results, std::string("network"));
+                 // one address structure per network, like every other venue
+                 // (the endpoint is scoped to a single network, so the last
+                 // address the venue lists for it wins — same as before)
+                 return this->indexBy(results, std::string("network"));
                })
         .share();
   }

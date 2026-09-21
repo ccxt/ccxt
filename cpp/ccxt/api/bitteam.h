@@ -61,6 +61,11 @@ public:
         return this->callEndpoint (std::string ("publicGetTradeApiRates"), parameters);
     }
 
+    // Calls the publicGetTradeApiStats endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetTradeApiStats (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetTradeApiStats"), parameters);
+    }
+
     // Calls the publicGetTradeApiTradeId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetTradeApiTradeId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTradeApiTradeId"), parameters);
