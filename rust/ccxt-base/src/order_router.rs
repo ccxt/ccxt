@@ -20,6 +20,7 @@
 //     names the other ports throw, so `is("NetworkError")` answers the same
 //     question `isOutcomeUnknownError` asks there.
 
+use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
@@ -438,7 +439,7 @@ impl OrderRouter {
     /// Reads a string field, with a default for missing and null values.
     pub fn string_at(&self, container: &Value, key: &str, default_value: &str) -> String {
         match field(container, key) {
-            Some(Value::Str(text)) => text.clone(),
+            Some(Value::Str(text)) => text.to_string(),
             _ => default_value.to_string(),
         }
     }
@@ -824,11 +825,11 @@ impl OrderRouter {
                 step.insert("stepIndex".into(), Value::Float(step_index as f64));
                 step.insert("hopIndex".into(), Value::Float(hop_index as f64));
                 step.insert("legIndex".into(), Value::Float(leg_index as f64));
-                step.insert("exchangeId".into(), Value::Str(self.string_at(leg, "exchangeId", "")));
-                step.insert("symbol".into(), Value::Str(symbol.clone()));
-                step.insert("side".into(), Value::Str(side.clone()));
-                step.insert("base".into(), Value::Str(base_code.clone()));
-                step.insert("quote".into(), Value::Str(quote.clone()));
+                step.insert("exchangeId".into(), Value::Str(self.string_at(leg, "exchangeId", "").into()));
+                step.insert("symbol".into(), Value::Str(symbol.clone().into()));
+                step.insert("side".into(), Value::Str(side.clone().into()));
+                step.insert("base".into(), Value::Str(base_code.clone().into()));
+                step.insert("quote".into(), Value::Str(quote.clone().into()));
                 step.insert("amount".into(), Value::Float(amount));
                 step.insert("expectedPrice".into(), Value::Float(expected_price));
                 step.insert("effectivePrice".into(), Value::Float(effective_price));
@@ -855,17 +856,17 @@ impl OrderRouter {
             }
         }
         let mut plan = HashMap::new();
-        plan.insert("requestId".into(), Value::Str(self.string_at(route, "requestId", "")));
+        plan.insert("requestId".into(), Value::Str(self.string_at(route, "requestId", "").into()));
         plan.insert("calculatedAt".into(), Value::Float(self.number_at(route, "calculatedAt", 0.0)));
-        plan.insert("from".into(), Value::Str(self.string_at(route, "from", "")));
-        plan.insert("to".into(), Value::Str(self.string_at(route, "to", "")));
-        plan.insert("routingStrategy".into(), Value::Str(self.string_at(route, "strategy", "")));
-        plan.insert("exactSide".into(), Value::Str(self.string_at(route, "exactSide", "")));
+        plan.insert("from".into(), Value::Str(self.string_at(route, "from", "").into()));
+        plan.insert("to".into(), Value::Str(self.string_at(route, "to", "").into()));
+        plan.insert("routingStrategy".into(), Value::Str(self.string_at(route, "strategy", "").into()));
+        plan.insert("exactSide".into(), Value::Str(self.string_at(route, "exactSide", "").into()));
         plan.insert("amountIn".into(), Value::Float(self.number_at(route, "amountIn", 0.0)));
         plan.insert("amountOut".into(), Value::Float(self.number_at(route, "amountOut", 0.0)));
         plan.insert("fullyFillable".into(), Value::Bool(self.bool_at(route, "fullyFillable", false)));
         plan.insert("fillRatio".into(), Value::Float(self.number_at(route, "fillRatio", 0.0)));
-        plan.insert("unroutableReason".into(), Value::Str(self.string_at(route, "unroutableReason", "")));
+        plan.insert("unroutableReason".into(), Value::Str(self.string_at(route, "unroutableReason", "").into()));
         // WHICH hop could not be solved. -1 when the route is routable or the server did not
         // say; 0 is a real answer and must not read as "unknown".
         plan.insert(
@@ -965,13 +966,13 @@ impl OrderRouter {
     ) -> Value {
         let mut entry = HashMap::new();
         entry.insert("stepIndex".into(), Value::Float(step_index));
-        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string()));
-        entry.insert("symbol".into(), Value::Str(symbol.to_string()));
-        entry.insert("code".into(), Value::Str(code.to_string()));
+        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string().into()));
+        entry.insert("symbol".into(), Value::Str(symbol.to_string().into()));
+        entry.insert("code".into(), Value::Str(code.to_string().into()));
         entry.insert("blocking".into(), Value::Bool(blocking));
         entry.insert("actual".into(), Value::Float(actual));
         entry.insert("limit".into(), Value::Float(limit));
-        entry.insert("message".into(), Value::Str(violation_message(code).to_string()));
+        entry.insert("message".into(), Value::Str(violation_message(code).to_string().into()));
         Value::Map(entry)
     }
 
@@ -1476,8 +1477,8 @@ impl OrderRouter {
         let initial_source =
             if produced { source.clone() } else { Value::Map(HashMap::new()) };
         let mut entry = HashMap::new();
-        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string()));
-        entry.insert("asset".into(), Value::Str(asset.to_string()));
+        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string().into()));
+        entry.insert("asset".into(), Value::Str(asset.to_string().into()));
         entry.insert("amount".into(), Value::Float(amount));
         entry.insert("source".into(), initial_source);
         positions.push(Value::Map(entry));
@@ -1585,16 +1586,16 @@ impl OrderRouter {
             }
             let mut step = HashMap::new();
             step.insert("stepIndex".into(), Value::Float(steps.len() as f64));
-            step.insert("exchangeId".into(), Value::Str(exchange_id.clone()));
-            step.insert("symbol".into(), Value::Str(symbol));
-            step.insert("side".into(), Value::Str(side.to_string()));
+            step.insert("exchangeId".into(), Value::Str(exchange_id.clone().into()));
+            step.insert("symbol".into(), Value::Str(symbol.into()));
+            step.insert("side".into(), Value::Str(side.to_string().into()));
             // base and quote are carried so that an unwind plan can be fed
             // straight back into check_execution_plan_safety: unwinding is
             // trading, and it is subject to the same 25 USD cap.
-            step.insert("base".into(), Value::Str(market_base));
-            step.insert("quote".into(), Value::Str(market_quote));
-            step.insert("asset".into(), Value::Str(asset.clone()));
-            step.insert("counterAsset".into(), Value::Str(counter_asset.clone()));
+            step.insert("base".into(), Value::Str(market_base.into()));
+            step.insert("quote".into(), Value::Str(market_quote.into()));
+            step.insert("asset".into(), Value::Str(asset.clone().into()));
+            step.insert("counterAsset".into(), Value::Str(counter_asset.clone().into()));
             step.insert("amount".into(), Value::Float(unwind_amount));
             step.insert("expectedPrice".into(), Value::Float(price));
             step.insert("limitPrice".into(), Value::Float(limit_price));
@@ -1611,10 +1612,10 @@ impl OrderRouter {
             steps.push(Value::Map(step));
         }
         let mut plan = HashMap::new();
-        plan.insert("from".into(), Value::Str(from_asset));
-        plan.insert("to".into(), Value::Str(to_asset));
+        plan.insert("from".into(), Value::Str(from_asset.into()));
+        plan.insert("to".into(), Value::Str(to_asset.into()));
         plan.insert("halted".into(), Value::Bool(self.bool_at(report, "halted", false)));
-        plan.insert("haltReason".into(), Value::Str(self.string_at(report, "haltReason", "")));
+        plan.insert("haltReason".into(), Value::Str(self.string_at(report, "haltReason", "").into()));
         plan.insert("residualCount".into(), Value::Float(residual_count as f64));
         plan.insert("requiresConfirmation".into(), Value::Bool(true));
         plan.insert("automatic".into(), Value::Bool(false));
@@ -1625,10 +1626,10 @@ impl OrderRouter {
 
     fn unresolved_entry(exchange_id: &str, asset: &str, amount: f64, reason: &str) -> Value {
         let mut entry = HashMap::new();
-        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string()));
-        entry.insert("asset".into(), Value::Str(asset.to_string()));
+        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string().into()));
+        entry.insert("asset".into(), Value::Str(asset.to_string().into()));
         entry.insert("amount".into(), Value::Float(amount));
-        entry.insert("reason".into(), Value::Str(reason.to_string()));
+        entry.insert("reason".into(), Value::Str(reason.to_string().into()));
         Value::Map(entry)
     }
 }
@@ -1678,12 +1679,12 @@ impl OrderRouter {
             Value::Arr(items) => items
                 .iter()
                 .map(|item| match item {
-                    Value::Str(s) => s.clone(),
+                    Value::Str(s) => s.to_string(),
                     other => format!("{other:?}"),
                 })
                 .collect::<Vec<String>>()
                 .join(","),
-            Value::Str(s) => s.clone(),
+            Value::Str(s) => s.to_string(),
             //  REFUSED rather than debug-formatted. This used to end in `format!("{other:?}")`,
             //  which renders a map as Rust's own debug form and ships it: the server then
             //  rejects a value naming neither what was sent nor what was wanted. `balances` is
@@ -1889,8 +1890,8 @@ impl OrderRouter {
                     }
                     // the same client-side stamps fetch_route applies, for the same reason:
                     // every frame is a route build_execution_plan may be handed
-                    Self::put(&mut frame, "clientRequestedFrom", Value::Str(upper_from.clone()));
-                    Self::put(&mut frame, "clientRequestedTo", Value::Str(upper_to.clone()));
+                    Self::put(&mut frame, "clientRequestedFrom", Value::Str(upper_from.clone().into()));
+                    Self::put(&mut frame, "clientRequestedTo", Value::Str(upper_to.clone().into()));
                     Self::put(
                         &mut frame,
                         "clientRequestedRequireFullFill",
@@ -1987,8 +1988,8 @@ impl OrderRouter {
         }
         Self::assert_route_amounts(params, "fetchRoute")?;
         let mut body = Value::Dict(Arc::new(HashMap::new()));
-        Self::put(&mut body, "from", Value::Str(from_asset.to_uppercase()));
-        Self::put(&mut body, "to", Value::Str(to_asset.to_uppercase()));
+        Self::put(&mut body, "from", Value::Str(from_asset.to_uppercase().into()));
+        Self::put(&mut body, "to", Value::Str(to_asset.to_uppercase().into()));
         for key in ROUTE_QUERY_KEYS.iter() {
             let value = match field(params, key) {
                 Some(found) => found,
@@ -2002,13 +2003,13 @@ impl OrderRouter {
             //  a wallet, and letting it through as a JSON number sent it to the server to be
             //  refused there.
             let encoded = if *key == "balances" {
-                Value::Str(self.render_balances(value)?)
+                Value::Str(self.render_balances(value)?.into())
             } else {
                 match value {
                     Value::Bool(flag) => Value::Bool(*flag),
                     Value::Int(n) => Value::Int(*n),
                     Value::Float(n) => Value::Float(*n),
-                    other => Value::Str(self.query_text(other)?),
+                    other => Value::Str(self.query_text(other)?.into()),
                 }
             };
             Self::put(&mut body, key, encoded);
@@ -2042,10 +2043,10 @@ impl OrderRouter {
             };
             if field(params, "exchanges").is_none() {
                 let ids: Vec<String> = self.venues.keys().cloned().collect();
-                map.insert("exchanges".into(), Value::Str(ids.join(",")));
+                map.insert("exchanges".into(), Value::Str(ids.join(",").into()));
             }
             if self.track_balances && field(params, "balances").is_none() {
-                map.insert("balances".into(), Value::Str(self.load_balances(false).await?));
+                map.insert("balances".into(), Value::Str(self.load_balances(false).await?.into()));
             }
             owned_params = Value::Map(map);
             &owned_params
@@ -2085,8 +2086,8 @@ impl OrderRouter {
         // could name any real market and the safety checks, which only test
         // internal consistency against that market, would pass it under the
         // 25 USD cap.
-        Self::put(&mut route, "clientRequestedFrom", Value::Str(from_asset.to_uppercase()));
-        Self::put(&mut route, "clientRequestedTo", Value::Str(to_asset.to_uppercase()));
+        Self::put(&mut route, "clientRequestedFrom", Value::Str(from_asset.to_uppercase().into()));
+        Self::put(&mut route, "clientRequestedTo", Value::Str(to_asset.to_uppercase().into()));
         Ok(route)
     }
 
@@ -2411,11 +2412,11 @@ impl OrderRouter {
             fresh.insert("stepIndex".into(), Value::Float(self.number_at(step, "stepIndex", i as f64)));
             fresh.insert("hopIndex".into(), Value::Float(self.number_at(step, "hopIndex", 0.0)));
             fresh.insert("legIndex".into(), Value::Float(self.number_at(step, "legIndex", 0.0)));
-            fresh.insert("exchangeId".into(), Value::Str(self.string_at(step, "exchangeId", "")));
-            fresh.insert("symbol".into(), Value::Str(self.string_at(step, "symbol", "")));
-            fresh.insert("side".into(), Value::Str(self.string_at(step, "side", "")));
-            fresh.insert("base".into(), Value::Str(self.string_at(step, "base", "")));
-            fresh.insert("quote".into(), Value::Str(self.string_at(step, "quote", "")));
+            fresh.insert("exchangeId".into(), Value::Str(self.string_at(step, "exchangeId", "").into()));
+            fresh.insert("symbol".into(), Value::Str(self.string_at(step, "symbol", "").into()));
+            fresh.insert("side".into(), Value::Str(self.string_at(step, "side", "").into()));
+            fresh.insert("base".into(), Value::Str(self.string_at(step, "base", "").into()));
+            fresh.insert("quote".into(), Value::Str(self.string_at(step, "quote", "").into()));
             fresh.insert("amount".into(), Value::Float(self.number_at(step, "amount", 0.0)));
             fresh.insert("expectedPrice".into(), Value::Float(self.number_at(step, "expectedPrice", 0.0)));
             fresh.insert("effectivePrice".into(), Value::Float(self.number_at(step, "effectivePrice", 0.0)));
@@ -2444,21 +2445,21 @@ impl OrderRouter {
             result.insert("stepIndex".into(), Value::Float(self.number_at(step, "stepIndex", -1.0)));
             result.insert("hopIndex".into(), Value::Float(self.number_at(step, "hopIndex", 0.0)));
             result.insert("legIndex".into(), Value::Float(self.number_at(step, "legIndex", 0.0)));
-            result.insert("exchangeId".into(), Value::Str(self.string_at(step, "exchangeId", "")));
-            result.insert("symbol".into(), Value::Str(self.string_at(step, "symbol", "")));
-            result.insert("side".into(), Value::Str(self.string_at(step, "side", "")));
+            result.insert("exchangeId".into(), Value::Str(self.string_at(step, "exchangeId", "").into()));
+            result.insert("symbol".into(), Value::Str(self.string_at(step, "symbol", "").into()));
+            result.insert("side".into(), Value::Str(self.string_at(step, "side", "").into()));
             result.insert("status".into(), Value::Str("planned".into()));
             result.insert("requestedAmount".into(), Value::Float(self.number_at(step, "amount", 0.0)));
             result.insert("filledAmount".into(), Value::Float(0.0));
             result.insert("averagePrice".into(), Value::Float(0.0));
             result.insert("cost".into(), Value::Float(0.0));
-            result.insert("inAsset".into(), Value::Str(String::new()));
+            result.insert("inAsset".into(), Value::Str(Cow::Borrowed("")));
             result.insert("inAmount".into(), Value::Float(0.0));
-            result.insert("outAsset".into(), Value::Str(String::new()));
+            result.insert("outAsset".into(), Value::Str(Cow::Borrowed("")));
             result.insert("outAmount".into(), Value::Float(0.0));
-            result.insert("orderId".into(), Value::Str(String::new()));
-            result.insert("clientOrderId".into(), Value::Str(String::new()));
-            result.insert("errorCode".into(), Value::Str(String::new()));
+            result.insert("orderId".into(), Value::Str(Cow::Borrowed("")));
+            result.insert("clientOrderId".into(), Value::Str(Cow::Borrowed("")));
+            result.insert("errorCode".into(), Value::Str(Cow::Borrowed("")));
             // which retry produced this result; 0 unless retryFailedSteps re-placed it
             result.insert("attempt".into(), Value::Float(0.0));
             // False until an order is actually dispatched — a failure before
@@ -2469,12 +2470,12 @@ impl OrderRouter {
         let mut report = HashMap::new();
         // A placeholder: execute resolves the real identity from the plan AND the
         // options and overwrites it before anything reads this field.
-        report.insert("planId".into(), Value::Str(String::new()));
-        report.insert("strategy".into(), Value::Str(strategy.to_string()));
+        report.insert("planId".into(), Value::Str(Cow::Borrowed("")));
+        report.insert("strategy".into(), Value::Str(strategy.to_string().into()));
         report.insert("dryRun".into(), Value::Bool(dry_run));
         report.insert("live".into(), Value::Bool(!dry_run));
-        report.insert("from".into(), Value::Str(self.string_at(plan, "from", "")));
-        report.insert("to".into(), Value::Str(self.string_at(plan, "to", "")));
+        report.insert("from".into(), Value::Str(self.string_at(plan, "from", "").into()));
+        report.insert("to".into(), Value::Str(self.string_at(plan, "to", "").into()));
         report.insert("slippageBps".into(), Value::Float(self.number_at(plan, "slippageBps", DEFAULT_SLIPPAGE_BPS)));
         report.insert(
             "reconcileToleranceRatio".into(),
@@ -2484,7 +2485,7 @@ impl OrderRouter {
         report.insert("wouldPlaceOrders".into(), Value::Float(0.0));
         report.insert("ordersPlaced".into(), Value::Float(0.0));
         report.insert("halted".into(), Value::Bool(false));
-        report.insert("haltReason".into(), Value::Str(String::new()));
+        report.insert("haltReason".into(), Value::Str(Cow::Borrowed("")));
         report.insert("haltStepIndex".into(), Value::Float(-1.0));
         report.insert("filledIn".into(), Value::Float(0.0));
         report.insert("filledOut".into(), Value::Float(0.0));
@@ -2509,19 +2510,19 @@ impl OrderRouter {
     fn record_error(&self, report: &mut Value, step_index: f64, exchange_id: &str, symbol: &str, code: &str) {
         let mut entry = HashMap::new();
         entry.insert("stepIndex".into(), Value::Float(step_index));
-        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string()));
-        entry.insert("symbol".into(), Value::Str(symbol.to_string()));
-        entry.insert("code".into(), Value::Str(code.to_string()));
+        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string().into()));
+        entry.insert("symbol".into(), Value::Str(symbol.to_string().into()));
+        entry.insert("code".into(), Value::Str(code.to_string().into()));
         Self::append_to(report, "errors", Value::Map(entry));
     }
 
     /// Records an order that may still be resting on a venue.
     fn record_open_order(&self, report: &mut Value, exchange_id: &str, symbol: &str, order_id: &str, reason: &str) {
         let mut entry = HashMap::new();
-        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string()));
-        entry.insert("symbol".into(), Value::Str(symbol.to_string()));
-        entry.insert("orderId".into(), Value::Str(order_id.to_string()));
-        entry.insert("reason".into(), Value::Str(reason.to_string()));
+        entry.insert("exchangeId".into(), Value::Str(exchange_id.to_string().into()));
+        entry.insert("symbol".into(), Value::Str(symbol.to_string().into()));
+        entry.insert("orderId".into(), Value::Str(order_id.to_string().into()));
+        entry.insert("reason".into(), Value::Str(reason.to_string().into()));
         Self::append_to(report, "openOrders", Value::Map(entry));
     }
 
@@ -2702,8 +2703,8 @@ impl OrderRouter {
         // base-side fallback values the order off `amount`, so passing the step valued the
         // wrong quantity — the other five ports have always built this probe.
         let mut probe = HashMap::new();
-        probe.insert("base".to_string(), Value::Str(self.string_at(step, "base", "")));
-        probe.insert("quote".to_string(), Value::Str(self.string_at(step, "quote", "")));
+        probe.insert("base".to_string(), Value::Str(self.string_at(step, "base", "").into()));
+        probe.insert("quote".to_string(), Value::Str(self.string_at(step, "quote", "").into()));
         probe.insert("amount".to_string(), Value::Float(amount));
         let usd_value = self.notional_usd(&Value::Map(probe), amount * price, usd_rates);
         if usd_value <= 0.0 {
@@ -2742,21 +2743,21 @@ impl OrderRouter {
         // belongs to at all.
         result.insert("hopIndex".into(), Value::Float(self.number_at(step, "hopIndex", 0.0)));
         result.insert("legIndex".into(), Value::Float(self.number_at(step, "legIndex", 0.0)));
-        result.insert("exchangeId".into(), Value::Str(exchange_id.clone()));
-        result.insert("symbol".into(), Value::Str(symbol.clone()));
-        result.insert("side".into(), Value::Str(side.clone()));
+        result.insert("exchangeId".into(), Value::Str(exchange_id.clone().into()));
+        result.insert("symbol".into(), Value::Str(symbol.clone().into()));
+        result.insert("side".into(), Value::Str(side.clone().into()));
         result.insert("status".into(), Value::Str("failed".into()));
         result.insert("requestedAmount".into(), Value::Float(self.number_at(step, "amount", 0.0)));
         result.insert("filledAmount".into(), Value::Float(0.0));
         result.insert("averagePrice".into(), Value::Float(0.0));
         result.insert("cost".into(), Value::Float(0.0));
-        result.insert("inAsset".into(), Value::Str(String::new()));
+        result.insert("inAsset".into(), Value::Str(Cow::Borrowed("")));
         result.insert("inAmount".into(), Value::Float(0.0));
-        result.insert("outAsset".into(), Value::Str(String::new()));
+        result.insert("outAsset".into(), Value::Str(Cow::Borrowed("")));
         result.insert("outAmount".into(), Value::Float(0.0));
-        result.insert("orderId".into(), Value::Str(String::new()));
-        result.insert("clientOrderId".into(), Value::Str(String::new()));
-        result.insert("errorCode".into(), Value::Str(String::new()));
+        result.insert("orderId".into(), Value::Str(Cow::Borrowed("")));
+        result.insert("clientOrderId".into(), Value::Str(Cow::Borrowed("")));
+        result.insert("errorCode".into(), Value::Str(Cow::Borrowed("")));
         result.insert("placementAttempted".into(), Value::Bool(false));
         let mut result = Value::Map(result);
 
@@ -2784,7 +2785,7 @@ impl OrderRouter {
             // A hardcoded "over_cap" was wrong twice over: it did not match the five, and
             // it labelled the "cannot be valued in USD" refusal — which is not a cap
             // breach at all — as though the notional had exceeded the cap.
-            Self::put(&mut result, "errorCode", Value::Str(e.kind.clone()));
+            Self::put(&mut result, "errorCode", Value::Str(e.kind.clone().into()));
             self.record_error(report, step_index, &exchange_id, &symbol, &e.kind);
             return result;
         }
@@ -2817,11 +2818,11 @@ impl OrderRouter {
         };
         let order = match order {
             Ok(placed) => {
-                Self::put(&mut result, "clientOrderId", Value::Str(self.string_at(&placed, "clientOrderId", "")));
+                Self::put(&mut result, "clientOrderId", Value::Str(self.string_at(&placed, "clientOrderId", "").into()));
                 placed
             }
             Err(e) => {
-                Self::put(&mut result, "errorCode", Value::Str(e.kind.clone()));
+                Self::put(&mut result, "errorCode", Value::Str(e.kind.clone().into()));
                 self.record_error(report, step_index, &exchange_id, &symbol, &e.kind);
                 // createOrder may already have succeeded: every path between it and the final
                 // read — a poll that times out, a network drop, a cap re-check — leaves a real
@@ -2878,7 +2879,7 @@ impl OrderRouter {
             // unconfirmed placement for it would be a false alarm.
             Self::put(result, "placementAttempted", Value::Bool(true));
             let order = venue.create_order(symbol, "limit", side, amount, price, &params).await?;
-            Self::put(result, "orderId", Value::Str(self.string_at(&order, "id", "")));
+            Self::put(result, "orderId", Value::Str(self.string_at(&order, "id", "").into()));
             return Ok(order);
         }
         if !self.bool_at(options, "allowMarketOrders", false) {
@@ -2900,7 +2901,7 @@ impl OrderRouter {
         Self::put(result, "placementAttempted", Value::Bool(true));
         // Price 0 stands for "no price", which is what a market order carries.
         let order = venue.create_order(symbol, "market", side, amount, 0.0, order_params).await?;
-        Self::put(result, "orderId", Value::Str(self.string_at(&order, "id", "")));
+        Self::put(result, "orderId", Value::Str(self.string_at(&order, "id", "").into()));
         Ok(order)
     }
 
@@ -2927,7 +2928,7 @@ impl OrderRouter {
         let order_id = self.string_at(&order, "id", "");
         // Before the first poll, the first sleep and the first thing that can go
         // wrong: from here on the caller can always name what is resting.
-        Self::put(result, "orderId", Value::Str(order_id.clone()));
+        Self::put(result, "orderId", Value::Str(order_id.clone().into()));
         let mut waited = 0.0;
         while waited < timeout_ms {
             let status = self.string_at(&order, "status", "");
@@ -3042,14 +3043,14 @@ impl OrderRouter {
         Self::put(result, "averageKnown", Value::Bool(average_known));
         Self::put(result, "costKnown", Value::Bool(cost_known));
         if side == "buy" {
-            Self::put(result, "inAsset", Value::Str(self.string_at(step, "quote", "")));
+            Self::put(result, "inAsset", Value::Str(self.string_at(step, "quote", "").into()));
             Self::put(result, "inAmount", Value::Float(cost));
-            Self::put(result, "outAsset", Value::Str(self.string_at(step, "base", "")));
+            Self::put(result, "outAsset", Value::Str(self.string_at(step, "base", "").into()));
             Self::put(result, "outAmount", Value::Float(filled));
         } else {
-            Self::put(result, "inAsset", Value::Str(self.string_at(step, "base", "")));
+            Self::put(result, "inAsset", Value::Str(self.string_at(step, "base", "").into()));
             Self::put(result, "inAmount", Value::Float(filled));
-            Self::put(result, "outAsset", Value::Str(self.string_at(step, "quote", "")));
+            Self::put(result, "outAsset", Value::Str(self.string_at(step, "quote", "").into()));
             Self::put(result, "outAmount", Value::Float(cost));
         }
         // Net the taker fee out of what is actually CARRIED FORWARD, when the
@@ -3062,7 +3063,7 @@ impl OrderRouter {
         let out_asset = self.string_at(result, "outAsset", "");
         let fee_cost = self.order_fee_in_asset(&order, &out_asset);
         Self::put(result, "feeCost", Value::Float(fee_cost));
-        Self::put(result, "feeCurrency", Value::Str(out_asset));
+        Self::put(result, "feeCurrency", Value::Str(out_asset.into()));
         if fee_cost > 0.0 {
             let gross = self.number_at(result, "outAmount", 0.0);
             let mut net = gross - fee_cost;
@@ -3175,26 +3176,26 @@ impl OrderRouter {
             None => return String::new(),
         };
         let mut event = HashMap::new();
-        event.insert("planId".to_string(), Value::Str(self.string_at(report, "planId", "")));
+        event.insert("planId".to_string(), Value::Str(self.string_at(report, "planId", "").into()));
         event.insert("stepIndex".to_string(), Value::Float(step_index as f64));
         event.insert("hopIndex".to_string(), Value::Float(self.number_at(result, "hopIndex", 0.0)));
         event.insert("legIndex".to_string(), Value::Float(self.number_at(result, "legIndex", 0.0)));
-        event.insert("exchangeId".to_string(), Value::Str(self.string_at(result, "exchangeId", "")));
-        event.insert("symbol".to_string(), Value::Str(self.string_at(result, "symbol", "")));
-        event.insert("side".to_string(), Value::Str(self.string_at(result, "side", "")));
-        event.insert("status".to_string(), Value::Str(self.string_at(result, "status", "")));
+        event.insert("exchangeId".to_string(), Value::Str(self.string_at(result, "exchangeId", "").into()));
+        event.insert("symbol".to_string(), Value::Str(self.string_at(result, "symbol", "").into()));
+        event.insert("side".to_string(), Value::Str(self.string_at(result, "side", "").into()));
+        event.insert("status".to_string(), Value::Str(self.string_at(result, "status", "").into()));
         event.insert("requestedAmount".to_string(), Value::Float(self.number_at(result, "requestedAmount", 0.0)));
         event.insert("filledAmount".to_string(), Value::Float(self.number_at(result, "filledAmount", 0.0)));
-        event.insert("outAsset".to_string(), Value::Str(self.string_at(result, "outAsset", "")));
+        event.insert("outAsset".to_string(), Value::Str(self.string_at(result, "outAsset", "").into()));
         event.insert("outAmount".to_string(), Value::Float(self.number_at(result, "outAmount", 0.0)));
-        event.insert("orderId".to_string(), Value::Str(self.string_at(result, "orderId", "")));
-        event.insert("clientOrderId".to_string(), Value::Str(self.string_at(result, "clientOrderId", "")));
-        event.insert("errorCode".to_string(), Value::Str(self.string_at(result, "errorCode", "")));
+        event.insert("orderId".to_string(), Value::Str(self.string_at(result, "orderId", "").into()));
+        event.insert("clientOrderId".to_string(), Value::Str(self.string_at(result, "clientOrderId", "").into()));
+        event.insert("errorCode".to_string(), Value::Str(self.string_at(result, "errorCode", "").into()));
         event.insert("attempt".to_string(), Value::Float(self.number_at(result, "attempt", 0.0)));
         event.insert("reconciliation".to_string(), reconciliation.clone());
         event.insert("ordersPlaced".to_string(), Value::Float(self.number_at(report, "ordersPlaced", 0.0)));
         event.insert("halted".to_string(), Value::Bool(self.bool_at(report, "halted", false)));
-        event.insert("haltReason".to_string(), Value::Str(self.string_at(report, "haltReason", "")));
+        event.insert("haltReason".to_string(), Value::Str(self.string_at(report, "haltReason", "").into()));
         event.insert("stepsTotal".to_string(), Value::Float(steps_total as f64));
         event.insert("stepsRemaining".to_string(), Value::Float((steps_total - (step_index + 1)) as f64));
         let event = Value::Map(event);
@@ -3285,7 +3286,7 @@ impl OrderRouter {
             }
             if self.string_at(&reconciliation, "verdict", "") == "halt" {
                 Self::put(report, "halted", Value::Bool(true));
-                Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "")));
+                Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "").into()));
                 Self::put(report, "haltStepIndex", Value::Float(i as f64));
                 self.call_on_step(options, report, &result, &reconciliation, i, steps.len());
                 self.mark_remaining_skipped(report, i + 1);
@@ -3386,7 +3387,7 @@ impl OrderRouter {
                 self.apply_resize(steps, &reconciliation);
                 if self.string_at(&reconciliation, "verdict", "") == "halt" {
                     Self::put(report, "halted", Value::Bool(true));
-                    Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "")));
+                    Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "").into()));
                     Self::put(report, "haltStepIndex", Value::Float(i as f64));
                     self.call_on_step(options, report, &result, &reconciliation, i, steps.len());
                     self.mark_remaining_skipped(report, end);
@@ -3516,7 +3517,7 @@ impl OrderRouter {
         // Resolved from BOTH the plan and the options, so a hand-assembled plan can
         // carry an identity too; reported on every report, rehearsals included.
         let plan_id = self.plan_identity(plan, options);
-        Self::put(&mut report, "planId", Value::Str(plan_id.clone()));
+        Self::put(&mut report, "planId", Value::Str(plan_id.clone().into()));
         // How old the prices in this plan are. ALWAYS reported, even when nothing is enforced: a plan
         // is a snapshot of a book, and how stale that snapshot is decides whether any number in it
         // means anything. -1 when the route carried no calculatedAt, which is not the same as "fresh"
@@ -3610,7 +3611,7 @@ impl OrderRouter {
         );
         safety_options.insert(
             "precisionMode".to_string(),
-            Value::Str(self.string_at(options, "precisionMode", "tick_size")),
+            Value::Str(self.string_at(options, "precisionMode", "tick_size").into()),
         );
         let violations = self.check_execution_plan_safety(plan, &markets, &Value::Map(safety_options));
         let mut blockers: Vec<String> = Vec::new();
@@ -3759,7 +3760,7 @@ impl OrderRouter {
     /// string itself, a list of entries, a per-venue wallet, or a flat single-venue wallet.
     pub fn render_balances(&self, value: &Value) -> RouterResult<String> {
         if let Value::Str(text) = value {
-            return Ok(text.clone());
+            return Ok(text.to_string());
         }
         if let Value::Arr(_) = value {
             return self.query_text(value);
@@ -3784,8 +3785,8 @@ impl OrderRouter {
                             let amount = self.number_at(inner.unwrap(), code, 0.0);
                             if amount > 0.0 {
                                 let mut entry = HashMap::new();
-                                entry.insert("exchangeId".to_string(), Value::Str(outer.clone()));
-                                entry.insert("asset".to_string(), Value::Str(code.clone()));
+                                entry.insert("exchangeId".to_string(), Value::Str(outer.clone().into()));
+                                entry.insert("asset".to_string(), Value::Str(code.clone().into()));
                                 entry.insert("amount".to_string(), Value::Float(amount));
                                 entries.push(Value::Map(entry));
                             }
@@ -3796,8 +3797,8 @@ impl OrderRouter {
                     if amount > 0.0 {
                         //  no venue: a bare ASSET:amount means "wherever you hold it"
                         let mut entry = HashMap::new();
-                        entry.insert("exchangeId".to_string(), Value::Str(String::new()));
-                        entry.insert("asset".to_string(), Value::Str(outer.clone()));
+                        entry.insert("exchangeId".to_string(), Value::Str(Cow::Borrowed("")));
+                        entry.insert("asset".to_string(), Value::Str(outer.clone().into()));
                         entry.insert("amount".to_string(), Value::Float(amount));
                         entries.push(Value::Map(entry));
                     }
@@ -3916,14 +3917,14 @@ impl OrderRouter {
                     continue;
                 }
                 let mut entry = HashMap::new();
-                entry.insert("exchangeId".to_string(), Value::Str(exchange_id.clone()));
-                entry.insert("asset".to_string(), Value::Str(code.clone()));
+                entry.insert("exchangeId".to_string(), Value::Str(exchange_id.clone().into()));
+                entry.insert("asset".to_string(), Value::Str(code.clone().into()));
                 entry.insert("amount".to_string(), Value::Float(amount));
                 if amount >= 1e18 {
                     // Beyond fixed-point rendering; reported rather than sent,
                     // because a silently reshaped amount is worse than a missing
                     // one.
-                    entry.insert("reason".to_string(), Value::Str("amount_out_of_range".to_string()));
+                    entry.insert("reason".to_string(), Value::Str("amount_out_of_range".to_string().into()));
                     dropped.push(Value::Map(entry));
                     continue;
                 }
@@ -3950,13 +3951,13 @@ impl OrderRouter {
         });
         while entries.len() > MAX_BALANCE_ENTRIES {
             let mut removed = entries.pop().expect("entries is non-empty inside this loop");
-            Self::put(&mut removed, "reason", Value::Str("entry_cap".to_string()));
+            Self::put(&mut removed, "reason", Value::Str("entry_cap".to_string().into()));
             dropped.push(removed);
         }
         let mut balances = self.join_balances(&entries)?;
         while balances.len() > MAX_BALANCE_CHARS && !entries.is_empty() {
             let mut removed = entries.pop().expect("entries is non-empty inside this loop");
-            Self::put(&mut removed, "reason", Value::Str("char_cap".to_string()));
+            Self::put(&mut removed, "reason", Value::Str("char_cap".to_string().into()));
             dropped.push(removed);
             balances = self.join_balances(&entries)?;
         }
@@ -3979,7 +3980,7 @@ impl OrderRouter {
                 route_params.insert(key.clone(), value.clone());
             }
         }
-        route_params.insert("balances".to_string(), Value::Str(balances.clone()));
+        route_params.insert("balances".to_string(), Value::Str(balances.clone().into()));
         let mut route = self.fetch_route(from_asset, to_asset, &Value::Map(route_params)).await?;
         if require_applied && !balances.is_empty() && self.string_at(&route, "balancesApplied", "").is_empty() {
             // /route declares its query without a JSON schema, so a router that
@@ -3990,7 +3991,7 @@ impl OrderRouter {
                 "OrderRouter did not echo balancesApplied: the balances were ignored, so this route is not funded-aware",
             ));
         }
-        Self::put(&mut route, "balancesUsed", Value::Str(balances));
+        Self::put(&mut route, "balancesUsed", Value::Str(balances.into()));
         Self::put(&mut route, "balancesDropped", Value::List(dropped));
         Ok(route)
     }
