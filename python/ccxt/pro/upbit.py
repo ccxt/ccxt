@@ -51,7 +51,7 @@ class upbit(ccxt.async_support.upbit):
         client = self.client(url)
         subscriptionsKey = 'upbitPublicSubscriptions'
         if not (subscriptionsKey in client.subscriptions):
-            client.subscriptions[subscriptionsKey] = {}
+            client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
         subscriptions = client.subscriptions[subscriptionsKey]
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -357,7 +357,7 @@ class upbit(ccxt.async_support.upbit):
         # Track private channel subscriptions to support multiple concurrent watches
         subscriptionsKey = 'upbitPrivateSubscriptions'
         if not (subscriptionsKey in client.subscriptions):
-            client.subscriptions[subscriptionsKey] = {}
+            client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
         channelKey = channel
         if symbol is not None:
             channelKey = channel + ':' + symbol

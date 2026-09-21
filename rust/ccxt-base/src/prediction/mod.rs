@@ -15,3 +15,5 @@ pub mod opinion;
 pub mod opinion_api;
 pub mod polymarket;
 pub mod polymarket_api;
+pub mod predictfun;
+pub mod predictfun_api;

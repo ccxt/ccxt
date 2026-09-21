@@ -587,11 +587,17 @@ public class Pacifica extends PacificaApi
                     put( "420", ExchangeError.class );
                     put( "422", ExchangeError.class );
                     put( "429", RateLimitExceeded.class );
-                    put( "500", ExchangeError.class );
+                    put( "500", ExchangeNotAvailable.class );
                     put( "503", ExchangeNotAvailable.class );
                     put( "504", RequestTimeout.class );
+                    put( "signature_verification_failed", AuthenticationError.class );
+                    put( "invalid_amount", InvalidOrder.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
+                    put( "Invalid signature", AuthenticationError.class );
+                    put( "Invalid public key", AuthenticationError.class );
+                    put( "Verification failed", AuthenticationError.class );
+                    put( "Invalid message", BadRequest.class );
                     put( "UNKNOWN", ExchangeError.class );
                     put( "ACCOUNT_NOT_FOUND", ExchangeError.class );
                     put( "BOOK_NOT_FOUND", ExchangeError.class );
@@ -4376,11 +4382,17 @@ public class Pacifica extends PacificaApi
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        Long inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        String errorCode = this.safeString(response, "code");
+        String errorId = this.safeString(response, "error_id"); // undocumented, present on live errors and more specific than code
         String message = this.safeString(response, "error");
         Object error = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(inCode, null)) || Helpers.isTrue(Helpers.isEqual(inCode, 200))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(errorCode, null)) || Helpers.isTrue(Helpers.isEqual(errorCode, "200"))))
         {
             error = false;
         } else
@@ -4391,10 +4403,14 @@ public class Pacifica extends PacificaApi
         if (Helpers.isTrue(Helpers.isTrue(error) || Helpers.isTrue(nonEmptyMessage)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), inCode, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorId, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            Object codeAsString = String.valueOf(code);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError((String)feedback) ;
+            }
         }
         return null;
     }

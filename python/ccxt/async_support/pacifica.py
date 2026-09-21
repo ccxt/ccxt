@@ -410,11 +410,18 @@ class pacifica(Exchange, ImplicitAPI):
                     '420': ExchangeError,  # ENGINE_ERROR_CODE
                     '422': ExchangeError,  # Business Logic Error - See below
                     '429': RateLimitExceeded,  # Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': ExchangeError,  # Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': ExchangeNotAvailable,  # Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': ExchangeNotAvailable,  # Service Unavailable
                     '504': RequestTimeout,  # Gateway Timeout
+                    # error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': AuthenticationError,
+                    'invalid_amount': InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': AuthenticationError,
+                    'Invalid public key': AuthenticationError,
+                    'Verification failed': AuthenticationError,
+                    'Invalid message': BadRequest,  # expired or malformed signed message
                     'UNKNOWN': ExchangeError,
                     'ACCOUNT_NOT_FOUND': ExchangeError,
                     'BOOK_NOT_FOUND': ExchangeError,
@@ -3283,21 +3290,29 @@ class pacifica(Exchange, ImplicitAPI):
         #     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         #     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         #     {"success":false,"data":null,"error":"Internal server error","code":500}
+        #     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        #     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        #     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         #
-        inCode = self.safe_integer(response, 'code')  # actually if all ok -> code = undefined or code = 200
+        # code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        # the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        errorCode = self.safe_string(response, 'code')
+        errorId = self.safe_string(response, 'error_id')  # undocumented, present on live errors and more specific than code
         message = self.safe_string(response, 'error')
         error = None
-        if inCode is None or inCode == 200:
+        if errorCode is None or errorCode == '200':
             error = False
         else:
             error = True
         nonEmptyMessage = ((message is not None) and (message != ''))
         if error or nonEmptyMessage:
             feedback = self.id + ' ' + body
-            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # Try deeper catch first
-            self.throw_exactly_matched_exception(self.exceptions['exact'], inCode, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            raise ExchangeError(feedback)  # unknown message
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorId, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            codeAsString = str(code)
+            if (code < 400) or not (codeAsString in self.httpExceptions):
+                raise ExchangeError(feedback)  # unknown message
         return None
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

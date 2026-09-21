@@ -402,11 +402,18 @@ class pacifica extends Exchange {
                     '420' => '\\ccxt\\ExchangeError', // ENGINE_ERROR_CODE
                     '422' => '\\ccxt\\ExchangeError', // Business Logic Error - See below
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500' => '\\ccxt\\ExchangeError', // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable
                     '504' => '\\ccxt\\RequestTimeout', // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed' => '\\ccxt\\AuthenticationError',
+                    'invalid_amount' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid public key' => '\\ccxt\\AuthenticationError',
+                    'Verification failed' => '\\ccxt\\AuthenticationError',
+                    'Invalid message' => '\\ccxt\\BadRequest', // expired or malformed signed message
                     'UNKNOWN' => '\\ccxt\\ExchangeError',
                     'ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'BOOK_NOT_FOUND' => '\\ccxt\\ExchangeError',
@@ -3675,11 +3682,17 @@ class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        $inCode = $this->safe_integer($response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        $errorCode = $this->safe_string($response, 'code');
+        $errorId = $this->safe_string($response, 'error_id'); // undocumented, present on live errors and more specific than code
         $message = $this->safe_string($response, 'error');
         $error = null;
-        if ($inCode === null || $inCode === 200) {
+        if ($errorCode === null || $errorCode === '200') {
             $error = false;
         } else {
             $error = true;
@@ -3687,10 +3700,13 @@ class pacifica extends Exchange {
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
         if ($error || $nonEmptyMessage) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // Try deeper catch first
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $inCode, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // documented message prefixes are more specific than the http-status echo
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                throw new ExchangeError($feedback); // unknown message
+            }
         }
         return null;
     }

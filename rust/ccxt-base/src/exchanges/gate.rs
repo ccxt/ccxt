@@ -2842,6 +2842,11 @@ impl GateCore {
         m.insert("expiration".to_string(), Value::Int(86400));
     m
 }));
+        m.insert("fetchOrderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maxSpotLimit".to_string(), Value::Int(1000));
+    m
+}));
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5114,7 +5119,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         if !is_equal(&limit, &Value::Null) {
             if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
-                limit = crate::runtime::Math::min(&limit, &Value::Int(1000));
+                // gateeu returns an empty book for a spot limit above 100
+                let mut maxSpotLimit: Value = self.handle_option(Value::Str("fetchOrderBook".to_string()), Value::Str("maxSpotLimit".to_string()), &[Value::Int(1000)]);
+                limit = crate::runtime::Math::min(&limit, &maxSpotLimit);
             }  else {
                 limit = crate::runtime::Math::min(&limit, &Value::Int(300));
             }

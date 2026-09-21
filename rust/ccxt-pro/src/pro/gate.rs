@@ -878,6 +878,11 @@ impl GateCore {
                 limit = Value::Int(50); // max 50 for options
             }
         }
+        if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
+            // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+            let mut maxSpotLimit: Value = self.handle_option(Value::Str("fetchOrderBook".to_string()), Value::Str("maxSpotLimit".to_string()), &[Value::Int(1000)]);
+            limit = crate::runtime::Math::min(&limit, &maxSpotLimit);
+        }
         let mut payload: Value = Value::List(vec![]);
         let mut channel: Value = Value::Str("".to_string());
         if is_true(&isEuUrl) {

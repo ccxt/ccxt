@@ -575,6 +575,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     limit = 50; // max 50 for options
                 }
             }
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
+            {
+                // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+                Object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+                limit = Helpers.mathMin(limit, maxSpotLimit);
+            }
             Object payload = new ArrayList<Object>(Arrays.asList());
             Object channel = "";
             if (Helpers.isTrue(isEuUrl))

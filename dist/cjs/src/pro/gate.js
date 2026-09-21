@@ -425,6 +425,11 @@ class gate extends gate$1["default"] {
                 limit = 50; // max 50 for options
             }
         }
+        if (market['spot'] === true) {
+            // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+            const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+            limit = Math.min(limit, maxSpotLimit);
+        }
         let payload = [];
         let channel = '';
         if (isEuUrl) {

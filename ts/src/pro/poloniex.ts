@@ -1137,6 +1137,10 @@ export default class poloniex extends poloniexRest {
                 if (snapshot) {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
+                if (!(symbol in this.orderbooks)) {
+                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                    continue;
+                }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
                     for (let j = 0; j < bids.length; j++) {

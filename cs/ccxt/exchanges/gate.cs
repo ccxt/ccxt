@@ -1580,6 +1580,9 @@ public partial class gate : Exchange
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
+                { "fetchOrderBook", new Dictionary<string, object>() {
+                    { "maxSpotLimit", 1000 },
+                } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
@@ -3712,7 +3715,9 @@ public partial class gate : Exchange
         {
             if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
-                limitVar = mathMin(limitVar, 1000);
+                // gateeu returns an empty book for a spot limitVar above 100
+                object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+                limitVar = mathMin(limitVar, maxSpotLimit);
             } else
             {
                 limitVar = mathMin(limitVar, 300);

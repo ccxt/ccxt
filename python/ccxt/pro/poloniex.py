@@ -1055,6 +1055,9 @@ class poloniex(ccxt.async_support.poloniex):
             if snapshot or update:
                 if snapshot:
                     self.orderbooks[symbol] = self.order_book({}, limit)
+                if not (symbol in self.orderbooks):
+                    # a delta can arrive before the snapshot, it cannot be applied without a book
+                    continue
                 orderbook = self.orderbooks[symbol]
                 if bids is not None:
                     for j in range(0, len(bids)):

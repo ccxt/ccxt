@@ -24,6 +24,8 @@
 
 - [MarketAndCurrency](examples/cs/MarketAndCurrency.md)
 
+- [OrderRouterExample](examples/cs/OrderRouterExample.md)
+
 - [Program](examples/cs/Program.md)
 
 - [SetMarketsFromExchange](examples/cs/SetMarketsFromExchange.md)

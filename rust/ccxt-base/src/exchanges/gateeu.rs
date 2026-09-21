@@ -249,6 +249,11 @@ impl GateeuCore {
         m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
     m
 }));
+        m.insert("fetchOrderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maxSpotLimit".to_string(), Value::Int(100));
+    m
+}));
         m.insert("mica".to_string(), Value::Bool(true));
     m
 }));

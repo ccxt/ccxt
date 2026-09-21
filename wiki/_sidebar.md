@@ -7,6 +7,7 @@
 - [Supported Exchanges](Exchange-Markets.md)
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
+- [Order Router](OrderRouter.md)
 - [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)

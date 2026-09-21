@@ -488,6 +488,12 @@ public partial class gate : ccxt.gate
                 limitVar = 50; // max 50 for options
             }
         }
+        if (isTrue(isEqual(getValue(market, "spot"), true)))
+        {
+            // the subscription limitVar seeds the rest snapshot, gateeu returns an empty book above 100
+            object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+            limitVar = mathMin(limitVar, maxSpotLimit);
+        }
         List<object> payload = new List<object>() {};
         object channel = "";
         if (isTrue(isEuUrl))
