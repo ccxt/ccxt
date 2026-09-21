@@ -945,13 +945,19 @@ impl PacificaCore {
         m.insert("420".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("422".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("429".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("500".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("504".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("signature_verification_failed".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("invalid_amount".to_string(), Value::Str("InvalidOrder".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("Invalid signature".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Invalid public key".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Verification failed".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Invalid message".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("UNKNOWN".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("ACCOUNT_NOT_FOUND".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("BOOK_NOT_FOUND".to_string(), Value::Str("ExchangeError".to_string()).clone());
@@ -4776,11 +4782,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        let mut inCode: Value = self.safe_integer_k(response.clone(), "code", &[]); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
+        let mut errorId: Value = self.safe_string_k(response.clone(), "error_id", &[]); // undocumented, present on live errors and more specific than code
         let mut message: Value = self.safe_string_k(response.clone(), "error", &[]);
         let mut error: Value = Value::Null;
-        if is_equal(&inCode, &Value::Null) || is_equal(&inCode, &Value::Int(200)) {
+        if is_equal(&errorCode, &Value::Null) || is_equal(&errorCode, &Value::Str("200".to_string())) {
             error = Value::Bool(false);
         }  else {
             error = Value::Bool(true);
@@ -4788,10 +4800,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut nonEmptyMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string()))));
         if is_true(&error) || is_true(&nonEmptyMessage) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone()); // Try deeper catch first
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), inCode.clone(), feedback.clone());
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorId.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone()); // documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
+            let mut codeAsString: Value = to_string_val(&code);
+            if is_true(&(is_less_than(&code, &Value::Int(400)))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
         }
         return Value::Null;
 
