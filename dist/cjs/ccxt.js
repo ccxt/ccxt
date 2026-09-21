@@ -203,7 +203,7 @@ var predictfun = require('./src/prediction/predictfun.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.81';
+const version = '4.5.82';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
