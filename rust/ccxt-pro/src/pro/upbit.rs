@@ -302,10 +302,7 @@ impl UpbitCore {
         let mut client: Value = self.client(&[url.clone()]);
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".to_string());
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)))) {
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey);
         let mut messageHashes: Value = Value::List(vec![]);
@@ -737,10 +734,7 @@ impl UpbitCore {
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".to_string());
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)))) {
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut channelKey: Value = channel.clone();
         if !is_equal(&symbol, &Value::Null) {
