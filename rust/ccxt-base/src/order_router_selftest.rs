@@ -20,6 +20,7 @@
 // means THIS port is wrong — that is the whole reason for running the same table
 // six times rather than trusting six readings of the same spec.
 
+use std::borrow::Cow;
 use crate::order_router::{OrderRouter, MAX_EXECUTED_PLAN_IDS, NO_CAP, TOLERANCE};
 use crate::value::{HashMap, Value};
 
@@ -38,7 +39,7 @@ fn fixture() -> Result<Value, String> {
 
 fn router() -> Result<OrderRouter, String> {
     let mut config = HashMap::new();
-    config.insert("apiKey".to_string(), Value::Str("test-key".to_string()));
+    config.insert("apiKey".to_string(), Value::Str("test-key".to_string().into()));
     OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())
 }
 
@@ -67,7 +68,7 @@ fn named(fixture: &Value, section_name: &str, key: &str) -> Result<Value, String
 
 fn text(container: &Value, key: &str) -> String {
     match container.as_map().and_then(|m| m.get(key)) {
-        Some(Value::Str(s)) => s.clone(),
+        Some(Value::Str(s)) => s.to_string(),
         _ => String::new(),
     }
 }
@@ -434,7 +435,7 @@ static TEST_REQUEST_ID_COUNTER: std::sync::atomic::AtomicUsize =
 
 fn next_test_request_id() -> Value {
     let next = TEST_REQUEST_ID_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
-    Value::Str(format!("test-req-{next}"))
+    Value::Str(format!("test-req-{next}").into())
 }
 
 fn one_leg_route(side: &str, base_code: &str, quote: &str, amount: f64, price: f64) -> Value {
@@ -444,15 +445,15 @@ fn one_leg_route(side: &str, base_code: &str, quote: &str, amount: f64, price: f
     leg.insert("averagePrice".to_string(), Value::Float(price));
     leg.insert("effectivePrice".to_string(), Value::Float(price));
     let mut hop = HashMap::new();
-    hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}")));
-    hop.insert("side".to_string(), Value::Str(side.into()));
-    hop.insert("base".to_string(), Value::Str(base_code.into()));
-    hop.insert("quote".to_string(), Value::Str(quote.into()));
+    hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}").into()));
+    hop.insert("side".to_string(), Value::Str(side.to_string().into()));
+    hop.insert("base".to_string(), Value::Str(base_code.to_string().into()));
+    hop.insert("quote".to_string(), Value::Str(quote.to_string().into()));
     hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
     let mut route = HashMap::new();
     route.insert("requestId".to_string(), next_test_request_id());
-    route.insert("from".to_string(), Value::Str(quote.into()));
-    route.insert("to".to_string(), Value::Str(base_code.into()));
+    route.insert("from".to_string(), Value::Str(quote.to_string().into()));
+    route.insert("to".to_string(), Value::Str(base_code.to_string().into()));
     route.insert("strategy".to_string(), Value::Str("best_single".into()));
     route.insert("exactSide".to_string(), Value::Str("in".into()));
     route.insert("fullyFillable".to_string(), Value::Bool(true));
@@ -472,10 +473,10 @@ fn two_hop_route() -> Value {
         leg.insert("averagePrice".to_string(), Value::Float(price));
         leg.insert("effectivePrice".to_string(), Value::Float(price));
         let mut hop = HashMap::new();
-        hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}")));
-        hop.insert("side".to_string(), Value::Str(side.into()));
-        hop.insert("base".to_string(), Value::Str(base_code.into()));
-        hop.insert("quote".to_string(), Value::Str(quote.into()));
+        hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}").into()));
+        hop.insert("side".to_string(), Value::Str(side.to_string().into()));
+        hop.insert("base".to_string(), Value::Str(base_code.to_string().into()));
+        hop.insert("quote".to_string(), Value::Str(quote.to_string().into()));
         hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
         Value::Map(hop)
     };
@@ -975,12 +976,12 @@ fn route_url_is_deterministic(r: &OrderRouter) -> Result<(), String> {
     // rather than form-urlencoded's. This is the same assertion the TypeScript
     // suite makes, against the same expected string.
     let mut config = HashMap::new();
-    config.insert("apiKey".to_string(), Value::Str("k".to_string()));
-    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api/".to_string()));
+    config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
+    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api/".to_string().into()));
     let client = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(0.001));
-    params.insert("strategy".to_string(), Value::Str("split_capped".to_string()));
+    params.insert("strategy".to_string(), Value::Str("split_capped".to_string().into()));
     params.insert("maxVenues".to_string(), Value::Int(3));
     params.insert(
         "exchanges".to_string(),
@@ -1021,7 +1022,7 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     // different URL here than in the other five ports.
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(1.0));
-    params.insert("bridges".to_string(), Value::Str("a!b'c(d)e*f g".to_string()));
+    params.insert("bridges".to_string(), Value::Str("a!b'c(d)e*f g".to_string().into()));
     let url = r
         .build_route_url("USDT", "BTC", &Value::Map(params))
         .map_err(|e| e.to_string())?;
@@ -1034,7 +1035,7 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     // value carrying a colon can still reach the query string by another key.
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(1.0));
-    params.insert("balanceMode".to_string(), Value::Str("cap:strict".to_string()));
+    params.insert("balanceMode".to_string(), Value::Str("cap:strict".to_string().into()));
     let url = r
         .build_route_url("USDT", "BTC", &Value::Map(params))
         .map_err(|e| e.to_string())?;
@@ -1046,12 +1047,12 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
 
 fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     let mut config = HashMap::new();
-    config.insert("apiKey".to_string(), Value::Str("k".to_string()));
-    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string()));
+    config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
+    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string().into()));
     let streamer = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(0.001));
-    params.insert("strategy".to_string(), Value::Str("split_capped".to_string()));
+    params.insert("strategy".to_string(), Value::Str("split_capped".to_string().into()));
     params.insert("maxVenues".to_string(), Value::Int(3));
     params.insert(
         "exchanges".to_string(),
@@ -1071,8 +1072,8 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     }
     // a plain-http base becomes ws://, not wss://
     let mut plain_config = HashMap::new();
-    plain_config.insert("apiKey".to_string(), Value::Str("k".to_string()));
-    plain_config.insert("baseUrl".to_string(), Value::Str("http://localhost:8080".to_string()));
+    plain_config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
+    plain_config.insert("baseUrl".to_string(), Value::Str("http://localhost:8080".to_string().into()));
     let insecure = OrderRouter::new(&Value::Map(plain_config)).map_err(|e| e.to_string())?;
     let mut one = HashMap::new();
     one.insert("amountIn".to_string(), Value::Float(1.0));
@@ -1084,12 +1085,12 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     }
     // a socket outlives the holdings it was opened with, so the service refuses both
     let mut with_balances = one.clone();
-    with_balances.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    with_balances.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string().into()));
     if streamer.stream_url("USDT", "BTC", &Value::Map(with_balances)).is_ok() {
         return Err("balances are refused on the stream".to_string());
     }
     let mut with_mode = one.clone();
-    with_mode.insert("balanceMode".to_string(), Value::Str("require".to_string()));
+    with_mode.insert("balanceMode".to_string(), Value::Str("require".to_string().into()));
     if streamer.stream_url("USDT", "BTC", &Value::Map(with_mode)).is_ok() {
         return Err("balanceMode is refused with them".to_string());
     }
@@ -1104,7 +1105,7 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     let mut refusal_frame = HashMap::new();
     refusal_frame.insert(
         "error".to_string(),
-        Value::Str("exact_out_multi_hop_unsupported".to_string()),
+        Value::Str("exact_out_multi_hop_unsupported".to_string().into()),
     );
     match r.stream_close_error(1008, &Value::Map(refusal_frame)) {
         Some(e) => {
@@ -1115,7 +1116,7 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
         None => return Err("1008 must refuse".to_string()),
     }
     let mut cold_frame = HashMap::new();
-    cold_frame.insert("error".to_string(), Value::Str("cache is cold".to_string()));
+    cold_frame.insert("error".to_string(), Value::Str("cache is cold".to_string().into()));
     cold_frame.insert("bookCount".to_string(), Value::Int(12));
     cold_frame.insert("freshCount".to_string(), Value::Int(0));
     cold_frame.insert("minFreshBooksForReady".to_string(), Value::Int(1));
@@ -1151,7 +1152,7 @@ fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
     // string was "".
     let asked = |balances: &str| -> Value {
         let mut params = HashMap::new();
-        params.insert("balances".to_string(), Value::Str(balances.to_string()));
+        params.insert("balances".to_string(), Value::Str(balances.to_string().into()));
         Value::Map(params)
     };
     let empty_route = Value::Map(HashMap::new());
@@ -1163,7 +1164,7 @@ fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
     }
     // an echo is proof enough
     let mut echoed = HashMap::new();
-    echoed.insert("balancesApplied".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    echoed.insert("balancesApplied".to_string(), Value::Str("binance.USDT:1000".to_string().into()));
     if r.assert_balances_applied(&Value::Map(echoed), &asked("binance.USDT:1000")).is_err() {
         return Err("an echoed wallet is accepted".to_string());
     }
@@ -1175,7 +1176,7 @@ fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
     }
     // the caller can opt out with their eyes open
     let mut opted = HashMap::new();
-    opted.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string()));
+    opted.insert("balances".to_string(), Value::Str("binance.USDT:1000".to_string().into()));
     opted.insert("requireBalancesApplied".to_string(), Value::Bool(false));
     if r.assert_balances_applied(&empty_route, &Value::Map(opted)).is_err() {
         return Err("the opt-out is honoured".to_string());
@@ -1243,7 +1244,7 @@ fn fee_is_not_subtracted_twice(r: &OrderRouter) -> Result<(), String> {
     }
     // a hand-built plan carries no expectedFeeCost, and behaves exactly as before
     let mut hand = HashMap::new();
-    hand.insert("side".to_string(), Value::Str("sell".to_string()));
+    hand.insert("side".to_string(), Value::Str("sell".to_string().into()));
     hand.insert("amount".to_string(), Value::Float(10.0));
     hand.insert("expectedPrice".to_string(), Value::Float(2.0));
     if (r.step_expected_out(&Value::Map(hand)) - 20.0).abs() > TOLERANCE {
@@ -1259,7 +1260,7 @@ fn route_body_carries_the_holdings_and_the_url_never_does(r: &OrderRouter) -> Re
     // keeps the wallet out of them.
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(10.0));
-    params.insert("balances".to_string(), Value::Str("binance.USDT:1000,binance.BTC:1".to_string()));
+    params.insert("balances".to_string(), Value::Str("binance.USDT:1000,binance.BTC:1".to_string().into()));
     params.insert("certified".to_string(), Value::Bool(true));
     params.insert("maxVenues".to_string(), Value::Int(2));
     let body = r
@@ -1296,7 +1297,7 @@ fn route_body_carries_the_holdings_and_the_url_never_does(r: &OrderRouter) -> Re
 fn stub_fee(cost: f64, currency: &str) -> Value {
     let mut fee = HashMap::new();
     fee.insert("cost".to_string(), Value::Float(cost));
-    fee.insert("currency".to_string(), Value::Str(currency.to_string()));
+    fee.insert("currency".to_string(), Value::Str(currency.to_string().into()));
     Value::Map(fee)
 }
 
@@ -1334,18 +1335,18 @@ fn fee_netting_route(side: &str, base_code: &str, quote: &str, amount: f64, pric
     leg.insert("feeCost".to_string(), Value::Float(0.0));
     leg.insert("effectivePrice".to_string(), Value::Float(price));
     let mut hop = HashMap::new();
-    hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}")));
-    hop.insert("side".to_string(), Value::Str(side.into()));
-    hop.insert("base".to_string(), Value::Str(base_code.into()));
-    hop.insert("quote".to_string(), Value::Str(quote.into()));
+    hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}").into()));
+    hop.insert("side".to_string(), Value::Str(side.to_string().into()));
+    hop.insert("base".to_string(), Value::Str(base_code.to_string().into()));
+    hop.insert("quote".to_string(), Value::Str(quote.to_string().into()));
     hop.insert("amountIn".to_string(), Value::Float(amount_in));
     hop.insert("amountOut".to_string(), Value::Float(amount_out));
     hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
     hop.insert("fullyFillable".to_string(), Value::Bool(true));
     let mut route = HashMap::new();
     route.insert("requestId".to_string(), next_test_request_id());
-    route.insert("from".to_string(), Value::Str(if buying { quote.into() } else { base_code.to_string() }));
-    route.insert("to".to_string(), Value::Str(if buying { base_code.to_string() } else { quote.into() }));
+    route.insert("from".to_string(), Value::Str((if buying { quote.to_string() } else { base_code.to_string() }).into()));
+    route.insert("to".to_string(), Value::Str((if buying { base_code.to_string() } else { quote.to_string() }).into()));
     route.insert("strategy".to_string(), Value::Str("best_single".into()));
     route.insert("exactSide".to_string(), Value::Str("in".into()));
     route.insert("amountIn".to_string(), Value::Float(amount_in));
@@ -1417,9 +1418,9 @@ fn two_hop_execute_options() -> Value {
     let mut options = execute_options(true, "sequential");
     let market = |symbol: &str, base_code: &str, quote: &str| {
         let mut m = HashMap::new();
-        m.insert("symbol".to_string(), Value::Str(symbol.into()));
-        m.insert("base".to_string(), Value::Str(base_code.into()));
-        m.insert("quote".to_string(), Value::Str(quote.into()));
+        m.insert("symbol".to_string(), Value::Str(symbol.to_string().into()));
+        m.insert("base".to_string(), Value::Str(base_code.to_string().into()));
+        m.insert("quote".to_string(), Value::Str(quote.to_string().into()));
         Value::Map(m)
     };
     let mut by_symbol = HashMap::new();
@@ -1844,7 +1845,7 @@ impl RouterVenue for StubVenue {
             return Err(crate::error::ExchangeError::new("ExchangeError", "stub refuses, for now"));
         }
         let mut order = HashMap::new();
-        order.insert("id".to_string(), Value::Str("stub-1".to_string()));
+        order.insert("id".to_string(), Value::Str("stub-1".to_string().into()));
         if let Value::Dict(given) = params {
             // a real venue echoes the client order id it was given
             if let Some(client_order_id) = given.get("clientOrderId") {
@@ -1856,9 +1857,9 @@ impl RouterVenue for StubVenue {
             // shape a dropped timeInForce leaves behind. It still answers with a
             // fill, exactly as the other five ports' stubs do, so that "the order
             // is resting" and "the fill is unknown" stay separate cases.
-            order.insert("status".to_string(), Value::Str("open".to_string()));
+            order.insert("status".to_string(), Value::Str("open".to_string().into()));
         } else {
-            order.insert("status".to_string(), Value::Str("closed".to_string()));
+            order.insert("status".to_string(), Value::Str("closed".to_string().into()));
         }
         if !self.omit_filled {
             let filled = amount * self.fill_ratio;
@@ -1883,8 +1884,8 @@ impl RouterVenue for StubVenue {
     async fn fetch_order(&self, _id: &str, _symbol: &str) -> Result<Value, crate::error::ExchangeError> {
         if let Some((status, filled, average, cost)) = &self.reread_order {
             let mut order = HashMap::new();
-            order.insert("id".to_string(), Value::Str("stub-1".to_string()));
-            order.insert("status".to_string(), Value::Str(status.clone()));
+            order.insert("id".to_string(), Value::Str("stub-1".to_string().into()));
+            order.insert("status".to_string(), Value::Str(status.clone().into()));
             order.insert("filled".to_string(), Value::Float(*filled));
             order.insert("average".to_string(), Value::Float(*average));
             order.insert("cost".to_string(), Value::Float(*cost));
@@ -1893,8 +1894,8 @@ impl RouterVenue for StubVenue {
         if self.omit_filled {
             // Still incomplete on the re-read: the fill stays genuinely unknown.
             let mut order = HashMap::new();
-            order.insert("id".to_string(), Value::Str("stub-1".to_string()));
-            order.insert("status".to_string(), Value::Str("closed".to_string()));
+            order.insert("id".to_string(), Value::Str("stub-1".to_string().into()));
+            order.insert("status".to_string(), Value::Str("closed".to_string().into()));
             if let Some((cost, average)) = self.reread_cost {
                 order.insert("cost".to_string(), Value::Float(cost));
                 order.insert("average".to_string(), Value::Float(average));
@@ -1947,15 +1948,15 @@ fn execute_options(live: bool, strategy: &str) -> Value {
     let mut usd_rates = HashMap::new();
     usd_rates.insert("USDT".to_string(), Value::Float(1.0));
     let mut market = HashMap::new();
-    market.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
-    market.insert("base".to_string(), Value::Str("BTC".to_string()));
-    market.insert("quote".to_string(), Value::Str("USDT".to_string()));
+    market.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string().into()));
+    market.insert("base".to_string(), Value::Str("BTC".to_string().into()));
+    market.insert("quote".to_string(), Value::Str("USDT".to_string().into()));
     let mut by_symbol = HashMap::new();
     by_symbol.insert("BTC/USDT".to_string(), Value::Map(market));
     let mut markets = HashMap::new();
     markets.insert("stub".to_string(), Value::Map(by_symbol));
     let mut options = HashMap::new();
-    options.insert("strategy".to_string(), Value::Str(strategy.to_string()));
+    options.insert("strategy".to_string(), Value::Str(strategy.to_string().into()));
     //  ONE knob: `dryRun` says whether, `strategy` says how. The helper keeps its
     //  live-shaped argument so every call site still reads the way it did — live=false
     //  means rehearse — and expresses it with the field the implementation now reads.
@@ -1984,7 +1985,7 @@ fn balances_shapes(r: &OrderRouter) -> Result<(), String> {
         return Err(format!("a flat wallet renders without a venue, got {flat_text}"));
     }
     let passthrough = r
-        .render_balances(&Value::Str("mexc.USDT:100".to_string()))
+        .render_balances(&Value::Str("mexc.USDT:100".to_string().into()))
         .map_err(|e| e.to_string())?;
     if passthrough != "mexc.USDT:100" {
         return Err("a rendered string passes through untouched".to_string());
@@ -2048,7 +2049,7 @@ fn stream_url_applies_the_venue_filter(_r: &OrderRouter) -> Result<(), String> {
     // A router built with venues can only execute on those. A stream that quoted
     // the rest would hand back routes its own executor must refuse.
     let mut config = HashMap::new();
-    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string()));
+    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string().into()));
     let mut held = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
     let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
     venues.insert("stub".to_string(), Box::new(StubVenue::new("stub")));
@@ -2087,7 +2088,7 @@ fn join_balances_separator(r: &OrderRouter) -> Result<(), String> {
     // contains-check passes on the broken spelling and ships it to a server that
     // rejects that syntax.
     let mut unqualified = HashMap::new();
-    unqualified.insert("asset".to_string(), Value::Str("USDT".to_string()));
+    unqualified.insert("asset".to_string(), Value::Str("USDT".to_string().into()));
     unqualified.insert("amount".to_string(), Value::Float(100.0));
     let bare = r
         .join_balances(&[Value::Map(unqualified)])
@@ -2096,8 +2097,8 @@ fn join_balances_separator(r: &OrderRouter) -> Result<(), String> {
         return Err(format!("an unqualified holding carries no leading dot, got {bare}"));
     }
     let mut qualified = HashMap::new();
-    qualified.insert("exchangeId".to_string(), Value::Str("mexc".to_string()));
-    qualified.insert("asset".to_string(), Value::Str("USDT".to_string()));
+    qualified.insert("exchangeId".to_string(), Value::Str("mexc".to_string().into()));
+    qualified.insert("asset".to_string(), Value::Str("USDT".to_string().into()));
     qualified.insert("amount".to_string(), Value::Float(100.0));
     let scoped = r
         .join_balances(&[Value::Map(qualified)])
@@ -2759,7 +2760,7 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
     let route = options_with(
         &one_leg_route("buy", "BTC", "USDT", 0.2, 100.0),
         "requestId",
-        Value::Str(String::new()),
+        Value::Str(Cow::Borrowed("")),
     );
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let venue = StubVenue::new("stub");
@@ -2786,7 +2787,7 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
     let keyed_options = options_with(
         &execute_options(true, "sequential"),
         "idempotencyKey",
-        Value::Str("hand-built-1".to_string()),
+        Value::Str("hand-built-1".to_string().into()),
     );
     let supplied = StubVenue::new("stub");
     let seen = StdArc::clone(&supplied.params_seen);
@@ -2813,7 +2814,7 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
     let override_options = options_with(
         &execute_options(true, "sequential"),
         "idempotencyKey",
-        Value::Str("override-1".to_string()),
+        Value::Str("override-1".to_string().into()),
     );
     let overridden = StubVenue::new("stub");
     let seen = StdArc::clone(&overridden.params_seen);
@@ -2853,7 +2854,7 @@ fn client_order_id_is_never_injected(r: &OrderRouter) -> Result<(), String> {
     // A caller-supplied clientOrderId is forwarded as-is, alongside the caller's
     // other params.
     let mut caller_params = HashMap::new();
-    caller_params.insert("clientOrderId".to_string(), Value::Str("caller-supplied".to_string()));
+    caller_params.insert("clientOrderId".to_string(), Value::Str("caller-supplied".to_string().into()));
     caller_params.insert("reduceOnly".to_string(), Value::Bool(true));
     let options = options_with(
         &execute_options(true, "sequential"),

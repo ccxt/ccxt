@@ -1,10 +1,7 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-
-
 
 function helperTestHandleMarketTypeAndParams () {
     const exchange = new ccxt.Exchange ({

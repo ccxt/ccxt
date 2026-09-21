@@ -37,7 +37,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublicMultiple (symbols: Strings, channel: any, params = {}) {
+    async watchPublicMultiple (symbols: Strings, channel: Str, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -93,7 +93,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         return this.watchPublicMultiple ([ symbol ], 'ticker');
     }
 
@@ -106,7 +106,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const newTickers = await this.watchPublicMultiple (symbols, 'ticker');
         if (this.newUpdates) {
             const tickers: Dict = {};
@@ -127,7 +127,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -142,10 +142,10 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchPublicMultiple (symbols, 'trade');
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -162,7 +162,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
         return orderbook.limit ();
     }
@@ -180,7 +180,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1s', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (timeframe !== '1s') {
             throw new NotSupported (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
         }
@@ -188,7 +188,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublicMultiple ([ symbol ], timeFrameOHLCV);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
         //   "code": "BTC-ETH",
@@ -234,7 +234,7 @@ export default class upbit extends upbitRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         // { type: "orderbook",
         //   "code": "BTC-ETH",
         //   "timestamp": 1584486737444,
@@ -257,7 +257,7 @@ export default class upbit extends upbitRest {
         const marketId = this.safeString (message, 'code');
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const type = this.safeString (message, 'stream_type');
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -289,7 +289,7 @@ export default class upbit extends upbitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         // { type: "trade",
         //   "code": "KRW-BTC",
         //   "timestamp": 1584508285812,
@@ -320,7 +320,7 @@ export default class upbit extends upbitRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         // {
         //     type: 'candle.1s',
         //     code: 'KRW-USDT',
@@ -342,7 +342,7 @@ export default class upbit extends upbitRest {
         client.resolve (ohlcv, messageHash);
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
@@ -365,7 +365,7 @@ export default class upbit extends upbitRest {
         return client;
     }
 
-    async watchPrivate (symbol: any, channel: any, messageHash: any, params = {}) {
+    async watchPrivate (symbol: Str, channel: string, messageHash: string, params: Dict = {}) {
         await this.authenticate ();
         const request: Dict = {
             'type': channel,
@@ -427,7 +427,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -451,7 +451,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -478,7 +478,7 @@ export default class upbit extends upbitRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
         //     "type": "myOrder",
@@ -548,7 +548,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         // see: parseWsOrder
         let side = this.safeStringLower (trade, 'ask_bid');
         if (side === 'bid') {
@@ -584,7 +584,7 @@ export default class upbit extends upbitRest {
         }, market);
     }
 
-    handleMyOrder (client: Client, message: any) {
+    handleMyOrder (client: Client, message: Dict) {
         // see: parseWsOrder
         const tradeId = this.safeString (message, 'trade_uuid');
         if (tradeId !== undefined) {
@@ -593,7 +593,7 @@ export default class upbit extends upbitRest {
         this.handleOrder (client, message);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         // see: parseWsOrder
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
@@ -608,7 +608,7 @@ export default class upbit extends upbitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -617,8 +617,8 @@ export default class upbit extends upbitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = this.orders;
-        const orders = (symbol === undefined) ? {} : this.safeValue (cachedOrders.hashmap, symbol, {});
-        const order = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
+        const orders = (symbol === undefined) ? {} : this.safeDict (cachedOrders.hashmap, symbol, {});
+        const order = (orderId === undefined) ? undefined : this.safeDict (orders, orderId);
         if (order !== undefined) {
             const fee = this.safeValue (order, 'fee');
             if (fee !== undefined) {
@@ -647,7 +647,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -656,7 +656,7 @@ export default class upbit extends upbitRest {
         return await this.watchPrivate (undefined, channel, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // {
         //     "type": "myAsset",
@@ -695,7 +695,7 @@ export default class upbit extends upbitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

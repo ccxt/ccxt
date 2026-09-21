@@ -4,7 +4,6 @@ import { NetworkError } from '../../../base/errors.js';
 import { Liquidation } from '../../../base/types.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
-
 async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     const method = 'watchLiquidationsForSymbols';
