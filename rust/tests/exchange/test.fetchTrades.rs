@@ -20,8 +20,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     let mut isPublicTrade: Value = Value::Bool(true);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1474: bool = true;
-        while { if !__for_first_1474 { i = add(&i, &Value::Int(1)); } __for_first_1474 = false; is_less_than(&i, &get_array_length(&trades)) } {
+        let mut __for_first_1509: bool = true;
+        while { if !__for_first_1509 { i = add(&i, &Value::Int(1)); } __for_first_1509 = false; is_less_than(&i, &get_array_length(&trades)) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&trades, &i), symbol.clone(), now.clone(), isPublicTrade.clone());
     }
     }
@@ -69,8 +69,8 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
     let mut lastTrade: Value = Value::Null;
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1475: bool = true;
-        while { if !__for_first_1475 { i = add(&i, &Value::Int(1)); } __for_first_1475 = false; is_less_than(&i, &get_array_length(&trades)) } {
+        let mut __for_first_1510: bool = true;
+        while { if !__for_first_1510 { i = add(&i, &Value::Int(1)); } __for_first_1510 = false; is_less_than(&i, &get_array_length(&trades)) } {
         let mut trade: Value = get_value(&trades, &i);
         let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
         let mut price: Value = exchange.safe_string(trade.clone(), Value::Str("price".to_string()), &[]);
