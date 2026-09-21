@@ -1578,7 +1578,6 @@ func (this *Woofipro) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1696,6 +1695,7 @@ func (this *Woofipro) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name woofipro#watchOrderBook

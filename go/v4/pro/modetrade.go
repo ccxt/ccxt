@@ -1577,7 +1577,6 @@ func (this *Modetrade) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1696,6 +1695,7 @@ func (this *Modetrade) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name modetrade#watchOrderBook

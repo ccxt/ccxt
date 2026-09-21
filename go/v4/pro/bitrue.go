@@ -1130,6 +1130,7 @@ func (this *Bitrue) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitrue#watchBalance

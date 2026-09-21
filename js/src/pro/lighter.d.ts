@@ -39,7 +39,7 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -49,7 +49,7 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -59,9 +59,8 @@ export default class lighter extends lighterRest {
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -70,7 +69,7 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -158,9 +157,10 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchMyTrades
      * @description unsubscribe from the account trades channel
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.accountIndex] account index
+     * @returns {any} status of the unwatch request
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     parseWsLiquidation(liquidation: any, market?: Market): Liquidation | undefined;
@@ -262,7 +262,13 @@ export default class lighter extends lighterRest {
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
-    handleUnSubscription(client: Client, subscription: Dict): void;
+    handleUnSubscription(client: Client, message: any): void;
+    handleOrderBookUnSubscription(client: Client, marketId: Str): void;
+    handleTickerUnSubscription(client: Client, marketId: Str): void;
+    handleTradesUnSubscription(client: Client, marketId: Str): void;
+    handleMyTradesUnSubscription(client: Client): void;
+    handleOrdersUnSubscription(client: Client, marketId: Str): void;
+    handleAllOrdersUnSubscription(client: Client): void;
     handlePing(client: Client, message: any): void;
     pong(client: Client, message: any): Promise<void>;
 }

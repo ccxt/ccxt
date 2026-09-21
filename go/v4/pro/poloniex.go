@@ -1641,7 +1641,6 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}
@@ -1692,6 +1691,7 @@ func (this *Poloniex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name poloniex#createOrderWs

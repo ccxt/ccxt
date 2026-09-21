@@ -1915,6 +1915,7 @@ public class Pacifica extends PacificaApi
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1934,7 +1935,7 @@ public class Pacifica extends PacificaApi
             var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             var request = ((List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(operationType, "create_market_order")))
             {
@@ -2012,6 +2013,7 @@ public class Pacifica extends PacificaApi
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -3731,8 +3733,9 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object swapMarkets = (this.fetchSwapMarkets()).join();
-            return this.parseOpenInterests(swapMarkets, symbols);
+            Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
     }
@@ -3752,13 +3755,18 @@ public class Pacifica extends PacificaApi
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            symbol = this.symbol(symbol);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
+            symbol = this.symbol(symbol);
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return Helpers.GetValue(ois, symbol);
+            Object oi = this.safeDict(ois, symbol);
+            if (Helpers.isTrue(Helpers.isEqual(oi, null)))
+            {
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
+            }
+            return oi;
         }).thenApply(OpenInterest::new);
 
     }

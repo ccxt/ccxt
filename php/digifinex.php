@@ -3345,14 +3345,13 @@ class digifinex extends Exchange {
         //         "currency": "USDT"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $currencyId = $this->safe_string($info, 'currency');
         return array(
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'rate' => 0.001, // all interest rates on digifinex are 0.1%
             'period' => 86400000,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

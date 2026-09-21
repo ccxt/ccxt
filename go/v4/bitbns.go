@@ -1690,6 +1690,7 @@ func (this *Bitbns) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitbns#fetchStatus

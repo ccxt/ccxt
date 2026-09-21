@@ -12,5 +12,6 @@ func TestBase64ToBinary() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	//
+
 	assert(ccxt.IsEqual(exchange.SafeString(nil, "key"), nil), "GO_WORKAROUND")
 }

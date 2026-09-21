@@ -3244,6 +3244,7 @@ func (this *Tokocrypto) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name tokocrypto#fetchTime

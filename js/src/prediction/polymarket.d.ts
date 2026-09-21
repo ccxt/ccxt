@@ -567,5 +567,5 @@ export default class polymarket extends Exchange {
     handleOrder(client: any, event: any): void;
     handleMyTrade(client: any, event: any): void;
     tokenIdToSymbol(tokenId: Str): Str;
-    parsePolyTimestamp(raw: Str): number;
+    parsePolyTimestamp(raw: Str): Int;
 }

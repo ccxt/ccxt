@@ -6296,10 +6296,10 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if isStopLossOrder {
 					// we let trigger orders be aliases for stopLoss orders because
 					// gateio doesn't accept conventional trigger orders for spot markets
-					rule = Ternary((side == "buy"), ">=", "<=")
+					rule = Ternary((IsEqual(side, "buy")), ">=", "<=")
 					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				} else if isTakeProfitOrder {
-					rule = Ternary((side == "buy"), "<=", ">=")
+					rule = Ternary((IsEqual(side, "buy")), "<=", ">=")
 					triggerOrderPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 				}
 				AddElementToObject(request, "trigger", map[string]any{
@@ -11032,6 +11032,7 @@ func (this *Gate) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name gate#fetchTime

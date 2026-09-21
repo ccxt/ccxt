@@ -105,6 +105,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchPositions", true );
+                put( "fetchPositionsHistory", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
@@ -3826,33 +3827,126 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2022-03-03T22:51:16.566Z"
             //    }
             //
-            Object result = this.parsePositions(response);
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            // a degraded response missing openPositions must fail loudly - a flat
+            // account and "could not read positions" are not interchangeable for
+            // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+            // the crash guarded against in #19896 is still avoided, since we no
+            // longer call .length on a non-list value
+            Object positions = this.safeList(response, "openPositions");
+            if (Helpers.isTrue(Helpers.isEqual(positions, null)))
+            {
+                throw new ExchangeNotAvailable(Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+            }
+            return this.parsePositions(positions, symbols);
         }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
-    public Object parsePositions(Object response, Object... optionalArgs)
+    /**
+     * @method
+     * @name krakenfutures#fetchPositionsHistory
+     * @description fetches historical positions, by default the events that closed a position
+     * @see https://docs.kraken.com/api-reference/account-history/get-position-update-events
+     * @param {string[]} [symbols] a list of unified market symbols, only a single symbol is filtered by the exchange
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {bool} [params.opened] set to true to also return the events that opened a position
+     * @param {bool} [params.increased] set to true to also return the events that increased a position
+     * @param {bool} [params.decreased] set to true to also return the events that decreased a position
+     * @param {bool} [params.reversed] set to true to also return the events that reversed a position
+     * @param {bool} [params.no_change] set to true to also return the events that left the position size untouched
+     * @param {bool} [params.trades] set to true to also return every event caused by a trade
+     * @param {bool} [params.funding_realization] set to true to also return the funding realization events
+     * @param {bool} [params.settlement] set to true to also return the settlement events
+     * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
-        Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
-        // a degraded response missing openPositions must fail loudly - a flat
-        // account and "could not read positions" are not interchangeable for
-        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
-        // the crash guarded against in #19896 is still avoided, since we no
-        // longer call .length on a non-list value
-        Object positions = this.safeList(response, "openPositions");
-        if (Helpers.isTrue(Helpers.isEqual(positions, null)))
-        {
-            throw new ExchangeNotAvailable(Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
-        }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
-        {
-            Object position = this.parsePosition(Helpers.GetValue(positions, i));
-            ((List<Object>)result).add(position);
-        }
-        return result;
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    market = this.market(Helpers.GetValue(symbols, 0));
+                }
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "closed", true );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+            {
+                Helpers.addElementToObject(request, "tradeable", Helpers.GetValue(market, "id"));
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "since", since);
+                Helpers.addElementToObject(request, "sort", "asc");
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "count", limit);
+            }
+            Long until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "before", until);
+            }
+            Map<String, Object> response = (this.historyGetPositions(this.extend(request, parameters))).join();
+            //
+            //    {
+            //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+            //        "elements": [
+            //            {
+            //                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+            //                "timestamp": 1789646492483,
+            //                "event": {
+            //                    "PositionUpdate": {
+            //                        "tradeable": "PF_DOGEUSD",
+            //                        "oldPosition": "250",
+            //                        "newPosition": "0",
+            //                        "positionChange": "close",
+            //                        "executionPrice": "0.08105",
+            //                        "executionSize": "250",
+            //                        "realizedPnL": "0.05",
+            //                        ...
+            //                    }
+            //                }
+            //            }
+            //        ],
+            //        "len": 2,
+            //        "serverTime": "2026-09-17T18:14:37.761Z"
+            //    }
+            //
+            Object elements = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> updates = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(elements)); i++)
+            {
+                Object eventVar = this.safeDict(Helpers.GetValue(elements, i), "event", new HashMap<String, Object>() {{}});
+                Object update = this.safeDict(eventVar, "PositionUpdate");
+                if (Helpers.isTrue(!Helpers.isEqual(update, null)))
+                {
+                    ((List<Object>)updates).add(update);
+                }
+            }
+            Object positions = this.parsePositions(updates, symbols);
+            return this.filterBySinceLimit(positions, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+
     }
 
     public Object parsePosition(Object position, Object... optionalArgs)
@@ -3881,40 +3975,114 @@ public class Krakenfutures extends KrakenfuturesApi
         //        "maxFixedLeverage":"1.0"
         //    }
         //
+        // position update event (fetchPositionsHistory)
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "tradeable": "PF_DOGEUSD",
+        //        "oldPosition": "250",
+        //        "oldAverageEntryPrice": "0.08085",
+        //        "newPosition": "0",
+        //        "newAverageEntryPrice": "0.08085",
+        //        "fillTime": 1789643150594,
+        //        "fee": "0.01013125",
+        //        "feeCurrency": "USD",
+        //        "realizedPnL": "0.05",
+        //        "positionChange": "close",
+        //        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        //        "executionPrice": "0.08105",
+        //        "executionSize": "250",
+        //        "tradeType": "userExecution",
+        //        "fundingRealizationTime": 1789646492483,
+        //        "realizedFunding": "-0.00000764284",
+        //        "timestamp": 1789646492483,
+        //        "updateReason": "trade"
+        //    }
+        //
+        // the history rows carry a positionChange, the open-position rows do not
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        String positionChange = this.safeString(position, "positionChange");
+        Boolean isHistory = (!Helpers.isEqual(positionChange, null));
         Double leverage = this.safeNumber(position, "maxFixedLeverage");
         String marginType = "cross";
         if (Helpers.isTrue(!Helpers.isEqual(leverage, null)))
         {
             marginType = "isolated";
         }
-        String datetime = this.safeString(position, "fillTime");
-        String marketId = this.safeString(position, "symbol");
+        Object timestamp = null;
+        String datetime = null;
+        if (Helpers.isTrue(isHistory))
+        {
+            timestamp = this.safeInteger(position, "timestamp");
+            datetime = this.iso8601(timestamp);
+        } else
+        {
+            datetime = this.safeString(position, "fillTime");
+            timestamp = this.parse8601(datetime);
+        }
+        String side = this.safeString(position, "side");
+        String entryPrice = this.safeString(position, "price");
+        String contracts = this.safeString(position, "size");
+        if (Helpers.isTrue(isHistory))
+        {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            Boolean describesNewPosition = Helpers.isTrue((Helpers.isEqual(positionChange, "open"))) || Helpers.isTrue((Helpers.isEqual(positionChange, "increase")));
+            String signedSize = this.safeString(position, "oldPosition");
+            entryPrice = this.safeString(position, "oldAverageEntryPrice");
+            contracts = this.safeString(position, "executionSize");
+            if (Helpers.isTrue(describesNewPosition))
+            {
+                signedSize = this.safeString(position, "newPosition");
+                entryPrice = this.safeString(position, "newAverageEntryPrice");
+                contracts = Precise.stringAbs(signedSize);
+            } else if (Helpers.isTrue(Helpers.isEqual(positionChange, "reverse")))
+            {
+                contracts = Precise.stringAbs(signedSize); // a reversal closes the whole old position
+            }
+            if (Helpers.isTrue(Precise.stringGt(signedSize, "0")))
+            {
+                side = "long";
+            } else if (Helpers.isTrue(Precise.stringLt(signedSize, "0")))
+            {
+                side = "short";
+            }
+        }
+        String marketId = this.safeString2(position, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
+        final Object finalTimestamp = timestamp;
+        final Object finalDatetime = datetime;
+        final Object finalEntryPrice = entryPrice;
         final Object finalLeverage = leverage;
+        final Object finalContracts = contracts;
         final Object finalMarginType = marginType;
+        final Object finalSide = side;
         return new HashMap<String, Object>() {{
             put( "info", position );
+            put( "id", Krakenfutures.this.safeString(position, "executionUid") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "timestamp", Krakenfutures.this.parse8601(datetime) );
-            put( "datetime", datetime );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", finalDatetime );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", Krakenfutures.this.safeNumber(position, "price") );
+            put( "entryPrice", Krakenfutures.this.parseNumber(finalEntryPrice) );
             put( "notional", null );
             put( "leverage", finalLeverage );
             put( "unrealizedPnl", Krakenfutures.this.safeNumber(position, "unrealizedPnl") );
-            put( "contracts", Krakenfutures.this.safeNumber(position, "size") );
+            put( "realizedPnl", Krakenfutures.this.safeNumber(position, "realizedPnL") );
+            put( "contracts", Krakenfutures.this.parseNumber(finalContracts) );
             put( "contractSize", Krakenfutures.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
             put( "liquidationPrice", null );
             put( "markPrice", null );
+            put( "lastPrice", Krakenfutures.this.safeNumber(position, "executionPrice") );
             put( "collateral", null );
             put( "marginType", finalMarginType );
-            put( "side", Krakenfutures.this.safeString(position, "side") );
+            put( "side", finalSide );
             put( "percentage", null );
         }};
     }

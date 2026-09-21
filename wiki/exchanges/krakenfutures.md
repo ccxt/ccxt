@@ -31,6 +31,7 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [transferOut](#transferout)
 * [transfer](#transfer)
@@ -644,6 +645,39 @@ Fetches current contract trading positions
 
 ```javascript
 krakenfutures.fetchPositions (symbols, params?)
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical positions, by default the events that closed a position
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-history/get-position-update-events  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols, only a single symbol is filtered by the exchange |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch EXCHANGE SPECIFIC PARAMETERS |
+| params.opened | <code>bool</code> | No | set to true to also return the events that opened a position |
+| params.increased | <code>bool</code> | No | set to true to also return the events that increased a position |
+| params.decreased | <code>bool</code> | No | set to true to also return the events that decreased a position |
+| params.reversed | <code>bool</code> | No | set to true to also return the events that reversed a position |
+| params.no_change | <code>bool</code> | No | set to true to also return the events that left the position size untouched |
+| params.trades | <code>bool</code> | No | set to true to also return every event caused by a trade |
+| params.funding_realization | <code>bool</code> | No | set to true to also return the funding realization events |
+| params.settlement | <code>bool</code> | No | set to true to also return the settlement events |
+| params.continuation_token | <code>string</code> | No | the token of a previous response, to fetch the next page |
+
+
+```javascript
+krakenfutures.fetchPositionsHistory (symbols?, since?, limit?, params?)
 ```
 
 

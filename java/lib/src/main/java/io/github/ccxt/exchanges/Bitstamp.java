@@ -1985,6 +1985,7 @@ public class Bitstamp extends BitstampApi
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
@@ -2006,17 +2007,31 @@ public class Bitstamp extends BitstampApi
                 put( "step", Bitstamp.this.safeString(Bitstamp.this.timeframes, timeframe, timeframe) );
             }};
             int duration = this.parseTimeframe(timeframe);
+            Long until = this.safeInteger(parameters, "until");
+            Boolean untilIsDefined = (!Helpers.isEqual(until, null));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
+                limit = 1000;
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
                 {
-                    Helpers.addElementToObject(request, "limit", 1000); // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                    Helpers.addElementToObject(request, "limit", limit);
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        Object end = this.parseToInt(Helpers.divide(until, 1000));
+                        Helpers.addElementToObject(request, "start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limit))), 1));
+                        Helpers.addElementToObject(request, "end", end);
+                    }
                 } else
                 {
-                    limit = 1000;
                     Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
-                    Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        Helpers.addElementToObject(request, "end", this.parseToInt(Helpers.divide(until, 1000)));
+                    } else
+                    {
+                        Helpers.addElementToObject(request, "end", this.sum(start, Helpers.subtract(Helpers.multiply(duration, limit), 1)));
+                    }
                     Helpers.addElementToObject(request, "limit", limit);
                 }
             } else
@@ -2025,10 +2040,21 @@ public class Bitstamp extends BitstampApi
                 {
                     Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
-                    Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
+                    Object end = this.sum(start, Helpers.subtract(Helpers.multiply(duration, limit), 1));
+                    if (Helpers.isTrue(untilIsDefined))
+                    {
+                        end = Helpers.mathMin(end, this.parseToInt(Helpers.divide(until, 1000)));
+                    }
+                    Helpers.addElementToObject(request, "end", end);
+                } else if (Helpers.isTrue(untilIsDefined))
+                {
+                    Object end = this.parseToInt(Helpers.divide(until, 1000));
+                    Helpers.addElementToObject(request, "end", end);
+                    Helpers.addElementToObject(request, "start", Helpers.subtract(Helpers.subtract(end, (Helpers.multiply(duration, limit))), 1));
                 }
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // min 1, max 1000
             }
+            parameters = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetOhlcPair(this.extend(request, parameters))).join();
             //
             //     {

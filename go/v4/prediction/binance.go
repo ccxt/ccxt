@@ -967,14 +967,13 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 			last = this.ParseNumber(lastString)
 		}
 	}
-	var now int64 = this.Milliseconds()
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       this.SafeString(outcomeObj, "outcome"),
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"timestamp":     now,
-		"datetime":      this.Iso8601(now),
+		"timestamp":     nil,
+		"datetime":      nil,
 		"high":          nil,
 		"low":           nil,
 		"bid":           nil,
@@ -1020,8 +1019,8 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")))
 	}
 
-	retRes8458 := (<-this.LoadOutcomesAsync(outcomes))
-	ccxt.PanicOnError(retRes8458)
+	retRes8448 := (<-this.LoadOutcomesAsync(outcomes))
+	ccxt.PanicOnError(retRes8448)
 	var responsesByMarketId map[string]any = map[string]any{}
 	var result map[string]any = map[string]any{}
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
@@ -1074,8 +1073,8 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes8828 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes8828)
+	retRes8818 := (<-this.LoadOutcomeAsync(outcome))
+	ccxt.PanicOnError(retRes8818)
 	var outcomeObj any = this.Outcome(outcome)
 	var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 	var request map[string]any = map[string]any{
@@ -1297,9 +1296,9 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
-		retRes106719 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes106719)
-		ch <- retRes106719
+		retRes106619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+		ccxt.PanicOnError(retRes106619)
+		ch <- retRes106619
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1311,8 +1310,8 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes107712 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes107712)
+		retRes107612 := (<-this.LoadOutcomeAsync(outcome))
+		ccxt.PanicOnError(retRes107612)
 		outcomeObj = this.Outcome(outcome)
 		var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 		ccxt.AddElementToObject(request, "marketId", ccxt.GetValue(market, "id"))
@@ -1411,9 +1410,9 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
-		retRes115019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes115019)
-		ch <- retRes115019
+		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+		ccxt.PanicOnError(retRes114919)
+		ch <- retRes114919
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1425,8 +1424,8 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes116012 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes116012)
+		retRes115912 := (<-this.LoadOutcomeAsync(outcome))
+		ccxt.PanicOnError(retRes115912)
 		outcomeObj = this.Outcome(outcome)
 	}
 	if !ccxt.IsEqual(limit, nil) {
@@ -1512,8 +1511,8 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes12288 := (<-this.LoadOutcomesAsync())
-	ccxt.PanicOnError(retRes12288)
+	retRes12278 := (<-this.LoadOutcomesAsync())
+	ccxt.PanicOnError(retRes12278)
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if !ccxt.IsEqual(outcomes, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomes)); i++ {
@@ -1625,8 +1624,8 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes132212 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes132212)
+		retRes132112 := (<-this.LoadOutcomeAsync(outcome))
+		ccxt.PanicOnError(retRes132112)
 		outcomeObj = this.Outcome(outcome)
 		var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
 		ccxt.AddElementToObject(request, "marketTopicId", ccxt.GetValue(ccxt.GetValue(market, "info"), "marketTopicId"))
@@ -1747,9 +1746,9 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageKey string = "ccxtPageKey"
 	if ccxt.EvalTruthy(paginate) {
 
-		retRes141519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
-		ccxt.PanicOnError(retRes141519)
-		ch <- retRes141519
+		retRes141419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+		ccxt.PanicOnError(retRes141419)
+		ch <- retRes141419
 		return nil
 	}
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -1763,8 +1762,8 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes142712 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes142712)
+		retRes142612 := (<-this.LoadOutcomeAsync(outcome))
+		ccxt.PanicOnError(retRes142612)
 		outcomeObj = this.Outcome(outcome)
 	}
 	if !ccxt.IsEqual(limit, nil) {
@@ -2094,8 +2093,8 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes17078 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes17078)
+	retRes17068 := (<-this.LoadOutcomeAsync(outcome))
+	ccxt.PanicOnError(retRes17068)
 	var outcomeObj any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -2218,9 +2217,9 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side
 		"cost": cost,
 	}
 
-	retRes181215 := (<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))
-	ccxt.PanicOnError(retRes181215)
-	ch <- retRes181215
+	retRes181115 := (<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))
+	ccxt.PanicOnError(retRes181115)
+	ch <- retRes181115
 	return nil
 }
 
@@ -2279,8 +2278,8 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes184312 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes184312)
+		retRes184212 := (<-this.LoadOutcomeAsync(outcome))
+		ccxt.PanicOnError(retRes184212)
 		outcomeObj = this.Outcome(outcome)
 	}
 
@@ -2341,8 +2340,8 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 			"outcomeId":     this.SafeString(outcomeObj, "id"),
 			"label":         this.SafeString(outcomeObj, "label"),
 			"market":        this.SafeString(outcomeObj, "market"),
-			"timestamp":     this.Milliseconds(),
-			"datetime":      this.Iso8601(this.Milliseconds()),
+			"timestamp":     nil,
+			"datetime":      nil,
 		}
 		ccxt.AppendToArray(&orders, this.SafePredictionOrder(order))
 	}
@@ -2438,6 +2437,7 @@ func (this *Binance) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name binance#fetchMarkets

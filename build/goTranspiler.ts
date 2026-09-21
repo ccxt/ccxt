@@ -1,4 +1,4 @@
-import Transpiler from "ast-transpiler";
+import Transpiler, { alignGoTrailingComments } from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
@@ -37,13 +37,11 @@ let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
 
-let gofmtMissingWarned = false;
-
 // ast-transpiler emits every async method core as a trampoline over a capacity-1
 // channel (ccxt/ast-transpiler#67): the function makes the channel, launches the body
 // in a goroutine and returns the channel immediately, with an *unnamed* result:
 //
-//     func (this *Bit2cCore) FetchBalance(...) <- chan any {
+//     func (this *Bit2cCore) FetchBalance(...) <-chan any {
 //         ch := make(chan any, 1)
 //         go this.fetchBalanceBody(ch)
 //         return ch
@@ -104,7 +102,8 @@ let gofmtMissingWarned = false;
 // fully trust degrades to exactly what ast-transpiler emitted.
 //
 // Everything here matches the *raw* emitted text: this runs before gofmt, which is what
-// later normalises `<- chan any` to `<-chan any` and 4-space indentation to tabs.
+// later normalises the 4-space indentation to tabs (`<-chan any` and the single-space
+// signatures now come straight out of the printer, F04).
 // The BODY half of a trampoline pair: `func (this *X) fetchTickerBody(ch chan any, …) any {`
 // (or the package-level `func helperABody(ch chan any, …) any {`). The public trampoline
 // itself is three statements and can never multi-send, so only the body is scanned.
@@ -120,8 +119,8 @@ const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
 const GO_LITERAL_INVOKED = /^\}\s*\([^()]*\)\s*$/;
 // the flag threaded through cores that send from inside such a shim
 const GO_SENT_FLAG = 'chSent';
-// the transpiler emits 4-space indentation; gofmt re-indents the file afterwards
-const GO_INDENT_UNIT = '    ';
+// the transpiler emits one tab per nesting level, exactly what gofmt writes back
+const GO_INDENT_UNIT = '\t';
 
 // drop string/rune literals and comments so brace counting and identifier lookups
 // cannot be fooled by Go source quoted inside a literal or a comment. Block comments
@@ -356,35 +355,289 @@ function assertTypedElementAccess (content: string): string {
     );
 }
 
-// gofmt indents with tabs while the transpiler emits 4-space indentation, so
-// we run the generated code through gofmt at write time: the emitted .go files
-// already have tabs and running gofmt over the tree afterwards does nothing
+// gofmt's declaration-list rule (go/printer nodes.go `declList`): a top-level declaration
+// that carries a doc comment is separated from the declaration above it by exactly one
+// blank line (`min = 2` linebreaks), while a declaration without one is emitted adjacent
+// to it. The wrapper joins below used a bare '\n' everywhere, so a wrapper whose
+// `/** ... */` doc template followed the previous wrapper's closing brace came out as
+// `}\n/**` and gofmt re-inserted the blank line.
+function joinGoDeclarations (decls: string[]): string {
+    return decls.filter (decl => decl !== '').map ((decl, index) =>
+        (index === 0 ? '' : (goDeclStartsWithComment (decl) ? '\n\n' : '\n')) + decl).join ('');
+}
+
+function goDeclStartsWithComment (decl: string): boolean {
+    const firstLine = decl.split ('\n')[0].trim ();
+    return firstLine.startsWith ('//') || firstLine.startsWith ('/*');
+}
+
+// The Go printer emits gofmt-clean text (tabs, go/printer spacing, tabwriter alignment),
+// so no gofmt runs at write time. `--check-gofmt [paths…]` is the gate: it runs `gofmt -l`
+// over go/v4 (pro/, prediction/) and go/tests and exits 1 on any listing or parse error,
+// 2 when gofmt or the tree is missing; `--check-gofmt --self-test` exercises the gate itself.
+// gofmt is resolved from $CCXT_GOFMT, PATH, $GOROOT/bin and /usr/local/go/bin, in that order.
+const GOFMT_BINARY_ENV = 'CCXT_GOFMT';
+// the emitted tree: go/v4 recurses into pro/ and prediction/, go/tests holds the test tier
+const GOFMT_GATE_TREE = [ 'go/v4', 'go/tests' ];
+
+function gofmtUsable (binary: string): boolean {
+    const probe = spawnSync (binary, [], { 'input': 'package x\n', 'encoding': 'utf8', 'windowsHide': true });
+    return !probe.error && probe.status === 0;
+}
+
+let resolvedGofmt: string | null | undefined = undefined;  // undefined = not probed yet
+
+function resolveGofmt (): string | null {
+    if (resolvedGofmt !== undefined) {
+        return resolvedGofmt;
+    }
+    const candidates = [ process.env[GOFMT_BINARY_ENV], 'gofmt' ];
+    if (process.env['GOROOT']) {
+        candidates.push (path.join (process.env['GOROOT'], 'bin', 'gofmt'));
+    }
+    // the campaign's own layout: this host keeps the toolchain here and off PATH
+    candidates.push ('/usr/local/go/bin/gofmt');
+    resolvedGofmt = null;
+    for (const candidate of candidates) {
+        if (typeof candidate === 'string' && candidate.length > 0 && gofmtUsable (candidate)) {
+            resolvedGofmt = candidate;
+            break;
+        }
+    }
+    return resolvedGofmt;
+}
+
+// Semantic post-passes over the printer text: a leaked body goroutine and a missing type
+// assertion are fixed here; layout is the printer's job and is already gofmt-clean.
 function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
     content = guardMultiSendCores (content);
-    content = assertTypedElementAccess (content);
-    const gofmt = spawnSync ('gofmt', [], {
-        'input': content,
-        'encoding': 'utf8',
-        'maxBuffer': 256 * 1024 * 1024,
-        'windowsHide': true,
-    });
-    if (gofmt.error) {
-        // gofmt is not installed; keep the previous behavior (unformatted output)
-        if (!gofmtMissingWarned) {
-            gofmtMissingWarned = true;
-            log.bright.yellow ('gofmt not found (' + gofmt.error.message + '), writing go files with the default 4-space indentation');
+    return assertTypedElementAccess (content);
+}
+
+// gofmt's printer starts the file at the package clause, writes exactly one blank line
+// between it (and every import declaration) and what follows, never keeps more than one
+// blank line anywhere (maxNewlines = 2), trims whitespace-only lines and ends the file with a
+// single newline. Every emitter below assembles its own text — some leave two blank lines
+// after the package clause, some none, one leaves three after the generated-header comment —
+// so normalise those file-level properties once, here. Non-blank lines are left byte-for-byte
+// alone. Pure text normalisation: no gofmt spawn.
+function normalizeGoFileHeader (content: string): string {
+    const lines = content.split ('\n');
+    const packageLine = lines.findIndex ((line: string) => /^package \S/.test (line));
+    if (packageLine < 0) {
+        return content;         // hand-written file (or a fragment): leave it alone
+    }
+    const out = [ lines[packageLine] ];
+    let i = packageLine + 1;
+    while ((i < lines.length) && (lines[i].trim () === '')) {
+        i++;
+    }
+    out.push ('');              // exactly one blank line after the package clause
+    // every import declaration of the header (a file can carry more than one) keeps exactly
+    // one blank line behind it
+    while (/^import\b/.test (lines[i] ?? '')) {
+        out.push (lines[i]);
+        if (lines[i].indexOf ('(') >= 0) {
+            i++;
+            while ((i < lines.length) && (lines[i].trim () !== ')')) {
+                out.push (lines[i]);
+                i++;
+            }
+            out.push (lines[i]);            // the closing paren of the block
         }
-        return content;
+        i++;
+        while ((i < lines.length) && (lines[i].trim () === '')) {
+            i++;
+        }
+        out.push ('');
     }
-    if (gofmt.status !== 0) {
-        // the generated code is not valid go; write it unformatted so it can be inspected
-        log.bright.yellow ('gofmt failed for ' + filePath + '\n' + (gofmt.stderr || ''));
-        return content;
+    // the rest of the file: every blank run collapses to a single blank line
+    while (i < lines.length) {
+        if (lines[i].trim () === '') {
+            while ((i < lines.length) && (lines[i].trim () === '')) {
+                i++;
+            }
+            if (i < lines.length) {
+                out.push ('');
+            }
+            continue;
+        }
+        out.push (lines[i]);
+        i++;
     }
-    return gofmt.stdout;
+    return out.join ('\n') + '\n';
+}
+
+// `gofmt -l` prints one path per line for every file it would reformat, and exits non-zero
+// when a file does not even parse as go. Both are failures for the gate.
+function gofmtListFiles (binary: string, targets: string[]) {
+    const res = spawnSync (binary, [ '-l', ...targets ], { 'encoding': 'utf8', 'maxBuffer': 256 * 1024 * 1024, 'windowsHide': true });
+    return {
+        'files': (res.stdout ?? '').split ('\n').map ((line) => line.trim ()).filter ((line) => line.length > 0),
+        'status': res.status,
+        'error': res.error,
+        'stderr': (res.stderr ?? '').trim (),
+    };
+}
+
+function runGofmtGate () {
+    if (process.argv.includes ('--self-test')) {
+        const problems = gofmtSelfTest ();
+        if (problems.length) {
+            console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
+            process.exit (3);
+        }
+        console.log ('SELF-TEST PASSED');
+        return;
+    }
+    const explicit = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
+    const targets = explicit.length ? explicit : GOFMT_GATE_TREE.filter ((target) => fs.existsSync (target));
+    if (!targets.length) {
+        console.error ('--check-gofmt: nothing to check, no emitted go tree here (' + GOFMT_GATE_TREE.join (', ') + ')');
+        process.exit (2);
+    }
+    const gofmt = resolveGofmt ();
+    if (gofmt === null) {
+        console.error ('--check-gofmt: gofmt not found (looked at $' + GOFMT_BINARY_ENV + ', PATH, $GOROOT/bin, /usr/local/go/bin)');
+        process.exit (2);
+    }
+    const listed = gofmtListFiles (gofmt, targets);
+    if (listed.error) {
+        console.error ('--check-gofmt: could not run ' + gofmt + ': ' + listed.error.message);
+        process.exit (2);
+    }
+    if (listed.files.length || listed.status !== 0) {
+        const headline = listed.files.length
+            ? listed.files.length + ' file(s) are not gofmt-clean:'
+            : 'gofmt exited ' + listed.status + ' without listing a file (parse error or bad path):';
+        console.error ('--check-gofmt: ' + headline);
+        for (const file of listed.files) {
+            console.error ('  ' + file);
+        }
+        if (listed.stderr.length) {
+            console.error (listed.stderr);
+        }
+        process.exit (1);
+    }
+    console.log ('--check-gofmt: clean (' + gofmt + ' -l ' + targets.join (' ') + ')');
+}
+
+// The fixtures are flush-left on purpose: the strings are raw printer output, and any
+// indentation of the template literals would end up inside them.
+const GOFMT_SELFTEST_MULTISEND = `func (this *Exchange) fetch2Async(symbol any, params ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetch2Body(ch, symbol, params...)
+	return ch
+}
+func (this *Exchange) fetch2Body(ch chan any, symbol any, params ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var errors any = 0
+	for IsLessThanOrEqual(errors, 3) {
+
+		{
+			func(this *Exchange) (ret_ any) {
+				// try block:
+				response := (<-this.FetchAsync(symbol, nil, nil, params))
+				retRes := (<-this.ParseTicker(response, nil))
+				ch <- retRes
+				return nil
+			}(this)
+		}
+
+	}
+	return nil
+}
+`;
+
+// the same text with the guard applied: the flag declaration after the two defers, the
+// sent flag after the send, and the early exit right after the closure that produced it
+const GOFMT_SELFTEST_MULTISEND_GUARDED = `func (this *Exchange) fetch2Async(symbol any, params ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetch2Body(ch, symbol, params...)
+	return ch
+}
+func (this *Exchange) fetch2Body(ch chan any, symbol any, params ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	chSent := false
+	_ = chSent
+	var errors any = 0
+	for IsLessThanOrEqual(errors, 3) {
+
+		{
+			func(this *Exchange) (ret_ any) {
+				// try block:
+				response := (<-this.FetchAsync(symbol, nil, nil, params))
+				retRes := (<-this.ParseTicker(response, nil))
+				ch <- retRes
+				chSent = true
+				return nil
+			}(this)
+			if chSent {
+				return nil
+			}
+		}
+
+	}
+	return nil
+}
+`;
+
+// a core that only ever sends at its own level: the guard must not touch a byte of it
+const GOFMT_SELFTEST_SINGLE_SEND = `func (this *Exchange) fetchBalanceBody(ch chan any, params any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	response := (<-this.FetchAsync("balance", nil, nil, params))
+	ch <- response
+	return nil
+}
+`;
+
+// the element-access assertion is semantics, not formatting: kept by formatGoSource
+const GOFMT_SELFTEST_ELEMENT_ACCESS = `func (this *Exchange) parseKeysBody(ch chan any, keys any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var key string = GetValue(keys, 0)
+	ch <- key
+	return nil
+}
+`;
+
+function gofmtSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const passedThrough = formatGoSource ('selftest.go', GOFMT_SELFTEST_MULTISEND);
+    ok (passedThrough === GOFMT_SELFTEST_MULTISEND_GUARDED,
+        'formatGoSource must preserve the multi-send guard byte-for-byte\n--- actual ---\n' + passedThrough + '--- expected ---\n' + GOFMT_SELFTEST_MULTISEND_GUARDED);
+    ok (passedThrough.indexOf ('chSent := false') !== -1 && passedThrough.indexOf ('if chSent {') !== -1,
+        'the guarded core must carry the flag declaration and the early exit');
+    const untouched = formatGoSource ('selftest.go', GOFMT_SELFTEST_SINGLE_SEND);
+    ok (untouched === GOFMT_SELFTEST_SINGLE_SEND, 'a core that never multi-sends must pass through byte-identical');
+    const asserted = formatGoSource ('selftest.go', GOFMT_SELFTEST_ELEMENT_ACCESS);
+    ok (asserted.indexOf ('GetValue(keys, 0).(string)') !== -1, 'formatGoSource must keep the element-access assertion');
+    // the gate's listing parser, against a real gofmt and a throwaway tree
+    const gofmt = resolveGofmt ();
+    if (gofmt === null) {
+        console.log ('  note: gofmt not found — the gate listing check is skipped');
+    } else {
+        const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-check-gofmt-'));
+        try {
+            fs.writeFileSync (path.join (dir, 'clean.go'), 'package x\n\nfunc F() int {\n\treturn 1\n}\n');
+            fs.writeFileSync (path.join (dir, 'dirty.go'), 'package x\n\nfunc F()  int {\n        return 1\n}\n');
+            const listed = gofmtListFiles (gofmt, [ dir ]);
+            ok (listed.status === 0 && listed.files.map ((file) => basename (file)).join (',') === 'dirty.go',
+                'gofmt -l must list exactly the unformatted file, got [' + listed.files.join (',') + '] status=' + listed.status);
+            const clean = gofmtListFiles (gofmt, [ path.join (dir, 'clean.go') ]);
+            ok (clean.files.length === 0, 'a formatted file must not be listed');
+        } finally {
+            fs.rmSync (dir, { 'recursive': true, 'force': true });
+        }
+    }
+    return problems;
 }
 
 // Typed pointer locals print both `x !== undefined` and `x !== null` as `x != nil`, and the printer
@@ -406,8 +659,12 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    // after gofmt, so the match runs against canonical spacing
-    content = collapseRedundantNilChecks (formatGoSource (path, content));
+    // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the
+    // printer reproduces that itself (ast-transpiler `alignGoTrailingComments`), and this second
+    // pass covers the text assembled here (hand-written emitters and sections concatenated after
+    // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
+    // runs last so its match sees the canonical spacing.
+    content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -424,13 +681,26 @@ function overwriteFileAndFolder (path: string, content: string) {
 function coerceGoBoolMethodReturns (content: string, names: string[]): string {
     for (const name of names) {
         const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + name + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
-        content = content.replace (coerceRegex, '$1 bool$2');
+        // F04: the replacement spells the single space before `{` itself, so a padded
+        // signature (`) any  {`) can never survive the coercion as `) bool  {`
+        content = content.replace (coerceRegex, '$1 bool {');
     }
     return content;
 }
 
 function capitalize(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// The indentation of the line that the match starting at `offset` sits on. Several emitters
+// rewrite one source expression into *several* Go statements; gofmt prints one statement per
+// line at the enclosing block's indentation, so those rewrites emit the split form themselves
+// and need this prefix to keep every emitted line at the same (future) tab depth.
+function statementIndent (whole: string, offset: number): string {
+    const lineStart = whole.lastIndexOf ('\n', offset - 1) + 1;
+    const prefix = whole.substring (lineStart, offset);
+    const match = prefix.match (/^[ \t]*/);
+    return match ? match[0] : '';
 }
 
 // this is necessary because for some reason
@@ -587,6 +857,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "nonce": false, // venues override nonce() (e.g. hyperliquid); base incrementingNonce() must reach the override, matching Rust
     "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
@@ -1016,7 +1287,7 @@ class NewTranspiler {
             [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
-            [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
+            [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
@@ -1093,7 +1364,7 @@ class NewTranspiler {
     // ============================================================================
 
     iden(level = 1) {
-        return '    '.repeat(level);
+        return '\t'.repeat(level);
     }
     // ============================================================================
 
@@ -1252,17 +1523,25 @@ class NewTranspiler {
     getGoImports(file: any, ws = false) {
         if (this.isPrediction) {
             const namespace = ws ? `package ${PREDICTION_WS_PACKAGE}` : `package ${PREDICTION_PACKAGE}`;
+            // gofmt keeps exactly one blank line between the package clause and the import clause,
+            // and exactly one between the import clause and the generated-header comment — the
+            // call site's trailing newlines cover the second one, so no trailing '' here
             return [
                 namespace,
+                '',
                 'import ccxt "github.com/ccxt/ccxt/go/v4"',
-                ws ? PREDICTION_IMPORT : '',
+                ...(ws ? [ PREDICTION_IMPORT ] : []),
             ];
         }
         const namespace = ws ? 'package ccxtpro' : 'package ccxt';
+        const hasImport = (ws || this.isPrediction);
         const values = [
             // "using ccxt;",
             namespace,
-            (ws || this.isPrediction) ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            // the ws/prediction packages carry their ccxt import right after the package clause
+            // and gofmt keeps exactly one blank line between the two; the base ccxt package has
+            // no import here and keeps the single '' the call site's trailing newlines rely on
+            ...(hasImport ? [ '', 'import ccxt "github.com/ccxt/ccxt/go/v4"' ] : [ '' ]),
             // 'import "helpers"'
         ]
         return values;
@@ -1325,7 +1604,7 @@ class NewTranspiler {
         }
 
         if (name === 'fetchTime'){
-            return ` <- chan int64`; // custom handling for now
+            return `<-chan int64`; // custom handling for now
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -1353,11 +1632,11 @@ class NewTranspiler {
 
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
-                return isPromise ? `<- chan` : '<- chan';
+                return isPromise ? `<-chan` : '<-chan';
             } else if (isList) {
-                return isPromise ? `<- chan []${type}` : `[]${type}`;
+                return isPromise ? `<-chan []${type}` : `[]${type}`;
             }
-            return isPromise ? `<- chan ${type}` : type;
+            return isPromise ? `<-chan ${type}` : type;
         }
 
         const goReplacements: dict = {
@@ -1590,7 +1869,11 @@ class NewTranspiler {
     }
 
     unwrapTaskIfNeeded(type: string): string {
-        return type.replace('<- chan ', '');
+        // the printer emits `<-chan X` (F04: no space after `<-`); the legacy `<- chan X`
+        // spelling stays matched so a stale type string cannot leak a channel into the
+        // unwrapped type, and the optional leading space is dropped so the emitted wrapper
+        // never carries `( int64, error)` (gofmt rewrites that to `(int64, error)`).
+        return type.replace(/^[ \t]*<-\s*chan[ \t]*/, '');
     }
 
     unwrapListIfNeeded(type: string): string {
@@ -1676,7 +1959,7 @@ class NewTranspiler {
 
         const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
-        const i1 = this.inden(1);
+        const i1 = '\t';
         const structName = capitalize(name) + 'Options';
         if (hasOptionalParams && !isOnlyParams) {
             const initOptions = [
@@ -1684,7 +1967,7 @@ class NewTranspiler {
                 'opts := ' + structName + 'Struct{}',
                 '',
                 'for _, opt := range options {',
-                '    opt(&opts)',
+                '\topt(&opts)',
                 '}'
             ].map(e => e!='' ? i1 + e : e);
             res = res.concat(initOptions);
@@ -1704,7 +1987,7 @@ class NewTranspiler {
     }
 
     inden(level: number) {
-        return '    '.repeat(level);
+        return '\t'.repeat(level);
     }
 
     // qualifies base ccxt type names (e.g. Ticker -> ccxt.Ticker) for code generated
@@ -1740,7 +2023,9 @@ class NewTranspiler {
         let predictionLocalOverride = false;
         if (capName in goTypeOptions) {
             if (isPrediction) {
-                const existingFields = (goTypeOptions[capName].match (/^\s+(\w+) \*/gm) || []).map (s => s.trim ().split (' ')[0]);
+                // `\s+` between name and `*` — the emitted field line is space-aligned
+                // (`Since  *int64`), so a single-space pattern would miss every field
+                const existingFields = (goTypeOptions[capName].match (/^\s+(\w+)\s+\*/gm) || []).map (s => s.trim ().split (/\s+/)[0]);
                 const predFields = optionalParams.map (param => capitalize (param.name));
                 predictionLocalOverride = predFields.some (f => existingFields.indexOf (f) === -1);
             }
@@ -1748,10 +2033,13 @@ class NewTranspiler {
                 return;
             }
         }
-        const i1 = this.inden(1);
-        const one = this.inden(0);
-        const two = this.inden(1);
-        const three = this.inden(2);
+        // gofmt indents one tab per level and aligns the `Name Type` columns of a struct's
+        // fields (tabwriter, padchar ' ', padding 1): every field name is padded with spaces
+        // to the longest name in the struct plus one. Emitting both here keeps the option
+        // structs byte-identical to gofmt's output.
+        const one = '';
+        const two = '\t';
+        const three = '\t\t';
 
         const options = `${capName}Options`;
         const optionsStruct = `${capName}OptionsStruct`;
@@ -1772,21 +2060,27 @@ class NewTranspiler {
         const qualify = (type: string | undefined) => (isPrediction ? this.qualifyBaseGoType(type) : type);
 
         if (useAlias) {
+            // gofmt separates a run of `type` decls from the following `var` decls with one
+            // blank line (go/printer declList: a decl-token change forces a blank line)
             goTypeOptions[capName] = [
                 `type ${optionsStruct} = ccxt.${optionsStruct}`,
                 `type ${options} = ccxt.${options}`,
+                '',
                 ...optionalParams.map(param => {
                     const methodName = `With${capName}${capitalize(param.name)}`;
                     return`var ${methodName} = ccxt.${methodName}`
                 }),
             ].join('\n');
         } else {
+            const fieldNames = optionalParams.map((param) => capitalize(param.name));
+            const fieldIndent = '\t';
+            // gofmt aligns the field types in one space-padded column (longest name + 1)
+            const fieldWidth = Math.max(...fieldNames.map((name) => name.length)) + 1;
             goTypeOptions[capName] = [
                 `type ${optionsStruct} struct {`,
-                ...optionalParams.map((param) => {
-                    const fieldName = capitalize(param.name);
+                ...optionalParams.map((param, index) => {
                     const fieldType = this.optionStructFieldGoType(param, qualify) as string;
-                    return `${i1}${fieldName} *${fieldType}`;
+                    return `${fieldIndent}${fieldNames[index].padEnd(fieldWidth)}*${fieldType}`;
                 }),
                 '}',
                 '',
@@ -1803,7 +2097,6 @@ class NewTranspiler {
                             `${three}opts.${name} = &${this.safeGoName(param.name)}`,
                             `${two}}`,
                             `${one}}`,
-                            ''
                         ].join('\n');
                     }),
                 // here WithX methods with optional parameters, like withPrice, withSince, withParams, etc
@@ -1815,6 +2108,17 @@ class NewTranspiler {
                 // }
             ].join('\n');
         }
+    }
+
+    // gofmt keeps a body on the function's header line only while the printed header (up to
+    // and including the space before `{`) plus the printed body stays within 100 characters
+    // (go/printer funcBody → bodySize, maxSize = 100); longer bodies move to their own
+    // tab-indented line. `header` must end with the space that precedes `{`.
+    goSingleStatementFunc (header: string, statement: string): string {
+        if (header.length + statement.length <= 100) {
+            return `${header}{ ${statement} }`;
+        }
+        return `${header}{\n\t${statement}\n}`;
     }
 
     createMissingMethodWrapper(exchangeName: string, name: string, methodInfo: any) {
@@ -1846,7 +2150,7 @@ class NewTranspiler {
             }
         }
 
-        return `func (this *${exCap}) ${itf} {return this.exchangeTyped.${nameCap}(${args.join(', ')})}`;
+        return this.goSingleStatementFunc (`func (this *${exCap}) ${itf} `, `return this.exchangeTyped.${nameCap}(${args.join(', ')})`);
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs: boolean | 'prediction' = false) {
@@ -1881,12 +2185,14 @@ class NewTranspiler {
             return parsedParam;
         }).join(', ');
 
-        const one = this.inden(0);
-        const two = this.inden(1);
-        const three = this.inden(2);
+        const one = '';
+        const two = '\t';
+        const three = '\t\t';
         const methodDoc = [] as any[];
         if (goComments[exchangeName] && goComments[exchangeName][methodName]) {
-            methodDoc.push(goComments[exchangeName][methodName]);
+            // the wrapper is a top-level declaration: its doc comment sits at column 0 even
+            // when the source comment was written inside the method body
+            methodDoc.push (goComments[exchangeName][methodName].replace (/^[ \t]+(?=\/\/|\/\*)/gm, '').replace (/^[ \t]+(?=\*)/gm, ' '));
         }
 
         let emptyObject = `${unwrappedType}{}`;
@@ -1915,7 +2221,8 @@ class NewTranspiler {
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
            `${defaultParams}`,
-            `${two}res := <- ${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`,
+            // receive: `<-` binds the call directly, gofmt prints `<-this.X(...)` (no space after the arrow)
+            `${two}res := <-${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`,
             `${two}if IsError(res) {`,
             `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
@@ -1946,7 +2253,13 @@ class NewTranspiler {
             `${one}}`
         ];
         // return methodDoc.concat(method).concat(withMethod).filter(e => !!e).join('\n')
-        return methodDoc.concat(method).filter(e => !!e).join('\n');
+        const docLines = methodDoc.filter (e => !!e);
+        // gofmt separates a documented declaration from the previous one with a blank line
+        // (go/printer declList: min = 2 when the decl carries a doc comment), so a wrapper
+        // with a comment block starts with a newline; the join sites strip it in first
+        // position, where the section header already provides the separation.
+        const text = docLines.concat(method).filter(e => !!e).join('\n');
+        return docLines.length ? '\n' + text : text;
     }
 
     // Ensures WRAPPER_METHODS['Exchange'] is populated. The base-methods stage registers it as
@@ -1977,7 +2290,7 @@ class NewTranspiler {
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
         const isAlias = this.isAlias(exchange);
-        let wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
+        let wrappersIndented = joinGoDeclarations (wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)));
         if (isWs && path === GLOBAL_WRAPPER_FILE) {
             return '';
         }
@@ -1986,14 +2299,16 @@ class NewTranspiler {
         // inherited base methods to it, so the 62 stay off the prediction API. Reuse the ExchangeTyped
         // wrapper bodies with the base subset, rewriting the receiver and accessor.
         if (exchange === 'Exchange' && !isWs) {
-            const baseTypedWrappers = wrappers
+            const baseTypedWrappers = joinGoDeclarations (wrappers
                 .filter ((wrapper: any) => !this.exchangeTierMethods.has (wrapper.name))
-                .map ((wrapper: any) => this.createWrapper (exchange, wrapper, ws))
-                .filter ((wrapper: string) => wrapper !== '')
-                .join('\n')
+                .map ((wrapper: any) => this.createWrapper (exchange, wrapper, ws)))
                 .replace (/func \(this \*ExchangeTyped\)/g, 'func (this *BaseExchangeTyped)')
                 .replace (/this\.Exchange\./g, 'this.BaseExchange.');
-            wrappersIndented = wrappersIndented + '\n' + baseTypedWrappers;
+            if (baseTypedWrappers !== '') {
+                // the base subset is appended after the exchange-tier wrappers: one blank line
+                // when it opens with a doc comment, adjacent otherwise
+                wrappersIndented = wrappersIndented + (goDeclStartsWithComment (baseTypedWrappers) ? '\n\n' : '\n') + baseTypedWrappers;
+            }
         }
 
         let missingMethodsWrappers = '';
@@ -2002,8 +2317,9 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...any) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`;
-            missingMethodsWrappers += missingMethods.map (m => {
+            const loadMarketsHeader = `func (this *${capitalize(exchange)}) LoadMarkets(params ...any) (map[string]MarketInterface, error) `;
+            missingMethodsWrappers = this.goSingleStatementFunc (loadMarketsHeader, 'return this.exchangeTyped.LoadMarkets(params...)') + '\n';
+            missingMethodsWrappers += joinGoDeclarations (missingMethods.map (m => {
                 // for prediction venues, a unified method the venue doesn't override but
                 // PredictionExchange declares must emit the prediction-typed wrapper (resolving to
                 // the inherited base method on this struct), not the crypto-typed exchangeTyped fallback
@@ -2020,7 +2336,7 @@ class NewTranspiler {
                     }
                 }
                 return this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m]);
-            }).filter(wrapper => wrapper !== '').join('\n');
+            }));
         }
 
         if (exchange !== 'Exchange') {
@@ -2032,8 +2348,11 @@ class NewTranspiler {
                 '',
                 '// typed methods',
                 wrappersIndented,
+                // gofmt puts one blank line between the last wrapper and the doc comment group of
+                // the base-fallback wrappers (`min = 2` in go/printer declList)
+                '',
                 needsTypedBase ? '// missing typed methods from base' : '',
-                needsTypedBase ? '//nolint' : '',
+                needsTypedBase ? '// nolint' : '',
                 needsTypedBase ? missingMethodsWrappers : '',
             ].join('\n');
             if (ws || this.isPrediction) {
@@ -2048,28 +2367,28 @@ class NewTranspiler {
             // delegate their inherited unified methods here. Prediction venues use BaseExchangeTyped
             // (base methods only) instead, so the 62 stay off the prediction API.
             `type ExchangeTyped struct {`,
-            `   *Exchange`,
+            `\t*Exchange`,
             `}`,
             ``,
             `type BaseExchangeTyped struct {`,
-            `   *BaseExchange`,
+            `\t*BaseExchange`,
             `}`
         ].join('\n');
 
         const newMethod = [
             'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
-            `   return &ExchangeTyped{`,
-            `       Exchange: exchangePointer,`,
-            `   }`,
+            `\treturn &ExchangeTyped{`,
+            `\t\tExchange: exchangePointer,`,
+            `\t}`,
             '}',
             '',
             '// NewBaseExchangeTyped wraps a bare *BaseExchange (used by prediction venues, which',
             '// embed BaseExchange via PredictionExchange rather than the concrete Exchange). It exposes',
             '// the base unified methods only — never the 62 symbol-based trading methods.',
             'func NewBaseExchangeTyped(base *BaseExchange) *BaseExchangeTyped {',
-            `   return &BaseExchangeTyped{`,
-            `       BaseExchange: base,`,
-            `   }`,
+            `\treturn &BaseExchangeTyped{`,
+            `\t\tBaseExchange: base,`,
+            `\t}`,
             '}',
             '',
             'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
@@ -2091,13 +2410,17 @@ class NewTranspiler {
 
         const file = [
             'package ccxt',
+            '',
             exchangeStruct,
             '',
             newMethod,
             '',
-            this.createGeneratedHeader().join('\n'),
+            ...this.createGeneratedHeader().filter (line => line !== ''),
             '',
             wrappersIndented,
+            // blank line before the doc comment group of the base-fallback wrappers, as gofmt
+            // spaces every doc-commented top-level declaration (go/printer declList min = 2)
+            '',
             '// missing typed methods from base',
             '//nolint',
             missingMethodsWrappers,
@@ -2179,7 +2502,7 @@ class NewTranspiler {
             errorNames.push(name);
             const exception =
 `func ${name}(v ...any) error {
-    return NewError("${name}", v...)
+\treturn NewError("${name}", v...)
 }`;
             return exception;
         }
@@ -2189,27 +2512,29 @@ class NewTranspiler {
 
         // createError function
         const caseStatements = errorNames.map(error => {
-            return`    case "${error}":
-        return ${error}(v...)`;
+            return`\tcase "${error}":
+\t\treturn ${error}(v...)`;
         });
 
         const functionDecl = `func CreateError(err string, v ...any) error {
-    switch err {
+\tswitch err {
 ${caseStatements.join('\n')}
-        default:
-            return NewError(err, v...)
-    }
+\tdefault:
+\t\treturn NewError(err, v...)
+\t}
 }`;
 
+    // gofmt aligns the type column of a const block to the widest name + 1 (tabwriter)
+    const constNameColumn = Math.max (...errorNames.map ((error) => (error + 'ErrType').length)) + 1;
     const constStatements = errorNames.map(error => {
-        return`   ${error}ErrType ErrorType = "${error}"`;
+        return`\t${(error + 'ErrType').padEnd (constNameColumn)}ErrorType = "${error}"`;
     });
 
-    const constDecl =` const (
+    const constDecl =`const (
 ${constStatements.join('\n')}
 )`;
 
-        const goBodyIntellisense = '\npackage ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n' + constDecl + '\n';
+        const goBodyIntellisense = 'package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n\n' + constDecl + '\n';
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow);
             overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense);
@@ -2283,20 +2608,20 @@ ${constStatements.join('\n')}
         const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
         const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = capitalize(p1);
-            return `this.DerivedExchange.${capitalizedMethod}(${p2})`;
+            return `this.DerivedExchange.${capitalizedMethod}(${p2 ?? ''})`;
         });
 
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
         // console.log(asyncRegex)
         // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = capitalize(p1);
-            return `<-this.DerivedExchange.${capitalizedMethod}${GO_ASYNC_SUFFIX}(${p2})`;
+            return `<-this.DerivedExchange.${capitalizedMethod}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`;
         });
         // create wrappers with specific types
         this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [], isWs);
@@ -2337,9 +2662,11 @@ ${constStatements.join('\n')}
             ["client.resolve", "// client.resolve"],
             ["this.number = Number;", "this.number = typeof(float);"], // tmp fix for c#
             // 4) Translate the C# `throw new …` syntax into the helper used by Go.
-            ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message);"],
-            ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message);"],
-            ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message);"],
+            //    The replacement is a complete Go statement: gofmt never emits a `;`
+            //    terminator, so none is written here either.
+            ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message)"],
+            ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message)"],
+            ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message)"],
             // 5) Fix error constructors - remove "New" prefix
             [/NewNotSupported/g, 'NotSupported'],
             [/NewInvalidNonce/g, 'InvalidNonce'],
@@ -2434,7 +2761,7 @@ ${constStatements.join('\n')}
 
             const file = coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES);
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
-            // skip the rewrite (and its gofmt spawnSync over a ~390 KB file) after the first
+            // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
         }
     }
@@ -2475,10 +2802,10 @@ ${constStatements.join('\n')}
         let baseClass = baseFile.content as any;
         const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
         const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
-        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2})`);
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
-        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2})`);
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2 ?? ''})`);
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`);
         baseClass = this.regexAll (baseClass, [
             [/\=\snew\s/gm, "= "],
             [/callDynamically\(/gm, 'this.CallDynamically('],
@@ -2502,15 +2829,23 @@ ${constStatements.join('\n')}
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
             const methods = parts[1];
+            // gofmt indents a struct block with tabs and aligns the type column of every *typed*
+            // field at (longest field name + 1); the embedded (typeless) field prints alone and
+            // stays out of that alignment. This write never goes through formatGoSource(), so the
+            // literal below is emitted pre-aligned.
+            const structFields: [string, string][] = [
+                [ 'BaseExchange', '' ],
+                [ 'Outcomes', 'any' ],
+                [ 'Outcomes_by_id', 'any' ],
+                [ 'Events', 'any' ],
+                [ 'Events_by_slug', 'any' ],
+                [ 'ReloadingEvents', 'bool' ],
+                [ 'EventsLoading', 'any' ],
+            ];
+            const fieldTypeColumn = Math.max (...structFields.filter ((f) => f[1]).map ((f) => f[0].length)) + 1;
             const structDef = [
                 'type PredictionExchange struct {',
-                '   BaseExchange',
-                '   Outcomes any',
-                '   Outcomes_by_id any',
-                '   Events any',
-                '   Events_by_slug any',
-                '   ReloadingEvents bool',
-                '   EventsLoading any',
+                ...structFields.map ((f) => f[1] ? '\t' + f[0].padEnd (fieldTypeColumn) + f[1] : '\t' + f[0]),
                 '}',
                 '',
             ].join('\n');
@@ -2523,15 +2858,16 @@ ${constStatements.join('\n')}
             const shims = [
                 '',
                 'func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {',
-                '   return this.callEndpointAsync(endpointName, args...)',
+                '\treturn this.callEndpointAsync(endpointName, args...)',
                 '}',
                 '',
             ].join('\n');
-            const file = fileHeader + '\n' + structDef + methods + shims + "\n";
+            // `shims` ends with the single trailing newline gofmt wants at EOF
+            const file = fileHeader + '\n' + structDef + methods + shims;
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, assertTypedElementAccess (guardMultiSendCores (file)));
+            fs.writeFileSync (goPredictionBase, assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file))));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -2548,34 +2884,35 @@ ${constStatements.join('\n')}
         const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
             if (exchange === 'Exchange') {
-                return`    case "Exchange":
-        ExchangeItf := NewExchange()
-        ExchangeItf.Init(exchangeArgs)
-        return ExchangeItf, true`;
+                return`\tcase "Exchange":
+\t\tExchangeItf := NewExchange()
+\t\tExchangeItf.Init(exchangeArgs)
+\t\treturn ExchangeItf, true`;
             }
-            return`    case "${exchange}":
-        ${exchange}Itf := New${capitalize(exchange)}(exchangeArgs)
-        return ${exchange}Itf, true`;
+            return`\tcase "${exchange}":
+\t\t${exchange}Itf := New${capitalize(exchange)}(exchangeArgs)
+\t\treturn ${exchange}Itf, true`;
         });
 
         const functionDecl = `
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${externalPackage ? 'ccxt.' : ''}ICoreExchange, bool) {
-    switch exchangeId {
+\tswitch exchangeId {
 ${caseStatements.join('\n')}
-    default:
-        return nil, false
-    }
+\tdefault:
+\t\treturn nil, false
+\t}
 }
 `;
         const file = [
             `package ccxt${ws ? 'pro' : (prediction ? 'prediction' : '')}`,
-            externalPackage ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
-            this.createGeneratedHeader().join('\n'),
+            '',
+            ...(externalPackage ? [ 'import ccxt "github.com/ccxt/ccxt/go/v4"', '' ] : []),
+            ...this.createGeneratedHeader().filter (line => line !== ''),
             '',
             functionDecl,
-        ].join('\n');
+        ].join('\n') + '\n';
 
-        fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, file));
+        fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
 
 
@@ -2601,19 +2938,19 @@ ${caseStatements.join('\n')}
         const caseStatements = exchanges.map(exchange => {
             const struct = exchange === 'exchange' ? 'ExchangeTyped' : capitalize(exchange);
             const args = exchange === 'exchange' ? 'nil' : 'options';
-            return`    case "${exchange}":
-        itf := New${struct}(${args})
-        return itf`;
+            return`\tcase "${exchange}":
+\t\titf := New${struct}(${args})
+\t\treturn itf`;
         });
 
         const functionDecl = `
 func CreateExchange(exchangeId string, options map[string]any) IExchange {
-    exchangeId = strings.ToLower(exchangeId)
-    switch exchangeId {
+\texchangeId = strings.ToLower(exchangeId)
+\tswitch exchangeId {
 ${caseStatements.join('\n')}
-        default:
-            return nil
-    }
+\tdefault:
+\t\treturn nil
+\t}
 }
 `;
         const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
@@ -2626,20 +2963,23 @@ ${caseStatements.join('\n')}
 
         const interfaceDecl = `
 type IExchange interface {
-    IBaseExchange
-    ${interfaceMethods.join('\n    ')}
+\tIBaseExchange
+\t${interfaceMethods.join('\n\t')}
 }`;
 
         const file = [
             'package ccxt',
+            '',
             'import "strings"',
-            this.createGeneratedHeader().join('\n'),
+            '',
+            ...this.createGeneratedHeader().filter (line => line !== ''),
             '',
             interfaceDecl,
+            '',
             functionDecl,
-        ].join('\n');
+        ].join('\n') + '\n';
 
-        fs.writeFileSync (TYPED_INTERFACE_FILE, formatGoSource (TYPED_INTERFACE_FILE, file));
+        fs.writeFileSync (TYPED_INTERFACE_FILE, formatGoSource (TYPED_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
 
     // ----- WS specific ----- //
@@ -2651,44 +2991,46 @@ type IExchange interface {
 
         const interfaceWs = [
             'type IExchange interface {',
-            '    ccxt.IExchange',
+            '\tccxt.IExchange',
             '}'
         ].join('\n');
 
         const caseStatements = exchangeIdsWs.map(exchange => {
             const struct = capitalize(exchange);
             const args = 'options';
-            return`    case "${exchange}":
-        itf := New${struct}(${args})
-        return itf`;
+            return`\tcase "${exchange}":
+\t\titf := New${struct}(${args})
+\t\treturn itf`;
         });
 
         const functionDecl = `
 func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
-    exchangeId = strings.ToLower(exchangeId)
-    switch exchangeId {
+\texchangeId = strings.ToLower(exchangeId)
+\tswitch exchangeId {
 ${caseStatements.join('\n')}
-        default:
-            return nil
-    }
+\tdefault:
+\t\treturn nil
+\t}
 }
 `;
 
         const file = [
             'package ccxtpro',
+            '',
             'import (',
-            '   "strings"',
-            '   ccxt "github.com/ccxt/ccxt/go/v4"',
+            // gofmt sorts the specs of an import block by import path (and indents with a tab)
+            '\tccxt "github.com/ccxt/ccxt/go/v4"',
+            '\t"strings"',
             ')',
             '',
             this.createGeneratedHeader().join('\n'),
-            '',
+            // no extra blank line: the generated header already ends with one
             interfaceWs,
             '',
             functionDecl,
-        ].join('\n');
+        ].join('\n') + '\n';
 
-        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, file));
+        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
 
 
@@ -2933,8 +3275,10 @@ ${caseStatements.join('\n')}
             const ccxtNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
             const file = [
                 ws ? `package ${PREDICTION_WS_PACKAGE}` : `package ${PREDICTION_PACKAGE}`,
+                // gofmt wants exactly one blank line between the package (or import) clause and
+                // the generated-header comment; the header string already ends with a newline
+                '',
                 this.createGeneratedHeader().join('\n'),
-                ''
             ];
             for (const key in goTypeOptions) {
                 // emit param-renamed prediction overrides locally even though a same-named
@@ -2943,27 +3287,33 @@ ${caseStatements.join('\n')}
                 if (!isLocalOverride && (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct'))) {
                     continue;
                 }
-                file.push(goTypeOptions[key]);
+                // the option-struct strings end with a blank line of their own; drop it before
+                // pushing the single separating '' so consecutive decls keep one blank line
+                // (gofmt collapses runs of blank lines between top-level decls)
+                file.push(goTypeOptions[key].replace (/\n+$/, ''));
                 file.push('');
             }
             const folder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
-            fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, file.join('\n'));
+            fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, normalizeGoFileHeader (file.join('\n')));
             return;
         }
         const EXCHANGE_OPTIONS_FILE = ws
             ? './go/v4/pro/exchange_wrapper_structs.go'
             : './go/v4/exchange_wrapper_structs.go';
 
+        // gofmt puts one blank line after the package clause, after the import decl and
+        // between the generated header comment and the first declaration
         const file = [
             ws ? 'package ccxtpro' : 'package ccxt',
-            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
-            this.createGeneratedHeader().join('\n'),
+            '',
+            ...(ws ? [ 'import ccxt "github.com/ccxt/ccxt/go/v4"', '' ] : []),
+            ...this.createGeneratedHeader().filter (line => line !== ''),
             ''
         ];
         // add simple Options
         if (!ws) {
             file.push('type Options struct {');
-            file.push('    Params *map[string]any');
+            file.push('\tParams *map[string]any');
             file.push('}');
             file.push('');
         }
@@ -2974,7 +3324,7 @@ ${caseStatements.join('\n')}
             file.push('');
         }
 
-        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, formatGoSource (EXCHANGE_OPTIONS_FILE, file.join('\n')));
+        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, formatGoSource (EXCHANGE_OPTIONS_FILE, normalizeGoFileHeader (alignGoTrailingComments (file.join('\n')))));
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws: boolean | 'prediction' = false) {
@@ -3062,8 +3412,8 @@ ${caseStatements.join('\n')}
         return classes;
     }
 
-    // Write a generated file, skipping the write (and the blocking gofmt spawnSync inside
-    // overwriteFileAndFolder) when this process already wrote byte-identical content to the
+    // Write a generated file, skipping the write when this process already wrote
+    // byte-identical content to the
     // same path. transpileBaseMethods re-emits exchange_generated.go / exchange_wrappers.go
     // on every one of its three passes and the later passes produce the same bytes; only
     // those two paths are remembered, so the cache never grows with the ~200 per-exchange files.
@@ -3215,15 +3565,16 @@ ${caseStatements.join('\n')}
         for (let i = 0; i < stringish.length; i++) {
             const method = stringish[i][0];
             const returnExpr = stringish[i][1];
-            // the raw (pre-gofmt) emission pads the signature with extra spaces
-            // (`func  (this *BaseExchange) SafeSymbol(…) any  {`), so leave the whitespace loose
+            // the printer emits single spaces around the signature now (F04); the regex stays
+            // whitespace-loose so it also matches pre-existing padding (`any  {`)
             const fnRegex = new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
             content = content.replace (fnRegex, ((match: string, params: string, body: string) => {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
                 if ((returns.length !== 1) || (returns[0].trim ().replace (/\s+/g, ' ') !== ('return ' + returnExpr))) {
                     return match; // unexpected body shape: keep the transpiled `any` signature
                 }
-                const wrapped = body.replace (returns[0], 'return SafeStringPtr(' + returnExpr + ')');
+                const returnIndent = (returns[0].match (/^[ \t]*/) as RegExpMatchArray)[0];
+                const wrapped = body.replace (returns[0], returnIndent + 'return SafeStringPtr(' + returnExpr + ')');
                 return 'func (this *BaseExchange) ' + method + '(' + params + ') *string {' + wrapped + '\n}';
             }) as any);
         }
@@ -3290,13 +3641,138 @@ ${caseStatements.join('\n')}
     // Nothing else moves: a `[]any` value still boxes into every `any` sink (parameter, map value,
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any$4');
+        // F04: the `[]any` retag spells the single space before `{` too
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
+    }
+
+    // ------------------------------------------------------------------
+    // gofmt-compatible spacing of the arithmetic spliced into emitted Go
+    // ------------------------------------------------------------------
+    // go/printer prints a level-4/5 operator (`+ - * / % & | ^ << >>`) with a
+    // blank around it only at the top level of a statement: nodes.go picks a
+    // cutoff from the operator tree (walkBinary/cutoff) and drops both blanks
+    // when the operator precedence is below it. The same `"a" + "b"` is therefore
+    // spaced in `x := "a" + "b"` and compact in `Add(x, "a"+"b")` or `a[i+1]`.
+    // gofmt tracks the level over the Go AST it prints: 1 at the start of every
+    // statement, +1 for an argument list with more than one argument, +1 for an
+    // index expression, -1 inside parentheses (never below 1), and back to 1 for
+    // composite literal elements.
+    //
+    // `"\0"` is the one literal the printer cannot emit (a raw NUL byte is not
+    // valid Go source), so its replacement text is spliced into Go the printer has
+    // already produced and the level has to be read back from that text.
+    goGofmtArithmeticDepth (content: string, index: number): number {
+        // every statement is printed indented, so the enclosing top-level
+        // declaration is the last line that starts in column 0
+        let start = content.lastIndexOf ('\n', index - 1) + 1;
+        while (start > 0) {
+            const previousLineStart = content.lastIndexOf ('\n', start - 2) + 1;
+            const previousLine = content.slice (previousLineStart, start - 1);
+            if (previousLine.length > 0 && previousLine[0] !== ' ' && previousLine[0] !== '\t') {
+                break;
+            }
+            start = previousLineStart;
+        }
+        const frames = [];
+        for (let i = start; i < index; i++) {
+            const char = content[i];
+            if (char === '"' || char === '\'' || char === '`') {
+                i = this.goSkipGoLiteral (content, i);
+            } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+                i = this.goSkipGoComment (content, i);
+            } else if (char === '(' || char === '[' || char === '{') {
+                frames.push ({ kind: char, args: this.goCountFrameArgs (content, i) });
+            } else if (char === ')' || char === ']' || char === '}') {
+                frames.pop ();
+            }
+        }
+        let depth = 1;
+        for (let fi = 0; fi < frames.length; fi++) {
+            const frame = frames[fi];
+            if (frame.kind === '(') {
+                // a call prints its argument list one level deeper, but only when
+                // there is more than one argument
+                if (frame.args > 1) {
+                    depth += 1;
+                }
+            } else if (frame.kind === '[') {
+                depth += 1;
+            } else if (frame.kind === '{') {
+                depth = 1;
+            }
+        }
+        return depth;
+    }
+
+    // index of the last byte of the Go literal that starts at `index`
+    goSkipGoLiteral (content: string, index: number): number {
+        const quote = content[index];
+        for (let i = index + 1; i < content.length; i++) {
+            const char = content[i];
+            if (char === '\\' && quote !== '`') {
+                i += 1;
+            } else if (char === quote) {
+                return i;
+            } else if (char === '\n' && quote !== '`') {
+                return i - 1;                 // unterminated: stop at the line end
+            }
+        }
+        return content.length - 1;
+    }
+
+    // index of the last byte of the comment that starts at `index`
+    goSkipGoComment (content: string, index: number): number {
+        if (content[index + 1] === '/') {
+            const end = content.indexOf ('\n', index);
+            return end < 0 ? content.length - 1 : end;
+        }
+        const end = content.indexOf ('*/', index + 2);
+        return end < 0 ? content.length - 1 : end + 1;
+    }
+
+    // number of comma separated entries between the bracket at `opener` and its
+    // matching closer (strings and comments ignored); 0 when unbalanced
+    goCountFrameArgs (content: string, opener: number): number {
+        let depth = 0;
+        let entries = 0;
+        let seen = false;
+        for (let i = opener + 1; i < content.length; i++) {
+            const char = content[i];
+            if (char === '"' || char === '\'' || char === '`') {
+                i = this.goSkipGoLiteral (content, i);
+                seen = true;
+            } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+                i = this.goSkipGoComment (content, i);
+            } else if (char === '(' || char === '[' || char === '{') {
+                depth += 1;
+            } else if (char === ')' || char === ']' || char === '}') {
+                if (depth === 0) {
+                    return seen || entries > 0 ? entries + 1 : 0;
+                }
+                depth -= 1;
+                seen = true;
+            } else if (char === ',' && depth === 0) {
+                entries += 1;
+            } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
+                seen = true;
+            }
+        }
+        return 0;
+    }
+
+    // the two-literal concatenation a `"\0"` string literal is rewritten into,
+    // laid out the way gofmt would print it at the level it is spliced in
+    goNulSeparatorText (content: string, index: number): string {
+        const depth = this.goGofmtArithmeticDepth (content, index);
+        // `"//" + "0"` is a level-4 chain over two primaries: gofmt keeps the
+        // blanks at depth 1 and drops them below (cutoff() with has4 only)
+        return depth > 1 ? '"//"+"0"' : '"//" + "0"';
     }
 
     createGoExchange(className: string, goVersion: any, ws: boolean | 'prediction' = false, typedSection = '') {
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
-        const goImports = this.getGoImports(goVersion, isWs, isPrediction).join("\n") + "\n\n";
+        const goImports = this.getGoImports(goVersion, isWs, isPrediction).join("\n") + "\n";
         let content = goVersion.content;
         const exchangeName = className;
 
@@ -3318,7 +3794,8 @@ ${caseStatements.join('\n')}
         for (let mi = 0; mi < promiseMethods.length; mi++) {
             const capName = capitalize (promiseMethods[mi].name);
             const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + capName + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
-            content = content.replace (coerceRegex, '$1 <-chan any$2');
+            // F04: spell the single space before `{` (see coerceGoBoolMethodReturns)
+            content = content.replace (coerceRegex, '$1 <-chan any {');
         }
 
         content = this.coerceTypedStringAccessorOverrides (content);
@@ -3402,7 +3879,6 @@ ${caseStatements.join('\n')}
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
                 [/base\.Describe/gm, "this.Exchange.Describe"],
-                [/"\0"/gm, '"\/\/\" + "0"'], // check this later in bl3p
                 [/var (precise|preciseAmount) any = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
@@ -3416,6 +3892,12 @@ ${caseStatements.join('\n')}
                 // numeric loop counter, e.g. `for i := startIndex;` -> `for i := int(ParseInt(startIndex));`
                 [/for (\w+) := ([a-zA-Z_]\w*); /g, 'for $1 := int(ParseInt($2)); '],
             ]);
+            // `"\0"` is emitted as a raw NUL byte, which is not valid Go source: splice in
+            // the two-literal form instead. It lands in text the printer already produced,
+            // so its blanks follow gofmt's depth rule (goGofmtArithmeticDepth). Nothing
+            // below this point changes the level of the splice site, and running last means
+            // the level is read off the final text.
+            content = content.replace (/"\0"/gm, ((_match: string, offset: number) => this.goNulSeparatorText (content, offset)) as any); // check this later in bl3p
             if (this.isPrediction) {
                 // prediction cores embed PredictionExchange (which embeds BaseExchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
@@ -3466,17 +3948,17 @@ ${caseStatements.join('\n')}
             const typedInit = this.isPrediction ? 'ccxt.NewBaseExchangeTyped(&this.BaseExchange)' : 'NewExchangeTyped(&this.Exchange)';
             initMethod = `
 func (this *${className}) Init(userConfig map[string]any) {
-    this.${baseField} = ${exchangeStructName}{}
-    this.${baseField}.DerivedExchange = this
-    this.${baseField}.InitParent(userConfig, this.Describe().(map[string]any), this)
-    this.exchangeTyped = ${typedInit}
+\tthis.${baseField} = ${exchangeStructName}{}
+\tthis.${baseField}.DerivedExchange = this
+\tthis.${baseField}.InitParent(userConfig, this.Describe().(map[string]any), this)
+\tthis.exchangeTyped = ${typedInit}
 }\n`;
         } else {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]any) {
-    this.${isWs ? 'base' : `${capitalize(baseClass)}`}.Init(this.DeepExtend(this.Describe(), userConfig))
-    this.Itf = this
-    this.Exchange.DerivedExchange = this
+\tthis.${isWs ? 'base' : `${capitalize(baseClass)}`}.Init(this.DeepExtend(this.Describe(), userConfig))
+\tthis.Itf = this
+\tthis.Exchange.DerivedExchange = this
 }\n`;
         }
 
@@ -3486,7 +3968,9 @@ func (this *${className}) Init(userConfig map[string]any) {
         // exchanges inherit the whole typed surface through their embedded parent instead.
         if (!isAlias && !isWs) {
             const typedType = this.isPrediction ? '*ccxt.BaseExchangeTyped' : '*ExchangeTyped';
-            content = content.replace (/(type \w+ struct \{[\s\S]*?)\n*(\n\})/, `$1\n    exchangeTyped ${typedType}$2`);
+            // the injected field is a real Go field, so it has to survive gofmt unchanged: tab
+            // indentation, and no blank line left before the closing brace
+            content = content.replace (/(type \w+ struct \{)([\s\S]*?)(\n\})/, (_match: string, head: string, body: string, tail: string) => head + body.replace (/\n+$/, '') + '\n\texchangeTyped ' + typedType + tail);
         }
         // the transpiled zero-arg constructor is the raw allocator (aliases/ws twins reuse it
         // before running their own Init); the public New<X>(userConfig) allocates and inits
@@ -3497,14 +3981,17 @@ func (this *${className}) Init(userConfig map[string]any) {
         const publicCtor = [
             '',
             `func New${className}(userConfig map[string]any) *${className} {`,
-            `    p := new${className}()`,
-            '    p.Init(userConfig)',
-            '    return p',
+            `\tp := new${className}()`,
+            '\tp.Init(userConfig)',
+            '\treturn p',
             '}',
             '',
         ].join('\n');
 
-        content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' + publicCtor + initMethod + typedSection;
+        // `content` already ends with a newline and publicCtor opens with an empty line, so the
+        // plain join produced TWO blank lines before the constructor; gofmt keeps at most one
+        // between declarations (go/printer linebreak nlimit).
+        content = this.createGeneratedHeader().join('\n') + '\n' + content + (content.endsWith('\n') ? '' : '\n') + publicCtor + initMethod + typedSection;
         if (isPrediction) {
             // qualify everything that lives in the base ccxt package (types, helpers,
             // error constructors, the embedded Exchange struct itself, ...)
@@ -3532,6 +4019,30 @@ func (this *${className}) Init(userConfig map[string]any) {
         }
     }
 
+    // The two ws test files (go/tests/base/cache/*.go) are assembled by splitting the transpiled
+    // source on its section-separator comments and re-joining the parts. Splitting on the comment
+    // *text* leaves the comment's own indentation behind as a whitespace-only line, and the
+    // re-join puts the comment back at column 0 — both are things gofmt undoes (it trims blank
+    // lines and indents a comment to the block it introduces), so normalize them at assembly time.
+    // No content change: only the indentation of the separator and the blank lines move.
+    normalizeSectionSeparators (content: string, separator: string): string {
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim () === separator) {
+                let j = i + 1;
+                while ((j < lines.length) && (lines[j].trim () === '')) {
+                    j++;
+                }
+                const next = (j < lines.length) ? lines[j] : '';
+                const indent = next.match (/^[ \t]*/);
+                lines[i] = (indent ? indent[0] : '') + separator;
+            } else if (lines[i].trim () === '') {
+                lines[i] = '';
+            }
+        }
+        return lines.join ('\n');
+    }
+
     // ---------------------------------------------------------------------------------------------
     transpileWsOrderbookTestsToGo (outDir: string, force = true) {
 
@@ -3546,9 +4057,11 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
-        const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
+        const separator = '// --------------------------------------------------------------------------------------------------------------------';
+        const splitParts = content.split(separator);
         splitParts.shift();
-        content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
+        content = splitParts.join('\n' + separator + '\n');
+        content = this.normalizeSectionSeparators (content, separator);
         content = this.regexAll (content, [
             [/var (\w+) any = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
             [/var (\w+) any = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
@@ -3563,7 +4076,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             '',
             this.createGeneratedHeader().join('\n'),
             contentIdented,
-        ].join('\n');
+        ].join('\n') + '\n';
 
         log.magenta ('→', (goFile as any).yellow);
 
@@ -3584,9 +4097,11 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
-        const splitParts = content.split('// ----------------------------------------------------------------------------');
+        const separator = '// ----------------------------------------------------------------------------';
+        const splitParts = content.split(separator);
         splitParts.shift();
-        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
+        content = splitParts.join('\n' + separator + '\n');
+        content = this.normalizeSectionSeparators (content, separator);
         content = this.regexAll (content, [
             [/assert/g, 'Assert'],
             [/GetValue\(cacheSymbolSide4/g, 'GetValue(cacheSymbolSide4.ToArray()' ],
@@ -3601,7 +4116,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             '',
             this.createGeneratedHeader().join('\n'),
             contentIdented,
-        ].join('\n');
+        ].join('\n') + '\n';
 
         log.magenta ('→', (goFile as any).yellow);
 
@@ -3630,9 +4145,10 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const file = [
             'package base',
+            '',
             this.createGeneratedHeader().join('\n'),
             content,
-        ].join('\n');
+        ].join('\n') + '\n';
 
         log.magenta ('→', (goFile as any).yellow);
 
@@ -3731,10 +4247,19 @@ func (this *${className}) Init(userConfig map[string]any) {
             const go = transpiled[i];
             let content = go.content;
             content = this.regexAll (content, [
-                [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
+                // the three statements this rewrite packs onto one line are exactly what gofmt
+                // splits back out (one statement per line), so emit the split form at the
+                // statement's own indentation — same tokens, gofmt-identical layout
+                [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, (match: string, varName: string, args: string, offset: number, whole: string) => {
+                    const indent = statementIndent (whole, offset);
+                    return `${varName} := ccxt.NewExchange().(*ccxt.Exchange)\n${indent}${varName}.DerivedExchange = ${varName}\n${indent}${varName}.InitParent(${args}, map[string]any{}, ${varName})`;
+                }],
                 // instantiate the core type (channel-based methods, implements ICoreExchange) and let
                 // Init wire up DerivedExchange/InitParent (Exchange above is the only special case)
-                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, '$1 := ccxt.New$2Core(); $1.Init($3)' ],
+                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, (match: string, varName: string, className: string, args: string, offset: number, whole: string) => {
+                    const indent = statementIndent (whole, offset);
+                    return `${varName} := ccxt.New${className}Core()\n${indent}${varName}.Init(${args})`;
+                }],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
@@ -3752,7 +4277,9 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
-                [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
+                // the markers sit inside `// ` comments: drop the marker text and the space
+                // the comment left in front of it, so no `// ` trailing-space line survives
+                [ /[ \t]*\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
                 // Match ArrayCache variables and cast to appropriate type based on variable name
                 // Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
@@ -3774,11 +4301,15 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+                // gofmt always separates the package clause from the next declaration by one blank
+                // line (also when that declaration is the import clause); the import clause itself
+                // is only present for the auto-transpiled tests (tests.init has none, and then the
+                // single '' above is already the blank line before the generated-header comment)
                 '',
+                ...(testName.indexOf ('tests.init') === -1 ? [ 'import ccxt "github.com/ccxt/ccxt/go/v4"', '' ] : []),
                 this.createGeneratedHeader().join('\n'),
                 content,
-            ].join('\n');
+            ].join('\n') + '\n';
 
             log.magenta ('→', (goFile as any).yellow);
 
@@ -3792,6 +4323,11 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         ts = this.regexAll (ts, [
             [ /\'use strict\';?\s+/g, '' ],
+            // the Go harness stores this field as an untyped `any` (it also appends to it), so
+            // rewrite the annotation in the SOURCE: rewriting the printed `[]any` instead would
+            // land after the printer has already aligned the struct fields (go/printer pads the
+            // type column of the tag-carrying fields) and leave the padding stale.
+            [ /onlySpecificTests: string\[\]/g, 'onlySpecificTests: any' ],
         ]);
 
         const mainContent = ts;
@@ -3819,12 +4355,13 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [/OnlySpecificTests \[\]any/g, 'OnlySpecificTests any '],
             [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ]);
 
         const file = [
             'package base',
+            // gofmt always separates the package clause from the import clause by one blank line
+            '',
             'import ccxt "github.com/ccxt/ccxt/go/v4"',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -3921,7 +4458,9 @@ func (this *${className}) Init(userConfig map[string]any) {
         // paths = [paths[30]];
         const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
-            let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
+            // the transpiled base tests are top-level funcs: gofmt puts them in column 0, so no
+            // indentation prefix is applied here (the old 4-space one was stripped by gofmt)
+            let contentIndentend = file.content;
 
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
@@ -3977,10 +4516,11 @@ func (this *${className}) Init(userConfig map[string]any) {
             imports = [imports, fmtImport].filter(x => x).join('\n');
             const fileHeaders = [
                 namespace,
+                // gofmt always separates the package clause from the import clause by one blank line
+                '',
                 imports,
                 '',
                 this.createGeneratedHeader().join('\n'),
-                '',
             ];
             let go: string;
             const filename = tests[idx].name;
@@ -4075,15 +4615,19 @@ func (this *${className}) Init(userConfig map[string]any) {
             'package base',
             '',
             this.createGeneratedHeader().join('\n'),
-            '',
             'var FunctionsMap = map[string]any{',
-            ...normalizedTestNames.map((test,i) => `    "${normalizedFunctionNames[i]}": ${goTestSymbol (test, normalizedFunctionNames[i])},`),
+            // F09 — gofmt aligns the value of every consecutive single-line entry of a
+            // composite literal to the widest key of the run (go/printer exprList +
+            // text/tabwriter); route these hand-written entries through the same rule the
+            // ast printer uses, so the column comes out where gofmt would put it. The
+            // entries carry no comma: alignGoCompositeEntries renders it.
+            ...this.transpiler.goTranspiler.alignGoCompositeEntries (normalizedTestNames.map((test,i) => `\t"${normalizedFunctionNames[i]}": ${goTestSymbol (test, normalizedFunctionNames[i])}`)),
             '}',
             '',
             'var WsFunctionsMap = map[string]any{',
-            ...normalizedWsTestNames.map((test,i) => `    "${normalizedWsFunctionNames[i]}": ${goTestSymbol (test, normalizedWsFunctionNames[i])},`),
+            ...this.transpiler.goTranspiler.alignGoCompositeEntries (normalizedWsTestNames.map((test,i) => `\t"${normalizedWsFunctionNames[i]}": ${goTestSymbol (test, normalizedWsFunctionNames[i])}`)),
             '}',
-        ].join('\n');
+        ].join('\n') + '\n';
         overwriteFileAndFolder (`${BASE_TESTS_FOLDER}/test.functions.go`, file);
     }
 
@@ -4098,9 +4642,10 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const output: string[] = [
             'package ccxtpro',
+            '',
             'import ccxt "github.com/ccxt/ccxt/go/v4"',
             '',
-            ...this.createGeneratedHeader(),
+            ...this.createGeneratedHeader().filter (line => line !== ''),
             '',
         ];
         const file = fs.readFileSync(GO_TYPES_FILE, "utf8");
@@ -4117,7 +4662,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
         }
 
-        fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, output.join("\n") + "\n"), "utf8");
+        fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, normalizeGoFileHeader (alignGoTrailingComments(output.join("\n")) + "\n")), "utf8");
     }
     
 }
@@ -4593,6 +5138,10 @@ async function runLocalTypeAudit () {
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
+        return;
+    }
+    if (process.argv.includes ('--check-gofmt')) {
+        runGofmtGate ();
         return;
     }
     const ws = process.argv.includes ('--ws');

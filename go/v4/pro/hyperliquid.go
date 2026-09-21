@@ -2237,6 +2237,7 @@ func (this *Hyperliquid) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hyperliquid#createOrdersWs

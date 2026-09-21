@@ -3908,6 +3908,7 @@ func (this *Toobit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name toobit#fetchStatus

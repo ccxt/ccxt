@@ -1153,6 +1153,7 @@ func (this *Btcbox) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name btcbox#fetchMarkets

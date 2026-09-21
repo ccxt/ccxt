@@ -815,14 +815,19 @@ final Object finalTokenId = tokenId;
         Object bestBid = this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
         Object bestAsk = this.safeDict(asks, 0, new HashMap<String, Object>() {{}});
         Double last = this.safeNumber(priceResult, "price");
-        Long timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
+        Long timestamp = this.safeInteger(priceResult, "timestamp");
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
+        {
+            timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
+        final Object finalTimestamp = timestamp;
         return this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Opinion.this.safeString(marketAny, "outcome") );
             put( "outcomeId", Opinion.this.safeString2(marketAny, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(marketAny, "label") );
             put( "market", Opinion.this.safeString2(marketAny, "market", "outcome") );
-            put( "timestamp", timestamp );
-            put( "datetime", Opinion.this.iso8601(timestamp) );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Opinion.this.iso8601(finalTimestamp) );
             put( "high", null );
             put( "low", null );
             put( "bid", Opinion.this.safeNumber(bestBid, "price") );
@@ -2264,9 +2269,8 @@ final Object finalTokenId = tokenId;
         Double price = this.safeNumber(message, "price");
         Double size = this.safeNumber(message, "size");
         Helpers.callDynamically(bookSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
-        Long now = this.milliseconds();
-        Helpers.addElementToObject(orderbook, "timestamp", now);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(now));
+        Helpers.addElementToObject(orderbook, "timestamp", null);
+        Helpers.addElementToObject(orderbook, "datetime", null);
         client.resolve(orderbook, Helpers.add("orderbook::", sym));
     }
 
@@ -2313,7 +2317,6 @@ final Object finalTokenId = tokenId;
         {
             return;
         }
-        Long now = this.milliseconds();
         Double last = this.safeNumber(message, "price");
         final Object finalSym = sym;
         Object ticker = this.safePredictionTicker(new HashMap<String, Object>() {{
@@ -2321,8 +2324,8 @@ final Object finalTokenId = tokenId;
             put( "outcomeId", tokenId );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString(outcomeObj, "market") );
-            put( "timestamp", now );
-            put( "datetime", Opinion.this.iso8601(now) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "close", last );
             put( "last", last );
             put( "info", message );
@@ -2382,13 +2385,12 @@ final Object finalTokenId = tokenId;
         {
             return;
         }
-        Long now = this.milliseconds();
         final Object finalSym = sym;
         Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", message );
-            put( "timestamp", now );
-            put( "datetime", Opinion.this.iso8601(now) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "outcome", finalSym );
             put( "outcomeId", tokenId );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );

@@ -4175,7 +4175,9 @@ class aster extends Exchange {
         /**
          * @ignore
          * fetch account positions
-         https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+         *
+         * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+         *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} data on account positions
