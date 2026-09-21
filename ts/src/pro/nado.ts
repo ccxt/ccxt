@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, InvalidNonce, NotSupported } from '..
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import type { Bool, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Fee, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -57,6 +57,18 @@ export default class nado extends nadoRest {
             'options': {
                 'tradesLimit': 1000,
                 'requestId': 0,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
+                // book_depth chain markers per symbol - the venue's nanosecond
+                // sequence values overflow the numeric orderbook nonce and the
+                // typed ports drop custom orderbook fields, so the markers live
+                // here following the binance requestId-per-url options pattern
+                'orderBookMaxTimestamps': {},
+                // market_liquidity snapshot timestamps per symbol - diffs older
+                // than the snapshot are dropped on the live path too, mirroring
+                // the binance drop-any-event-at-or-below-lastUpdateId rule
+                'orderBookSnapshotTimestamps': {},
             },
             'urls': {
                 'api': {
@@ -181,22 +193,15 @@ export default class nado extends nadoRest {
      * @method
      * @name nado#watchOrderBook
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/market-liquidity
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the number of price levels requested from the market_liquidity snapshot, max 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
-        if (!(market['symbol'] in this.orderbooks)) {
-            const snapshot = await this.fetchOrderBook (symbol, limit);
-            this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
-        }
-        const orderbook = await this.watchPublic ('book_depth', market, messageHash, params);
-        return orderbook.limit ();
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -217,9 +222,10 @@ export default class nado extends nadoRest {
      * @method
      * @name nado#watchOrderBookForSymbols
      * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/market-liquidity
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
      * @param {string[]} symbols unified symbols of the markets to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the number of price levels requested from the market_liquidity snapshot, max 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
@@ -232,18 +238,23 @@ export default class nado extends nadoRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const markets: Market[] = [];
         const messageHashes: string[] = [];
+        const subscriptionExtras: Dict[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook:' + market['symbol'];
             markets.push (market);
             messageHashes.push (messageHash);
-            if (!(market['symbol'] in this.orderbooks)) {
-                const snapshot = await this.fetchOrderBook (symbol, limit);
-                this.orderbooks[market['symbol']] = this.orderBook (snapshot, limit);
-            }
+            // the snapshot is requested AFTER the subscription is confirmed, so
+            // no depth diff published between the snapshot and the first frame
+            // can be missed - the confirmation callback resets the book and
+            // spawns the market_liquidity fetch, buffered frames replay on top
+            subscriptionExtras.push ({
+                'method': this.handleOrderBookSubscription,
+                'limit': limit,
+            });
         }
-        const orderbook = await this.watchPublicMultiple ('book_depth', markets, messageHashes, params);
+        const orderbook = await this.watchPublicMultiple ('book_depth', markets, messageHashes, params, undefined, subscriptionExtras);
         return orderbook.limit ();
     }
 
@@ -1141,7 +1152,7 @@ export default class nado extends nadoRest {
         };
     }
 
-    async watchPublicMultiple (streamType: any, markets: any, messageHashes: string[], params = {}, subscriptionParams: any = undefined) {
+    async watchPublicMultiple (streamType: any, markets: any, messageHashes: string[], params = {}, subscriptionParams: any = undefined, subscriptionExtras: any = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1155,10 +1166,13 @@ export default class nado extends nadoRest {
                 const subscribeHash = 'subscribe:' + this.json (request['stream']);
                 const streamSubscription = this.safeValue (client.subscriptions, subscribeHash);
                 if (streamSubscription === undefined) {
-                    const subscription = {
+                    let subscription: Dict = {
                         'streamType': streamType,
                         'symbol': this.safeString (market, 'symbol'),
                     };
+                    if (subscriptionExtras !== undefined) {
+                        subscription = this.extend (subscription, subscriptionExtras[i]);
+                    }
                     client.subscriptions['subscription:' + this.numberToString (id)] = {
                         'subscribeHash': subscribeHash,
                     };
@@ -1654,6 +1668,161 @@ export default class nado extends nadoRest {
         bookside.storeArray (bidAsk);
     }
 
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+        const symbol = this.safeString (subscription, 'symbol') as string;
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        // an empty book with an undefined nonce buffers incoming diffs into
+        // orderbook.cache until the market_liquidity snapshot is applied
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        // fetch the snapshot with a separate async call, binance-style
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
+        const symbol = this.safeString (subscription, 'symbol') as string;
+        const messageHash = 'orderbook:' + symbol;
+        try {
+            const market = this.market (symbol);
+            const limit = this.safeInteger (subscription, 'limit');
+            const depth = (limit === undefined) ? 100 : Math.min (limit, 100);
+            const request: Dict = {
+                'type': 'market_liquidity',
+                'product_id': this.parseToInt (market['id']),
+                'depth': depth,
+            };
+            //
+            //     {
+            //         "status": "success",
+            //         "data": {
+            //             "bids": [["30234000000000000000000", "663000000000000000"]],
+            //             "asks": [["30245000000000000000000", "664000000000000000"]],
+            //             "timestamp": "1681850046966693400",
+            //             "product_id": 1
+            //         },
+            //         "request_type": "query_market_liquidity"
+            //     }
+            //
+            let response: NullableDict = undefined;
+            const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    response = await this.gatewayPublicGetQuery (request);
+                    break;
+                } catch (e) {
+                    const retriesDone = this.sum (i, 1);
+                    if (retriesDone === maxRetries) {
+                        throw e;
+                    }
+                }
+            }
+            const orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook === undefined) {
+                // the orderbook was dropped before the snapshot arrived
+                return;
+            }
+            const data = this.safeDict (response, 'data', {});
+            const rawBids = this.safeList (data, 'bids', []);
+            const rawAsks = this.safeList (data, 'asks', []);
+            const bids = [];
+            for (let i = 0; i < rawBids.length; i++) {
+                const entry = rawBids[i];
+                bids.push ([ this.parseX18 (this.safeString (entry, 0)), this.parseX18 (this.safeString (entry, 1)) ]);
+            }
+            const asks = [];
+            for (let i = 0; i < rawAsks.length; i++) {
+                const entry = rawAsks[i];
+                asks.push ([ this.parseX18 (this.safeString (entry, 0)), this.parseX18 (this.safeString (entry, 1)) ]);
+            }
+            // the exchange timestamps carry nanosecond precision that exceeds
+            // the double-safe integer range, so ordering comparisons go through
+            // Precise on the raw strings and only display values are truncated
+            const snapshotNanoseconds = this.safeString (data, 'timestamp', '0');
+            const timestamp = this.parseWsTimestamp (data, 'timestamp');
+            const snapshot: Dict = {
+                'symbol': symbol,
+                'bids': bids,
+                'asks': asks,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': timestamp,
+            };
+            orderbook.reset (snapshot);
+            this.options['orderBookSnapshotTimestamps'][symbol] = snapshotNanoseconds;
+            // replay the diffs buffered while the snapshot was on the wire:
+            // the chain check runs over every buffered frame, while only the
+            // frames newer than the snapshot mutate the book
+            const bufferedMessages = orderbook.cache;
+            orderbook.cache = [];
+            let previousMaxTimestamp: Str = undefined;
+            for (let i = 0; i < bufferedMessages.length; i++) {
+                const bufferedMessage = bufferedMessages[i];
+                const lastMaxTimestamp = this.safeString (bufferedMessage, 'last_max_timestamp');
+                const frameMaxTimestamp = this.safeString (bufferedMessage, 'max_timestamp');
+                if ((frameMaxTimestamp === undefined) || (lastMaxTimestamp === undefined)) {
+                    continue;
+                }
+                if ((previousMaxTimestamp !== undefined) && (lastMaxTimestamp !== previousMaxTimestamp)) {
+                    throw new InvalidNonce (this.id + ' watchOrderBook() received a gap while replaying buffered book_depth diffs');
+                }
+                if (Precise.stringGt (frameMaxTimestamp, snapshotNanoseconds)) {
+                    this.handleOrderBookMessage (client, bufferedMessage, orderbook);
+                }
+                previousMaxTimestamp = frameMaxTimestamp;
+            }
+            if (previousMaxTimestamp !== undefined) {
+                this.options['orderBookMaxTimestamps'][symbol] = previousMaxTimestamp;
+            }
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            this.cleanOrderBookSubscription (client, symbol);
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
+        const asks = this.safeList (message, 'asks', []);
+        const bids = this.safeList (message, 'bids', []);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        const timestamp = this.parseWsTimestamp (message, 'max_timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = timestamp;
+        return orderbook;
+    }
+
+    cleanOrderBookSubscription (client: Client, symbol: string) {
+        const messageHash = 'orderbook:' + symbol;
+        const subscriptionHashes = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
+            const streamType = this.safeString (subscription, 'streamType');
+            const subscriptionSymbol = this.safeString (subscription, 'symbol');
+            if ((streamType === 'book_depth') && (subscriptionSymbol === symbol)) {
+                delete client.subscriptions[subscriptionHash];
+            }
+        }
+        const subscriptionMsg = this.safeValue (client.subscriptions, messageHash);
+        if (subscriptionMsg !== undefined) {
+            delete client.subscriptions[messageHash];
+        }
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        const maxTimestamps = this.safeDict (this.options, 'orderBookMaxTimestamps', {});
+        if (symbol in maxTimestamps) {
+            delete this.options['orderBookMaxTimestamps'][symbol];
+        }
+        const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+        if (symbol in snapshotTimestamps) {
+            delete this.options['orderBookSnapshotTimestamps'][symbol];
+        }
+    }
+
     handleOrderBook (client: Client, message: any) {
         //
         //     {
@@ -1670,42 +1839,42 @@ export default class nado extends nadoRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.orderbooks)) {
+            // a diff can arrive before the subscription callback initialized
+            // the book - nothing was subscribed for it yet, safe to drop
             return;
         }
         const orderbook = this.orderbooks[symbol];
         const messageHash = 'orderbook:' + symbol;
-        const maxTimestamp = this.safeString (orderbook, 'maxTimestamp');
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce === undefined) {
+            // the market_liquidity snapshot did not arrive yet - buffer the
+            // diff, the snapshot fetcher replays the cache afterwards
+            orderbook.cache.push (message);
+            return;
+        }
+        const maxTimestamps = this.safeDict (this.options, 'orderBookMaxTimestamps', {});
+        const previousMaxTimestamp = this.safeString (maxTimestamps, symbol);
         const lastMaxTimestamp = this.safeString (message, 'last_max_timestamp');
-        if ((maxTimestamp !== undefined) && (lastMaxTimestamp !== undefined) && (maxTimestamp !== lastMaxTimestamp)) {
-            const subscriptions = Object.keys (client.subscriptions);
-            for (let i = 0; i < subscriptions.length; i++) {
-                const subscriptionHash = subscriptions[i];
-                const subscription = this.safeDict (client.subscriptions, subscriptionHash);
-                const streamType = this.safeString (subscription, 'streamType');
-                const subscriptionSymbol = this.safeString (subscription, 'symbol');
-                if ((streamType === 'book_depth') && (subscriptionSymbol === symbol)) {
-                    delete client.subscriptions[subscriptionHash];
-                }
-            }
-            const subscriptionMsg = this.safeValue (client.subscriptions, messageHash);
-            if (subscriptionMsg !== undefined) {
-                delete client.subscriptions[messageHash];
-            }
-            delete this.orderbooks[symbol];
-            const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+        const frameMaxTimestamp = this.safeString (message, 'max_timestamp');
+        if ((frameMaxTimestamp === undefined) || (lastMaxTimestamp === undefined)) {
+            return;
+        }
+        if ((previousMaxTimestamp !== undefined) && (previousMaxTimestamp !== lastMaxTimestamp)) {
+            this.cleanOrderBookSubscription (client, symbol);
+            const error = new InvalidNonce (this.id + ' watchOrderBook() received a book_depth diff with a gap, the previous diff was lost');
             client.reject (error, messageHash);
             return;
         }
-        const asks = this.safeList (message, 'asks', []);
-        const bids = this.safeList (message, 'bids', []);
-        this.handleDeltas (orderbook['asks'], asks);
-        this.handleDeltas (orderbook['bids'], bids);
-        const timestamp = this.parseWsTimestamp (message, 'max_timestamp');
-        orderbook['symbol'] = symbol;
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        (orderbook as Dict)['maxTimestamp'] = this.safeString (message, 'max_timestamp');
-        client.resolve (orderbook, messageHash);
+        // a diff can race the snapshot response and arrive already covered by
+        // it - advance the chain marker but leave the book untouched, the
+        // same drop rule the buffered replay applies
+        const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+        const snapshotNanoseconds = this.safeString (snapshotTimestamps, symbol, '0');
+        if (Precise.stringGt (frameMaxTimestamp, snapshotNanoseconds)) {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        }
+        this.options['orderBookMaxTimestamps'][symbol] = frameMaxTimestamp;
     }
 
     handleExecuteResponse (client: Client, message: any) {
@@ -1738,6 +1907,11 @@ export default class nado extends nadoRest {
         if (subscription !== undefined) {
             const subscribeHash = this.safeString (subscription, 'subscribeHash');
             delete client.subscriptions['subscription:' + id];
+            const streamSubscription = this.safeDict (client.subscriptions, subscribeHash);
+            const method = this.safeValue (streamSubscription, 'method');
+            if (method !== undefined) {
+                method.call (this, client, message, streamSubscription);
+            }
             client.resolve (message, subscribeHash);
         }
     }
@@ -1797,6 +1971,14 @@ export default class nado extends nadoRest {
             const symbol = messageHash.replace ('orderbook:', '');
             if (symbol in this.orderbooks) {
                 delete this.orderbooks[symbol];
+            }
+            const maxTimestamps = this.safeDict (this.options, 'orderBookMaxTimestamps', {});
+            if (symbol in maxTimestamps) {
+                delete this.options['orderBookMaxTimestamps'][symbol];
+            }
+            const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+            if (symbol in snapshotTimestamps) {
+                delete this.options['orderBookSnapshotTimestamps'][symbol];
             }
         } else if (messageHash.indexOf ('ohlcv:') === 0) {
             const parts = messageHash.split (':');
