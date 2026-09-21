@@ -9,125 +9,125 @@ package ccxt
 
 // PublicGetCoins returns a channel that yields a JSON array.
 func (this *Mercado) PublicGetCoins(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoins", args...)
+	return this.Fetch2Async("coins", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinOrderbook returns a channel that yields a JSON object.
 func (this *Mercado) PublicGetCoinOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinOrderbook", args...)
+	return this.Fetch2Async("{coin}/orderbook/", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinTicker returns a channel that yields a JSON object.
 func (this *Mercado) PublicGetCoinTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinTicker", args...)
+	return this.Fetch2Async("{coin}/ticker/", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinTrades returns a channel that yields a JSON array.
 func (this *Mercado) PublicGetCoinTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinTrades", args...)
+	return this.Fetch2Async("{coin}/trades/", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinTradesFrom returns a channel that yields a JSON array.
 func (this *Mercado) PublicGetCoinTradesFrom(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinTradesFrom", args...)
+	return this.Fetch2Async("{coin}/trades/{from}/", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinTradesFromTo returns a channel that yields a JSON array.
 func (this *Mercado) PublicGetCoinTradesFromTo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinTradesFromTo", args...)
+	return this.Fetch2Async("{coin}/trades/{from}/{to}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCoinDaySummaryYearMonthDay returns a channel that yields a JSON object.
 func (this *Mercado) PublicGetCoinDaySummaryYearMonthDay(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCoinDaySummaryYearMonthDay", args...)
+	return this.Fetch2Async("{coin}/day-summary/{year}/{month}/{day}/", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+	return this.Fetch2Async("cancel_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGetAccountInfo returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostGetAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetAccountInfo", args...)
+	return this.Fetch2Async("get_account_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGetOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOrder", args...)
+	return this.Fetch2Async("get_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGetWithdrawal returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostGetWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetWithdrawal", args...)
+	return this.Fetch2Async("get_withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostListSystemMessages returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostListSystemMessages(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostListSystemMessages", args...)
+	return this.Fetch2Async("list_system_messages", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostListOrders returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostListOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostListOrders", args...)
+	return this.Fetch2Async("list_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostListOrderbook returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostListOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostListOrderbook", args...)
+	return this.Fetch2Async("list_orderbook", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPlaceBuyOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostPlaceBuyOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceBuyOrder", args...)
+	return this.Fetch2Async("place_buy_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPlaceSellOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostPlaceSellOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceSellOrder", args...)
+	return this.Fetch2Async("place_sell_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPlaceMarketBuyOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostPlaceMarketBuyOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceMarketBuyOrder", args...)
+	return this.Fetch2Async("place_market_buy_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPlaceMarketSellOrder returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostPlaceMarketSellOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceMarketSellOrder", args...)
+	return this.Fetch2Async("place_market_sell_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostWithdrawCoin returns a channel that yields a JSON object.
 func (this *Mercado) PrivatePostWithdrawCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
+	return this.Fetch2Async("withdraw_coin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PublicGetCoinCandle returns a channel that yields a JSON object.
 func (this *Mercado) V4PublicGetCoinCandle(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetCoinCandle", args...)
+	return this.Fetch2Async("{coin}/candle/", "v4Public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PublicNetGetCandles returns a channel that yields a JSON object.
 func (this *Mercado) V4PublicNetGetCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicNetGetCandles", args...)
+	return this.Fetch2Async("candles", "v4PublicNet", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PrivatePostAccounts returns a channel that yields a JSON object.
 func (this *Mercado) V4PrivatePostAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostAccounts", args...)
+	return this.Fetch2Async("accounts", "v4Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PrivatePostAccountsAccountIdSymbolTransfersInternal returns a channel that yields a JSON object.
 func (this *Mercado) V4PrivatePostAccountsAccountIdSymbolTransfersInternal(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostAccountsAccountIdSymbolTransfersInternal", args...)
+	return this.Fetch2Async("accounts/{accountId}/{symbol}/transfers/internal", "v4Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PrivatePostOauth2Token returns a channel that yields a JSON object.
 func (this *Mercado) V4PrivatePostOauth2Token(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOauth2Token", args...)
+	return this.Fetch2Async("oauth2/token", "v4Private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId returns a channel that yields a JSON object.
 func (this *Mercado) V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId", args...)
+	return this.Fetch2Async("accounts/{accountId}/wallet/{symbol}/deposits/{depositId}", "v4Private", "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

@@ -39,8 +39,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes178 := (<-exchange.Fetch2Async("sample1"))
-			ccxt.PanicOnError(retRes178)
+			retRes168 := (<-exchange.Fetch2Async("sample1"))
+			ccxt.PanicOnError(retRes168)
 			return nil
 		}()
 
@@ -63,8 +63,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes238 := (<-exchange.Fetch2Async("sample2"))
-			ccxt.PanicOnError(retRes238)
+			retRes228 := (<-exchange.Fetch2Async("sample2"))
+			ccxt.PanicOnError(retRes228)
 			return nil
 		}()
 
@@ -87,14 +87,14 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes298 := (<-exchange.Fetch2Async("sample3"))
-			ccxt.PanicOnError(retRes298)
+			retRes288 := (<-exchange.Fetch2Async("sample3"))
+			ccxt.PanicOnError(retRes288)
 			return nil
 		}()
 
 	}
 	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements")
-	assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
+	assert(ccxt.IsLessThan(1+1, 3), "sample assertion")
 	return nil
 }
 
@@ -128,7 +128,7 @@ func testFetchHistoryBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	retRes614 := (<-TestFetchHistoryBaseAsync())
-	ccxt.PanicOnError(retRes614)
+	retRes584 := (<-TestFetchHistoryBaseAsync())
+	ccxt.PanicOnError(retRes584)
 	return nil
 }
