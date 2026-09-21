@@ -479,6 +479,151 @@ std::string getSelectorFromName (const std::string& name) {
     return "0x" + bnToHexUnpadded (out.get ());
 }
 
+// -- poseidon (starknet flavour, 3-wide Hades permutation) --------------------------
+// Ported from python/ccxt/static_dependencies/starknet/hash/poseidon.py
+// (which mirrors ts/src/static_dependencies/scure-starknet): round constants are
+// derived from sha256("Hades" + i) rather than hardcoded.
+
+namespace {
+
+constexpr int POSEIDON_RATE = 2;
+constexpr int POSEIDON_WIDTH = 3;
+constexpr int POSEIDON_FULL = 8;
+constexpr int POSEIDON_PARTIAL = 83;
+// MDS small matrix: [[3,1,1],[1,-1,1],[1,1,-2]] (mod p)
+const long long POSEIDON_MDS[3][3] = {{3, 1, 1}, {1, -1, 1}, {1, 1, -2}};
+
+void poseidonRoundConstant (int index, BIGNUM* out) {
+    const std::string name = "Hades" + std::to_string (index);
+    unsigned char digest[SHA256_DIGEST_LENGTH];
+    SHA256 (reinterpret_cast<const unsigned char*> (name.data ()), name.size (), digest);
+    BN_bin2bn (digest, SHA256_DIGEST_LENGTH, out);
+    BN_nnmod (out, out, ctx ().p, ctx ().bnctx);
+}
+
+void poseidonField (const BIGNUM* src, BIGNUM* out) {
+    BN_nnmod (out, src, ctx ().p, ctx ().bnctx);
+}
+
+// returns a BnPtr with a value mod p; free via BnPtr
+void poseidonSbox (BIGNUM* value) {
+    // x^3 mod p
+    BIGNUM* three = BN_new ();
+    BN_set_word (three, 3);
+    BN_mod_exp (value, value, three, ctx ().p, ctx ().bnctx);
+    BN_free (three);
+}
+
+void poseidonRound (std::vector<BIGNUM*>& values, bool isFull, int index) {
+    // add round constants
+    for (int i = 0; i < POSEIDON_WIDTH; i++) {
+        BnPtr rc = makeBn ();
+        poseidonRoundConstant (POSEIDON_WIDTH * index + i, rc.get ());
+        BN_mod_add (values[i], values[i], rc.get (), ctx ().p, ctx ().bnctx);
+    }
+    // sbox: full rounds cube every element, partial rounds cube only the last
+    if (isFull) {
+        for (int i = 0; i < POSEIDON_WIDTH; i++) {
+            poseidonSbox (values[i]);
+        }
+    } else {
+        poseidonSbox (values[POSEIDON_WIDTH - 1]);
+    }
+    // MDS multiplication
+    std::vector<BIGNUM*> next (POSEIDON_WIDTH);
+    for (int i = 0; i < POSEIDON_WIDTH; i++) {
+        next[i] = BN_new ();
+        BN_zero (next[i]);
+    }
+    BnPtr tmp = makeBn ();
+    BnPtr prod = makeBn ();
+    for (int row = 0; row < POSEIDON_WIDTH; row++) {
+        BN_zero (next[row]);
+        for (int col = 0; col < POSEIDON_WIDTH; col++) {
+            const long long m = POSEIDON_MDS[row][col];
+            if (m >= 0) {
+                BN_set_word (tmp.get (), static_cast<BN_ULONG> (m));
+            } else {
+                // p + m (i.e. p-1 or p-2)
+                BnPtr neg = makeBn ();
+                BN_set_word (neg.get (), static_cast<BN_ULONG> (-m));
+                BN_sub (tmp.get (), ctx ().p, neg.get ());
+            }
+            BN_mod_mul (prod.get (), values[col], tmp.get (), ctx ().p, ctx ().bnctx);
+            BN_mod_add (next[row], next[row], prod.get (), ctx ().p, ctx ().bnctx);
+        }
+    }
+    for (int i = 0; i < POSEIDON_WIDTH; i++) {
+        BN_copy (values[i], next[i]);
+        BN_free (next[i]);
+    }
+}
+
+// poseidon_hash over exactly 3 field elements: 4 full, 83 partial, 4 full
+std::vector<BIGNUM*> poseidonHash3 (const std::vector<BIGNUM*>& input) {
+    std::vector<BIGNUM*> values (POSEIDON_WIDTH);
+    for (int i = 0; i < POSEIDON_WIDTH; i++) {
+        values[i] = BN_new ();
+        poseidonField (input[i], values[i]);
+    }
+    int roundIndex = 0;
+    const int halfFull = POSEIDON_FULL / 2;
+    for (int i = 0; i < halfFull; i++) {
+        poseidonRound (values, true, roundIndex++);
+    }
+    for (int i = 0; i < POSEIDON_PARTIAL; i++) {
+        poseidonRound (values, false, roundIndex++);
+    }
+    for (int i = 0; i < halfFull; i++) {
+        poseidonRound (values, true, roundIndex++);
+    }
+    return values;
+}
+
+} // namespace
+
+// poseidon_hash_many: pad with 1 then zeros to a RATE multiple, absorb 2 elements
+// at a time into the state, permute, and return state[0] as an unpadded hex string.
+std::string poseidonHashMany (const std::vector<std::string>& elements) {
+    std::lock_guard<std::mutex> guard (starkMutex ());
+    std::vector<std::string> padded = elements;
+    padded.push_back ("1");
+    while (padded.size () % POSEIDON_RATE != 0) {
+        padded.push_back ("0");
+    }
+    std::vector<BIGNUM*> state (POSEIDON_WIDTH);
+    for (int i = 0; i < POSEIDON_WIDTH; i++) {
+        state[i] = BN_new ();
+        BN_zero (state[i]);
+    }
+    std::vector<BIGNUM*> absorbed;
+    absorbed.reserve (padded.size ());
+    for (const std::string& elem : padded) {
+        BIGNUM* v = BN_new ();
+        if (!tryParseNumeric (elem, v)) {
+            for (auto* p : absorbed) BN_free (p);
+            for (auto* p : state) BN_free (p);
+            BN_free (v);
+            throw NotSupported ("starknet poseidon: element is not numeric: " + elem);
+        }
+        absorbed.push_back (v);
+    }
+    for (std::size_t i = 0; i + POSEIDON_RATE <= absorbed.size (); i += POSEIDON_RATE) {
+        for (int j = 0; j < POSEIDON_RATE; j++) {
+            BN_mod_add (state[j], state[j], absorbed[i + j], ctx ().p, ctx ().bnctx);
+        }
+        std::vector<BIGNUM*> next = poseidonHash3 (state);
+        for (int k = 0; k < POSEIDON_WIDTH; k++) {
+            BN_copy (state[k], next[k]);
+            BN_free (next[k]);
+        }
+    }
+    const std::string result = bnToHexUnpadded (state[0]);
+    for (auto* p : absorbed) BN_free (p);
+    for (auto* p : state) BN_free (p);
+    return result;
+}
+
 std::string pedersenHash (const std::string& a, const std::string& b) {
     std::lock_guard<std::mutex> guard (starkMutex ());
     BnPtr x = makeBn ();

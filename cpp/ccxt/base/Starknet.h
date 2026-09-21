@@ -24,6 +24,7 @@ std::string getStarkKey (const std::string& privateKeyHex);
 
 // keccak-based cairo selector: '0x' + unpadded hex of keccak256(name) & (2^250 - 1)
 std::string getSelectorFromName (const std::string& name);
+std::string poseidonHashMany (const std::vector<std::string>& elements);
 
 // pedersen(a, b) over decimal/hex felt strings -> '0x' + unpadded hex (test hook)
 std::string pedersenHash (const std::string& a, const std::string& b);

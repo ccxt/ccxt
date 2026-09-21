@@ -7434,8 +7434,8 @@ public:
   /**
    * @method
    * @name phemex#fetchPositionsADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * list of symbols
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a list of symbols
    * @see https://phemex-docs.github.io/#query-account-positions
    * @see https://phemex-docs.github.io/#query-trading-account-and-positions
    * @see
@@ -7448,8 +7448,8 @@ public:
    * @param {string} [params.method] *USDT contracts only*
    * 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions'
    * default is 'privateGetGAccountsAccountPositions'
-   * @returns {object} an array of [auto de leverage structures]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object} an array of [autoFlag de leverage structures]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<ccxt::any>
   fetchPositionsADLRank(ccxt::any symbols = ccxt::any{},
