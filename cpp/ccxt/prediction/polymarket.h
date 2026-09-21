@@ -2019,8 +2019,7 @@ public:
       last = mid;
     }
     ccxt::any outcome = this->safeOutcomeSymbol(ccxt::any{}, market);
-    ccxt::any timestamp = this->safeInteger(bookData, std::string("timestamp"),
-                                            this->milliseconds());
+    ccxt::any timestamp = this->safeInteger(bookData, std::string("timestamp"));
     ccxt::any quoteVolume = ccxt::any{};
     if (isTrue(!isEqual(market, ccxt::any{}))) {
       quoteVolume =
@@ -2411,7 +2410,6 @@ public:
     //
     //     { "market": "0x7976b8...92", "value": 4925662.470476 }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any openInterest = this->safeOpenInterest(
         ccxt::dict{
             {std::string("symbol"),
@@ -2421,8 +2419,8 @@ public:
              this->safeNumber(interest, std::string("value"))},
             {std::string("baseVolume"), ccxt::any{}},
             {std::string("quoteVolume"), ccxt::any{}},
-            {std::string("timestamp"), timestamp},
-            {std::string("datetime"), this->iso8601(timestamp)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("info"), interest},
         },
         market);
@@ -5420,11 +5418,11 @@ public:
 
   virtual ccxt::any parsePolyTimestamp(ccxt::any raw) {
     if (isTrue(isEqual(raw, ccxt::any{}))) {
-      return this->milliseconds();
+      return ccxt::any{};
     }
     ccxt::any n = this->parseToInt(raw);
     if (isTrue(isEqual(n, ccxt::any{}))) {
-      return this->milliseconds();
+      return ccxt::any{};
     }
     return n;
   }

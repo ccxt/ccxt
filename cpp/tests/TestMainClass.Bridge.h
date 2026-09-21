@@ -296,6 +296,29 @@ public:
         return setFetchResponse (exchange, response);
     }
 
+    // tests.helpers.ts: serve a different body per request, keyed by url
+    // fragment; a request matching no fragment gets the first body
+    static ccxt::any setFetchResponseByUrl (ccxt::any exchange, ccxt::any responsesByUrl) {
+        auto ex = unwrapExchange (exchange);
+        const ccxt::dict byUrl = responsesByUrl.has_value ()
+            ? ccxt::any_cast<ccxt::dict> (responsesByUrl)
+            : ccxt::dict {};
+        ex->fetchImpl = [byUrl] (ccxt::any urlAny, ccxt::any, ccxt::any,
+                                 ccxt::any) -> ccxt::any {
+            const std::string url = str (urlAny);
+            for (const auto& kv : byUrl.entries ()) {
+                if (url.find (kv.first.str ()) != std::string::npos) {
+                    return kv.second;
+                }
+            }
+            if (!byUrl.entries ().empty ()) {
+                return byUrl.entries ().front ().second;
+            }
+            return ccxt::any {};
+        };
+        return ccxt::any (std::shared_ptr<ccxt::ExchangeBase> (ex));
+    }
+
     // -------------------------------------------------------------------------
     // exchange construction + test file registry
     // -------------------------------------------------------------------------

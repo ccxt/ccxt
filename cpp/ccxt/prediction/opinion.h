@@ -993,8 +993,12 @@ public:
     ccxt::any bestBid = this->safeDict(bids, 0, ccxt::dict{});
     ccxt::any bestAsk = this->safeDict(asks, 0, ccxt::dict{});
     ccxt::any last = this->safeNumber(priceResult, std::string("price"));
-    ccxt::any timestamp = this->safeInteger(
-        priceResult, std::string("timestamp"), this->milliseconds());
+    ccxt::any timestamp =
+        this->safeInteger(priceResult, std::string("timestamp"));
+    if (isTrue(isEqual(timestamp, 0))) {
+      timestamp = ccxt::any{}; // the venue reports timestamp 0 for outcomes
+                               // that have not traded yet
+    }
     return this->safePredictionTicker(
         ccxt::dict{
             {std::string("outcome"),
@@ -2747,9 +2751,8 @@ public:
     ccxt::any price = this->safeNumber(message, std::string("price"));
     ccxt::any size = this->safeNumber(message, std::string("size"));
     ::wsStoreArray(bookSide, ccxt::list{price, size});
-    ccxt::any now = this->milliseconds();
-    ::setValue(orderbook, std::string("timestamp"), now);
-    ::setValue(orderbook, std::string("datetime"), this->iso8601(now));
+    ::setValue(orderbook, std::string("timestamp"), ccxt::any{});
+    ::setValue(orderbook, std::string("datetime"), ccxt::any{});
     this->resolve(orderbook, add(std::string("orderbook::"), sym));
   }
 
@@ -2800,7 +2803,6 @@ public:
     if (isTrue(isEqual(sym, ccxt::any{}))) {
       return;
     }
-    ccxt::any now = this->milliseconds();
     ccxt::any last = this->safeNumber(message, std::string("price"));
     ccxt::any ticker = this->safePredictionTicker(
         ccxt::dict{
@@ -2810,8 +2812,8 @@ public:
              this->safeString(outcomeObj, std::string("label"))},
             {std::string("market"),
              this->safeString(outcomeObj, std::string("market"))},
-            {std::string("timestamp"), now},
-            {std::string("datetime"), this->iso8601(now)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("close"), last},
             {std::string("last"), last},
             {std::string("info"), message},
@@ -2877,13 +2879,12 @@ public:
     if (isTrue(isEqual(sym, ccxt::any{}))) {
       return;
     }
-    ccxt::any now = this->milliseconds();
     ccxt::any trade = this->safePredictionTrade(
         ccxt::dict{
             {std::string("id"), ccxt::any{}},
             {std::string("info"), message},
-            {std::string("timestamp"), now},
-            {std::string("datetime"), this->iso8601(now)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("outcome"), sym},
             {std::string("outcomeId"), tokenId},
             {std::string("label"),

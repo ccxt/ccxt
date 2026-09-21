@@ -1133,7 +1133,6 @@ public:
         last = this->parseNumber(lastString);
       }
     }
-    ccxt::any now = this->milliseconds();
     return this->safePredictionTicker(
         ccxt::dict{
             {std::string("outcome"),
@@ -1145,8 +1144,8 @@ public:
              this->safeString(outcomeObj, std::string("label"))},
             {std::string("market"),
              this->safeString(outcomeObj, std::string("market"))},
-            {std::string("timestamp"), now},
-            {std::string("datetime"), this->iso8601(now)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("high"), ccxt::any{}},
             {std::string("low"), ccxt::any{}},
             {std::string("bid"), ccxt::any{}},
@@ -2692,9 +2691,8 @@ public:
                         this->safeString(outcomeObj, std::string("label"))},
                        {std::string("market"),
                         this->safeString(outcomeObj, std::string("market"))},
-                       {std::string("timestamp"), this->milliseconds()},
-                       {std::string("datetime"),
-                        this->iso8601(this->milliseconds())},
+                       {std::string("timestamp"), ccxt::any{}},
+                       {std::string("datetime"), ccxt::any{}},
                    };
                    arrayPush(orders, this->safePredictionOrder(order));
                  }

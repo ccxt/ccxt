@@ -720,8 +720,7 @@ public:
         slug);
     // CTF condition id — needed to redeem a resolved winning position
     ccxt::any conditionId = this->safeString(raw, std::string("conditionId"));
-    ccxt::any tokens =
-        this->safeValue(raw, std::string("tokens"), ccxt::dict{});
+    ccxt::any tokens = this->safeDict(raw, std::string("tokens"), ccxt::dict{});
     // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an
     // `active` flag; a market is tradeable only while it is FUNDED and not yet
     // expired
@@ -1638,7 +1637,6 @@ public:
     if (isTrue(!isEqual(askSizeStr, ccxt::any{}))) {
       askSizeStr = ccxt::Precise::stringDiv(askSizeStr, std::string("1000000"));
     }
-    ccxt::any now = this->milliseconds();
     ccxt::any outcomeSymbol = this->safeOutcomeSymbol(ccxt::any{}, market);
     return this->safePredictionTicker(ccxt::dict{
         {std::string("outcome"), outcomeSymbol},
@@ -1647,8 +1645,8 @@ public:
         {std::string("label"), this->safeString(market, std::string("label"))},
         {std::string("market"),
          this->safeString(market, std::string("market"))},
-        {std::string("timestamp"), now},
-        {std::string("datetime"), this->iso8601(now)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
         {std::string("high"), ccxt::any{}},
         {std::string("low"), ccxt::any{}},
         {std::string("bid"), this->parseNumber(bidStr)},
@@ -1812,7 +1810,8 @@ public:
                      {std::string("slug"), slug},
                  };
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("limit"), limit);
+                   ::setValue(request, std::string("limit"),
+                              mathMin(limit, 100));
                  }
                  ccxt::any response =
                      awaitValue(this->limitlessPublicGetMarketsSlugEvents(
@@ -1918,7 +1917,6 @@ public:
                  //         "lastTradePrice": "0.161"
                  //     }
                  //
-                 ccxt::any timestamp = this->milliseconds();
                  ccxt::any decimals = this->safeInteger(
                      this->options, std::string("usdcDecimals"), 6);
                  // sizes are scaled by 10^decimals, USDC uses 6 decimals
@@ -1981,8 +1979,8 @@ public:
                       this->safeOutcomeSymbol(outcome, outcomeObj)},
                      {std::string("bids"), this->sortBy(bids, 0, true)},
                      {std::string("asks"), this->sortBy(asks, 0)},
-                     {std::string("timestamp"), timestamp},
-                     {std::string("datetime"), this->iso8601(timestamp)},
+                     {std::string("timestamp"), ccxt::any{}},
+                     {std::string("datetime"), ccxt::any{}},
                      {std::string("nonce"), ccxt::any{}},
                  };
                  return this->safePredictionOrderBook(orderbook, outcomeObj);
@@ -4558,24 +4556,23 @@ public:
    * @description builds the request URL and attaches the lmts authentication
    * headers for private endpoints
    * @param {string} path the endpoint path
-   * @param {string|string[]} [section] the api group and access level
+   * @param {string|string[]} [api] the api group and access level
    * @param {string} [method] HTTP method
    * @param {object} [params] request parameters
    * @param {object} [headers] request headers
    * @param {object} [body] request body
    * @returns {object} a dictionary with url, method, body and headers
    */
-  ccxt::any sign(ccxt::any path, ccxt::any section = std::string("limitless"),
+  ccxt::any sign(ccxt::any path, ccxt::any api = std::string("limitless"),
                  ccxt::any method = std::string("GET"),
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
     ccxt::any apiGroup =
-        (isTrue(isString(section)) ? ccxt::any(section)
-                                   : ccxt::any(::getValue(section, 0)));
-    ccxt::any access =
-        (isTrue(isString(section)) ? ccxt::any(std::string("public"))
-                                   : ccxt::any(::getValue(section, 1)));
+        (isTrue(isString(api)) ? ccxt::any(api)
+                               : ccxt::any(::getValue(api, 0)));
+    ccxt::any access = (isTrue(isString(api)) ? ccxt::any(std::string("public"))
+                                              : ccxt::any(::getValue(api, 1)));
     ccxt::any baseUrls = ::getValue(this->urls, std::string("api"));
     ccxt::any baseUrl = this->safeString(
         baseUrls, apiGroup, ::getValue(baseUrls, std::string("limitless")));
@@ -4617,10 +4614,15 @@ public:
                      sha256, std::string("base64"));
       headers =
           this->extend(headers, ccxt::dict{
-                                    {std::string("lmts-api-key"), this->apiKey},
                                     {std::string("lmts-timestamp"), timestamp},
                                     {std::string("lmts-signature"), signature},
                                 });
+      ccxt::any headerKey =
+          add(std::string("lmts-api"),
+              std::string("-key")); // concatenating because of the php version
+      ccxt::any headersKey = ccxt::dict{};
+      ::setValue(headersKey, headerKey, this->apiKey);
+      headers = this->extend(headers, headersKey);
     }
     url = add(baseUrl, url);
     return ccxt::dict{

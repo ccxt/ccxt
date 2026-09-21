@@ -1487,14 +1487,6 @@ public:
                    ::setValue(parsed, std::string("amount"), amount);
                  }
                  if (isTrue(isEqual(
-                         this->safeInteger(parsed, std::string("timestamp")),
-                         ccxt::any{}))) {
-                   ccxt::any now = this->milliseconds();
-                   ::setValue(parsed, std::string("timestamp"), now);
-                   ::setValue(parsed, std::string("datetime"),
-                              this->iso8601(now));
-                 }
-                 if (isTrue(isEqual(
                          this->safeString(parsed, std::string("status")),
                          ccxt::any{}))) {
                    ::setValue(parsed, std::string("status"),
@@ -2601,7 +2593,9 @@ public:
    * markets
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object} the raw response with the count of cancelled orders
+   * @returns {object[]} a list with one [prediction order
+   * structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose
+   * `info` carries the cancelled count
    */
   virtual std::shared_future<ccxt::any>
   cancelAllOrders(ccxt::any outcome = ccxt::any{},
@@ -2652,8 +2646,22 @@ public:
                      {std::string("signature"), signature},
                      {std::string("network_id"), this->parseToInt(networkId)},
                  };
-                 return awaitValue(
-                     this->myriadPublicPostOrdersCancelAll(request));
+                 ccxt::any response =
+                     awaitValue(this->myriadPublicPostOrdersCancelAll(request));
+                 //
+                 //     {
+                 //         "cancelled_count": 2,
+                 //         "market_ids_affected": [
+                 //         "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
+                 //     }
+                 //
+                 // the endpoint returns a count, not the orders: hand back one
+                 // canceled order structure carrying the raw response, like
+                 // limitless does
+                 return ccxt::list{this->safePredictionOrder(ccxt::dict{
+                     {std::string("info"), response},
+                     {std::string("status"), std::string("canceled")},
+                 })};
                })
         .share();
   }
@@ -3840,7 +3848,6 @@ public:
         break;
       }
     }
-    ccxt::any now = this->milliseconds();
     // priceChange24h is an ABSOLUTE price delta; derive the previous close and
     // the TRUE percentage from it — setting percentage = the absolute change
     // (as before) was wrong
@@ -3867,8 +3874,8 @@ public:
              this->safeString(market, std::string("label"))},
             {std::string("market"),
              this->safeString(market, std::string("market"))},
-            {std::string("timestamp"), now},
-            {std::string("datetime"), this->iso8601(now)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("high"), ccxt::any{}},
             {std::string("low"), ccxt::any{}},
             {std::string("bid"), price},
@@ -4050,7 +4057,6 @@ public:
                      break;
                    }
                  }
-                 ccxt::any timestamp = this->milliseconds();
                  // AMM: synthesize a single bid/ask pair around the current
                  // implied price, clamped into the valid (0, 1) range
                  ccxt::any bid = ccxt::any{};
@@ -4081,8 +4087,8 @@ public:
                       this->safeOutcomeSymbol(outcome, outcomeObj)},
                      {std::string("bids"), bids},
                      {std::string("asks"), asks},
-                     {std::string("timestamp"), timestamp},
-                     {std::string("datetime"), this->iso8601(timestamp)},
+                     {std::string("timestamp"), ccxt::any{}},
+                     {std::string("datetime"), ccxt::any{}},
                      {std::string("nonce"), ccxt::any{}},
                  };
                  return this->safePredictionOrderBook(orderbook, outcomeObj);
@@ -4129,13 +4135,12 @@ public:
       arrayPush(asks, ccxt::list{this->parseNumber(rowPrice),
                                  this->parseNumber(rowAmount)});
     }
-    ccxt::any timestamp = this->milliseconds();
     return ccxt::dict{
         {std::string("outcome"), outcome},
         {std::string("bids"), this->sortBy(bids, 0, true)},
         {std::string("asks"), this->sortBy(asks, 0)},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
         {std::string("nonce"), ccxt::any{}},
     };
   }
@@ -5980,7 +5985,7 @@ public:
    * @ignore
    * @method
    * @name myriad#sign
-   * @description builds the request url and attaches the x-api-key header for
+   * @description builds the request url and attaches the apiKey header for
    * private endpoints
    * @param {string} path the endpoint path
    * @param {string|string[]} api the api group and access level
@@ -6031,10 +6036,18 @@ public:
     }
     if (isTrue(isTrue((!isEqual(this->apiKey, ccxt::any{}))) &&
                isTrue((!isEqual(this->apiKey, std::string("")))))) {
-      headers =
-          this->extend(headers, ccxt::dict{
-                                    {std::string("x-api-key"), this->apiKey},
-                                });
+      // keep this literal split. the php transpiler prefixes every occurrence
+      // of a local or parameter name with '$' at the text level, including
+      // occurrences inside single-quoted string literals, and this method's
+      // second parameter is named after the middle segment of the header below.
+      // collapsing the two halves back into one literal therefore emits a
+      // corrupted header name in php only - every other language stays green,
+      // so the regression would ship silently. pinned by the fixture in
+      // ts/src/test/static/request/prediction/myriad.json
+      ccxt::any headerKey = add(std::string("x-api"), std::string("-key"));
+      ccxt::any headersKey = ccxt::dict{};
+      ::setValue(headersKey, headerKey, this->apiKey);
+      headers = this->extend(headers, headersKey);
     }
     return ccxt::dict{
         {std::string("url"), url},
