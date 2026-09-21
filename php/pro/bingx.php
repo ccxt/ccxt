@@ -225,7 +225,7 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $dataType, $topic, $market, $methodName, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // swap
         //
@@ -280,7 +280,7 @@ class bingx extends \ccxt\async\bingx {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         // const marketId = messageHash.split('@')[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
@@ -299,7 +299,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null, ?bool $isInverse = null) {
+    public function parse_ws_ticker(array $message, ?array $market = null, ?bool $isInverse = null): array {
         //
         //     {
         //         "e": "24hTicker",
@@ -470,7 +470,7 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $dataType, $topic, $market, $methodName, $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // spot: first snapshot
         //
@@ -675,7 +675,7 @@ class bingx extends \ccxt\async\bingx {
         $bookside->store($price, $amount);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // spot
         //
@@ -813,7 +813,7 @@ class bingx extends \ccxt\async\bingx {
         );
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // spot:
         //
@@ -898,7 +898,7 @@ class bingx extends \ccxt\async\bingx {
             $candles = array( $this->safe_dict($data, 'K', array()) );
         }
         $symbol = $market['symbol'];
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $rawTimeframe = explode('_', $dataType)[1];
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
@@ -964,8 +964,8 @@ class bingx extends \ccxt\async\bingx {
         if ($url === null) {
             throw new BadRequest($this->id . ' watchOHLCV is not supported for ' . $marketType . ' markets.');
         }
-        $options = $this->safe_value($this->options, $marketType, array());
-        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $options = $this->safe_dict($this->options, $marketType, array());
+        $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = $this->get_message_hash('ohlcv', $market['symbol'], $timeframe);
         $subscriptionHash = $market['id'] . '@kline_' . $rawTimeframe;
@@ -1012,8 +1012,8 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, $market['type'], array());
-        $timeframes = $this->safe_value($options, 'timeframes', array());
+        $options = $this->safe_dict($this->options, $market['type'], array());
+        $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $subMessageHash = $market['id'] . '@kline_' . $rawTimeframe;
         $messageHash = 'unsubscribe::' . $subMessageHash;
@@ -1226,7 +1226,7 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subType, mixed $subscriptionHash, mixed $params) {
+    public function set_balance_cache(Client $client, mixed $type, ?string $subType, string $subscriptionHash, array $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -1243,13 +1243,13 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $subType) {
+    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subType);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $subType) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
@@ -1321,7 +1321,7 @@ class bingx extends \ccxt\async\bingx {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, ?string $type, ?array $symbols = null) {
         if ($this->positions !== null) {
             return;
         }
@@ -1337,11 +1337,11 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type, 'subType' => 'linear' )));
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1360,7 +1360,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "s": "LINK-USDT",     // Symbol
@@ -1416,7 +1416,7 @@ class bingx extends \ccxt\async\bingx {
         ));
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1475,7 +1475,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($newPositions, 'swap:positions');
     }
 
-    public function handle_error_message(Client $client, mixed $message): bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
@@ -1617,7 +1617,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function handle_order(mixed $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "code": 0,
@@ -1702,7 +1702,7 @@ class bingx extends \ccxt\async\bingx {
         //    }
         //
         $isSpot = (is_array($message) && array_key_exists('dataType' ?? '', $message));
-        $data = $this->safe_value_2($message, 'data', 'o', array());
+        $data = $this->safe_dict_2($message, 'data', 'o', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -1740,7 +1740,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($stored, $messageHash . ':' . $symbol);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //
         //      {
@@ -1818,7 +1818,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($cachedTrades, $messageHash . ':' . $symbol);
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -1910,7 +1910,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         if (mb_strpos($dataType, 'executionReport') !== false) {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_dict($message, 'data', array());
             $type = $this->safe_string($data, 'x');
             if ($type === 'TRADE') {
                 $this->handle_my_trades($client, $message);
@@ -1925,14 +1925,14 @@ class bingx extends \ccxt\async\bingx {
         }
         if ($e === 'ORDER_TRADE_UPDATE') {
             $this->handle_order($client, $message);
-            $data = $this->safe_value($message, 'o', array());
+            $data = $this->safe_dict($message, 'o', array());
             $type = $this->safe_string($data, 'x');
             $status = $this->safe_string($data, 'X');
             if (($type === 'TRADE') && ($status === 'FILLED')) {
                 $this->handle_my_trades($client, $message);
             }
         }
-        $msgData = $this->safe_value($message, 'data');
+        $msgData = $this->safe_dict($message, 'data');
         $msgEvent = $this->safe_string($msgData, 'e');
         if ($msgEvent === '24hTicker') {
             $this->handle_ticker($client, $message);
@@ -1942,7 +1942,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "code": 0,

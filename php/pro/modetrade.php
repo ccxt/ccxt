@@ -75,7 +75,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function request_id(mixed $url) {
+    public function request_id(string $url): float {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -83,11 +83,11 @@ class modetrade extends \ccxt\async\modetrade {
         return $newValue;
     }
 
-    public function watch_public(mixed $messageHash, mixed $message) {
+    public function watch_public(string $messageHash, array $message) {
         return Async\async(self::do_watch_public(...))($messageHash, $message);
     }
 
-    private function do_watch_public(mixed $messageHash, mixed $message) {
+    private function do_watch_public(string $messageHash, array $message) {
         // the default id
         $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if ($this->accountId !== null && $this->accountId !== '') {
@@ -132,7 +132,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -235,7 +235,7 @@ class modetrade extends \ccxt\async\modetrade {
         ), $market);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -294,7 +294,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function handle_tickers(Client $client, mixed $message) {
+    public function handle_tickers(Client $client, array $message) {
         //
         //     {
         //         "topic":"tickers",
@@ -357,7 +357,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //       "topic": "bbos",
@@ -388,7 +388,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -444,7 +444,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -481,8 +481,8 @@ class modetrade extends \ccxt\async\modetrade {
             $this->safe_number($data, 'close'),
             $this->safe_number($data, 'volume'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -527,7 +527,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -558,7 +558,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($trades, $topic);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -633,7 +633,7 @@ class modetrade extends \ccxt\async\modetrade {
         ), $market);
     }
 
-    public function handle_auth(Client $client, mixed $message) {
+    public function handle_auth(Client $client, array $message) {
         //
         //     {
         //         "event": "auth",
@@ -642,7 +642,7 @@ class modetrade extends \ccxt\async\modetrade {
         //     }
         //
         $messageHash = 'authenticated';
-        $success = $this->safe_value($message, 'success');
+        $success = $this->safe_bool($message, 'success');
         if ($success === true) {
             // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
@@ -692,11 +692,11 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($future);
     }
 
-    public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    public function watch_private(string $messageHash, array $message, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $message, $params);
     }
 
-    private function do_watch_private(mixed $messageHash, mixed $message, $params = array()) {
+    private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
         $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
         $requestId = $this->request_id($url);
@@ -707,11 +707,11 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
     }
 
-    public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    public function watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         return Async\async(self::do_watch_private_multiple(...))($messageHashes, $message, $params);
     }
 
-    private function do_watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+    private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
         $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
         $requestId = $this->request_id($url);
@@ -806,7 +806,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -927,7 +927,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         //
         //     {
         //         "topic": "executionreport",
@@ -980,7 +980,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_order(Client $client, mixed $message, mixed $topic) {
+    public function handle_order(Client $client, array $message, ?string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -1012,7 +1012,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1120,11 +1120,11 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1143,7 +1143,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        "topic":"position",
@@ -1295,7 +1295,7 @@ class modetrade extends \ccxt\async\modetrade {
         return Async\await($this->watch_private($messageHash, $message));
     }
 
-    public function handle_balance(mixed $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "topic":"balance",
@@ -1383,7 +1383,7 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -1441,23 +1441,23 @@ class modetrade extends \ccxt\async\modetrade {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array( 'event' => 'ping' );
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         Async\await($client->send(array( 'event' => 'pong' )));
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1465,7 +1465,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $message;
     }
 
-    public function handle_subscribe(Client $client, mixed $message) {
+    public function handle_subscribe(Client $client, array $message): array {
         //
         //     {
         //         "id": "666888",

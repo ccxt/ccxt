@@ -483,7 +483,7 @@ class zebpay extends zebpay$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data;
+        let data = undefined;
         const request = {
             'symbol': market['id'],
         };

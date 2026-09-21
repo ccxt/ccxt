@@ -592,8 +592,8 @@ class paymium extends paymium$1["default"] {
         const currencyId = this.safeString(transfer, 'currency');
         const updatedAt = this.safeString(transfer, 'updated_at');
         const timetstamp = this.parseDate(updatedAt);
-        const accountOperations = this.safeValue(transfer, 'account_operations');
-        const firstOperation = this.safeValue(accountOperations, 0, {});
+        const accountOperations = this.safeList(transfer, 'account_operations');
+        const firstOperation = this.safeDict(accountOperations, 0, {});
         const status = this.safeString(transfer, 'state');
         return {
             'info': transfer,

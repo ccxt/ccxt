@@ -102,7 +102,7 @@ class coinex extends \ccxt\async\coinex {
         return $requestId;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //  spot
         //
@@ -187,7 +187,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($newTickers, 'tickers');
     }
 
-    public function parse_ws_ticker(mixed $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //  spot
         //
@@ -296,7 +296,7 @@ class coinex extends \ccxt\async\coinex {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         //
@@ -369,7 +369,7 @@ class coinex extends \ccxt\async\coinex {
         }
         $messageHash = null;
         if ($account !== null) {
-            if ($this->safe_value($this->balance, $account) === null) {
+            if ($this->safe_dict($this->balance, $account) === null) {
                 $this->balance[$account] = array();
             }
             $this->balance[$account]['info'] = $info;
@@ -379,7 +379,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
+    public function parse_ws_balance(array $balance, ?string $accountType = null) {
         //
         // spot
         //
@@ -409,7 +409,7 @@ class coinex extends \ccxt\async\coinex {
         $account['free'] = $this->safe_string($balance, 'available');
         $account['used'] = $this->safe_string($balance, 'frozen');
         if ($accountType !== null) {
-            if ($this->safe_value($this->balance, $accountType) === null) {
+            if ($this->safe_dict($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
             if (($accountType !== null) && ($code !== null)) {
@@ -476,7 +476,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "method": "user_deals.update",
@@ -517,7 +517,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // spot
         //
@@ -580,7 +580,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // spot watchTrades
         //
@@ -890,7 +890,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "method": "depth.update",
@@ -1016,7 +1016,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         // spot
         //
@@ -1151,7 +1151,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -1281,7 +1281,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             'active_success' => 'open',
             'active_fail' => 'canceled',
@@ -1341,7 +1341,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         "method": "bbo.update",
@@ -1364,7 +1364,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -1391,7 +1391,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $method = $this->safe_string($message, 'method');
         $error = $this->safe_string($message, 'message');
         if ($error !== null) {
@@ -1437,7 +1437,7 @@ class coinex extends \ccxt\async\coinex {
         return null;
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         //
         // success
         //
@@ -1470,9 +1470,9 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         $id = $this->safe_integer($message, 'id');
-        $subscription = $this->safe_value($client->subscriptions, $id);
+        $subscription = $this->safe_dict($client->subscriptions, $id);
         if ($subscription !== null) {
             $futureIndex = $this->safe_string($subscription, 'future');
             $future = $this->safe_value($client->futures, $futureIndex);

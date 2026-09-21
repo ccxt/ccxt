@@ -8,7 +8,7 @@ import Client from '../base/ws/Client.js';
  */
 export default class bitget extends bitgetRest {
     describe(): any;
-    getInstType(methodName: any, market: any, uta?: boolean, params?: {}): [Str, Dict];
+    getInstType(methodName: Str, market: Market, uta?: boolean, params?: Dict): [Str, Dict];
     /**
      * @method
      * @name bitget#watchTicker
@@ -21,7 +21,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bitget#unWatchTicker
@@ -45,9 +45,9 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: Market): Ticker;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
+    parseWsTicker(message: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bitget#watchBidsAsks
@@ -60,9 +60,9 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(message: any, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(message: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bitget#watchOHLCV
@@ -78,7 +78,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bitget#unWatchOHLCV
@@ -93,7 +93,7 @@ export default class bitget extends bitgetRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -108,7 +108,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bitget#unWatchOrderBook
@@ -138,7 +138,7 @@ export default class bitget extends bitgetRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
@@ -156,7 +156,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitget#watchTradesForSymbols
@@ -171,7 +171,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitget#unWatchTrades
@@ -185,8 +185,8 @@ export default class bitget extends bitgetRest {
      * @returns {any} status of the unwatch request
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrades(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name bitget#watchPositions
@@ -201,9 +201,9 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    handlePositions(client: Client, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name bitget#watchOrders
@@ -226,10 +226,10 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderStatus(status: any): string;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderStatus(status: Str): Str;
     /**
      * @method
      * @name bitget#watchMyTrades
@@ -243,8 +243,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitget#watchBalance
@@ -261,22 +261,22 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    watchPublic(uta: any, messageHash: any, args: any, params?: {}): Promise<any>;
-    unWatchPublic(uta: any, messageHash: any, args: any, params?: {}): Promise<any>;
-    watchPublicMultiple(uta: any, messageHashes: any, argsArray: any, params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
-    watchPrivate(uta: any, messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
-    handleAuthenticate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    watchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
+    unWatchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
+    watchPublicMultiple(uta: boolean, messageHashes: string[], argsArray: any[], params?: Dict): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
+    watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;
+    handleAuthenticate(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleOrderBookUnSubscription(client: Client, message: any): void;
-    handleTradesUnSubscription(client: Client, message: any): void;
-    handleTickerUnSubscription(client: Client, message: any): void;
-    handleOHLCVUnSubscription(client: Client, message: any): void;
-    handleUnSubscriptionStatus(client: Client, message: any): any;
+    handlePong(client: Client, message: Dict): Dict;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleOrderBookUnSubscription(client: Client, message: Dict): void;
+    handleTradesUnSubscription(client: Client, message: Dict): void;
+    handleTickerUnSubscription(client: Client, message: Dict): void;
+    handleOHLCVUnSubscription(client: Client, message: Dict): void;
+    handleUnSubscriptionStatus(client: Client, message: Dict): Dict;
 }

@@ -18,7 +18,7 @@ func testFetchMarketLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, 
 	tiers := (<-exchange.FetchMarketLeverageTiersAsync(symbol))
 	PanicOnError(tiers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol)
-	for j := 0; IsLessThan(j, GetArrayLength(tiers)); j++ {
+	for j := 0; j < GetArrayLength(tiers); j++ {
 		TestLeverageTier(exchange, skippedProperties, method, GetValue(tiers, j))
 	}
 

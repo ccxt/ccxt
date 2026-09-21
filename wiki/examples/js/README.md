@@ -277,6 +277,12 @@ node path/to/example.js # substitute for actual filename here
 
 - [Order Book Extra Level Depth Param](./examples/js/order-book-extra-level-depth-param.md)
 
+- [Order Router Custom Plan](./examples/js/order-router-custom-plan.md)
+
+- [Order Router Stream](./examples/js/order-router-stream.md)
+
+- [Order Router](./examples/js/order-router.md)
+
 - [Phemex Create Order Position With Takeprofit Stoploss](./examples/js/phemex-create-order-position-with-takeprofit-stoploss.md)
 
 - [Poll Ohlcv](./examples/js/poll-ohlcv.md)

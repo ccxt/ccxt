@@ -1618,6 +1618,9 @@ impl PoloniexCore {
     m
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
                 }
+                if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+                    continue;
+                }
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 if !is_equal(&bids, &Value::Null) {
                     {

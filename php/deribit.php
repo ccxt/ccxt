@@ -515,7 +515,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USD';
         $settle = null;
@@ -701,11 +701,11 @@ class deribit extends Exchange {
         ));
     }
 
-    public function code_from_options(mixed $methodName, $params = array()) {
-        $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-        $options = $this->safe_value($this->options, $methodName, array());
-        $code = $this->safe_value($options, 'code', $defaultCode);
-        return $this->safe_value($params, 'code', $code);
+    public function code_from_options(?string $methodName, $params = array()): ?string {
+        $defaultCode = $this->safe_string($this->options, 'code', 'BTC');
+        $options = $this->safe_dict($this->options, $methodName, array());
+        $code = $this->safe_string($options, 'code', $defaultCode);
+        return $this->safe_string($params, 'code', $code);
     }
 
     public function fetch_status($params = array()): array {
@@ -730,7 +730,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_dict($response, 'result');
         $locked = $this->safe_string($result, 'locked');
         $updateTime = $this->safe_integer_product($response, 'usIn', 0.001, $this->milliseconds());
         return array(
@@ -789,11 +789,11 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         return $this->parse_accounts($result);
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         //      {
         //          "username": "someusername_1",
@@ -956,7 +956,7 @@ class deribit extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = $this->safe_currency_code($settleId);
-                $settlementPeriod = $this->safe_value($market, 'settlement_period');
+                $settlementPeriod = $this->safe_string($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
                 if ($kind === null) {
                     throw new ExchangeError($this->id . ' method() missing kind');
@@ -1024,7 +1024,7 @@ class deribit extends Exchange {
                     'swap' => $swap,
                     'future' => $future,
                     'option' => $option,
-                    'active' => $this->safe_value($market, 'is_active'),
+                    'active' => $this->safe_bool($market, 'is_active'),
                     'contract' => !$isSpot,
                     'linear' => $linear,
                     'inverse' => $inverse,
@@ -1193,7 +1193,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
         return array(
@@ -1240,7 +1240,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
         return array(
@@ -1303,7 +1303,7 @@ class deribit extends Exchange {
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string_2($ticker, 'last_price', 'last');
-        $stats = $this->safe_value($ticker, 'stats', $ticker);
+        $stats = $this->safe_dict($ticker, 'stats', $ticker);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1702,7 +1702,7 @@ class deribit extends Exchange {
         //          "testnet":false
         //      }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1775,7 +1775,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $fees = $this->safe_list($result, 'fees', array());
         $perpetualFee = array();
         $futureFee = array();
@@ -1889,7 +1889,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'timestamp');
         $nonce = $this->safe_integer($result, 'change_id');
         $orderbook = $this->parse_order_book($result, $market['symbol'], $timestamp);
@@ -1917,7 +1917,7 @@ class deribit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order_type(mixed $orderType) {
+    public function parse_order_type(?string $orderType): ?string {
         $orderTypes = array(
             'stop_limit' => 'limit',
             'take_limit' => 'limit',
@@ -1996,9 +1996,9 @@ class deribit extends Exchange {
         $rawType = $this->safe_string($order, 'order_type');
         $type = $this->parse_order_type($rawType);
         // injected in createOrder
-        $trades = $this->safe_value($order, 'trades');
+        $trades = $this->safe_list($order, 'trades');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $postOnly = $this->safe_value($order, 'post_only');
+        $postOnly = $this->safe_bool($order, 'post_only');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2024,7 +2024,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2078,7 +2078,7 @@ class deribit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -2246,14 +2246,14 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_value($result, 'trades', array());
+        $trades = $this->safe_list($result, 'trades', array());
         $order['trades'] = $trades;
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade $order
          *
@@ -2294,14 +2294,14 @@ class deribit extends Exchange {
             $params = $this->omit($params, 'trigger_offset');
         }
         $response = $this->privateGetEdit($this->extend($request, $params));
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_value($result, 'trades', array());
+        $trades = $this->safe_list($result, 'trades', array());
         $order['trades'] = $trades;
         return $this->parse_order($order);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2323,7 +2323,7 @@ class deribit extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -2434,7 +2434,7 @@ class deribit extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -2491,7 +2491,7 @@ class deribit extends Exchange {
         return $this->parse_trades($result, null, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -2570,7 +2570,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -2621,7 +2621,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
@@ -2676,7 +2676,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
@@ -2759,7 +2759,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2827,7 +2827,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on a single open contract trade position
          *
@@ -2967,7 +2967,7 @@ class deribit extends Exchange {
         return $this->parse_volatility_history($response);
     }
 
-    public function parse_volatility_history(mixed $volatility) {
+    public function parse_volatility_history(array $volatility): array {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3056,7 +3056,7 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $transfers = $this->safe_list($result, 'data', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
@@ -3087,7 +3087,7 @@ class deribit extends Exchange {
         $method = $this->safe_string($params, 'method');
         $params = $this->omit($params, 'method');
         if ($method === null) {
-            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
         }
         $response = null;
@@ -3192,7 +3192,7 @@ class deribit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -3295,7 +3295,7 @@ class deribit extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the current funding $rate
          *
@@ -3419,7 +3419,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the public liquidations of a trading pair
          *
@@ -3479,14 +3479,14 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $cursor = $this->safe_string($result, 'continuation');
-        $settlements = $this->safe_value($result, 'settlements', array());
+        $settlements = $this->safe_list($result, 'settlements', array());
         $settlementsWithCursor = $this->add_pagination_cursor_to_result($cursor, $settlements);
         return $this->parse_liquidations($settlementsWithCursor, $market, $since, $limit);
     }
 
-    public function add_pagination_cursor_to_result(mixed $cursor, mixed $data) {
+    public function add_pagination_cursor_to_result(?string $cursor, array $data): array {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
@@ -3501,7 +3501,7 @@ class deribit extends Exchange {
         return $data;
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves the users liquidated positions
          *
@@ -3558,12 +3558,12 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $settlements = $this->safe_list($result, 'settlements', array());
         return $this->parse_liquidations($settlements, $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "type": "bankruptcy",
@@ -3654,7 +3654,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_greeks($result, $market);
     }
 
@@ -3701,7 +3701,7 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer($greeks, 'timestamp');
         $marketId = $this->safe_string($greeks, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $stats = $this->safe_value($greeks, 'greeks', array());
+        $stats = $this->safe_dict($greeks, 'greeks', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -3885,7 +3885,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * Retrieves the open interest of a $symbol
          *
@@ -3943,7 +3943,7 @@ class deribit extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "high": 93099.5,
@@ -3988,11 +3988,11 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
@@ -4036,7 +4036,7 @@ class deribit extends Exchange {
         //         "usDiff": 36
         //     }
         //
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_dict($response, 'error');
         if ($error !== null) {
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $body;

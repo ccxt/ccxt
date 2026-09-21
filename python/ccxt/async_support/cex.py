@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -317,7 +317,7 @@ class cex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -432,7 +432,7 @@ class cex(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for ace
 
@@ -526,7 +526,7 @@ class cex(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -549,7 +549,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return timestamp
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -564,7 +564,7 @@ class cex(Exchange, ImplicitAPI):
         response = await self.fetch_tickers([symbol], params)
         return self.safe_dict(response, symbol, {})
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -634,7 +634,7 @@ class cex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -712,7 +712,7 @@ class cex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -752,7 +752,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderBook, 'timestamp')
         return self.parse_order_book(orderBook, market['symbol'], timestamp)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -824,7 +824,7 @@ class cex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -850,7 +850,7 @@ class cex(Exchange, ImplicitAPI):
         fees = self.safe_dict(data, 'tradingFee', {})
         return self.parse_trading_fees(fees, True)
 
-    def parse_trading_fees(self, response: object, useKeyAsId=False) -> TradingFees:
+    def parse_trading_fees(self, response: dict, useKeyAsId: Bool = False) -> TradingFees:
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -879,7 +879,7 @@ class cex(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         if self.markets is None:
             await self.load_markets()
         response = await self.privatePostGetMyAccountStatusV3(params)
@@ -916,7 +916,7 @@ class cex(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -984,7 +984,7 @@ class cex(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1063,7 +1063,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1077,7 +1077,7 @@ class cex(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://trade.cex.io/docs/#rest-private-api-calls-orders
@@ -1091,7 +1091,7 @@ class cex(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an open order made by the user
 
@@ -1110,7 +1110,7 @@ class cex(Exchange, ImplicitAPI):
         result = await self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         return result[0]
 
-    async def fetch_closed_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_closed_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an closed order made by the user
 
@@ -1220,7 +1220,7 @@ class cex(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1317,7 +1317,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1342,7 +1342,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1373,7 +1373,7 @@ class cex(Exchange, ImplicitAPI):
             orders.append({'clientOrderId': id})
         return self.parse_orders(orders)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1452,7 +1452,7 @@ class cex(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -1460,7 +1460,7 @@ class cex(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1549,7 +1549,7 @@ class cex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -1573,7 +1573,7 @@ class cex(Exchange, ImplicitAPI):
             transfer['toAccount'] = toAccount
         return transfer
 
-    async def transfer_between_main_and_sub_account(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer_between_main_and_sub_account(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1607,7 +1607,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transfer(data, currency)
 
-    async def transfer_between_sub_accounts(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer_between_sub_accounts(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -1666,7 +1666,7 @@ class cex(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status(self.safe_string(transfer, 'status')),
         }
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -1719,7 +1719,7 @@ class cex(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

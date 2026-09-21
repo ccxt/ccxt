@@ -228,7 +228,7 @@ class binance extends binance$1["default"] {
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
-            const streamLimits = this.safeValue(this.options, 'streamLimits');
+            const streamLimits = this.safeDict(this.options, 'streamLimits');
             const streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = streamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
@@ -237,7 +237,7 @@ class binance extends binance$1["default"] {
             if (subscriptionHash !== undefined) {
                 this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             }
-            const subscriptionsByStreams = this.safeValue(this.options, 'numSubscriptionsByStream');
+            const subscriptionsByStreams = this.safeDict(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
                 this.options['numSubscriptionsByStream'] = this.createSafeDictionary();
             }
@@ -459,7 +459,7 @@ class binance extends binance$1["default"] {
         //        }
         //    }
         //
-        const rawLiquidation = this.safeValue(message, 'o', {});
+        const rawLiquidation = this.safeDict(message, 'o', {});
         const marketId = this.safeString(rawLiquidation, 's');
         const market = this.safeMarket(marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
@@ -950,9 +950,9 @@ class binance extends binance$1["default"] {
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
-            const type = this.safeValue(subscription, 'type');
+            const type = this.safeString(subscription, 'type');
             const limit = this.safeInteger(subscription, 'limit', defaultLimit);
-            const params = this.safeValue(subscription, 'params');
+            const params = this.safeDict(subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1017,8 +1017,8 @@ class binance extends binance$1["default"] {
     }
     handleOrderBookMessage(client, message, orderbook) {
         const u = this.safeInteger(message, 'u');
-        this.handleDeltas(orderbook['asks'], this.safeValue(message, 'a', []));
-        this.handleDeltas(orderbook['bids'], this.safeValue(message, 'b', []));
+        this.handleDeltas(orderbook['asks'], this.safeList(message, 'a', []));
+        this.handleDeltas(orderbook['bids'], this.safeList(message, 'b', []));
         orderbook['nonce'] = u;
         const timestamp = this.safeInteger(message, 'E');
         orderbook['timestamp'] = timestamp;
@@ -1149,7 +1149,7 @@ class binance extends binance$1["default"] {
         const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString(subscription, 'symbol'); // watchOrderBook
-        const symbols = this.safeValue(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
+        const symbols = this.safeList(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
         const limit = this.safeInteger(subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
@@ -1172,7 +1172,7 @@ class binance extends binance$1["default"] {
         //
         const id = this.safeString(message, 'id');
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id, {});
+        const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
             method.call(this, client, message, subscription);
@@ -1275,7 +1275,7 @@ class binance extends binance$1["default"] {
         };
         const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1863,7 +1863,7 @@ class binance extends binance$1["default"] {
             'markPrice_kline': 'markPriceKline',
         };
         event = this.safeString(eventMap, event, event);
-        const kline = this.safeValue(message, 'k');
+        const kline = this.safeDict(message, 'k');
         let marketId = this.safeString2(kline, 's', 'ps');
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
@@ -1886,8 +1886,8 @@ class binance extends binance$1["default"] {
         const marketType = isSpot ? 'spot' : 'contract';
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -2622,7 +2622,7 @@ class binance extends binance$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const result = this.safeValue(message, 'result', {});
+        const result = this.safeDict(message, 'result', {});
         const ticker = this.parseWsTicker(result, 'future');
         client.resolve(ticker, messageHash);
     }
@@ -2710,12 +2710,12 @@ class binance extends binance$1["default"] {
                 continue;
             }
             const tickerMarketId = this.safeString(ticker, 's');
-            const tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
+            const tickerMarketsByIdList = this.safeList(this.markets_by_id, tickerMarketId);
             const numTickerMarkets = (tickerMarketsByIdList === undefined) ? 0 : tickerMarketsByIdList.length;
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            const tickerMarketById = (numTickerMarkets === 1) ? this.safeValue(tickerMarketsByIdList, 0) : undefined;
+            const tickerMarketById = (numTickerMarkets === 1) ? this.safeDict(tickerMarketsByIdList, 0) : undefined;
             const isSpot = this.isSpotUrl(client);
             const tickerFallbackType = isSpot ? 'spot' : 'contract';
             const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
@@ -2992,7 +2992,7 @@ class binance extends binance$1["default"] {
         }
         params = this.omit(params, 'symbol');
         const isStock = (type === 'stock');
-        const options = this.safeValue(this.options, type, {});
+        const options = this.safeDict(this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
         const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
         const listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
@@ -3101,7 +3101,7 @@ class binance extends binance$1["default"] {
             return;
         }
         const isStock = (type === 'stock');
-        const options = this.safeValue(this.options, type, {});
+        const options = this.safeDict(this.options, type, {});
         const listenKey = this.safeString(options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -3198,7 +3198,7 @@ class binance extends binance$1["default"] {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
-        const options = this.safeValue(this.options, 'watchBalance');
+        const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
@@ -3219,7 +3219,7 @@ class binance extends binance$1["default"] {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -5423,12 +5423,12 @@ class binance extends binance$1["default"] {
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-                    const order = this.safeValue(orders, orderId);
+                    const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+                    const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
                         const fees = this.safeValue(order, 'fees');
-                        const fee = this.safeValue(order, 'fee');
+                        const fee = this.safeDict(order, 'fee');
                         if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
@@ -5505,8 +5505,8 @@ class binance extends binance$1["default"] {
                 this.orders = new Cache.ArrayCacheBySymbolById(limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue(orders, orderId);
+            const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict(orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue(order, 'fee');
                 if (fee !== undefined) {
@@ -5696,7 +5696,7 @@ class binance extends binance$1["default"] {
         }
         // user subscription wraps message in subscriptionId and event
         const id = this.safeString(message, 'id');
-        const subscriptions = this.safeValue(client.subscriptions, id);
+        const subscriptions = this.safeDict(client.subscriptions, id);
         let method = this.safeValue(subscriptions, 'method');
         if (method !== undefined) {
             method.call(this, client, message);

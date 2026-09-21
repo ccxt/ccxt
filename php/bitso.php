@@ -323,12 +323,12 @@ class bitso extends Exchange {
         //         }]
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         $currency = $this->safe_currency($code);
         return $this->parse_ledger($payload, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'funding' => 'transaction',
             'withdrawal' => 'transaction',
@@ -395,15 +395,15 @@ class bitso extends Exchange {
         //     }
         $operation = $this->safe_string($item, 'operation');
         $type = $this->parse_ledger_entry_type($operation);
-        $balanceUpdates = $this->safe_value($item, 'balance_updates', array());
-        $firstBalance = $this->safe_value($balanceUpdates, 0, array());
+        $balanceUpdates = $this->safe_list($item, 'balance_updates', array());
+        $firstBalance = $this->safe_dict($balanceUpdates, 0, array());
         $direction = null;
         $fee = null;
         $amount = $this->safe_string($firstBalance, 'amount');
         $currencyId = $this->safe_string($firstBalance, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $currency = $this->safe_currency($currencyId, $currency);
-        $details = $this->safe_value($item, 'details', array());
+        $details = $this->safe_dict($item, 'details', array());
         $referenceId = $this->safe_string_2($details, 'fid', 'wid');
         if ($referenceId === null) {
             $referenceId = $this->safe_string($details, 'tid');
@@ -495,8 +495,8 @@ class bitso extends Exchange {
             $quote = strtoupper($quoteId);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $fees = $this->safe_value($market, 'fees', array());
-            $flatRate = $this->safe_value($fees, 'flat_rate', array());
+            $fees = $this->safe_dict($market, 'fees', array());
+            $flatRate = $this->safe_dict($fees, 'flat_rate', array());
             $takerString = $this->safe_string($flatRate, 'taker');
             $makerString = $this->safe_string($flatRate, 'maker');
             $taker = $this->parse_number(Precise::string_div($takerString, '100'));
@@ -737,7 +737,7 @@ class bitso extends Exchange {
             'book' => $market['id'],
         );
         $response = $this->publicGetOrderBook($this->extend($request, $params));
-        $orderbook = $this->safe_value($response, 'payload');
+        $orderbook = $this->safe_dict($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -1090,7 +1090,7 @@ class bitso extends Exchange {
         //        }
         //    }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_dict($response, 'payload', array());
         $fees = $this->safe_list($payload, 'fees', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
@@ -1109,7 +1109,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1152,7 +1152,7 @@ class bitso extends Exchange {
         return $this->parse_trades($payload, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1188,7 +1188,7 @@ class bitso extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1388,7 +1388,7 @@ class bitso extends Exchange {
         return $orders;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1405,7 +1405,7 @@ class bitso extends Exchange {
         $response = $this->privateGetOrdersOid(array(
             'oid' => $id,
         ));
-        $payload = $this->safe_value($response, 'payload');
+        $payload = $this->safe_list($response, 'payload');
         if ((gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload)))) {
             $numOrders = count($payload);
             if ($numOrders === 1) {
@@ -1415,7 +1415,7 @@ class bitso extends Exchange {
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -1481,7 +1481,7 @@ class bitso extends Exchange {
         //         }]
         //     }
         //
-        $transactions = $this->safe_value($response, 'payload', array());
+        $transactions = $this->safe_list($response, 'payload', array());
         $first = $this->safe_dict($transactions, 0, array());
         return $this->parse_transaction($first);
     }
@@ -1625,7 +1625,7 @@ class bitso extends Exchange {
         //    }
         //
         $result = array();
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_dict($response, 'payload', array());
         $depositFees = $this->safe_list($payload, 'deposit_fees', array());
         for ($i = 0; $i < count($depositFees); $i++) {
             $depositFee = $depositFees[$i];
@@ -1655,10 +1655,10 @@ class bitso extends Exchange {
             }
             if ($code !== null) {
                 $result[$code] = array(
-                    'deposit' => $this->safe_value($this->safe_value($result, $code), 'deposit'),
+                    'deposit' => $this->safe_value($this->safe_dict($result, $code), 'deposit'),
                     'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
                     'info' => array(
-                        'deposit' => $this->safe_value($this->safe_value($this->safe_value($result, $code), 'info'), 'deposit'),
+                        'deposit' => $this->safe_value($this->safe_dict($this->safe_dict($result, $code), 'info'), 'deposit'),
                         'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
                     ),
                 );
@@ -1728,7 +1728,7 @@ class bitso extends Exchange {
         return $this->parse_deposit_withdraw_fees($payload, $codes);
     }
 
-    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null): mixed {
         //
         //    {
         //        "fees": [
@@ -1781,7 +1781,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => ($this->safe_value($entry, 'is_fixed') !== true),
+                            'percentage' => ($this->safe_bool($entry, 'is_fixed') !== true),
                         ),
                         'withdraw' => array(
                             'fee' => null,
@@ -1799,7 +1799,7 @@ class bitso extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codes === null) || (is_array($codes) && array_key_exists($code ?? '', $codes)))) {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
-                $resultValue = $this->safe_value($result, $code);
+                $resultValue = $this->safe_dict($result, $code);
                 if ($resultValue === null) {
                     $result[$code] = $this->deposit_withdraw_fee(array());
                 }
@@ -1863,7 +1863,7 @@ class bitso extends Exchange {
         //         ]
         //     }
         //
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_list($response, 'payload', array());
         $first = $this->safe_dict($payload, 0);
         return $this->parse_transaction($first, $currency);
     }
@@ -1907,7 +1907,7 @@ class bitso extends Exchange {
         //
         $currencyId = $this->safe_string_2($transaction, 'currency', 'asset');
         $currency = $this->safe_currency($currencyId, $currency);
-        $details = $this->safe_value($transaction, 'details', array());
+        $details = $this->safe_dict($transaction, 'details', array());
         $datetime = $this->safe_string($transaction, 'created_at');
         $withdrawalAddress = $this->safe_string($details, 'withdrawal_address');
         $receivingAddress = $this->safe_string($details, 'receiving_address');
@@ -1950,11 +1950,11 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {
@@ -2003,7 +2003,7 @@ class bitso extends Exchange {
             }
             if ($success !== true) {
                 $feedback = $this->id . ' ' . $this->json($response);
-                $error = $this->safe_value($response, 'error');
+                $error = $this->safe_dict($response, 'error');
                 if ($error === null) {
                     throw new ExchangeError($feedback);
                 }

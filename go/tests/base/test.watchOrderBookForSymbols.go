@@ -19,7 +19,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 	// symbol to be seen would hang forever whenever one of them stays idle.
 	var maxIdleTime int = 5000
 	var currentTime int64 = exchange.Milliseconds()
-	var deadline any = Add(currentTime, 15000)
+	var deadline any = currentTime + 15000
 	var idle bool = false
 	for (IsLessThan(currentTime, deadline)) && !idle {
 		var response any = nil
@@ -56,7 +56,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 		if (succeeded == true) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, nil)
 			AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
-			var elapsed int64 = Subtract(currentTime, startTime).(int64)
+			var elapsed any = currentTime - startTime
 			if IsGreaterThan(elapsed, maxIdleTime) {
 				idle = true
 			}

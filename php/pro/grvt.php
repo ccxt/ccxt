@@ -58,7 +58,7 @@ class grvt extends \ccxt\async\grvt {
         ));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // confirmation
         //
@@ -133,7 +133,7 @@ class grvt extends \ccxt\async\grvt {
         return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $newValue = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $newValue;
@@ -210,7 +210,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // v1.ticker.s
         //
@@ -298,7 +298,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($ticker, 'ticker::' . $symbol);
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null) {
+    public function parse_ws_ticker(array $message, ?array $market = null): array {
         // same dict as REST api
         return $this->parse_ticker($message, $market);
     }
@@ -355,14 +355,14 @@ class grvt extends \ccxt\async\grvt {
         );
         $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.trade",
@@ -401,7 +401,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         // same as REST api
         return $this->parse_trade($trade, $market);
     }
@@ -475,7 +475,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.candle",
@@ -506,7 +506,7 @@ class grvt extends \ccxt\async\grvt {
         $timeframeId = str_replace('-TRADE', '', $secondPart);
         $timeframe = $this->find_timeframe($timeframeId);
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->handle_option('watchOHLCV', 'limit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
@@ -596,7 +596,7 @@ class grvt extends \ccxt\async\grvt {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.book.s",
@@ -736,7 +736,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.fill",
@@ -783,7 +783,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->myTrades, 'myTrades');
     }
 
-    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         return $this->parse_trade($trade, $market);
     }
 
@@ -833,7 +833,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_position(mixed $client, mixed $message) {
+    public function handle_position(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.position",
@@ -922,7 +922,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
         //        "stream": "v1.order",

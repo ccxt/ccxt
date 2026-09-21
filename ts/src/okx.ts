@@ -6,7 +6,7 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, OpenInterest, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1510,7 +1510,7 @@ export default class okx extends Exchange {
         return this.safeString (exchangeTypes, (type as string), type);
     }
 
-    override createExpiredOptionMarket (symbol: string) {
+    override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
         const quote = 'USD';
         const optionParts = symbol.split ('-');
@@ -1601,7 +1601,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetSystemStatus (params);
         //
         // Note, if there is no maintenance around, the 'data' array is empty
@@ -1658,7 +1658,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetPublicTime (params);
         //
         //     {
@@ -1682,7 +1682,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         const response = await this.privateGetAccountConfig (params);
         //
         //     {
@@ -1739,7 +1739,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
@@ -1751,7 +1751,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
@@ -1950,7 +1950,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type: any, params = {}): Promise<Market[]> {
+    async fetchMarketsByType (type: any, params: Dict = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -2032,7 +2032,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
@@ -2171,7 +2171,7 @@ export default class okx extends Exchange {
      * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2317,7 +2317,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2366,7 +2366,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2426,7 +2426,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2462,7 +2462,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2595,7 +2595,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2710,7 +2710,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2818,7 +2818,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -2880,7 +2880,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseBalanceByType (type: any, response: any) {
+    parseBalanceByType (type: Str, response: Dict): Balances {
         if (type === 'funding') {
             return this.parseFundingBalance (response);
         } else {
@@ -2888,7 +2888,7 @@ export default class okx extends Exchange {
         }
     }
 
-    parseTradingBalance (response: any) {
+    parseTradingBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
@@ -2918,7 +2918,7 @@ export default class okx extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseFundingBalance (response: any) {
+    parseFundingBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
@@ -2971,7 +2971,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3023,7 +3023,7 @@ export default class okx extends Exchange {
      * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3152,7 +3152,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3177,7 +3177,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3192,7 +3192,7 @@ export default class okx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (req, params));
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -3246,8 +3246,8 @@ export default class okx extends Exchange {
         const slOrdPx = this.safeNumber (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
@@ -3534,7 +3534,7 @@ export default class okx extends Exchange {
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3579,7 +3579,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3592,8 +3592,8 @@ export default class okx extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
@@ -3626,7 +3626,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol: Str, type: any, side: any, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -3655,8 +3655,8 @@ export default class okx extends Exchange {
         let takeProfitTriggerPrice: Num = this.safeNumber2 (params, 'takeProfitPrice', 'newTpTriggerPx');
         let takeProfitPrice = this.safeNumber (params, 'newTpOrdPx');
         const takeProfitTriggerPriceType = this.safeString (params, 'newTpTriggerPxType', 'last');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (isAlgoOrder) {
@@ -3751,7 +3751,7 @@ export default class okx extends Exchange {
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3803,7 +3803,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -3865,7 +3865,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
@@ -3978,7 +3978,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
+    override async cancelOrdersForSymbols (orders: CancellationRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4061,7 +4061,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4404,7 +4404,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -4563,7 +4563,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4730,7 +4730,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4921,7 +4921,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5103,7 +5103,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5177,7 +5177,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const request: Dict = {
             // 'instrument_id': market['id'],
             'ordId': id,
@@ -5204,7 +5204,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5313,7 +5313,7 @@ export default class okx extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
@@ -5507,7 +5507,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
+    override async fetchDepositAddressesByNetwork (code: string, params: Dict = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5553,7 +5553,7 @@ export default class okx extends Exchange {
      * @param {string} [params.network] the network name for the deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5592,7 +5592,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if (this.markets === undefined) {
@@ -5660,7 +5660,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5741,7 +5741,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchDeposit (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5772,7 +5772,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5845,7 +5845,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6049,7 +6049,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6123,7 +6123,7 @@ export default class okx extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}): Promise<Position> {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6203,7 +6203,7 @@ export default class okx extends Exchange {
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6296,11 +6296,11 @@ export default class okx extends Exchange {
      * @param {string} [params.instType] MARGIN (if needed)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsForSymbol (symbol: string, params = {}) {
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
         return await this.fetchPositions ([ symbol ], params);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //        "adl": "3",
@@ -6486,7 +6486,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6635,7 +6635,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+    override async fetchTransfer (id: string, code: Str = undefined, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6680,7 +6680,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6735,7 +6735,7 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -6858,7 +6858,7 @@ export default class okx extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval: any) {
+    parseFundingInterval (interval: Str): Str {
         const intervals: Dict = {
             '3600000': '1h',
             '7200000': '2h',
@@ -6879,7 +6879,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
     }
 
@@ -6937,7 +6937,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6986,7 +6986,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7156,7 +7156,7 @@ export default class okx extends Exchange {
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7217,7 +7217,7 @@ export default class okx extends Exchange {
      * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+    override async fetchPositionMode (symbol: Str = undefined, params: Dict = {}): Promise<PositionModeInfo> {
         const accounts = await this.fetchAccounts ();
         const length = accounts.length;
         let selectedAccount: Dict;
@@ -7252,7 +7252,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         let hedgeMode: Str = undefined;
         if (hedged) {
             hedgeMode = 'long_short_mode';
@@ -7288,7 +7288,7 @@ export default class okx extends Exchange {
      * @param {int} [params.leverage] leverage
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -7338,7 +7338,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    override async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
+    override async fetchCrossBorrowRates (params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7425,7 +7425,7 @@ export default class okx extends Exchange {
         };
     }
 
-    parseBorrowRateHistories (response: any, codes: any, since: any, limit: any) {
+    parseBorrowRateHistories (response: List, codes: Strings, since: Int, limit: Int): Dict {
         //
         //    [
         //        {
@@ -7471,7 +7471,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    async fetchBorrowRateHistories (codes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistories (codes: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7517,7 +7517,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7553,7 +7553,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7676,7 +7676,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
@@ -7690,7 +7690,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -7704,7 +7704,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    override async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+    override async fetchMarketLeverageTiers (symbol: string, params: Dict = {}): Promise<LeverageTier[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7812,7 +7812,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7893,7 +7893,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async borrowCrossMargin (code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7935,7 +7935,7 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async repayCrossMargin (code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7972,7 +7972,7 @@ export default class okx extends Exchange {
         return this.parseMarginLoan (loan, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "amt": "102",
@@ -8005,7 +8005,7 @@ export default class okx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8052,7 +8052,7 @@ export default class okx extends Exchange {
      * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
      * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8115,7 +8115,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeDict (options, 'timeframes', {});
         timeframe = this.safeString (timeframes, timeframe, timeframe);
@@ -8173,7 +8173,7 @@ export default class okx extends Exchange {
         return this.parseOpenInterestsHistory (data, undefined, since, limit);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //
@@ -8247,7 +8247,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params: Dict = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8304,7 +8304,7 @@ export default class okx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: any = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
         //
         // [
         //   {
@@ -8384,7 +8384,7 @@ export default class okx extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
@@ -8432,7 +8432,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: Market): Dict {
         //
         //     {
         //         "insId": "BTC-USD-230521-28500-P",
@@ -8450,7 +8450,7 @@ export default class okx extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: List, market: Market): List {
         //
         //     {
         //         "details": [
@@ -8488,7 +8488,7 @@ export default class okx extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    async fetchUnderlyingAssets (params = {}): Promise<string[]> {
+    async fetchUnderlyingAssets (params: Dict = {}): Promise<string[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8529,7 +8529,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    override async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8593,7 +8593,7 @@ export default class okx extends Exchange {
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
+    override async fetchAllGreeks (symbols: Strings = undefined, params: Dict = {}): Promise<AllGreeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8729,7 +8729,7 @@ export default class okx extends Exchange {
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8790,7 +8790,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    override async fetchOption (symbol: string, params = {}): Promise<Option> {
+    override async fetchOption (symbol: string, params: Dict = {}): Promise<Option> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8840,7 +8840,7 @@ export default class okx extends Exchange {
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    override async fetchOptionChain (code: string, params = {}): Promise<OptionChain> {
+    override async fetchOptionChain (code: string, params: Dict = {}): Promise<OptionChain> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8936,7 +8936,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8992,7 +8992,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9046,7 +9046,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    override async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+    override async fetchConvertTrade (id: string, code: Str = undefined, params: Dict = {}): Promise<Conversion> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9102,7 +9102,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Conversion[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9220,7 +9220,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+    override async fetchConvertCurrencies (params: Dict = {}): Promise<Currencies> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9333,7 +9333,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params: Dict = {}): Promise<MarginModification[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9442,7 +9442,7 @@ export default class okx extends Exchange {
      * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9520,7 +9520,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
-    override async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    override async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LongShortRatio[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

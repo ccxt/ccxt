@@ -308,7 +308,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for hollaex
 
@@ -387,7 +387,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': self.safe_value(market, 'active'),
+                'active': self.safe_bool(market, 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -423,7 +423,7 @@ class hollaex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -551,14 +551,14 @@ class hollaex(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     'min': None,
-                    'max': self.safe_value(withdrawalLimits, 0),
+                    'max': self.safe_number(withdrawalLimits, 0),
                 },
             },
             'networks': networks,
             'type': type,
         })
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -582,7 +582,7 @@ class hollaex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -619,11 +619,11 @@ class hollaex(Exchange, ImplicitAPI):
         #         // ...
         #     }
         #
-        orderbook = self.safe_value(response, market['id'])
+        orderbook = self.safe_dict(response, market['id'])
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -653,7 +653,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -684,7 +684,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, tickers: object, symbols: Strings = None, params={}) -> Tickers:
+    def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         result = {}
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
@@ -751,7 +751,7 @@ class hollaex(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -842,7 +842,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -882,10 +882,10 @@ class hollaex(Exchange, ImplicitAPI):
         #         ...
         #     }
         #
-        firstTier = self.safe_value(response, '1', {})
-        fees = self.safe_value(firstTier, 'fees', {})
-        makerFees = self.safe_value(fees, 'maker', {})
-        takerFees = self.safe_value(fees, 'taker', {})
+        firstTier = self.safe_dict(response, '1', {})
+        fees = self.safe_dict(firstTier, 'fees', {})
+        makerFees = self.safe_dict(fees, 'maker', {})
+        takerFees = self.safe_dict(fees, 'taker', {})
         result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
@@ -902,7 +902,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         hollaex has large gaps between candles, so it's recommended to specify since
 
@@ -997,7 +997,7 @@ class hollaex(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1066,7 +1066,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1083,7 +1083,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1100,7 +1100,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1144,7 +1144,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1259,7 +1259,7 @@ class hollaex(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        meta = self.safe_value(order, 'meta', {})
+        meta = self.safe_dict(order, 'meta', {})
         postOnly = self.safe_bool(meta, 'post_only', False)
         return self.safe_order({
             'id': id,
@@ -1285,7 +1285,7 @@ class hollaex(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1313,7 +1313,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'meta': {}, // other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
-        meta = self.safe_value(params, 'meta', {})
+        meta = self.safe_dict(params, 'meta', {})
         exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
@@ -1350,7 +1350,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1382,7 +1382,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1418,7 +1418,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1497,7 +1497,7 @@ class hollaex(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1557,11 +1557,11 @@ class hollaex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        wallet = self.safe_value(response, 'wallet', [])
+        wallet = self.safe_list(response, 'wallet', [])
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes, False)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1663,11 +1663,11 @@ class hollaex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         transaction = self.safe_dict(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1778,8 +1778,8 @@ class hollaex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         status = self.safe_value(transaction, 'status')
-        dismissed = self.safe_value(transaction, 'dismissed')
-        rejected = self.safe_value(transaction, 'rejected')
+        dismissed = self.safe_bool(transaction, 'dismissed')
+        rejected = self.safe_bool(transaction, 'rejected')
         if status is True:
             status = 'ok'
         elif dismissed is True:
@@ -1820,7 +1820,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1863,7 +1863,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    "bch":{
         #        "id":4,
@@ -1906,10 +1906,10 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
+        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
         if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
-        withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
+        withdrawalFees = self.safe_dict(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
             keys = list(withdrawalFees.keys())
             keysLength = len(keys)
@@ -1929,7 +1929,7 @@ class hollaex(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -1978,7 +1978,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):

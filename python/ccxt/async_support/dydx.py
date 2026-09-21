@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.dydx import ImplicitAPI
 import math
-from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -466,7 +466,7 @@ class dydx(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -584,7 +584,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for dydx
 
@@ -665,7 +665,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -731,7 +731,7 @@ class dydx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'baseTokenVolume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.dydx.xyz/indexer-client/http#get-candles
@@ -785,7 +785,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -936,7 +936,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string_upper(types, type, type)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -955,7 +955,7 @@ class dydx(Exchange, ImplicitAPI):
         order = await self.indexerGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1015,7 +1015,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1034,7 +1034,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1053,7 +1053,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "market": "BTC-USD",
@@ -1108,7 +1108,7 @@ class dydx(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -1123,7 +1123,7 @@ class dydx(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1423,7 +1423,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchLatestBlockHeight() could not parse last_block_height')
         return height
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
 
         https://docs.dydx.xyz/interaction/trading#place-an-order
@@ -1483,7 +1483,7 @@ class dydx(Exchange, ImplicitAPI):
             'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
         })
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1578,7 +1578,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': result,
         })
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1644,7 +1644,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': result,
         })]
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1732,7 +1732,7 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -1741,7 +1741,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
@@ -1809,7 +1809,7 @@ class dydx(Exchange, ImplicitAPI):
             'gasLimit': gasLimit,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1938,7 +1938,7 @@ class dydx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2016,7 +2016,7 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2076,7 +2076,7 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2099,7 +2099,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2122,7 +2122,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2184,7 +2184,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.safe_list(response, 'transfers', [])
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2258,7 +2258,7 @@ class dydx(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2350,7 +2350,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_balance(result)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
     def get_wallet_address(self):
@@ -2364,7 +2364,7 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path: object, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         pathWithParams = self.implode_params(path, params)
         url = self.urls['api'][section]
         params = self.omit(params, self.extract_params(path))

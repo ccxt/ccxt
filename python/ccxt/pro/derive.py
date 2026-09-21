@@ -53,14 +53,14 @@ class derive(ccxt.async_support.derive):
             },
         })
 
-    def request_id(self, url: object):
-        options = self.safe_value(self.options, 'requestId', {})
+    def request_id(self, url: str) -> float:
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
 
-    async def watch_public(self, messageHash: object, message: object, subscription: object):
+    async def watch_public(self, messageHash: str, message: dict, subscription: dict):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         request = self.extend(message, {
@@ -72,7 +72,7 @@ class derive(ccxt.async_support.derive):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
@@ -106,7 +106,7 @@ class derive(ccxt.async_support.derive):
         orderbook = await self.watch_public(topic, request, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # {
         #     method: 'subscription',
@@ -139,7 +139,7 @@ class derive(ccxt.async_support.derive):
         orderbook.reset(snapshot)
         client.resolve(orderbook, topic)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://docs.derive.xyz/reference/ticker-instrument_name-interval
@@ -168,7 +168,7 @@ class derive(ccxt.async_support.derive):
         }
         return await self.watch_public(topic, request, subscription)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         # {
         #     method: 'subscription',
@@ -324,7 +324,7 @@ class derive(ccxt.async_support.derive):
         }
         return await self.un_watch_public(messageHah, request, subscription)
 
-    async def un_watch_public(self, messageHash: object, message: object, subscription: object):
+    async def un_watch_public(self, messageHash: str, message: dict, subscription: dict):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         request = self.extend(message, {
@@ -336,7 +336,7 @@ class derive(ccxt.async_support.derive):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    def handle_order_book_un_subscription(self, client: Client, topic: object):
+    def handle_order_book_un_subscription(self, client: Client, topic: str):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
@@ -349,7 +349,7 @@ class derive(ccxt.async_support.derive):
         client.reject(error, topic)
         client.resolve(error, 'unwatch' + topic)
 
-    def handle_trades_un_subscription(self, client: Client, topic: object):
+    def handle_trades_un_subscription(self, client: Client, topic: str):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
@@ -362,7 +362,7 @@ class derive(ccxt.async_support.derive):
         client.reject(error, topic)
         client.resolve(error, 'unwatch' + topic)
 
-    def handle_un_subscribe(self, client: Client, message: object):
+    def handle_un_subscribe(self, client: Client, message: dict) -> dict:
         #
         # {
         #     id: 1,
@@ -384,7 +384,7 @@ class derive(ccxt.async_support.derive):
                     self.handle_trades_un_subscription(client, topic)
         return message
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -418,7 +418,7 @@ class derive(ccxt.async_support.derive):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trade(self, client: Client, message: object):
+    def handle_trade(self, client: Client, message: dict):
         #
         #
         params = self.safe_dict(message, 'params')
@@ -438,7 +438,7 @@ class derive(ccxt.async_support.derive):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, topic)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
@@ -468,7 +468,7 @@ class derive(ccxt.async_support.derive):
             self.watch(url, messageHash, message, messageHash, message)
         return await future
 
-    async def watch_private(self, messageHash: object, message: object, subscription: object):
+    async def watch_private(self, messageHash: str, message: dict, subscription: dict):
         await self.authenticate()
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
@@ -481,7 +481,7 @@ class derive(ccxt.async_support.derive):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.derive.xyz/reference/subaccount_id-orders
@@ -522,7 +522,7 @@ class derive(ccxt.async_support.derive):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         # {
         #     method: 'subscription',
@@ -577,8 +577,8 @@ class derive(ccxt.async_support.derive):
                     limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                     self.orders = ArrayCacheBySymbolById(limit)
                 cachedOrders = self.orders
-                orders = self.safe_value(cachedOrders.hashmap, symbol, {})
-                order = None if (orderId is None) else self.safe_value(orders, orderId)
+                orders = self.safe_dict(cachedOrders.hashmap, symbol, {})
+                order = None if (orderId is None) else self.safe_dict(orders, orderId)
                 if order is not None:
                     fee = self.safe_value(order, 'fee')
                     if fee is not None:
@@ -594,7 +594,7 @@ class derive(ccxt.async_support.derive):
                 client.resolve(self.orders, messageHashSymbol)
         client.resolve(self.orders, topic)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.derive.xyz/reference/subaccount_id-trades
@@ -635,7 +635,7 @@ class derive(ccxt.async_support.derive):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #
         myTrades = self.myTrades
@@ -652,7 +652,7 @@ class derive(ccxt.async_support.derive):
             messageHash = topic + self.safe_string(trade, 'symbol', '')
             client.resolve(myTrades, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         # {
         #     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -679,7 +679,7 @@ class derive(ccxt.async_support.derive):
                 client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             return
         methods = {
@@ -710,7 +710,7 @@ class derive(ccxt.async_support.derive):
         if 'id' in message:
             id = self.safe_string(message, 'id')
             subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = {} if (id is None) else self.safe_value(subscriptionsById, id, {})
+            subscription = {} if (id is None) else self.safe_dict(subscriptionsById, id, {})
             if 'method' in subscription:
                 if subscription['method'] == 'public/login':
                     self.handle_auth(client, message)
@@ -718,7 +718,7 @@ class derive(ccxt.async_support.derive):
                     self.handle_un_subscribe(client, message)
                 # could handleSubscribe
 
-    def handle_auth(self, client: Client, message: object):
+    def handle_auth(self, client: Client, message: dict):
         #
         # {
         #     id: 1,

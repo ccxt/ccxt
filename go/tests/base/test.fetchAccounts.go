@@ -18,7 +18,7 @@ func testFetchAccountsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	accounts := (<-exchange.FetchAccountsAsync())
 	PanicOnError(accounts)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, accounts)
-	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
+	for i := 0; i < GetArrayLength(accounts); i++ {
 		TestAccount(exchange, skippedProperties, method, GetValue(accounts, i))
 	}
 

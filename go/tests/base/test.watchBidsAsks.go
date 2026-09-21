@@ -32,7 +32,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	_ = argParams
 	var method string = "watchBidsAsks"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
@@ -53,7 +53,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 							// for some exchanges, multi symbol methods might require symbols array to be present, so
 							// so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
 							// because tests will make a second call of this method with symbols array
-							if (IsInstance(e, ArgumentsRequired)) && (IsEqual(argSymbols, nil) || (GetArrayLength(argSymbols) == 0)) {
+							if (IsInstance(e, ArgumentsRequired)) && ((argSymbols == nil) || (GetArrayLength(argSymbols) == 0)) {
 								// todo: provide random symbols to try
 								// return false;
 								shouldReturn = true
@@ -83,15 +83,20 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil
-			if !IsEqual(argSymbols, nil) && (GetArrayLength(argSymbols) == 1) {
+			if (argSymbols != nil) && (GetArrayLength(argSymbols) == 1) {
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-			for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-				var ticker any = GetValue(values, i)
+			for i := 0; i < len(values); i++ {
+				var ticker any = func() any {
+					if i >= 0 && i < len(values) {
+						return DerefScalar(values[i])
+					}
+					return nil
+				}()
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
-			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
+			if IsGreaterThan((now - startTime), maxIdleTime) {
 				idle = true
 			}
 		}

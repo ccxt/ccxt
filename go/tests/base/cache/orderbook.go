@@ -388,11 +388,16 @@ func TestWsOrderBook() {
 	// every row must be a well formed price and amount pair, the php
 	// corruption produced rows holding only an amount
 	var desyncSides []any = []any{GetValue(desyncBook, "bids"), GetValue(desyncBook, "asks")}
-	for i := 0; IsLessThan(i, GetArrayLength(desyncSides)); i++ {
-		var side any = GetValue(desyncSides, i)
-		for k := 0; IsLessThan(k, GetArrayLength(side)); k++ {
+	for i := 0; i < len(desyncSides); i++ {
+		var side any = func() any {
+			if i >= 0 && i < len(desyncSides) {
+				return DerefScalar(desyncSides[i])
+			}
+			return nil
+		}()
+		for k := 0; k < GetArrayLength(side); k++ {
 			var row any = GetValue(side, k)
-			Assert(IsGreaterThanOrEqual(GetArrayLength(row), 2))
+			Assert((GetArrayLength(row) >= 2))
 			Assert(!IsEqual(GetValue(row, 0), nil))
 		}
 	}

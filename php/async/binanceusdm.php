@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class binanceusdm extends binance {
     public function describe(): mixed {
@@ -55,20 +56,20 @@ class binanceusdm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, mixed $amount, $params = array()) {
+    public function transfer_in(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_transfer_in(...))($code, $amount, $params);
     }
 
-    private function do_transfer_in(string $code, mixed $amount, $params = array()) {
+    private function do_transfer_in(string $code, float $amount, $params = array()) {
         // transfer from spot wallet to usdm futures wallet
         return Async\await($this->futuresTransfer($code, $amount, 1, $params));
     }
 
-    public function transfer_out(string $code, mixed $amount, $params = array()) {
+    public function transfer_out(string $code, float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_transfer_out(...))($code, $amount, $params);
     }
 
-    private function do_transfer_out(string $code, mixed $amount, $params = array()) {
+    private function do_transfer_out(string $code, float $amount, $params = array()) {
         // transfer from usdm futures wallet to spot wallet
         return Async\await($this->futuresTransfer($code, $amount, 2, $params));
     }

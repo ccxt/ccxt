@@ -155,10 +155,10 @@ class xt extends \ccxt\async\xt {
         return $client->subscriptions['token'];
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache): float {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        $firstDelta = $this->safe_value($cache, 0);
+        $firstDelta = $this->safe_dict($cache, 0);
         $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'i', 'u');
         if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
@@ -348,7 +348,7 @@ class xt extends \ccxt\async\xt {
         return Async\await($this->subscribe($name, 'public', 'watchTicker', $market, null, $params));
     }
 
-    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+    public function un_watch_ticker(string $symbol, $params = array()) {
         return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
@@ -409,7 +409,7 @@ class xt extends \ccxt\async\xt {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()) {
         return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
     }
 
@@ -472,7 +472,7 @@ class xt extends \ccxt\async\xt {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
         return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
     }
 
@@ -527,7 +527,7 @@ class xt extends \ccxt\async\xt {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
     }
 
-    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()) {
         return Async\async(self::do_un_watch_trades(...))($symbol, $params);
     }
 
@@ -584,7 +584,7 @@ class xt extends \ccxt\async\xt {
         return $orderbook->limit();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()) {
         return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
     }
 
@@ -858,7 +858,7 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function handle_position(mixed $client, mixed $message) {
+    public function handle_position(mixed $client, array $message) {
         //
         //    {
         //      topic: 'position',
@@ -971,7 +971,7 @@ class xt extends \ccxt\async\xt {
         //       }
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
             $cv = $this->safe_string($data, 'cv');
@@ -1181,7 +1181,7 @@ class xt extends \ccxt\async\xt {
         //        }
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string_lower($data, 's');
         if ($marketId !== null) {
             $trade = $this->parse_trade($data);
@@ -1321,7 +1321,7 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function parse_ws_order_trade(array $trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1379,7 +1379,7 @@ class xt extends \ccxt\async\xt {
         ), $market);
     }
 
-    public function parse_ws_order(array $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -1620,7 +1620,7 @@ class xt extends \ccxt\async\xt {
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
             $client->onPong();
@@ -1656,12 +1656,12 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): string {
         $client->lastPong = $this->milliseconds();
         return 'ping';
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         id: '1763045665228ticker@eth_usdt',
