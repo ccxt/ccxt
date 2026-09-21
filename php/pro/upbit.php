@@ -60,7 +60,7 @@ class upbit extends \ccxt\async\upbit {
         $client = $this->client($url);
         $subscriptionsKey = 'upbitPublicSubscriptions';
         if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
-            $client->subscriptions[$subscriptionsKey] = array();
+            $client->subscriptions[$subscriptionsKey] = $this->create_safe_dictionary(true);
         }
         $subscriptions = $client->subscriptions[$subscriptionsKey];
         $messageHashes = array();
@@ -412,7 +412,7 @@ class upbit extends \ccxt\async\upbit {
         // Track private channel subscriptions to support multiple concurrent watches
         $subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
-            $client->subscriptions[$subscriptionsKey] = array();
+            $client->subscriptions[$subscriptionsKey] = $this->create_safe_dictionary(true);
         }
         $channelKey = $channel;
         if ($symbol !== null) {
