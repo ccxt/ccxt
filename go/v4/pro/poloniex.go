@@ -1419,6 +1419,9 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 			if snapshot {
 				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 			}
+			if !(ccxt.InOp(this.Orderbooks, symbol)) {
+				continue
+			}
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			if !ccxt.IsEqual(bids, nil) {
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(bids)); j++ {
