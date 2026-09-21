@@ -5,6 +5,394 @@
     "methods": {
         "watchMyTrades": [
             {
+                "description": "linear partial execution repeated then final execution preserves each last fill",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "l": "2",
+                            "z": "2",
+                            "L": "90",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741010",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "l": "2",
+                            "z": "2",
+                            "L": "90",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741010",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "3",
+                            "z": "5",
+                            "L": "95",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741011",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "9007199254741010",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000001",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "5",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "PARTIALLY_FILLED",
+                                "l": "2",
+                                "z": "2",
+                                "L": "90",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000000,
+                                "t": "9007199254741010",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000000,
+                            "datetime": "2024-07-03T09:46:40.000Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000001",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 90,
+                            "amount": 2,
+                            "cost": 180,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "9007199254741010",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000001",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "5",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "PARTIALLY_FILLED",
+                                "l": "2",
+                                "z": "2",
+                                "L": "90",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000000,
+                                "t": "9007199254741010",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000000,
+                            "datetime": "2024-07-03T09:46:40.000Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000001",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 90,
+                            "amount": 2,
+                            "cost": 180,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "9007199254741011",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000001",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "5",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "FILLED",
+                                "l": "3",
+                                "z": "5",
+                                "L": "95",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000000,
+                                "t": "9007199254741011",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000000,
+                            "datetime": "2024-07-03T09:46:40.000Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000001",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 95,
+                            "amount": 3,
+                            "cost": 285,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "linear cancellation after partial execution is skipped before another order fills",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "l": "2",
+                            "z": "2",
+                            "L": "90",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741010",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "CANCELED",
+                            "X": "CANCELED",
+                            "l": "0",
+                            "z": "2",
+                            "L": "0",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741010",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000002,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000002",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "3",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "3",
+                            "z": "3",
+                            "L": "95",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000001,
+                            "t": "9007199254741012",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "9007199254741010",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000001",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "5",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "PARTIALLY_FILLED",
+                                "l": "2",
+                                "z": "2",
+                                "L": "90",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000000,
+                                "t": "9007199254741010",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000000,
+                            "datetime": "2024-07-03T09:46:40.000Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000001",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 90,
+                            "amount": 2,
+                            "cost": 180,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "9007199254741012",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000002",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "3",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "FILLED",
+                                "l": "3",
+                                "z": "3",
+                                "L": "95",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000001,
+                                "t": "9007199254741012",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000001,
+                            "datetime": "2024-07-03T09:46:40.001Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000002",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 95,
+                            "amount": 3,
+                            "cost": 285,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
                 "description": "linear swap final execution uses last fill instead of order or cumulative values",
                 "input": [
                     "LTC/USDT:USDT"
