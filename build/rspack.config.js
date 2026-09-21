@@ -105,14 +105,12 @@ const unminimizedConfig = {
   ],
 };
 
-// Minimized build with a source map.
+// Minimized build.
 const minimizedConfig = {
   ...baseConfig,
-  devtool: 'source-map',
   output: {
     ...baseConfig.output,
     filename: minimizedFilename,
-    sourceMapFilename: minimizedFilename + '.map',
   },
   optimization: {
     ...baseConfig.optimization,
