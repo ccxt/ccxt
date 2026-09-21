@@ -173,6 +173,7 @@ type ICoreExchange interface {
 	GetHas() map[string]any
 	GetId() string
 	GetHostname() string
+	GetPrecisionMode() int
 	GetUrls() any
 	GetApi() map[string]any
 	GetOptions() *sync.Map
