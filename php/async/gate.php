@@ -810,6 +810,9 @@ class gate extends Exchange {
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
+                'fetchOrderBook' => array(
+                    'maxSpotLimit' => 1000, // the spot depth cap accepted by the venue, overriden in gateeu
+                ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -2930,7 +2933,9 @@ class gate extends Exchange {
         list($request, $query) = $this->prepare_request($market, $market['type'], $params);
         if ($limit !== null) {
             if ($market['spot'] === true) {
-                $limit = min($limit, 1000);
+                // gateeu returns an empty book for a spot limit above 100
+                $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
+                $limit = min($limit, $maxSpotLimit);
             } else {
                 $limit = min($limit, 300);
             }

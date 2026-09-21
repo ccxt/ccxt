@@ -1204,6 +1204,10 @@ class poloniex extends \ccxt\async\poloniex {
                 if ($snapshot) {
                     $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                    continue;
+                }
                 $orderbook = $this->orderbooks[$symbol];
                 if ($bids !== null) {
                     for ($j = 0; $j < count($bids); $j++) {
