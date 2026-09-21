@@ -7,6 +7,88 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchWithdrawal": [
+            {
+                "description": "uta fetchWithdrawal by id with a currency code",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?coin=USDT&endTime=1789921097016&limit=100&orderId=1477203433330230002&startTime=1787329097016",
+                "input": [
+                    "1477203433330230002",
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchWithdrawal with an id the venue does not know returns a structure with empty fields",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1789921095379&limit=100&orderId=1477183242218870001&startTime=1787329095379",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchWithdrawal by id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?endTime=1789921093619&limit=100&orderId=1477203433330230002&startTime=1787329093619",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "uta fetchDeposit by id with a currency code",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?coin=USDT&endTime=1789921092250&limit=100&orderId=1477183242218870001&startTime=1787329092250",
+                "input": [
+                    "1477183242218870001",
+                    "USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchDeposit with an id the venue does not know returns a structure with empty fields",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1789921090682&limit=100&orderId=1477203433330230002&startTime=1787329090682",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "uta fetchDeposit by id",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?endTime=1789921089206&limit=100&orderId=1477183242218870001&startTime=1787329089206",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingIntervals": [
             {
                 "description": "fetchFundingIntervals with params",
