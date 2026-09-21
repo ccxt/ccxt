@@ -1977,10 +1977,8 @@ export default class predictfun extends Exchange {
             const now = this.seconds ();
             expiration = this.sum (now, expirationDelta);
         }
-        // a distinct salt per order so two identical orders do not collide on the venue - the
-        // salt is signed into the EIP-712 digest, so two identical orders sharing one millisecond
-        // would hash to the same order. incrementingNonce () keeps it strictly increasing instead
-        const salt = this.safeString (params, 'salt', this.numberToString (this.incrementingNonce ()));
+        const nonce = this.incrementingNonce ();
+        const salt = this.safeString (params, 'salt', this.numberToString (nonce));
         let taker = '0x0000000000000000000000000000000000000000';
         [ taker, params ] = this.handleOptionAndParams (params, 'createOrder', 'taker', taker);
         const contractOrder: Dict = {
