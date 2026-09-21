@@ -3,6 +3,30 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "input": [],
+                "httpResponse": {
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "dualSidePosition": true,
+                    "updateTime": 1789203607645
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canTrade": true,
+                        "canDeposit": true,
+                        "canWithdraw": true,
+                        "dualSidePosition": true,
+                        "updateTime": 1789203607645
+                    },
+                    "hedged": true
+                }
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetch funding history",
@@ -952,38 +976,6 @@
                 }
             }
         ],
-        "fetchPositionMode": [
-            {
-                "description": "fetch position mode",
-                "method": "fetchPositionMode",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "httpResponse": [
-                    {
-                        "symbol": "ETHUSDT",
-                        "marginType": "ISOLATED",
-                        "separatedType": "COMBINED",
-                        "crossLeverage": "20.00",
-                        "isolatedLongLeverage": "8",
-                        "isolatedShortLeverage": "8"
-                    }
-                ],
-                "parsedResponse": {
-                    "info": [
-                        {
-                            "symbol": "ETHUSDT",
-                            "marginType": "ISOLATED",
-                            "separatedType": "COMBINED",
-                            "crossLeverage": "20.00",
-                            "isolatedLongLeverage": "8",
-                            "isolatedShortLeverage": "8"
-                        }
-                    ],
-                    "hedged": false
-                }
-            }
-        ],
         "fetchLeverage": [
             {
                 "description": "fetch leverage",
@@ -1237,7 +1229,7 @@
                         "markPrice": null,
                         "liquidationPrice": 2019.83,
                         "marginMode": "cross",
-                        "hedged": false,
+                        "hedged": null,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 4.107,
@@ -3938,7 +3930,7 @@
                         "markPrice": null,
                         "liquidationPrice": 2019.83,
                         "marginMode": "cross",
-                        "hedged": false,
+                        "hedged": null,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 4.107,
@@ -3991,29 +3983,6 @@
                 "input": [
                     "cross",
                     "DOGE/USDT:USDT"
-                ],
-                "httpResponse": {
-                    "code": "200",
-                    "msg": "success",
-                    "requestTime": 1764505776347
-                },
-                "parsedResponse": {
-                    "code": "200",
-                    "msg": "success",
-                    "requestTime": 1764505776347
-                }
-            }
-        ],
-        "setPositionMode": [
-            {
-                "description": "set position mode to one-way",
-                "method": "setPositionMode",
-                "input": [
-                    false,
-                    "DOGE/USDT:USDT",
-                    {
-                        "marginMode": "cross"
-                    }
                 ],
                 "httpResponse": {
                     "code": "200",
