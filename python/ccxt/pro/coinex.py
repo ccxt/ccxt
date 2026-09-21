@@ -104,7 +104,7 @@ class coinex(ccxt.async_support.coinex):
         self.unlock_id()
         return requestId
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #  spot
         #
@@ -185,7 +185,7 @@ class coinex(ccxt.async_support.coinex):
                 client.resolve(tickers, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker: object, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #  spot
         #
@@ -250,7 +250,7 @@ class coinex(ccxt.async_support.coinex):
             'info': ticker,
         }, market)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -285,7 +285,7 @@ class coinex(ccxt.async_support.coinex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # spot
         #
@@ -352,14 +352,14 @@ class coinex(ccxt.async_support.coinex):
             self.parse_ws_balance(entry, account)
         messageHash = None
         if account is not None:
-            if self.safe_value(self.balance, account) is None:
+            if self.safe_dict(self.balance, account) is None:
                 self.balance[account] = {}
             self.balance[account]['info'] = info
             self.balance[account] = self.safe_balance(self.balance[account])
             messageHash = 'balances:' + account
             client.resolve(self.balance[account], messageHash)
 
-    def parse_ws_balance(self, balance: object, accountType: Str = None):
+    def parse_ws_balance(self, balance: dict, accountType: Str = None):
         #
         # spot
         #
@@ -389,7 +389,7 @@ class coinex(ccxt.async_support.coinex):
         account['free'] = self.safe_string(balance, 'available')
         account['used'] = self.safe_string(balance, 'frozen')
         if accountType is not None:
-            if self.safe_value(self.balance, accountType) is None:
+            if self.safe_dict(self.balance, accountType) is None:
                 self.balance[accountType] = {}
             if (accountType is not None) and (code is not None):
                 self.balance[accountType][code] = account
@@ -397,7 +397,7 @@ class coinex(ccxt.async_support.coinex):
             if code is not None:
                 self.balance[code] = account
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -441,7 +441,7 @@ class coinex(ccxt.async_support.coinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "method": "user_deals.update",
@@ -480,7 +480,7 @@ class coinex(ccxt.async_support.coinex):
         client.resolve(self.trades[symbol], messageWithType)
         client.resolve(self.trades[symbol], messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # spot
         #
@@ -540,7 +540,7 @@ class coinex(ccxt.async_support.coinex):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # spot watchTrades
         #
@@ -607,7 +607,7 @@ class coinex(ccxt.async_support.coinex):
             'fee': fee,
         }, market)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -624,7 +624,7 @@ class coinex(ccxt.async_support.coinex):
         tickers = await self.watch_tickers([symbol], params)
         return tickers[market['symbol']]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -679,7 +679,7 @@ class coinex(ccxt.async_support.coinex):
         params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watch the most recent trades for a list of symbols
 
@@ -722,7 +722,7 @@ class coinex(ccxt.async_support.coinex):
             return trades
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -799,7 +799,7 @@ class coinex(ccxt.async_support.coinex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "method": "depth.update",
@@ -858,7 +858,7 @@ class coinex(ccxt.async_support.coinex):
         # this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -911,7 +911,7 @@ class coinex(ccxt.async_support.coinex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         # spot
         #
@@ -1044,7 +1044,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash += ':' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #
@@ -1172,7 +1172,7 @@ class coinex(ccxt.async_support.coinex):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status: object):
+    def parse_ws_order_status(self, status: Str) -> Str:
         statuses = {
             'active_success': 'open',
             'active_fail': 'canceled',
@@ -1184,7 +1184,7 @@ class coinex(ccxt.async_support.coinex):
         }
         return self.safe_string(statuses, status, status)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -1222,7 +1222,7 @@ class coinex(ccxt.async_support.coinex):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #     {
         #         "method": "bbo.update",
@@ -1244,7 +1244,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'bidsasks:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "market": "BTCUSDT",
@@ -1270,7 +1270,7 @@ class coinex(ccxt.async_support.coinex):
             'info': ticker,
         }, market)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         method = self.safe_string(message, 'method')
         error = self.safe_string(message, 'message')
         if error is not None:
@@ -1310,7 +1310,7 @@ class coinex(ccxt.async_support.coinex):
             raise ExchangeError(feedback)
         return None
 
-    def handle_authentication_message(self, client: Client, message: object):
+    def handle_authentication_message(self, client: Client, message: dict):
         #
         # success
         #
@@ -1340,9 +1340,9 @@ class coinex(ccxt.async_support.coinex):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict):
         id = self.safe_integer(message, 'id')
-        subscription = self.safe_value(client.subscriptions, id)
+        subscription = self.safe_dict(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
             future = self.safe_value(client.futures, futureIndex)

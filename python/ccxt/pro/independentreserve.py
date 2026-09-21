@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, Num, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
@@ -46,7 +46,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -64,7 +64,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #    {
         #        "Channel": "ticker-btc-usd",
@@ -83,7 +83,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #        "Event": "Trade"
         #    }
         #
-        data = self.safe_value(message, 'Data', {})
+        data = self.safe_dict(message, 'Data', {})
         marketId = self.safe_string(data, 'Pair')
         symbol = self.safe_symbol(marketId, None, '-')
         messageHash = 'trades:' + symbol
@@ -97,7 +97,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
         #        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -128,7 +128,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             'datetime': datetime,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -151,7 +151,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #    {
         #        "Channel": "orderbook/1/eth/aud",
@@ -187,7 +187,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         symbol = base + '/' + quote
         orderBook = self.safe_dict(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
-        subscription = self.safe_value(client.subscriptions, messageHash, {})
+        subscription = self.safe_dict(client.subscriptions, messageHash, {})
         receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
         # let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -233,7 +233,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         if receivedSnapshot is True:
             client.resolve(orderbook, messageHash)
 
-    def value_to_checksum(self, value: object):
+    def value_to_checksum(self, value: Num) -> str:
         # toFixed returns a zero-padded *string* in js but a *number* in
         # go/c#/java, dropping trailing zeros. decimalToPrecision with
         # PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
@@ -252,7 +252,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_heartbeat(self, client: Client, message: object):
+    def handle_heartbeat(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "Time": 1676156208182,
@@ -261,7 +261,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_subscriptions(self, client: Client, message: object):
+    def handle_subscriptions(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "Data": [ "ticker-btc-sgd" ],
@@ -271,7 +271,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         event = self.safe_string(message, 'Event')
         handlers = {
             'Subscriptions': self.handle_subscriptions,

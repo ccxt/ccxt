@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Liquidation, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1250,7 +1250,7 @@ class gate(Exchange, ImplicitAPI):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def load_unified_status(self, params={}):
+    def load_unified_status(self, params: dict = {}) -> bool:
         """
         :param dict [params]: extra parameters specific to the exchange API endpoint
         returns unifiedAccount so the user can check if the unified account is enabled
@@ -1283,10 +1283,10 @@ class gate(Exchange, ImplicitAPI):
                 self.options['unifiedAccount'] = False
         return self.options['unifiedAccount']
 
-    def upgrade_unified_trade_account(self, params={}):
+    def upgrade_unified_trade_account(self, params: dict = {}) -> dict:
         return self.privateUnifiedPutUnifiedMode(params)
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1303,7 +1303,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    def create_expired_option_market(self, symbol: str):
+    def create_expired_option_market(self, symbol: str) -> MarketInterface:
         # support expired option contracts
         quote = 'USDT'
         settle = quote
@@ -1373,7 +1373,7 @@ class gate(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(gate, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for gate
 
@@ -1409,7 +1409,7 @@ class gate(Exchange, ImplicitAPI):
         results = rawPromises
         return self.arrays_concat(results)
 
-    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         marginPromise = self.publicMarginGetCurrencyPairs(params)
         spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
         marginResponse, spotMarketsResponse = [marginPromise, spotMarketsPromise]
@@ -1456,7 +1456,7 @@ class gate(Exchange, ImplicitAPI):
         for i in range(0, len(spotMarketsResponse)):
             spotMarket = self.safe_dict(spotMarketsResponse, i, {})
             id = self.safe_string(spotMarket, 'id')
-            marginMarket = self.safe_value(marginMarkets, id)
+            marginMarket = self.safe_dict(marginMarkets, id)
             market = self.deep_extend(marginMarket, spotMarket)
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
@@ -1525,7 +1525,7 @@ class gate(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         if self.options['sandboxMode'] is True:
@@ -1542,7 +1542,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    def fetch_future_markets(self, params={}) -> list[Market]:
+    def fetch_future_markets(self, params: dict = {}) -> list[Market]:
         if self.options['sandboxMode'] is True:
             return []  # right now sandbox does not have inverse swaps
         result = []
@@ -1559,7 +1559,7 @@ class gate(Exchange, ImplicitAPI):
                 result.append(parsedMarket)
         return result
 
-    def parse_contract_market(self, market: object, settleId: object):
+    def parse_contract_market(self, market: dict, settleId: Str) -> dict:
         #
         #  Perpetual swap
         #
@@ -1743,7 +1743,7 @@ class gate(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def fetch_option_markets(self, params: object = {}) -> list[Market]:
+    def fetch_option_markets(self, params: dict = {}) -> list[Market]:
         result = []
         underlyings = self.fetch_option_underlyings()
         for i in range(0, len(underlyings)):
@@ -1800,7 +1800,7 @@ class gate(Exchange, ImplicitAPI):
                 symbol = base + '/' + quote
                 expiry = self.safe_timestamp(market, 'expiration_time')
                 strike = self.safe_string(market, 'strike_price')
-                isCall = self.safe_value(market, 'is_call')
+                isCall = self.safe_bool(market, 'is_call')
                 optionLetter = 'C' if (isCall is True) else 'P'
                 optionType = 'call' if (isCall is True) else 'put'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
@@ -1952,7 +1952,7 @@ class gate(Exchange, ImplicitAPI):
                 request['currency_pair'] = market['id']
         return [request, query]
 
-    def get_margin_mode(self, trigger: object, params: object):
+    def get_margin_mode(self, trigger: Bool, params: dict) -> list:
         """
  @ignore
         Gets the margin type for self api call
@@ -1981,13 +1981,13 @@ class gate(Exchange, ImplicitAPI):
             marginMode = 'unified'
         return [marginMode, params]
 
-    def get_settlement_currencies(self, type: object, method: object):
-        options = self.safe_value(self.options, type, {})  # [ 'BTC', 'USDT' ] unified codes
-        fetchMarketsContractOptions = self.safe_value(options, method, {})
+    def get_settlement_currencies(self, type: Str, method: Str) -> list[str]:
+        options = self.safe_dict(self.options, type, {})  # [ 'BTC', 'USDT' ] unified codes
+        fetchMarketsContractOptions = self.safe_dict(options, method, {})
         defaultSettle = ['usdt'] if (type == 'swap') else ['btc']
-        return self.safe_value(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
+        return self.safe_list(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle)
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1997,7 +1997,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         # sandbox/testnet only supports future markets
-        apiBackup = self.safe_value(self.urls, 'apiBackup')
+        apiBackup = self.safe_dict(self.urls, 'apiBackup')
         if apiBackup is not None:
             return {}
         response = self.publicSpotGetCurrencies(params)
@@ -2150,7 +2150,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -2288,7 +2288,7 @@ class gate(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(fundingInterval),
         }
 
-    def parse_funding_interval(self, interval: object):
+    def parse_funding_interval(self, interval: Str) -> Str:
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -2298,7 +2298,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(intervals, interval, interval)
 
-    def fetch_network_deposit_address(self, code: str, params={}):
+    def fetch_network_deposit_address(self, code: str, params: dict = {}) -> dict:
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2336,7 +2336,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
+    def fetch_deposit_addresses_by_network(self, code: str, params: dict = {}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -2353,13 +2353,13 @@ class gate(Exchange, ImplicitAPI):
             'currency': currency['id'],
         }
         response = self.privateWalletGetDepositAddress(self.extend(request, params))
-        chains = self.safe_value(response, 'multichain_addresses', [])
+        chains = self.safe_list(response, 'multichain_addresses', [])
         currencyId = self.safe_string(response, 'currency')
         currency = self.safe_currency(currencyId, currency)
         parsed = self.parse_deposit_addresses(chains, None, False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2400,7 +2400,7 @@ class gate(Exchange, ImplicitAPI):
             'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain'), code),
         }
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -2433,7 +2433,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fee(response, market)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -2461,7 +2461,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fees(response)
 
-    def parse_trading_fees(self, response: object):
+    def parse_trading_fees(self, response: dict) -> TradingFees:
         result = {}
         symbols = self.symbols
         for i in range(0, len(symbols)):
@@ -2470,7 +2470,7 @@ class gate(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(response, market)
         return result
 
-    def parse_trading_fee(self, info: object, market: Market = None):
+    def parse_trading_fee(self, info: dict, market: Market = None) -> TradingFeeInterface:
         #
         #    {
         #        "user_id": 1486602,
@@ -2485,10 +2485,10 @@ class gate(Exchange, ImplicitAPI):
         #        "futures_maker_fee": "0"
         #    }
         #
-        gtDiscount = self.safe_value(info, 'gt_discount')
+        gtDiscount = self.safe_bool(info, 'gt_discount')
         taker = 'gt_taker_fee' if (gtDiscount is True) else 'taker_fee'
         maker = 'gt_maker_fee' if (gtDiscount is True) else 'maker_fee'
-        contract = self.safe_value(market, 'contract')
+        contract = self.safe_bool(market, 'contract')
         takerKey = 'futures_taker_fee' if (contract is True) else taker
         makerKey = 'futures_maker_fee' if (contract is True) else maker
         return {
@@ -2500,7 +2500,7 @@ class gate(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def fetch_transaction_fees(self, codes: Strings = None, params={}):
+    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
         """
  @deprecated
         please use fetchDepositWithdrawFees instead
@@ -2540,7 +2540,7 @@ class gate(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             if (codes is not None) and not self.in_array(code, codes):
                 continue
-            withdrawFixOnChains = self.safe_value(entry, 'withdraw_fix_on_chains')
+            withdrawFixOnChains = self.safe_dict(entry, 'withdraw_fix_on_chains')
             if withdrawFixOnChains is None:
                 withdrawFees = self.safe_number(entry, 'withdraw_fix')
             else:
@@ -2557,7 +2557,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2591,7 +2591,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "currency": "MTN",
@@ -2609,7 +2609,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        withdrawFixOnChains = self.safe_value(fee, 'withdraw_fix_on_chains')
+        withdrawFixOnChains = self.safe_dict(fee, 'withdraw_fix_on_chains')
         result = {
             'info': fee,
             'withdraw': {
@@ -2642,7 +2642,7 @@ class gate(Exchange, ImplicitAPI):
                     }
         return result
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -2723,7 +2723,7 @@ class gate(Exchange, ImplicitAPI):
             'amount': self.safe_number(info, 'change'),
         }
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -2845,7 +2845,7 @@ class gate(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -2884,7 +2884,7 @@ class gate(Exchange, ImplicitAPI):
                     ticker = entry
                     break
         else:
-            ticker = self.safe_value(response, 0)
+            ticker = self.safe_dict(response, 0)
         if ticker is None:
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(ticker, market)
@@ -3001,7 +3001,7 @@ class gate(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -3041,7 +3041,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() not support self market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option')
         return self.parse_tickers(response, symbols)
 
-    def parse_balance_helper(self, entry: object):
+    def parse_balance_helper(self, entry: dict):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
@@ -3050,7 +3050,7 @@ class gate(Exchange, ImplicitAPI):
             account['debt'] = self.safe_string(entry, 'borrowed')
         return account
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
@@ -3319,8 +3319,8 @@ class gate(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             entry = data[i]
             if isolated:
-                base = self.safe_value(entry, 'base', {})
-                quote = self.safe_value(entry, 'quote', {})
+                base = self.safe_dict(entry, 'base', {})
+                quote = self.safe_dict(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
@@ -3330,7 +3330,7 @@ class gate(Exchange, ImplicitAPI):
                 result[code] = self.parse_balance_helper(entry)
         return self.safe_balance(result)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3398,7 +3398,7 @@ class gate(Exchange, ImplicitAPI):
             response = self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_option_ohlcv(self, symbol: str, timeframe: Str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         # separated option logic because the from, to and limit parameters weren't functioning
         if self.markets is None:
             self.load_markets()
@@ -3409,7 +3409,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.publicOptionsGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3510,7 +3510,7 @@ class gate(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 'v'),    # trading volume, undefined for mark or index price
             ]
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -3617,7 +3617,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -3659,7 +3659,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
         return response
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         Fetch personal trading history
 
@@ -3953,7 +3953,7 @@ class gate(Exchange, ImplicitAPI):
             'fees': fees,
         }, market)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -3988,7 +3988,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -4023,7 +4023,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -4082,7 +4082,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type: object):
+    def parse_transaction_type(self, type: Str) -> Str:
         types = {
             'd': 'deposit',
             'w': 'withdrawal',
@@ -4198,7 +4198,7 @@ class gate(Exchange, ImplicitAPI):
             },
         }
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         Create an order on the exchange
 
@@ -4332,7 +4332,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_orders_request(self, orders: list[OrderRequest], params={}):
+    def create_orders_request(self, orders: list[OrderRequest], params: dict = {}) -> list[dict]:
         ordersRequests = []
         orderSymbols = []
         ordersLength = len(orders)
@@ -4348,7 +4348,7 @@ class gate(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             triggerValue = self.safe_value_n(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
             if triggerValue is not None:
@@ -4362,7 +4362,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrders() does not support futures or options markets')
         return ordersRequests
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -4386,7 +4386,7 @@ class gate(Exchange, ImplicitAPI):
             response = self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -4567,7 +4567,7 @@ class gate(Exchange, ImplicitAPI):
                     request['initial']['text'] = clientOrderId
             else:
                 # spot conditional order
-                options = self.safe_value(self.options, 'createOrder', {})
+                options = self.safe_dict(self.options, 'createOrder', {})
                 marginMode = None
                 marginMode, params = self.get_margin_mode(True, params)
                 if timeInForce is None:
@@ -4605,7 +4605,7 @@ class gate(Exchange, ImplicitAPI):
                         request['trigger']['text'] = clientOrderId
         return self.extend(request, params)
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -4626,7 +4626,7 @@ class gate(Exchange, ImplicitAPI):
         params = self.extend(params, {'createMarketBuyOrderRequiresPrice': False})
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def edit_order_request(self, id: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('editOrder', market, params)
@@ -4659,7 +4659,7 @@ class gate(Exchange, ImplicitAPI):
             request['settle'] = market['settleId']
         return self.extend(request, params)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
 
@@ -4942,8 +4942,8 @@ class gate(Exchange, ImplicitAPI):
                 'status': 'rejected',
                 'id': self.safe_string(order, 'id'),
             })
-        put = self.safe_value_2(order, 'put', 'initial', {})
-        trigger = self.safe_value(order, 'trigger', {})
+        put = self.safe_dict_2(order, 'put', 'initial', {})
+        trigger = self.safe_dict(order, 'trigger', {})
         contract = self.safe_string(put, 'contract')
         type = self.safe_string(put, 'type')
         timeInForce = self.safe_string_upper_2(put, 'time_in_force', 'tif')
@@ -5064,13 +5064,13 @@ class gate(Exchange, ImplicitAPI):
             'cost': Precise.string_abs(cost),
             'filled': None,
             'remaining': remaining,
-            'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
+            'fee': None if multipleFeeCurrencies else self.safe_dict(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],
             'trades': None,
             'info': order,
         }, market)
 
-    def fetch_order_request(self, id: str, symbol: Str = None, params={}):
+    def fetch_order_request(self, id: str, symbol: Str = None, params: dict = {}) -> list:
         market = None if (symbol is None) else self.market(symbol)
         trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
@@ -5087,7 +5087,7 @@ class gate(Exchange, ImplicitAPI):
         request['order_id'] = str(orderId)
         return [request, requestParams]
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         Retrieves information on an order
 
@@ -5139,7 +5139,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() not support self market type')
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5157,7 +5157,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -5214,7 +5214,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateFuturesGetSettleOrdersTimerange(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def prepare_orders_by_status_request(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def prepare_orders_by_status_request(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list:
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -5245,7 +5245,7 @@ class gate(Exchange, ImplicitAPI):
             request['last_id'] = lastId
         return [request, finalParams]
 
-    def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         self.load_unified_status()
@@ -5441,7 +5441,7 @@ class gate(Exchange, ImplicitAPI):
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         Cancels an open order
 
@@ -5572,7 +5572,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -5617,7 +5617,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateFuturesPostSettleBatchCancelOrders(finalList)
         return self.parse_orders(response)
 
-    def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params={}):
+    def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params: dict = {}) -> list[Order]:
         """
         cancel multiple orders for multiple symbols
 
@@ -5656,7 +5656,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -5731,7 +5731,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -5810,7 +5810,7 @@ class gate(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -5880,7 +5880,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # swap and future
         #
@@ -6018,7 +6018,7 @@ class gate(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open contract position
 
@@ -6105,7 +6105,7 @@ class gate(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchPosition() returned empty response')
         return self.parse_position(response, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -6211,7 +6211,7 @@ class gate(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_positions(responseList, symbols)
 
-    def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
+    def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
@@ -6329,7 +6329,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'name')
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
+    def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -6425,7 +6425,7 @@ class gate(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -6455,7 +6455,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
+    def repay_cross_margin(self, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         repay cross margin borrowed margin and interest
 
@@ -6505,7 +6505,7 @@ class gate(Exchange, ImplicitAPI):
             #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
+    def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -6550,7 +6550,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
+    def borrow_cross_margin(self, code: str, amount: float, params: dict = {}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -6650,7 +6650,7 @@ class gate(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -6715,10 +6715,10 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6739,7 +6739,7 @@ class gate(Exchange, ImplicitAPI):
             # endpoints like createOrders use an array instead of an object
             # so we infer the settle from one of the elements
             # they have to be all the same so relying on the first one is fine
-            first = self.safe_value(params, 0, {})
+            first = self.safe_dict(params, 0, {})
             path = self.implode_params(path, first)
         else:
             path = self.implode_params(path, params)
@@ -6801,7 +6801,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def modify_margin_helper(self, symbol: str, amount: object, params={}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -6854,13 +6854,13 @@ class gate(Exchange, ImplicitAPI):
             'marginMode': 'isolated',
             'amount': None,
             'total': total,
-            'code': self.safe_value(market, 'quote'),
+            'code': self.safe_string(market, 'quote'),
             'status': 'ok',
             'timestamp': None,
             'datetime': None,
         }
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
 
@@ -6874,7 +6874,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, -amount, params)
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -6888,7 +6888,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, params)
 
-    def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params={}):
+    def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params: dict = {}):
         """
         Retrieves the open interest of a currency
 
@@ -6973,7 +6973,7 @@ class gate(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -7020,7 +7020,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         """
         fetches historical settlement records of the user
 
@@ -7093,13 +7093,13 @@ class gate(Exchange, ImplicitAPI):
             #     ]
             #
             response = self.privateOptionsGetMySettlements(self.extend(request, params))
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'list', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_settlement(self, settlement: object, market: object):
+    def parse_settlement(self, settlement: dict, market: Market = None) -> dict:
         #
         # fetchSettlementHistory
         #
@@ -7149,7 +7149,7 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: object, market: object):
+    def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
         #
         # fetchSettlementHistory
         #
@@ -7185,7 +7185,7 @@ class gate(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -7374,7 +7374,7 @@ class gate(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -7417,7 +7417,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
 
@@ -7434,7 +7434,7 @@ class gate(Exchange, ImplicitAPI):
         request['dual_mode'] = hedged
         return self.privateFuturesPostSettleDualMode(self.extend(request, query))
 
-    def fetch_underlying_assets(self, params={}) -> list[str]:
+    def fetch_underlying_assets(self, params: dict = {}) -> list[str]:
         """
         fetches the market ids of underlying assets for a specific contract market type
 
@@ -7470,7 +7470,7 @@ class gate(Exchange, ImplicitAPI):
                 underlyings.append(name)
         return underlyings
 
-    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the public liquidations of a trading pair
 
@@ -7512,7 +7512,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(self.to_array(response), market, since, limit)
 
-    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -7586,7 +7586,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(self.to_array(response), market, since, limit)
 
-    def parse_liquidation(self, liquidation: object, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         # fetchLiquidations
         #
@@ -7665,7 +7665,7 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+    def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -7759,7 +7759,7 @@ class gate(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
-    def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -7780,7 +7780,7 @@ class gate(Exchange, ImplicitAPI):
             side = ''  # side is not used but needs to be present, otherwise crashes in php
         return self.create_order(symbol, 'market', side, 0, None, params)
 
-    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -7884,7 +7884,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchLeverage() does not support ' + self.safe_string(market, 'type') + ' markets')
         return self.parse_leverage(response, market)
 
-    def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+    def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """
         fetch the set leverage for all leverage markets, only spot margin is supported on gate
 
@@ -7944,7 +7944,7 @@ class gate(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def fetch_option(self, symbol: str, params={}) -> Option:
+    def fetch_option(self, symbol: str, params: dict = {}) -> Option:
         """
         fetches option data that is commonly found in an option chain
 
@@ -8003,7 +8003,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_option(response, None, market)
 
-    def fetch_option_chain(self, code: str, params={}) -> OptionChain:
+    def fetch_option_chain(self, code: str, params: dict = {}) -> OptionChain:
         """
         fetches data for an underlying asset that is commonly found in an option chain
 
@@ -8130,7 +8130,7 @@ class gate(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         fetches historical positions
 

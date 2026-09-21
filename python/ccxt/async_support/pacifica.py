@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -597,7 +597,7 @@ class pacifica(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for pacifica
 
@@ -649,7 +649,7 @@ class pacifica(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all swap markets for pacifica
 
@@ -793,7 +793,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -869,7 +869,7 @@ class pacifica(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -935,7 +935,7 @@ class pacifica(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverageLimits, 'max'),
         }
 
-    async def fetch_account_settings(self, params={}) -> dict:
+    async def fetch_account_settings(self, params: dict = {}) -> dict:
         """
         fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
 
@@ -967,7 +967,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         return self.parse_account_settings(self.safe_list(response, 'data', []))
 
-    async def load_account_settings(self, refresh: bool = False, params={}):
+    async def load_account_settings(self, refresh: bool = False, params: dict = {}):
         settings = self.handle_option('loadAccountSettings', 'settings')
         if (settings is None) or (refresh is True):
             self.options['settings'] = self.create_safe_dictionary()
@@ -986,7 +986,7 @@ class pacifica(Exchange, ImplicitAPI):
             settingsBySymbol[symbol] = settings[i]
         return settingsBySymbol
 
-    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
 
@@ -1046,7 +1046,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': setting,
         }
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1112,7 +1112,7 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 't')
         return self.parse_order_book(result, self.safe_symbol(None, market), timestamp, 'bids', 'asks', 'p', 'a')
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         retrieves data on all swap markets for pacifica
 
@@ -1192,7 +1192,7 @@ class pacifica(Exchange, ImplicitAPI):
             'interval': '1h',
         }
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1285,7 +1285,7 @@ class pacifica(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1325,7 +1325,7 @@ class pacifica(Exchange, ImplicitAPI):
         recentTrades = self.safe_list(response, 'data', [])
         return self.parse_trades(recentTrades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1464,7 +1464,7 @@ class pacifica(Exchange, ImplicitAPI):
             },
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1525,7 +1525,7 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'order_id')
         return self.safe_order({'id': orderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> list:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1667,7 +1667,7 @@ class pacifica(Exchange, ImplicitAPI):
             'actions': actions,
         }
 
-    def create_orders_request(self, orders: list[OrderRequest], params={}):
+    def create_orders_request(self, orders: list[OrderRequest], params: dict = {}) -> dict:
         actions = []
         timestamp = self.milliseconds()  # unified sequence
         for i in range(0, len(orders)):
@@ -1691,7 +1691,7 @@ class pacifica(Exchange, ImplicitAPI):
             actions.append(action)
         return self.batch_orders_request(actions)
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
 
@@ -1740,7 +1740,7 @@ class pacifica(Exchange, ImplicitAPI):
             ordersToReturn.append(self.safe_order({'info': order, 'id': orderId, 'status': status}))
         return ordersToReturn
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1795,7 +1795,7 @@ class pacifica(Exchange, ImplicitAPI):
             ordersToReturn.append(self.safe_order({'info': order, 'status': status, 'symbol': symbol}))
         return ordersToReturn
 
-    def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params={}):
+    def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params: dict = {}) -> dict:
         actions = []
         for i in range(0, len(ids)):
             id = ids[i]
@@ -1820,7 +1820,7 @@ class pacifica(Exchange, ImplicitAPI):
             actions.append(action)
         return self.batch_orders_request(actions)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1854,7 +1854,7 @@ class pacifica(Exchange, ImplicitAPI):
             }),
         ]
 
-    def cancel_all_orders_request(self, symbol: Str, params={}):
+    def cancel_all_orders_request(self, symbol: Str, params: dict = {}) -> dict:
         operationType = 'cancel_all_orders'
         sigPayload = {}
         excludeReduceOnly = self.safe_bool(params, 'excludeReduceOnly', False)
@@ -1868,7 +1868,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return request
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1907,7 +1907,7 @@ class pacifica(Exchange, ImplicitAPI):
         status = 'canceled' if (success is True) else 'closed'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
-    def cancel_order_request(self, id: Str, symbol: Str = None, params={}):
+    def cancel_order_request(self, id: object, symbol: Str = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         operationType = None
@@ -1926,7 +1926,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return request
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -1961,7 +1961,7 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(data, 'order_id')
         return self.safe_order({'id': orderId, 'info': response, 'symbol': symbol})
 
-    def edit_order_request(self, id: str, symbol: Str, type: str, side: Str, amount: Num, price: Num, market: Market, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: str, side: Str, amount: Num, price: Num, market: Market, params: dict = {}) -> dict:
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         if amount is None:
@@ -1986,7 +1986,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return request
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -2049,7 +2049,7 @@ class pacifica(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -2125,7 +2125,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently closed orders
 
@@ -2144,7 +2144,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['closed'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all canceled orders
 
@@ -2163,7 +2163,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['canceled'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all closed and canceled orders
 
@@ -2182,7 +2182,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['canceled', 'closed', 'rejected'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2235,7 +2235,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all orders
 
@@ -2300,7 +2300,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response: object):
+    def add_pagination_cursor_to_result(self, response: dict) -> list[object]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2313,7 +2313,7 @@ class pacifica(Exchange, ImplicitAPI):
                 data[0] = first
         return data
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2554,7 +2554,7 @@ class pacifica(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -2568,7 +2568,7 @@ class pacifica(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2613,7 +2613,7 @@ class pacifica(Exchange, ImplicitAPI):
             result.append(self.parse_position(data[i], None))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #       "symbol": "AAVE",
@@ -2663,7 +2663,7 @@ class pacifica(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode(symbol)
 
@@ -2694,7 +2694,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         return response
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2724,7 +2724,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal(only support native USDC)
 
@@ -2750,7 +2750,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = await self.privatePostAccountWithdraw(self.extend(request, params))
         return {'info': response}
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -2826,7 +2826,7 @@ class pacifica(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+    async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
         """
         Retrieves the open interest for a list of symbols
 
@@ -2843,7 +2843,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests(data, symbols)
 
-    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -2862,7 +2862,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
         return oi
 
-    def parse_open_interest(self, interest: object, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
         #
         #     {
         #       "funding": "0.00010529",
@@ -2897,7 +2897,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2977,7 +2977,7 @@ class pacifica(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -2997,7 +2997,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -3050,7 +3050,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         #     {
         #       "history_id": 2287920,
@@ -3081,7 +3081,7 @@ class pacifica(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -3152,7 +3152,7 @@ class pacifica(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    async def create_sub_account(self, name: str, params={}):
+    async def create_sub_account(self, name: str, params: dict = {}):
         """
         creates a sub-account under the main account
 
@@ -3222,7 +3222,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         return response
 
-    async def bind_agent_wallet(self, agentAddress: str, params={}):
+    async def bind_agent_wallet(self, agentAddress: str, params: dict = {}) -> dict:
         operationType = 'bind_agent_wallet'
         sigPayload = {
             'agent_wallet': agentAddress,
@@ -3230,13 +3230,13 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAgentBind(self.extend(request, params))
 
-    async def create_api_key(self, params={}):
+    async def create_api_key(self, params: dict = {}) -> dict:
         operationType = 'create_api_key'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountApiKeysCreate(self.extend(request, params))
 
-    async def revoke_api_key(self, apiKey: str, params={}):
+    async def revoke_api_key(self, apiKey: str, params: dict = {}) -> dict:
         operationType = 'revoke_api_key'
         sigPayload = {
             'api_key': apiKey,
@@ -3244,13 +3244,13 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountApiKeysRevoke(self.extend(request, params))
 
-    async def fetch_api_keys(self, params={}):
+    async def fetch_api_keys(self, params: dict = {}) -> dict:
         operationType = 'list_api_keys'
         sigPayload = {}
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountApiKeys(self.extend(request, params))
 
-    async def approve_builder_code(self, builderCode: str, maxFeeRate: str, params={}):
+    async def approve_builder_code(self, builderCode: str, maxFeeRate: str, params: dict = {}) -> dict:
         operationType = 'approve_builder_code'
         sigPayload = {
             'builder_code': builderCode,
@@ -3265,7 +3265,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return await self.publicGetAccountBuilderCodesApprovals(self.extend(request))
 
-    async def revoke_builder_code(self, builderCode: str, params={}):
+    async def revoke_builder_code(self, builderCode: str, params: dict = {}) -> dict:
         operationType = 'revoke_builder_code'
         sigPayload = {
             'builder_code': builderCode,
@@ -3315,7 +3315,7 @@ class pacifica(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
@@ -3334,7 +3334,7 @@ class pacifica(Exchange, ImplicitAPI):
             headers['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

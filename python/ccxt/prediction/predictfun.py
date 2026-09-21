@@ -3566,7 +3566,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         elif channel == 'predictWalletEvents':
             self.handle_wallet_event(client, message)
 
-    def nonce(self):
+    def nonce(self) -> float:
         # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()

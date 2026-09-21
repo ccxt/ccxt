@@ -594,10 +594,10 @@ class kraken(Exchange, ImplicitAPI):
             },
         })
 
-    def fee_to_precision(self, symbol: Str, fee: object):
+    def fee_to_precision(self, symbol: Str, fee: object) -> str:
         return self.decimal_to_precision(fee, TRUNCATE, self.market(symbol)['precision']['amount'], self.precisionMode)
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for kraken
 
@@ -696,7 +696,7 @@ class kraken(Exchange, ImplicitAPI):
             if base is None:
                 raise ExchangeError(self.id + ' method() missing base')
             if spot and (base in cachedCurrencies):
-                currency = self.safe_value(cachedCurrencies, base)
+                currency = self.safe_dict(cachedCurrencies, base)
                 currencyPrecision = self.safe_number(currency, 'precision')
                 # if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if currencyPrecision is None:
@@ -762,7 +762,7 @@ class kraken(Exchange, ImplicitAPI):
         self.options['marketsByAltname'] = self.index_by(result, 'altname')
         return result
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -788,7 +788,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -927,7 +927,7 @@ class kraken(Exchange, ImplicitAPI):
             return super(kraken, self).safe_currency_code(firstPart, currency) + '.' + secondPart
         return super(kraken, self).safe_currency_code(currencyId, currency)
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -974,14 +974,14 @@ class kraken(Exchange, ImplicitAPI):
         #        }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_trading_fee(result, market)
 
-    def parse_trading_fee(self, response: object, market: object):
-        makerFees = self.safe_value(response, 'fees_maker', {})
-        takerFees = self.safe_value(response, 'fees', {})
-        symbolMakerFee = self.safe_value(makerFees, market['id'], {})
-        symbolTakerFee = self.safe_value(takerFees, market['id'], {})
+    def parse_trading_fee(self, response: dict, market: object) -> TradingFeeInterface:
+        makerFees = self.safe_dict(response, 'fees_maker', {})
+        takerFees = self.safe_dict(response, 'fees', {})
+        symbolMakerFee = self.safe_dict(makerFees, market['id'], {})
+        symbolTakerFee = self.safe_dict(takerFees, market['id'], {})
         return {
             'info': response,
             'symbol': market['symbol'],
@@ -997,7 +997,7 @@ class kraken(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(bidask, 2)
         return [price, amount, timestamp]
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1036,12 +1036,12 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         orderbook = self.safe_value(result, market['id'])
         # sometimes kraken returns wsname instead of market id
         # https://github.com/ccxt/ccxt/issues/8662
-        marketInfo = self.safe_value(market, 'info', {})
-        wsName = self.safe_value(marketInfo, 'wsname')
+        marketInfo = self.safe_dict(market, 'info', {})
+        wsName = self.safe_string(marketInfo, 'wsname')
         if wsName is not None:
             orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook, symbol)
@@ -1061,17 +1061,17 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #
         symbol = self.safe_symbol(None, market)
-        v = self.safe_value(ticker, 'v', [])
+        v = self.safe_list(ticker, 'v', [])
         baseVolume = self.safe_string(v, 1)
-        p = self.safe_value(ticker, 'p', [])
+        p = self.safe_list(ticker, 'p', [])
         vwap = self.safe_string(p, 1)
         quoteVolume = Precise.string_mul(baseVolume, vwap)
-        c = self.safe_value(ticker, 'c', [])
+        c = self.safe_list(ticker, 'c', [])
         last = self.safe_string(c, 0)
-        high = self.safe_value(ticker, 'h', [])
-        low = self.safe_value(ticker, 'l', [])
-        bid = self.safe_value(ticker, 'b', [])
-        ask = self.safe_value(ticker, 'a', [])
+        high = self.safe_list(ticker, 'h', [])
+        low = self.safe_list(ticker, 'l', [])
+        bid = self.safe_list(ticker, 'b', [])
+        ask = self.safe_list(ticker, 'a', [])
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1095,7 +1095,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1129,7 +1129,7 @@ class kraken(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1172,7 +1172,7 @@ class kraken(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1221,11 +1221,11 @@ class kraken(Exchange, ImplicitAPI):
         #             "last":1591517580
         #         }
         #     }
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         ohlcvs = self.safe_list(result, market['id'], [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'trade': 'trade',
             'withdrawal': 'transaction',
@@ -1288,7 +1288,7 @@ class kraken(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1327,7 +1327,7 @@ class kraken(Exchange, ImplicitAPI):
         #                                                 "amount": "-0.2805800000",
         #                                                    "fee": "0.0050000000",
         #                                                "balance": "0.0000051000"           },
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         ledger = self.safe_dict(result, 'ledger', {})
         keys = list(ledger.keys())
         items = []
@@ -1338,7 +1338,7 @@ class kraken(Exchange, ImplicitAPI):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    async def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params: dict = {}) -> list[LedgerEntry]:
         # https://www.kraken.com/features/api#query-ledgers
         if self.markets is None:
             await self.load_markets()
@@ -1366,7 +1366,7 @@ class kraken(Exchange, ImplicitAPI):
             items.append(value)
         return self.parse_ledger(items)
 
-    async def fetch_ledger_entry(self, id: str, code: Str = None, params={}) -> LedgerEntry:
+    async def fetch_ledger_entry(self, id: str, code: Str = None, params: dict = {}) -> LedgerEntry:
         items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
@@ -1512,7 +1512,7 @@ class kraken(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1572,7 +1572,7 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId, {})
+            balance = self.safe_dict(balances, currencyId, {})
             account = self.account()
             account['used'] = self.safe_string(balance, 'hold_trade')
             account['total'] = self.safe_string(balance, 'balance')
@@ -1580,7 +1580,7 @@ class kraken(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1609,7 +1609,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
         create a market order by providing the symbol, side and cost
 
@@ -1629,7 +1629,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return await self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol, side and cost
 
@@ -1644,7 +1644,7 @@ class kraken(Exchange, ImplicitAPI):
             await self.load_markets()
         return await self.create_market_order_with_cost(symbol, 'buy', cost, params)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1697,7 +1697,7 @@ class kraken(Exchange, ImplicitAPI):
         # this usingCost flag is used to help the parsing but omitted from the order
         return self.parse_order(result)
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1822,7 +1822,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: object):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             # we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit': 'market',
@@ -2074,7 +2074,7 @@ class kraken(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    def order_request(self, method: str, symbol: Str, type: Str, request: dict, amount: Num, price: Num = None, params={}):
+    def order_request(self, method: str, symbol: Str, type: Str, request: dict, amount: Num, price: Num = None, params: dict = {}) -> list:
         clientOrderId = self.safe_string(params, 'clientOrderId')
         params = self.omit(params, ['clientOrderId'])
         if clientOrderId is not None:
@@ -2175,7 +2175,7 @@ class kraken(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset'])
         return [request, params]
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2242,7 +2242,7 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2303,12 +2303,12 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_dict(response, 'result', [])
         if not (id in result):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(self.extend({'id': id}, result[id]))
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2336,7 +2336,7 @@ class kraken(Exchange, ImplicitAPI):
             await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
-        options = self.safe_value(self.options, 'fetchOrderTrades', {})
+        options = self.safe_dict(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
         numBatches = self.parse_to_int(numTradeIds / batchSize)
@@ -2382,7 +2382,7 @@ class kraken(Exchange, ImplicitAPI):
             result = self.array_concat(result, tradesFilteredBySymbol)
         return result
 
-    async def fetch_orders_by_ids(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
+    async def fetch_orders_by_ids(self, ids: object, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         fetch orders by the list of order id
 
@@ -2409,7 +2409,7 @@ class kraken(Exchange, ImplicitAPI):
             orders.append(order)
         return orders
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2479,7 +2479,7 @@ class kraken(Exchange, ImplicitAPI):
         tradesList = self.to_array(trades)
         return self.parse_trades(tradesList, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2524,7 +2524,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -2553,7 +2553,7 @@ class kraken(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -2580,7 +2580,7 @@ class kraken(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def cancel_all_orders_after(self, timeout: Int, params={}):
+    async def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -2613,7 +2613,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2691,7 +2691,7 @@ class kraken(Exchange, ImplicitAPI):
             orders.append(self.extend({'id': id}, item))
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2785,8 +2785,8 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_network(self, network: object):
-        withdrawMethods = self.safe_value(self.options, 'withdrawMethods', {})
+    def parse_network(self, network: Str) -> Str:
+        withdrawMethods = self.safe_dict(self.options, 'withdrawMethods', {})
         return self.safe_string(withdrawMethods, network, network)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2904,7 +2904,7 @@ class kraken(Exchange, ImplicitAPI):
             result.append(transaction)
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2950,7 +2950,7 @@ class kraken(Exchange, ImplicitAPI):
         depositResult = self.safe_list(response, 'result', [])
         return self.parse_transactions_by_type('deposit', depositResult, code, since, limit)
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -2970,7 +2970,7 @@ class kraken(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.safe_timestamp(result, 'unixtime')
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -3064,7 +3064,7 @@ class kraken(Exchange, ImplicitAPI):
             data[dataLength - 1] = last
         return data
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -3079,7 +3079,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_methods(self, code: str, params={}) -> list[dict]:
+    async def fetch_deposit_methods(self, code: str, params: dict = {}) -> list[dict]:
         """
         fetch deposit methods for a currency associated with self account
 
@@ -3121,7 +3121,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.safe_value(response, 'result')
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -3135,12 +3135,12 @@ class kraken(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         network = self.safe_string_upper(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
         params = self.omit(params, 'network')
         if (code == 'USDT') and (network == 'TRC20'):
             code = code + '-' + network
-        defaultDepositMethods = self.safe_value(self.options, 'depositMethods', {})
+        defaultDepositMethods = self.safe_dict(self.options, 'depositMethods', {})
         defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
         depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
         # if the user has specified an exchange-specific method in params
@@ -3158,7 +3158,7 @@ class kraken(Exchange, ImplicitAPI):
                         break
             # if depositMethod was not specified, fallback to the first available deposit method
             if depositMethod is None:
-                firstDepositMethod = self.safe_value(depositMethods, 0, {})
+                firstDepositMethod = self.safe_dict(depositMethods, 0, {})
                 depositMethod = self.safe_string(firstDepositMethod, 'method')
         request = {
             'asset': currency['id'],
@@ -3173,8 +3173,8 @@ class kraken(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        firstResult = self.safe_value(result, 0, {})
+        result = self.safe_list(response, 'result', [])
+        firstResult = self.safe_dict(result, 0, {})
         if firstResult is None:
             raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses for ' + code)
         return self.parse_deposit_address(firstResult, currency)
@@ -3199,7 +3199,7 @@ class kraken(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3237,7 +3237,7 @@ class kraken(Exchange, ImplicitAPI):
             return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3305,7 +3305,7 @@ class kraken(Exchange, ImplicitAPI):
         results = self.parse_positions(result, symbols)
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #             {
         #                 "pair": "ETHUSDT",
@@ -3361,7 +3361,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(accountByType, account, account)
 
-    async def transfer_out(self, code: str, amount: object, params={}):
+    async def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         """
         transfer from spot wallet to futures wallet
 
@@ -3374,7 +3374,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         return await self.transfer(code, amount, 'spot', 'swap', params)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
 
         https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
@@ -3429,7 +3429,7 @@ class kraken(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(transfer, 'result', {})
+        result = self.safe_dict(transfer, 'result', {})
         refid = self.safe_string(result, 'refid')
         return {
             'info': transfer,
@@ -3443,7 +3443,7 @@ class kraken(Exchange, ImplicitAPI):
             'status': 'sucess',
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if len(params) > 0:
@@ -3482,7 +3482,7 @@ class kraken(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

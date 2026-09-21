@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.81",
+  "version": "4.5.82",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -321,7 +321,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "github:carlotestor/ast-transpiler#d10dd004cd31d501c0efb66f849d2d8b7a0ee9d4",
+    "ast-transpiler": "github:ccxt/ast-transpiler#231d8ad275f5c1774057e94153da7a17f9b53f97",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",

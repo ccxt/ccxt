@@ -724,10 +724,10 @@ class tokocrypto(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
 
         https://www.tokocrypto.com/apidocs/#check-server-time
@@ -747,7 +747,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'timestamp')
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
@@ -795,7 +795,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(list)):
@@ -809,7 +809,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
-            filters = self.safe_value(market, 'filters', [])
+            filters = self.safe_list(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'spotTradingEnable')
             active = (status == '1')
@@ -884,25 +884,25 @@ class tokocrypto(Exchange, ImplicitAPI):
                 }
                 entry['precision']['price'] = filter['tickSize']
             if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+                filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
                 entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
                 entry['limits']['amount'] = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MARKET_LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
+                filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
                 entry['limits']['market'] = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filtersByType:
-                filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+                filter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
                 entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
             result.append(entry)
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.tokocrypto.com/apidocs/#order-book
@@ -955,7 +955,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         },
         #         "timestamp":1692262634599
         #     }
-        data = self.safe_value(response, 'data', response)
+        data = self.safe_dict(response, 'data', response)
         timestamp = self.safe_integer_2(response, 'T', 'timestamp')
         orderbook = self.parse_order_book(data, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
@@ -1065,7 +1065,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
-        buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
+        buyerMaker = self.safe_bool_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if (buyerMaker is True) else 'buy'  # this is reversed intentionally
@@ -1101,7 +1101,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.tokocrypto.com/apidocs/#recent-trades-list
@@ -1293,7 +1293,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1342,7 +1342,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.safe_string(market, 'id')
         return self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1366,7 +1366,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
@@ -1425,7 +1425,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -1514,7 +1514,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 data = self.safe_list(dataDict, 'list', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://www.tokocrypto.com/apidocs/#account-information-signed
@@ -1560,14 +1560,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance_custom(self, response: object, type: Str = None, marginMode: Str = None):
+    def parse_balance_custom(self, response: dict, type: Str = None, marginMode: Str = None) -> Balances:
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1717,7 +1717,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             side = 'buy'
         elif side == '1':
             side = 'sell'
-        fills = self.safe_value(order, 'fills', [])
+        fills = self.safe_list(order, 'fills', [])
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientId')
         timeInForce = self.safe_string(order, 'timeInForce')
         if timeInForce == 'GTX':
@@ -1749,7 +1749,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def parse_order_type(self, status: object):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             '2': 'market',
             '1': 'limit',
@@ -1758,7 +1758,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1816,7 +1816,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif side == 'sell':
             request['side'] = 1
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
+            broker = self.safe_dict(self.options, 'broker')
             if broker is not None:
                 brokerId = self.safe_string(broker, 'marketType')
                 if brokerId is not None:
@@ -1918,7 +1918,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://www.tokocrypto.com/apidocs/#query-order-signed
@@ -1963,12 +1963,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1662710056523
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        list = self.safe_value(data, 'list', [])
+        data = self.safe_dict(response, 'data', {})
+        list = self.safe_list(data, 'list', [])
         rawOrder = self.safe_dict(list, 0, {})
         return self.parse_order(rawOrder)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://www.tokocrypto.com/apidocs/#all-orders-signed
@@ -2033,11 +2033,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1572860756458
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://www.tokocrypto.com/apidocs/#all-orders-signed
@@ -2052,7 +2052,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://www.tokocrypto.com/apidocs/#all-orders-signed
@@ -2067,7 +2067,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://www.tokocrypto.com/apidocs/#cancel-order-signed
@@ -2112,7 +2112,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_dict(response, 'data', {})
         return self.parse_order(rawOrder)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.tokocrypto.com/apidocs/#account-trade-list-signed
@@ -2166,11 +2166,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp": 1573723498893
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2187,7 +2187,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'asset': currency['id'],
             # 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
@@ -2211,7 +2211,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1660685915746
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'addressTag', '')
         if len(tag) == 0:
@@ -2225,7 +2225,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://www.tokocrypto.com/apidocs/#deposit-history-signed
@@ -2279,11 +2279,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659758865998
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         deposits = self.safe_list(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://www.tokocrypto.com/apidocs/#withdraw-signed
@@ -2334,11 +2334,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659759062187
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         withdrawals = self.safe_list(data, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: object, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -2354,7 +2354,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 '10': 'ok',  # Completed
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2438,7 +2438,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             internal = True
         id = self.safe_string(transaction, 'id')
         if id is None:
-            data = self.safe_value(transaction, 'data', {})
+            data = self.safe_dict(transaction, 'data', {})
             id = self.safe_string(data, 'withdrawId')
             type = 'withdrawal'
         return {
@@ -2464,7 +2464,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
 
         https://www.tokocrypto.com/apidocs/#withdraw-signed
@@ -2509,7 +2509,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         if not (api in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api']['rest'][api]
@@ -2620,7 +2620,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
