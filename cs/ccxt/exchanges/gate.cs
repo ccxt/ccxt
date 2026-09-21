@@ -8617,8 +8617,10 @@ public partial class gate : Exchange
                 if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "currencies="), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(queryString, "%2C"), 0))))
                     {
