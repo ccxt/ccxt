@@ -641,22 +641,22 @@ public partial class alpaca : Exchange
         string? timestamp = this.safeString(response, "timestamp");
         if ((timestamp == null))
         {
-            throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
-        string? localTime = ((timestamp == null) ? null : ((string)timestamp).Substring(0, Math.Min(23, ((string)timestamp).Length)));
+        string? localTime = ((timestamp == null) ? null : timestamp.Substring(0, Math.Min(23, timestamp.Length)));
         if ((timestamp == null))
         {
-            throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         int jetlagStrStart = (timestamp.Length - 6);
         if ((timestamp == null))
         {
-            throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         int jetlagStrEnd = (timestamp.Length - 3);
         if ((timestamp == null))
         {
-            throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         string? jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
@@ -729,9 +729,9 @@ public partial class alpaca : Exchange
         string? marketId = this.safeString(asset, "symbol");
         if ((marketId == null))
         {
-            throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
-        List<object> parts = marketId.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = marketId.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? assetClass = this.safeString(asset, "class");
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
@@ -739,18 +739,18 @@ public partial class alpaca : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
-        if ((quote == null) && (assetClass == "us_equity"))
+        if ((quote == null) && assetClass == "us_equity")
         {
             quote = "USD";
         }
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         string? status = this.safeString(asset, "status");
-        bool active = ((status == "active"));
+        bool active = (status == "active");
         double? minAmount = this.safeNumber(asset, "min_order_size");
         double? amount = this.safeNumber(asset, "min_trade_increment");
         double? price = this.safeNumber(asset, "price_increment");
         double? minCost = null;
-        if (((assetClass == "crypto")) && ((quote == "USD")))
+        if ((assetClass == "crypto") && (quote == "USD"))
         {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
@@ -838,15 +838,15 @@ public partial class alpaca : Exchange
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
         List<object> symbolTrades = null;
-        if ((method == "marketPublicGetV1beta3CryptoLocTrades"))
+        if (method == "marketPublicGetV1beta3CryptoLocTrades")
         {
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+                request["start"] = this.iso8601(since);
             }
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                request["limit"] = limit;
             }
             Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
             //
@@ -867,7 +867,7 @@ public partial class alpaca : Exchange
             //
             IDictionary<string, object> trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
             symbolTrades = this.safeList(trades, marketId, new List<object>() {});
-        } else if ((method == "marketPublicGetV1beta3CryptoLocLatestTrades"))
+        } else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades")
         {
             Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
             //
@@ -888,7 +888,7 @@ public partial class alpaca : Exchange
             symbolTrades = new List<object>() {symbolTrade};
         } else
         {
-            throw new NotSupported ((string)(((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+            throw new NotSupported ((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
         }
         List<object> symbolTradesList = new List<object>() {};
         if ((symbolTrades != null))
@@ -998,37 +998,37 @@ public partial class alpaca : Exchange
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
-        bool paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
-        parameters = ((IList<object>)paginateparametersVariable)[1];
+        paginate = isTrue(paginateparametersVariable[0]);
+        parameters = paginateparametersVariable[1];
         object paginationCalls = 10;
         IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
-        paginationCalls = ((IList<object>)paginationCallsparametersVariable)[0];
-        parameters = ((IList<object>)paginationCallsparametersVariable)[1];
+        paginationCalls = paginationCallsparametersVariable[0];
+        parameters = paginationCallsparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
         List<object> ohlcvs = null;
-        if ((method == "marketPublicGetV1beta3CryptoLocBars"))
+        if (method == "marketPublicGetV1beta3CryptoLocBars")
         {
             if ((limit != null))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                request["limit"] = limit;
             }
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+                request["start"] = this.iso8601(since);
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
-                ((IDictionary<string,object>)request)["end"] = this.iso8601(until);
+                request["end"] = this.iso8601(until);
             }
-            ((IDictionary<string,object>)request)["timeframe"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+            request["timeframe"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
             Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
             //
             //    {
@@ -1061,7 +1061,7 @@ public partial class alpaca : Exchange
             //
             IDictionary<string, object> bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
             ohlcvs = this.safeList(bars, marketId, new List<object>() {});
-            if (paginate)
+            if ((paginate == true))
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
@@ -1072,7 +1072,7 @@ public partial class alpaca : Exchange
                     {
                         break;
                     }
-                    ((IDictionary<string,object>)request)["page_token"] = pageToken;
+                    request["page_token"] = pageToken;
                     response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
                     bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
                     List<object> page = this.safeList(bars, marketId, new List<object>() {});
@@ -1085,7 +1085,7 @@ public partial class alpaca : Exchange
                     pageToken = this.safeString(response, "next_page_token");
                 }
             }
-        } else if ((method == "marketPublicGetV1beta3CryptoLocLatestBars"))
+        } else if (method == "marketPublicGetV1beta3CryptoLocLatestBars")
         {
             Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
             //
@@ -1109,12 +1109,12 @@ public partial class alpaca : Exchange
             ohlcvs = new List<object>() {bar};
         } else
         {
-            throw new NotSupported ((string)(((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+            throw new NotSupported ((((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,((string)timeframeVar), since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
 
-    public override object parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, object market = null)
     {
         //
         //     {
@@ -1152,7 +1152,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbolVar));
     }
 
@@ -1166,24 +1166,25 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
     {
+        object symbolsVar = symbols;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((symbols == null))
+        if ((symbolsVar == null))
         {
             // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
-            symbols = allSymbols;
+            List<string> allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbolsVar = allSymbols;
         }
-        symbols = this.marketSymbols(symbols);
+        symbolsVar = this.marketSymbols(symbolsVar);
         string? loc = this.safeString(parameters, "loc", "us");
-        IList<object> ids = this.marketIds(symbols);
+        IList<object> ids = this.marketIds(symbolsVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbols", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "symbols", String.Join(",", ids.ToArray()) },
             { "loc", loc },
         };
         parameters = this.omit(parameters, "loc");
@@ -1275,17 +1276,17 @@ public partial class alpaca : Exchange
                 { "baseVolume", this.safeString(dailyBar, "v") },
                 { "quoteVolume", Precise.stringMul(this.safeString(dailyBar, "v"), this.safeString(dailyBar, "vw")) },
             }, market);
-            ((IList<object>)results).Add(ticker);
+            results.Add(ticker);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbols));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsVar));
     }
 
     public virtual string? generateClientOrderId(object parameters)
     {
         string? clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         string uuid = this.uuid();
-        List<object> parts = uuid.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        string random_id = String.Join("", ((IList<object>)parts).ToArray());
+        List<object> parts = uuid.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+        string random_id = String.Join("", parts.ToArray());
         string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
@@ -1314,7 +1315,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(((string)symbol), "market",((string)side),ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -1337,7 +1338,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -1360,7 +1361,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(((string)symbol), "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
     /**
@@ -1402,36 +1403,36 @@ public partial class alpaca : Exchange
                 newType = "stop_limit";
             } else
             {
-                throw new NotSupported ((string)(((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
+                throw new NotSupported ((((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
             }
-            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-            ((IDictionary<string,object>)request)["type"] = newType;
+            request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
+            request["type"] = newType;
         }
         if (getIndexOf(type, "limit") >= 0)
         {
-            ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
+            request["limit_price"] = this.priceToPrecision(symbol, price);
         }
         string? cost = this.safeString(parameters, "cost");
         if ((cost != null))
         {
             parameters = this.omit(parameters, "cost");
-            ((IDictionary<string,object>)request)["notional"] = this.costToPrecision(symbol, cost);
+            request["notional"] = this.costToPrecision(symbol, cost);
         } else
         {
-            ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+            request["qty"] = this.amountToPrecision(symbol, amount);
         }
         object defaultTIF = null;
         IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-        defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
-        parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        defaultTIF = defaultTIFparametersVariable[0];
+        parameters = defaultTIFparametersVariable[1];
         if ((defaultTIF != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             defaultTIF = ((string)defaultTIF).ToLower();
         }
-        ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
+        request["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
-        ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
+        request["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, parameters));
         //
@@ -1578,27 +1579,27 @@ public partial class alpaca : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
+            request["until"] = this.iso8601(until);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
+            request["after"] = this.iso8601(since);
             string? direction = this.safeString(parameters, "direction");
             if ((direction == null))
             {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
-                ((IDictionary<string,object>)request)["direction"] = "asc";
+                request["direction"] = "asc";
             }
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         List<object> response = await this.traderPrivateGetV2Orders(this.extend(request, parameters));
         //
@@ -1663,7 +1664,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "open" },
         };
-        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -1685,7 +1686,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "closed" },
         };
-        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -1722,28 +1723,28 @@ public partial class alpaca : Exchange
         }
         if ((amount != null))
         {
-            ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+            request["qty"] = this.amountToPrecision(symbol, amount);
         }
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if ((triggerPrice != null))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
+            request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             parameters = this.omit(parameters, "triggerPrice");
         }
         if ((price != null))
         {
-            ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
+            request["limit_price"] = this.priceToPrecision(symbol, price);
         }
         object timeInForce = null;
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
-        timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
-        parameters = ((IList<object>)timeInForceparametersVariable)[1];
+        timeInForce = timeInForceparametersVariable[0];
+        parameters = timeInForceparametersVariable[1];
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            ((IDictionary<string,object>)request)["time_in_force"] = ((string)timeInForce).ToLower();
+            request["time_in_force"] = ((string)timeInForce).ToLower();
         }
-        ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
+        request["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         Dictionary<string, object> response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
@@ -1791,7 +1792,7 @@ public partial class alpaca : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? alpacaStatus = this.safeString(order, "status");
         string? status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
@@ -1806,7 +1807,7 @@ public partial class alpaca : Exchange
         string? orderType = this.safeString(order, "order_type");
         if ((orderType != null))
         {
-            if (((string)orderType).IndexOf("limit", StringComparison.Ordinal) >= 0)
+            if (orderType.IndexOf("limit", StringComparison.Ordinal) >= 0)
             {
                 // might be limit or stop-limit
                 orderType = "limit";
@@ -1839,7 +1840,7 @@ public partial class alpaca : Exchange
         }, market);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
@@ -1864,7 +1865,7 @@ public partial class alpaca : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "day", "Day" },
@@ -1904,22 +1905,22 @@ public partial class alpaca : Exchange
             market = this.market(symbol);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
+            request["until"] = this.iso8601(until);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
+            request["after"] = this.iso8601(since);
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["page_size"] = limit;
+            request["page_size"] = limit;
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until", request, parameters);
-        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        request = (Dictionary<string, object>)requestparametersVariable[0];
+        parameters = requestparametersVariable[1];
         List<object> response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters));
         //
         //     [
@@ -1981,10 +1982,10 @@ public partial class alpaca : Exchange
         Int64? timestamp = this.parse8601(datetime);
         string? alpacaSide = this.safeString(trade, "tks");
         string? side = this.safeString(trade, "side");
-        if ((alpacaSide == "B"))
+        if (alpacaSide == "B")
         {
             side = "buy";
-        } else if ((alpacaSide == "S"))
+        } else if (alpacaSide == "S")
         {
             side = "sell";
         }
@@ -2023,7 +2024,7 @@ public partial class alpaca : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
@@ -2038,7 +2039,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
-    public override object parseDepositAddress(object depositAddress, object currency = null)
+    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2050,7 +2051,7 @@ public partial class alpaca : Exchange
         object parsedCurrency = null;
         if ((currency != null))
         {
-            parsedCurrency = getValue(currency, "id");
+            parsedCurrency = (currency != null && currency.ContainsKey("id") ? currency["id"] : null);
         }
         return new Dictionary<string, object>() {
             { "info", depositAddress },
@@ -2076,17 +2077,17 @@ public partial class alpaca : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         object addressVar = address;
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((IList<object>)tagparametersVariable)[0];
-        parameters = ((IList<object>)tagparametersVariable)[1];
+        tagVar = (string)tagparametersVariable[0];
+        parameters = tagparametersVariable[1];
         this.checkAddress(addressVar);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         if (((tagVar != null)) && (!isEqual(tagVar, "")))
         {
             addressVar = add(add(addressVar, ":"), tagVar);
@@ -2120,10 +2121,10 @@ public partial class alpaca : Exchange
     public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+        this.options["sandboxMode"] = enable;
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code, object since, object limit, object parameters)
     {
         if ((this.markets == null))
         {
@@ -2132,7 +2133,7 @@ public partial class alpaca : Exchange
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
-            currency = this.currency(((string)code));
+            currency = this.currency(code);
         }
         bool sandboxMode = this.isSandboxModeEnabled || (this.safeBool(this.options, "sandboxMode", false) == true);
         if ((sandboxMode == true))
@@ -2166,11 +2167,11 @@ public partial class alpaca : Exchange
                 object entry = ledger[i];
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
-                bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(amount, "0"));
+                bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(amount, "0"));
                 string entryDirection = isIncoming ? "INCOMING" : "OUTGOING";
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
-                    ((IList<object>)filtered).Add(entry);
+                    filtered.Add(entry);
                 }
             }
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(filtered, currency, since, limit, parameters));
@@ -2205,10 +2206,10 @@ public partial class alpaca : Exchange
             string? direction = this.safeString(entry, "direction");
             if (isEqual(direction, type))
             {
-                ((IList<object>)results).Add(entry);
+                results.Add(entry);
             } else if (isEqual(type, "BOTH"))
             {
-                ((IList<object>)results).Add(entry);
+                results.Add(entry);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(results, currency, since, limit, parameters));
@@ -2265,7 +2266,7 @@ public partial class alpaca : Exchange
         return await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
     }
 
-    public override object parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2314,7 +2315,7 @@ public partial class alpaca : Exchange
         if ((activityType != null))
         {
             string? netAmount = this.safeString(transaction, "net_amount");
-            bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !Precise.stringLt(netAmount, "0"));
+            bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(netAmount, "0"));
             timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = isIncoming ? "deposit" : "withdrawal";
@@ -2326,7 +2327,7 @@ public partial class alpaca : Exchange
             if ((activityCurrencyId != null))
             {
                 code = this.safeCurrencyCode(activityCurrencyId);
-            } else if (((activityType == "CSD")) || ((activityType == "CSW")))
+            } else if ((activityType == "CSD") || (activityType == "CSW"))
             {
                 code = "USD";
             } else
@@ -2335,7 +2336,7 @@ public partial class alpaca : Exchange
             }
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             comment = activityType;
-            intern = ((activityType != "TRANS"));
+            intern = (activityType != "TRANS");
         } else
         {
             txid = this.safeString(transaction, "tx_hash");
@@ -2382,7 +2383,7 @@ public partial class alpaca : Exchange
         };
     }
 
-    public virtual string? parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PROCESSING", "pending" },
@@ -2395,13 +2396,13 @@ public partial class alpaca : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseTransactionType(object type)
+    public virtual string? parseTransactionType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "INCOMING", "deposit" },
             { "OUTGOING", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -2481,7 +2482,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override object parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(object response)
     {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
@@ -2515,11 +2516,11 @@ public partial class alpaca : Exchange
         if ((code != null))
         {
             Dictionary<string, object> cashAccount = this.account();
-            ((IDictionary<string,object>)cashAccount)["free"] = this.safeString(account, "cash"); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            cashAccount["free"] = this.safeString(account, "cash"); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             string? equity = this.safeString(account, "equity");
             string? positionsValue = this.safeString(account, "position_market_value");
-            ((IDictionary<string,object>)cashAccount)["total"] = Precise.stringSub(equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            ((IDictionary<string,object>)result)[(string)code] = cashAccount;
+            cashAccount["total"] = Precise.stringSub(equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            result[(string)code] = cashAccount;
         }
         for (int i = 0; i < positions.Count; i++)
         {
@@ -2530,9 +2531,9 @@ public partial class alpaca : Exchange
                 continue;
             }
             string? baseId = null;
-            if (((string)positionSymbol).IndexOf("/", StringComparison.Ordinal) >= 0)
+            if (positionSymbol.IndexOf("/", StringComparison.Ordinal) >= 0)
             {
-                List<object> parts = positionSymbol.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = positionSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
                 baseId = this.safeString(parts, 0);
             } else
             {
@@ -2551,15 +2552,15 @@ public partial class alpaca : Exchange
             if (((positionCode != null)) && !(result.ContainsKey(positionCode)))
             {
                 Dictionary<string, object> positionAccount = this.account();
-                ((IDictionary<string,object>)positionAccount)["free"] = this.safeString(position, "qty_available");
-                ((IDictionary<string,object>)positionAccount)["total"] = this.safeString(position, "qty");
-                ((IDictionary<string,object>)result)[(string)positionCode] = positionAccount;
+                positionAccount["free"] = this.safeString(position, "qty_available");
+                positionAccount["total"] = this.safeString(position, "qty");
+                result[(string)positionCode] = positionAccount;
             }
         }
         return this.safeBalance(result);
     }
 
-    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2594,7 +2595,7 @@ public partial class alpaca : Exchange
         };
     }
 
-    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2615,10 +2616,10 @@ public partial class alpaca : Exchange
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            string codeAsString = ((object)code).ToString();
+            string codeAsString = code.ToString();
             if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
-                throw new ExchangeError ((string)feedback) ;
+                throw new ExchangeError (feedback) ;
             }
         }
         return null;

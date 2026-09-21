@@ -139,7 +139,7 @@ public partial class testMainClass
                     for (int j = 0; j < (possibleMethodNames?.Count ?? 0); j++)
                     {
                         string? methodName = ((string)possibleMethodNames[j]);
-                        methodName = ((string)methodName).Replace((string)"()", (string)"");
+                        methodName = methodName.Replace((string)"()", (string)"");
                         if ((testFileName == methodName))
                         {
                             ((IList<object>)this.onlySpecificTests).Add(testFileName);
@@ -322,7 +322,7 @@ public partial class testMainClass
             await exchange.loadMarkets(true);
             dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
-        if ((skipMessage != null) && (skipMessage != ""))
+        if ((skipMessage != null) && skipMessage != "")
         {
             if (isTrue(this.info))
             {
@@ -477,7 +477,7 @@ public partial class testMainClass
                             }
                         }
                         // output the message
-                        string failType = (shouldFail == true) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        string failType = shouldFail == true ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                         dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", exceptionMessage(e));
                         return retSuccess;
                     } else
@@ -578,15 +578,15 @@ public partial class testMainClass
         {
             if (isEqual(isSpot, true))
             {
-                ((IDictionary<string,object>)tests)["fetchCurrencies"] = new List<object>() {};
+                tests["fetchCurrencies"] = new List<object>() {};
             } else
             {
-                ((IDictionary<string,object>)tests)["fetchFundingRates"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRate"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchIndexOHLCV"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchMarkOHLCV"] = new List<object>() {primarySymbol};
-                ((IDictionary<string,object>)tests)["fetchPremiumIndexOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRates"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRate"] = new List<object>() {primarySymbol};
+                tests["fetchFundingRateHistory"] = new List<object>() {primarySymbol};
+                tests["fetchIndexOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchMarkOHLCV"] = new List<object>() {primarySymbol};
+                tests["fetchPremiumIndexOHLCV"] = new List<object>() {primarySymbol};
             }
         }
         this.publicTests = tests;
@@ -701,10 +701,10 @@ public partial class testMainClass
             object market = getValue(markets, key);
             if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
             {
-                ((IDictionary<string,object>)res)[(string)getValue(market, "symbol")] = market;
+                res[(string)getValue(market, "symbol")] = market;
             } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
             {
-                ((IDictionary<string,object>)res)[(string)getValue(market, "symbol")] = market;
+                res[(string)getValue(market, "symbol")] = market;
             }
         }
         return res;
@@ -855,8 +855,8 @@ public partial class testMainClass
                     if (isGreaterThan(volume, 0))
                     {
                         Dictionary<string, object> entry = new Dictionary<string, object>() {};
-                        ((IDictionary<string,object>)entry)["symbol"] = tickerSymbol;
-                        ((IDictionary<string,object>)entry)["volume"] = volume;
+                        entry["symbol"] = tickerSymbol;
+                        entry["volume"] = volume;
                         ((IList<object>)candidates).Add(entry);
                     }
                 }
@@ -1081,14 +1081,14 @@ public partial class testMainClass
                     // separators as spaces) so the scoped contract holds even without a pin
                     List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                     string? marketPart = ((string)(handleParts != null && 0 < handleParts.Count ? handleParts[0] : null));
-                    string lowerPart = ((string)marketPart).ToLower();
+                    string lowerPart = marketPart.ToLower();
                     string dedashed = lowerPart.Replace((string)"-", (string)" ");
                     eventQuery = dedashed.Replace((string)"_", (string)" ");
                 }
                 Dictionary<string, object> eventParams = new Dictionary<string, object>() {};
                 if ((eventQuery != null))
                 {
-                    ((IDictionary<string,object>)eventParams)["query"] = eventQuery;
+                    eventParams["query"] = eventQuery;
                 }
                 object events = await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {eventParams});
                 assert((events != null), add(exchange.id, " fetchEvents returned undefined"));
@@ -1426,7 +1426,7 @@ public partial class testMainClass
         };
         if (isTrue(getCliArgValue("--fundedTests")))
         {
-            ((IDictionary<string,object>)tests)["createOrder"] = new List<object>() {symbol};
+            tests["createOrder"] = new List<object>() {symbol};
         }
         if (isTrue(this.wsTests))
         {
@@ -1444,18 +1444,18 @@ public partial class testMainClass
         {
             if (isEqual(isSpot, true))
             {
-                ((IDictionary<string,object>)tests)["fetchCurrencies"] = new List<object>() {};
+                tests["fetchCurrencies"] = new List<object>() {};
             } else
             {
                 // derivatives only
-                ((IDictionary<string,object>)tests)["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
-                ((IDictionary<string,object>)tests)["fetchPosition"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchPositionRisk"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["setPositionMode"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["setMarginMode"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchOpenInterestHistory"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingRateHistory"] = new List<object>() {symbol};
-                ((IDictionary<string,object>)tests)["fetchFundingHistory"] = new List<object>() {symbol};
+                tests["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
+                tests["fetchPosition"] = new List<object>() {symbol};
+                tests["fetchPositionRisk"] = new List<object>() {symbol};
+                tests["setPositionMode"] = new List<object>() {symbol};
+                tests["setMarginMode"] = new List<object>() {symbol};
+                tests["fetchOpenInterestHistory"] = new List<object>() {symbol};
+                tests["fetchFundingRateHistory"] = new List<object>() {symbol};
+                tests["fetchFundingHistory"] = new List<object>() {symbol};
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1660,7 +1660,7 @@ public partial class testMainClass
                 dump(("[WARN] tests not found: " + (path)));
                 return null;
             }
-            ((IDictionary<string,object>)result)[(string)targetExchange] = ioFileRead(path);
+            result[(string)targetExchange] = ioFileRead(path);
             return result;
         }
         object files = ioDirRead(folder);
@@ -1677,7 +1677,7 @@ public partial class testMainClass
             }
             string exchangeName = ((string)file).Replace((string)".json", (string)"");
             object content = ioFileRead(add(folder, file));
-            ((IDictionary<string,object>)result)[(string)exchangeName] = content;
+            result[(string)exchangeName] = content;
         }
         return result;
     }
@@ -1698,7 +1698,7 @@ public partial class testMainClass
                 if (getIndexOf(current, "?") > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    List<object> currentParts = ((string)current).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+                    List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
                     res = add(res, "/");
                     res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
@@ -1717,7 +1717,7 @@ public partial class testMainClass
         for (int i = 0; i < parts.Count; i++)
         {
             string? part = ((string)parts[i]);
-            List<object> keyValue = ((string)part).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            List<object> keyValue = part.Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             int keysLength = keyValue.Count;
             if ((keysLength != 2))
             {
@@ -1730,7 +1730,7 @@ public partial class testMainClass
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            ((IDictionary<string,object>)result)[(string)key] = value;
+            result[(string)key] = value;
         }
         return result;
     }
@@ -2547,8 +2547,8 @@ public partial class testMainClass
         };
         if (isEqual(exchangeName, "grvt"))
         {
-            ((IDictionary<string,object>)options)["apiKey"] = "";
-            ((IDictionary<string,object>)options)["secret"] = "";
+            options["apiKey"] = "";
+            options["secret"] = "";
         }
         BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if ((currencies != null))

@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
             object symbol = getValue(market, "symbol");
             if (!(inOp(ids, symbol)))
             {
-                ((IDictionary<string,object>)ids)[(string)symbol] = getValue(market, "id");
+                ids[(string)symbol] = getValue(market, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));

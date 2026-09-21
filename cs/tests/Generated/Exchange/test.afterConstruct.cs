@@ -66,8 +66,8 @@ public partial class testMainClass : BaseTest
                 string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
-                object networkIdConverted = exchange.networkCodeToId(networkCode);
-                assert(isEqual(networkId, networkIdConverted), (((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + (networkIdConverted)) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\"") + (networkId)) + "\""));
+                string? networkIdConverted = exchange.networkCodeToId(networkCode);
+                assert(isEqual(networkId, networkIdConverted), (((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\"") + (networkId)) + "\""));
                 // ensure it exists in networksById
                 assert(inOp(getValue(exchange.options, "networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + (networkId)) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
@@ -75,8 +75,8 @@ public partial class testMainClass : BaseTest
                 {
                     assert(isEqual(getValue(getValue(exchange.options, "networksById"), networkId), networkCode), (((((("exchange.options[\"networksById\"][\"" + (networkId)) + "\"] value is not expected \"") + networkCode) + "\", but: \"") + (getValue(getValue(exchange.options, "networksById"), networkId))) + "\""));
                     // check networkIdToCode conversion back
-                    object networkCodeConverted = exchange.networkIdToCode(networkId);
-                    assert(isEqual(networkCode, networkCodeConverted), (((((("exchange.networkIdToCode (\"" + (networkId)) + "\")=\"") + (networkCodeConverted)) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
+                    string? networkCodeConverted = exchange.networkIdToCode(networkId);
+                    assert((networkCode == networkCodeConverted), (((((("exchange.networkIdToCode (\"" + (networkId)) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

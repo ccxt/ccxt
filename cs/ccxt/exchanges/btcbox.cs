@@ -271,17 +271,17 @@ public partial class btcbox : Exchange
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
+            List<object> symbolParts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+            string baseCurr = this.safeString(symbolParts, 0, "");
             string? quote = this.safeString(symbolParts, 1, "");
             string quoteId = quote.ToLower();
-            string id = ((string)baseCurr).ToLower();
+            string id = baseCurr.ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             string symbol = ((baseCurr + "/") + quote);
-            double? fee = ((id == "BTC")) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            double? fee = (id == "BTC") ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            markets.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", null },
                 { "symbol", symbol },
@@ -343,7 +343,7 @@ public partial class btcbox : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
             { "uppercaseId", null },
@@ -396,7 +396,7 @@ public partial class btcbox : Exchange
         });
     }
 
-    public override object parseBalance(object response)
+    public override Dictionary<string, object> parseBalance(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -405,16 +405,16 @@ public partial class btcbox : Exchange
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
             object free = add(currencyId, "_balance");
             if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
                 object used = add(currencyId, "_lock");
-                ((IDictionary<string,object>)account)["free"] = this.safeString(response, free);
-                ((IDictionary<string,object>)account)["used"] = this.safeString(response, used);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                account["free"] = this.safeString(response, free);
+                account["used"] = this.safeString(response, used);
+                result[(string)code] = account;
             }
         }
         return this.safeBalance(result);
@@ -461,7 +461,7 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetDepth(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -516,7 +516,7 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
@@ -530,7 +530,7 @@ public partial class btcbox : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -601,7 +601,7 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            request["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         List<object> response = await this.publicGetOrders(this.extend(request, parameters));
         //
@@ -690,7 +690,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "part", "open" },
@@ -812,19 +812,20 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(object type, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        // a special case for btcbox – default symbol is BTC/JPY
-        if ((symbol == null))
+        // a special case for btcbox – default symbolVar is BTC/JPY
+        if ((symbolVar == null))
         {
-            symbol = "BTC/JPY";
+            symbolVar = "BTC/JPY";
         }
-        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
@@ -894,7 +895,7 @@ public partial class btcbox : Exchange
         return this.milliseconds();
     }
 
-    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -912,14 +913,14 @@ public partial class btcbox : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            string nonce = this.nonce().ToString();
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "key", this.apiKey },
                 { "nonce", nonce },
             }, parameters);
             string request = this.urlencode(query);
-            object secret = this.hash(this.encode(this.secret), md5);
-            ((IDictionary<string,object>)query)["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
+            string secret = ((string)this.hash(this.encode(this.secret), md5));
+            query["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
@@ -933,7 +934,7 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -945,14 +946,14 @@ public partial class btcbox : Exchange
             return null;  // resort to defaultErrorHandler
         }
         bool? result = this.safeBool(response, "result");
-        if (isEqual(result, null) || (result == true))
+        if ((result == null) || (result == true))
         {
             return null;  // either public API (no error codes expected) or success
         }
         string? code = this.safeString(response, "code");
         string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
-        throw new ExchangeError ((string)feedback) ;
+        throw new ExchangeError (feedback) ;
     }
 
     public async override Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)

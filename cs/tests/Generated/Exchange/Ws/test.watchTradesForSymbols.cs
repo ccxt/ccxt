@@ -13,11 +13,11 @@ public partial class testMainClass : BaseTest
         string method = "watchTradesForSymbols";
         object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
         Int64 now = exchange.milliseconds();
-        object ends = (now + 30000);
+        Int64 ends = (now + 30000);
         int maxIdleTime = 5000;
         bool idle = false;
         List<object> returnedSymbols = new List<object>() {};
-        while ((isLessThan(now, ends)) && !idle)
+        while ((now < ends) && !idle)
         {
             object response = null;
             bool success = true;

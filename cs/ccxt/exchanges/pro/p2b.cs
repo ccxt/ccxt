@@ -97,7 +97,7 @@ public partial class p2b : ccxt.p2b
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -106,7 +106,7 @@ public partial class p2b : ccxt.p2b
         }
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? channel = this.safeInteger(timeframes, timeframeVar);
-        if (isEqual(channel, null))
+        if ((channel == null))
         {
             throw new BadRequest ((string)((this.id + " watchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
         }
@@ -116,7 +116,7 @@ public partial class p2b : ccxt.p2b
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
         if (this.newUpdates)
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -143,8 +143,8 @@ public partial class p2b : ccxt.p2b
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
         IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "name", name);
-        name = ((IList<object>)nameparametersVariable)[0];
-        parameters = ((IList<object>)nameparametersVariable)[1];
+        name = nameparametersVariable[0];
+        parameters = nameparametersVariable[1];
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -176,15 +176,15 @@ public partial class p2b : ccxt.p2b
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
         IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "name", name);
-        name = ((IList<object>)nameparametersVariable)[0];
-        parameters = ((IList<object>)nameparametersVariable)[1];
+        name = nameparametersVariable[0];
+        parameters = nameparametersVariable[1];
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
-            ((IList<object>)args).Add((market.ContainsKey("id") ? market["id"] : null));
+            messageHashes.Add(add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            args.Add((market.ContainsKey("id") ? market["id"] : null));
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -226,7 +226,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -238,7 +238,7 @@ public partial class p2b : ccxt.p2b
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                ((IList<object>)messageHashes).Add(("deals::" + (getValue(symbols, i))));
+                messageHashes.Add(("deals::" + (getValue(symbols, i))));
             }
         }
         IList<object> marketIds = this.marketIds(symbols);
@@ -254,7 +254,7 @@ public partial class p2b : ccxt.p2b
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -272,7 +272,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -284,10 +284,10 @@ public partial class p2b : ccxt.p2b
         string? interval = this.safeString(parameters, "interval", "0.001");
         if ((limitVar == null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitVar, interval};
-        object orderbook = await this.subscribe(name, messageHash, request, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, messageHash, request, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -314,7 +314,7 @@ public partial class p2b : ccxt.p2b
         List<object> data = this.safeList(message, "params");
         data = this.safeList(data, 0);
         string? method = this.safeString(message, "method");
-        List<object> splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object channel = this.safeString(splitMethod, 0);
         string? marketId = this.safeString(data, 7);
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -322,19 +322,19 @@ public partial class p2b : ccxt.p2b
         string? timeframe = this.findTimeframe(channel, timeframes);
         string? symbol = this.safeString(market, "symbol");
         object messageHash = add(add(channel, "::"), symbol);
-        object parsed = this.parseOHLCV(data, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), timeframe);
+        IList<object> parsed = this.parseOHLCV(data, market);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((symbol != null))
         {
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
             callDynamically(stored, "append", new object[] {parsed});
-            (client as WebSocketClient).resolve(stored, messageHash);
+            client.resolve(stored, messageHash);
         }
         return message;
     }
@@ -365,12 +365,12 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(data, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol");
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
         for (int i = 0; i < (((IList<object>)(trades))?.Count ?? 0); i++)
         {
@@ -379,7 +379,7 @@ public partial class p2b : ccxt.p2b
             callDynamically(tradesArray, "append", new object[] {trade});
         }
         string messageHash = ("deals::" + symbol);
-        (client as WebSocketClient).resolve(tradesArray, messageHash);
+        client.resolve(tradesArray, messageHash);
         return message;
     }
 
@@ -421,11 +421,11 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(data, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? method = this.safeString(message, "method");
-        List<object> splitMethod = ((string)((string)method)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object messageHashStart = this.safeString(splitMethod, 0);
         IDictionary<string, object> tickerData = this.safeDict(data, 1);
-        object ticker = null;
-        if ((method == "price.update"))
+        Dictionary<string, object> ticker = null;
+        if (method == "price.update")
         {
             string? lastPrice = this.safeString(data, 1);
             ticker = this.safeTicker(new Dictionary<string, object>() {
@@ -437,10 +437,10 @@ public partial class p2b : ccxt.p2b
         {
             ticker = this.parseTicker(tickerData, market);
         }
-        object symbol = getValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
+        string? symbol = ((string)GetValue(ticker, "symbol"));
+        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add(add(messageHashStart, "::"), symbol);
-        (client as WebSocketClient).resolve(ticker, messageHash);
+        client.resolve(ticker, messageHash);
         return message;
     }
 
@@ -473,7 +473,7 @@ public partial class p2b : ccxt.p2b
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+        IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -511,20 +511,20 @@ public partial class p2b : ccxt.p2b
                 (bookside as IOrderBookSide).store(price, amount);
             }
         }
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        (client as WebSocketClient).resolve(orderbook, messageHash);
+        orderbook["symbol"] = symbol;
+        client.resolve(orderbook, messageHash);
     }
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client as WebSocketClient, message), true))
+        if (isEqual(this.handleErrorMessage(client, message), true))
         {
             return;
         }
         string? result = this.safeString(message, "result");
-        if ((result == "pong"))
+        if (result == "pong")
         {
-            this.handlePong(client as WebSocketClient, message);
+            this.handlePong(client, (Dictionary<string, object>)message);
             return;
         }
         string? method = this.safeString(message, "method");
@@ -535,7 +535,7 @@ public partial class p2b : ccxt.p2b
             { "state.update", this.handleTicker },
             { "deals.update", this.handleTrade },
         };
-        object endpoint = this.safeValue(methods, method);
+        Delegate endpoint = ((Delegate)this.safeValue(methods, method));
         if ((endpoint != null))
         {
             DynamicInvoker.InvokeMethod(endpoint, new object[] { client, message});
@@ -547,7 +547,7 @@ public partial class p2b : ccxt.p2b
         string? error = this.safeString(message, "error");
         if ((error != null))
         {
-            throw new ExchangeError ((string)((this.id + " error: ") + this.json(error))) ;
+            throw new ExchangeError (((this.id + " error: ") + this.json(error))) ;
         }
         return ((bool?)((object)(false)));
     }
@@ -565,7 +565,7 @@ public partial class p2b : ccxt.p2b
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -580,13 +580,13 @@ public partial class p2b : ccxt.p2b
 
     public override void onError(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
-        base.onError(client as WebSocketClient, error);
+        this.options["tickerSubs"] = this.createSafeDictionary();
+        base.onError(client, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
-        base.onClose(client as WebSocketClient, error);
+        this.options["tickerSubs"] = this.createSafeDictionary();
+        base.onClose(client, error);
     }
 }

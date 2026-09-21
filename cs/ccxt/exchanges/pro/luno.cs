@@ -48,7 +48,7 @@ public partial class luno : ccxt.luno
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if ((this.markets == null))
@@ -61,7 +61,7 @@ public partial class luno : ccxt.luno
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash));
         string messageHash = ("trades:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
@@ -71,7 +71,7 @@ public partial class luno : ccxt.luno
         object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates)
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -102,7 +102,7 @@ public partial class luno : ccxt.luno
         object symbol = getValue(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trades:" + (symbol));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -116,7 +116,7 @@ public partial class luno : ccxt.luno
             callDynamically(stored, "append", new object[] {trade});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        (client as WebSocketClient).resolve(getValue(this.trades, symbol), messageHash);
+        client.resolve(getValue(this.trades, symbol), messageHash);
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -176,14 +176,14 @@ public partial class luno : ccxt.luno
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash);
+        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subscriptionHash));
         string messageHash = ("orderbook:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object orderbook = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, subscriptionHash, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -237,13 +237,13 @@ public partial class luno : ccxt.luno
         {
             ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
             this.handleDelta(ob, message);
-            ((IDictionary<string,object>)ob)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)ob)["datetime"] = this.iso8601(timestamp);
+            ob["timestamp"] = timestamp;
+            ob["datetime"] = this.iso8601(timestamp);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-        (client as WebSocketClient).resolve(orderbook, messageHash);
+        orderbook["nonce"] = nonce;
+        client.resolve(orderbook, messageHash);
     }
 
     public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
@@ -274,9 +274,9 @@ public partial class luno : ccxt.luno
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(bidasks); i++)
         {
-            ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
+            result.Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual List<object> customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object thirdKey = null)
@@ -289,10 +289,10 @@ public partial class luno : ccxt.luno
         List<object> result = new List<object>() {price, amount};
         if (!isEqual(thirdKey, null))
         {
-            object thirdValue = ((object)this.safeString(bidask, thirdKey));
-            ((IList<object>)result).Add(thirdValue);
+            object thirdValue = this.safeString(bidask, thirdKey);
+            result.Add(thirdValue);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public override void handleDelta(object orderbook, object message)
@@ -347,10 +347,10 @@ public partial class luno : ccxt.luno
         {
             List<object> bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             string? type = this.safeString(createUpdate, "type");
-            if ((type == "ASK"))
+            if (type == "ASK")
             {
                 (asksOrderSide as IOrderBookSide).storeArray(bidAskArray);
-            } else if ((type == "BID"))
+            } else if (type == "BID")
             {
                 (bidsOrderSide as IOrderBookSide).storeArray(bidAskArray);
             }
@@ -370,7 +370,7 @@ public partial class luno : ccxt.luno
         {
             return;
         }
-        List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
+        List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Values);
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
         for (int j = 0; j < (handlers?.Count ?? 0); j++)
         {

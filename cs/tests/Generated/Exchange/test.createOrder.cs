@@ -143,7 +143,7 @@ public partial class testMainClass : BaseTest
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
             if (isSwapFuture)
             {
-                ((IDictionary<string,object>)parameters)["reduceOnly"] = true;
+                parameters["reduceOnly"] = true;
             }
             object exitorderPriceArg = (isEqual(getValue(market, "spot"), true)) ? null : exitorderPrice;
             object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
@@ -151,7 +151,7 @@ public partial class testMainClass : BaseTest
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new Exception ((string)("failed for Scenario 2: " + ((object)e).ToString())) ;
+            throw new Exception (("failed for Scenario 2: " + ((object)e).ToString())) ;
         }
         return true;
     }

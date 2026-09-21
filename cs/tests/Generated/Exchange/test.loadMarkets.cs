@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
             string? mType = ((string)marketTypes[i]);
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))
             {
-                bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option");
+                bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && mType == "option";
                 assert(isTrue(exchange.inArray(mType, collectedTypes)) || skipMarketTypes, (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
             } else if (isEqual(getValue(exchange.has, mType), false))
             {
