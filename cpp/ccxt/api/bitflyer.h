@@ -66,6 +66,11 @@ public:
         return this->callEndpoint (std::string ("publicGetGetfundingrate"), parameters);
     }
 
+    // Calls the publicGetGetfundingratehistory endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetGetfundingratehistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetGetfundingratehistory"), parameters);
+    }
+
     // Calls the privateGetGetpermissions endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetGetpermissions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetGetpermissions"), parameters);

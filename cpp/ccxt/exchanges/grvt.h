@@ -117,6 +117,37 @@ public:
              ccxt::dict{
                  {std::string("privateEdge"),
                   ccxt::dict{
+                      {std::string("get"),
+                       ccxt::dict{
+                           {std::string("api/v1/deposit/addresses"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/bridge/withdrawal-info"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/bridge/withdrawal-status"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/referral/epochs"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/referral/points"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/referral/data"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("api/v1/referral/indirect_data"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                       }},
                       {std::string("post"),
                        ccxt::dict{
                            {std::string("auth/api_key/login"),
@@ -124,6 +155,22 @@ public:
                                 {std::string("cost"), 100},
                             }},
                            {std::string("auth/wallet/login"),
+                            ccxt::dict{
+                                {std::string("cost"), 100},
+                            }},
+                           {std::string("auth/builder/authorize"),
+                            ccxt::dict{
+                                {std::string("cost"), 100},
+                            }},
+                           {std::string("api/v1/deposit/generate-address"),
+                            ccxt::dict{
+                                {std::string("cost"), 100},
+                            }},
+                           {std::string("api/v1/bridge/withdrawal-quote"),
+                            ccxt::dict{
+                                {std::string("cost"), 100},
+                            }},
+                           {std::string("api/v1/bridge/withdraw"),
                             ccxt::dict{
                                 {std::string("cost"), 100},
                             }},
@@ -178,6 +225,15 @@ public:
                                 {std::string("cost"), 12},
                             }},
                            {std::string("full/v1/funding"),
+                            ccxt::dict{
+                                {std::string("cost"), 12},
+                            }},
+                           {std::string("full/v1/supported_assets"),
+                            ccxt::dict{
+                                {std::string("cost"), 12},
+                            }},
+                           {std::string(
+                                "full/v1/get_all_collateral_asset_info"),
                             ccxt::dict{
                                 {std::string("cost"), 12},
                             }},
@@ -331,6 +387,46 @@ public:
                            {std::string("full/v1/builder_fill_history"),
                             ccxt::dict{
                                 {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v1/create_rfq"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("full/v1/cancel_rfq"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("full/v1/ecn_from_broker"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v2/bulk_orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("full/v1/position_history"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOrders},
+                            }},
+                           {std::string("full/v1/interest_payment_history"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v1/get_collateral_preference"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v1/spot_account_summary"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v1/set_indicative_prices"),
+                            ccxt::dict{
+                                {std::string("cost"), rlOthers},
+                            }},
+                           {std::string("full/v1/withdrawal_fee"),
+                            ccxt::dict{
+                                {std::string("cost"), 100},
                             }},
                        }},
                   }},
@@ -4355,7 +4451,7 @@ public:
              this->safeString(metadata, std::string("client_order_id"))},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("lastTradeTimeStamp"), ccxt::any{}},
+            {std::string("lastTradeTimestamp"), ccxt::any{}},
             {std::string("lastUpdateTimestamp"),
              this->safeIntegerProduct(stateObj, std::string("update_time"),
                                       0.000001)},

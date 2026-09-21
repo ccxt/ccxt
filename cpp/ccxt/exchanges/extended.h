@@ -27,7 +27,7 @@ public:
             {std::string("has"),
              ccxt::dict{
                  {std::string("CORS"), ccxt::any{}},
-                 {std::string("spot"), true},
+                 {std::string("spot"), false},
                  {std::string("margin"), false},
                  {std::string("swap"), true},
                  {std::string("future"), false},
@@ -237,6 +237,15 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("interest/info/rate-curves"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "interest/info/latest-rate-curves"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
@@ -348,6 +357,51 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("portfolio/charts/pnl/percentage"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/charts/pnl/cumulative"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/charts/pnl/cumulative/"
+                                             "percentage"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/charts/vault-equities"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/charts/max-drawdown"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/charts/funding"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/accounts/summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/accounts/health"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/accounts/performance"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/funding/stats"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolio/funding/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("vault/public/performance"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -360,10 +414,30 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("interest/key-metrics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("interest/daily-metrics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("interest/payment-chart"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("interest/payments"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
                                 {std::string("user/order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("user/order/rfq"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -763,6 +837,10 @@ public:
     ccxt::any contractSize = ccxt::any{};
     ccxt::any linear = ccxt::any{};
     ccxt::any inverse = ccxt::any{};
+    // SPOT rows are still parsed on purpose even though has['spot'] is false -
+    // that flag only advertises the capability and gates the unified spot
+    // tests, it does not filter markets, so accounts still holding spot
+    // balances keep resolving their symbols
     if (isTrue(isEqual(type, std::string("spot")))) {
       isSpot = true;
     } else {

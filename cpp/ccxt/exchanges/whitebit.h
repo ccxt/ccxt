@@ -374,6 +374,11 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "collateral-account/positions/closed-pnl"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("collateral-account/summary"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -427,6 +432,11 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "main-account/express-withdraw/token"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("main-account/transfer"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -457,6 +467,45 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("main-account/smart-flex/plans"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "main-account/smart-flex/investments"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/payment-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/invest"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/withdraw"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/close"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("main-account/smart-flex/"
+                                             "investments/auto-invest"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("trade-account/balance"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -466,6 +515,11 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("trade-account/order/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "trade-account/order/history/query"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -518,6 +572,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("order/cancel/all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("order/cancel/bulk"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -652,11 +710,68 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("mining/hashrate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/payout-destination"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/payout-destination/edit"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/miners/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/workers/names"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/workers/hashrate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/watcher-links/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/watcher-links/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/accounts/create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("mining/accounts"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("market/fee"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("market/fee/single"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("conditional-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("travel-rule/vasps"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "travel-rule/deposit/verification"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("jwt"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -6186,7 +6301,7 @@ public:
           if (isTrue(isGreaterThan(errorsLength, 0))) {
             ccxt::any errorKey = ::getValue(errorKeys, 0);
             ccxt::any errorMessageArray =
-                this->safeValue(errorObject, errorKey, ccxt::list{});
+                this->safeList(errorObject, errorKey, ccxt::list{});
             ccxt::any errorMessageLength = getArrayLength(errorMessageArray);
             errorInfo = (isTrue((isGreaterThan(errorMessageLength, 0)))
                              ? ccxt::any(::getValue(errorMessageArray, 0))

@@ -232,7 +232,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("getOrderByClientOrderId"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                            {std::string("cancelOrder"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("cancelByClientOrderId"),
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
@@ -592,7 +600,7 @@ public:
     ccxt::any balances =
         this->safeValue(response, std::string("return"), ccxt::dict{});
     ccxt::any free =
-        this->safeValue(balances, std::string("balance"), ccxt::dict{});
+        this->safeDict(balances, std::string("balance"), ccxt::dict{});
     ccxt::any used =
         this->safeValue(balances, std::string("balance_hold"), ccxt::dict{});
     ccxt::any timestamp =
@@ -1693,10 +1701,10 @@ public:
                  //
                  ccxt::any data = this->safeValue(
                      response, std::string("return"), ccxt::dict{});
-                 ccxt::any withdraw = this->safeValue(
+                 ccxt::any withdraw = this->safeDict(
                      data, std::string("withdraw"), ccxt::dict{});
-                 ccxt::any deposit = this->safeValue(
-                     data, std::string("deposit"), ccxt::dict{});
+                 ccxt::any deposit =
+                     this->safeDict(data, std::string("deposit"), ccxt::dict{});
                  ccxt::any transactions = ccxt::list{};
                  ccxt::any currency = ccxt::any{};
                  if (isTrue(isEqual(code, ccxt::any{}))) {

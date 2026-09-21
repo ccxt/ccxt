@@ -67,9 +67,9 @@ public:
                  {std::string("fetchDepositWithdrawFee"), false},
                  {std::string("fetchDepositWithdrawFees"), false},
                  {std::string("fetchFundingHistory"), true},
-                 {std::string("fetchFundingRate"), false},
+                 {std::string("fetchFundingRate"), true},
                  {std::string("fetchFundingRateHistory"), true},
-                 {std::string("fetchFundingRates"), false},
+                 {std::string("fetchFundingRates"), true},
                  {std::string("fetchGreeks"), true},
                  {std::string("fetchIndexOHLCV"), true},
                  {std::string("fetchIsolatedBorrowRate"), false},
@@ -223,6 +223,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("staking/balance/history/global"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("staking/config"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -256,6 +260,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("vaults"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("vaults/analytics"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -430,6 +438,26 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("rfqs"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/drafts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/markets"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/{rfq_id}/bbo"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("staking/balance/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("staking/history"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -509,6 +537,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("account/paradigm/enable"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/terminal-token"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("account/keys/subkeys/activate"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -559,6 +595,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("rfqs"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/drafts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/{rfq_id}/execute"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v2/auth"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -583,6 +631,16 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("account/keys/subkeys/{public_key}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/keys/subkeys/{public_key}/"
+                                        "allowed-cidrs"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "account/tokens/{lookup_id}/allowed-cidrs"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -627,6 +685,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("orders/{order_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/drafts/{draft_id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfqs/{rfq_id}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1627,6 +1693,161 @@ public:
 
   /**
    * @method
+   * @name paradex#fetchFundingRates
+   * @description fetches the current funding rate for multiple markets
+   * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+   * @param {string[]} [symbols] unified market symbols
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @returns {object[]} a list of [funding rate structures]{@link
+   * https://docs.ccxt.com/?id=funding-rate-structure}
+   */
+  std::shared_future<ccxt::any>
+  fetchFundingRates(ccxt::any symbols = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) override {
+    return std::async(std::launch::deferred,
+                      [=]() mutable -> ccxt::any {
+                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                          awaitValue(this->loadMarkets());
+                        }
+                        symbols = this->marketSymbols(symbols);
+                        // the endpoint takes one market id, and ALL answers for
+                        // every product on the venue: a single symbol is asked
+                        // for by name, which is 544 bytes against 1.6 MB
+                        ccxt::any target = std::string("ALL");
+                        if (isTrue(!isEqual(symbols, ccxt::any{}))) {
+                          ccxt::any symbolsLength = getArrayLength(symbols);
+                          if (isTrue(isEqual(symbolsLength, 1))) {
+                            target =
+                                ::getValue(this->market(::getValue(symbols, 0)),
+                                           std::string("id"));
+                          }
+                        }
+                        ccxt::any request = ccxt::dict{
+                            {std::string("market"), target},
+                        };
+                        ccxt::any response =
+                            awaitValue(this->publicGetMarketsSummary(
+                                this->extend(request, params)));
+                        ccxt::any data = this->safeList(
+                            response, std::string("results"), ccxt::list{});
+                        return this->parseFundingRates(data, symbols);
+                      })
+        .share();
+  }
+
+  /**
+   * @method
+   * @name paradex#fetchFundingRate
+   * @description fetches the current funding rate
+   * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+   * @param {string} symbol unified market symbol
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @returns {object} a [funding rate structure]{@link
+   * https://docs.ccxt.com/?id=funding-rate-structure}
+   */
+  std::shared_future<ccxt::any>
+  fetchFundingRate(ccxt::any symbol, ccxt::any params = ccxt::dict{}) override {
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any market = this->market(symbol);
+                 ccxt::any rates = awaitValue(this->fetchFundingRates(
+                     ccxt::list{::getValue(market, std::string("symbol"))},
+                     params));
+                 ccxt::any rate = this->safeDict(
+                     rates, ::getValue(market, std::string("symbol")));
+                 if (isTrue(isEqual(rate, ccxt::any{}))) {
+                   throw BadSymbol(toString(
+                       add(add(this->id,
+                               std::string(" fetchFundingRate() could not find "
+                                           "a funding rate for ")),
+                           symbol)));
+                 }
+                 return rate;
+               })
+        .share();
+  }
+
+  ccxt::any parseFundingRate(ccxt::any contract,
+                             ccxt::any market = ccxt::any{}) override {
+    //
+    //     {
+    //         "symbol": "BTC-USD-PERP",
+    //         "oracle_price": "68465.17449906",
+    //         "mark_price": "68465.17449906",
+    //         "last_traded_price": "68495.1",
+    //         "bid": "68477.6",
+    //         "ask": "69578.2",
+    //         "volume_24h": "5815541.397939004",
+    //         "total_volume": "584031465.525259686",
+    //         "created_at": 1718170156580,
+    //         "underlying_price": "67367.37268422",
+    //         "open_interest": "162.272",
+    //         "funding_rate": "0.01629574927887",
+    //         "price_change_rate_24h": "0.009032"
+    //     }
+    //
+    ccxt::any marketId = this->safeString(contract, std::string("symbol"));
+    market =
+        this->safeMarket(marketId, market, ccxt::any{}, std::string("swap"));
+    ccxt::any timestamp =
+        this->safeInteger(contract, std::string("created_at"));
+    // the summary answers for every product, and only a perpetual funds: an
+    // option row carries an empty funding_rate and a period of zero. left
+    // without a symbol, parseFundingRates drops the row
+    ccxt::any rate = this->safeString(contract, std::string("funding_rate"));
+    ccxt::any funds =
+        isTrue(
+            isTrue((isEqual(::getValue(market, std::string("swap")), true))) &&
+            isTrue((!isEqual(rate, ccxt::any{})))) &&
+        isTrue((!isEqual(rate, std::string(""))));
+    // the funding period belongs to the market and is not always eight hours:
+    // fetchMarkets documents one on twenty four. funding accrues each second
+    // against an index, and this rate is the amount for a whole period
+    ccxt::any hours = this->safeString(
+        this->safeDict(market, std::string("info"), ccxt::dict{}),
+        std::string("funding_period_hours"));
+    // zero hours is not an interval, and a caller annualising a rate divides by
+    // it
+    ccxt::any interval = ccxt::any{};
+    if (isTrue(isTrue((!isEqual(hours, ccxt::any{}))) &&
+               isTrue(ccxt::Precise::stringGt(hours, std::string("0"))))) {
+      interval = add(hours, std::string("h"));
+    }
+    return ccxt::dict{
+        {std::string("info"), contract},
+        {std::string("symbol"),
+         (isTrue(funds) ? ccxt::any(::getValue(market, std::string("symbol")))
+                        : ccxt::any(ccxt::any{}))},
+        {std::string("markPrice"),
+         this->safeNumber(contract, std::string("mark_price"))},
+        {std::string("indexPrice"),
+         this->safeNumber(contract, std::string("underlying_price"))},
+        {std::string("interestRate"), ccxt::any{}},
+        {std::string("estimatedSettlePrice"), ccxt::any{}},
+        {std::string("timestamp"), timestamp},
+        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("fundingRate"),
+         this->safeNumber(contract, std::string("funding_rate"))},
+        {std::string("fundingTimestamp"), ccxt::any{}},
+        {std::string("fundingDatetime"), ccxt::any{}},
+        {std::string("nextFundingRate"), ccxt::any{}},
+        {std::string("nextFundingTimestamp"), ccxt::any{}},
+        {std::string("nextFundingDatetime"), ccxt::any{}},
+        {std::string("previousFundingRate"), ccxt::any{}},
+        {std::string("previousFundingTimestamp"), ccxt::any{}},
+        {std::string("previousFundingDatetime"), ccxt::any{}},
+        {std::string("interval"), interval},
+    };
+  }
+
+  /**
+   * @method
    * @name paradex#fetchOrderBook
    * @description fetches information on open orders with bid (buy) and ask
    * (sell) prices, volumes and other data
@@ -2335,7 +2556,7 @@ public:
       };
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   virtual ccxt::any parseOrderType(ccxt::any type) {
@@ -4391,8 +4612,8 @@ public:
    * for, all markets are returned if not assigned
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object} a [greeks structure]{@link
-   * https://docs.ccxt.com/?id=greeks-structure}
+   * @returns {object} a dictionary of [greeks structures]{@link
+   * https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
    */
   std::shared_future<ccxt::any>
   fetchAllGreeks(ccxt::any symbols = ccxt::any{},
@@ -4723,6 +4944,10 @@ public:
                  //     ]
                  // }
                  //
+                 // every row is one observation of a rate quoted for a whole
+                 // funding period, not a settled payment: paradex recomputes it
+                 // each second and accrues it into funding_index, so the series
+                 // cannot be summed
                  ccxt::any results = this->safeList(
                      response, std::string("results"), ccxt::list{});
                  ccxt::any rates = ccxt::list{};
@@ -4957,6 +5182,28 @@ public:
         return this->parseTicker(::getValue(args, 0));
       if (count >= 2)
         return this->parseTicker(::getValue(args, 0), ::getValue(args, 1));
+    }
+    if (which == "fetchFundingRates") {
+      if (count <= 0)
+        return awaitValue(this->fetchFundingRates());
+      if (count == 1)
+        return awaitValue(this->fetchFundingRates(::getValue(args, 0)));
+      if (count >= 2)
+        return awaitValue(
+            this->fetchFundingRates(::getValue(args, 0), ::getValue(args, 1)));
+    }
+    if (which == "fetchFundingRate") {
+      if (count <= 1)
+        return awaitValue(this->fetchFundingRate(::getValue(args, 0)));
+      if (count >= 2)
+        return awaitValue(
+            this->fetchFundingRate(::getValue(args, 0), ::getValue(args, 1)));
+    }
+    if (which == "parseFundingRate") {
+      if (count <= 1)
+        return this->parseFundingRate(::getValue(args, 0));
+      if (count >= 2)
+        return this->parseFundingRate(::getValue(args, 0), ::getValue(args, 1));
     }
     if (which == "fetchOrderBook") {
       if (count <= 1)

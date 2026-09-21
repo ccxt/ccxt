@@ -1808,7 +1808,9 @@ public:
       this->throwExactlyMatchedException(
           ::getValue(this->exceptions, std::string("exact")), errorCode,
           feedback);
-      if (isTrue(isLessThan(code, 400))) {
+      ccxt::any codeAsString = toString(code);
+      if (isTrue(isTrue((isLessThan(code, 400))) ||
+                 !isTrue((inOp(this->httpExceptions, codeAsString))))) {
         throw ExchangeError(toString(feedback));
       }
     }

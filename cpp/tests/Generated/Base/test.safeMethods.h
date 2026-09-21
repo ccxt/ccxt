@@ -42,6 +42,8 @@ ccxt::any helperDefaultInputDict() {
       {std::string("floatNumeric"), 0.123},
       {std::string("floatString"), std::string("0.123")},
       {std::string("longInt"), 123456789012345},
+      {std::string("tiny"), 0.5},
+      {std::string("largeInt"), 1000000000000000},
   };
 }
 void testSafeString() {
@@ -532,6 +534,16 @@ void testSafeInteger() {
       isEqual(exchange.safeIntegerProduct(inputDict, std::string("inexistent"),
                                           0.000001, 123456789),
               123456789));
+  // regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential
+  // notation and the old parseInt-based truncation returned 5 instead of 0
+  assertTrue(isEqual(
+      exchange.safeIntegerProduct(inputDict, std::string("tiny"), 0.000001),
+      0));
+  // a product of 1e18 stays within fixed notation (no exponential form) and
+  // fits signedFlag int64 range in non-JS target languages
+  assertTrue(isEqual(
+      exchange.safeIntegerProduct(inputDict, std::string("largeInt"), 1000),
+      1000000000000000000));
   // safeIntegerProduct2
   assertTrue(isEqual(exchange.safeIntegerProduct2(inputDict, std::string("a"),
                                                   std::string("i"), factor),
@@ -545,6 +557,14 @@ void testSafeInteger() {
               30));
   assertTrue(
       isEqual(exchange.safeIntegerProduct2(inputList, 2, 1, factor), 20));
+  assertTrue(
+      isEqual(exchange.safeIntegerProduct2(inputDict, std::string("a"),
+                                           std::string("tiny"), 0.000001),
+              0));
+  assertTrue(
+      isEqual(exchange.safeIntegerProduct2(inputDict, std::string("a"),
+                                           std::string("largeInt"), 1000),
+              1000000000000000000));
   // safeIntegerProductN
   assertTrue(isEqual(
       exchange.safeIntegerProductN(
@@ -567,6 +587,18 @@ void testSafeInteger() {
   assertTrue(isEqual(
       exchange.safeIntegerProductN(inputList, ccxt::list{3, 2, 1}, factor),
       20));
+  assertTrue(isEqual(
+      exchange.safeIntegerProductN(
+          inputDict,
+          ccxt::list{std::string("a"), std::string("b"), std::string("tiny")},
+          0.000001),
+      0));
+  assertTrue(isEqual(exchange.safeIntegerProductN(
+                         inputDict,
+                         ccxt::list{std::string("a"), std::string("b"),
+                                    std::string("largeInt")},
+                         1000),
+                     1000000000000000000));
 }
 void testSafeTimestamp() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -581,6 +613,10 @@ void testSafeTimestamp() {
   assertTrue(isEqual(
       exchange.safeTimestamp(inputDict, std::string("strNumber")), 3000));
   assertTrue(isEqual(exchange.safeTimestamp(inputList, 1), 2000));
+  // 1e15 seconds multiplied by 1000 is 1e18 ms, the largest timestamp product
+  // every language represents exactly
+  assertTrue(isEqual(exchange.safeTimestamp(inputDict, std::string("largeInt")),
+                     1000000000000000000));
   // safeTimestamp2
   assertTrue(isEqual(
       exchange.safeTimestamp2(inputDict, std::string("a"), std::string("i")),
@@ -592,6 +628,9 @@ void testSafeTimestamp() {
                                              std::string("strNumber")),
                      3000));
   assertTrue(isEqual(exchange.safeTimestamp2(inputList, 2, 1), 2000));
+  assertTrue(isEqual(exchange.safeTimestamp2(inputDict, std::string("a"),
+                                             std::string("largeInt")),
+                     1000000000000000000));
   // safeTimestampN
   assertTrue(
       isEqual(exchange.safeTimestampN(inputDict, ccxt::list{std::string("a"),
@@ -610,6 +649,11 @@ void testSafeTimestamp() {
               3000));
   assertTrue(
       isEqual(exchange.safeTimestampN(inputList, ccxt::list{3, 2, 1}), 2000));
+  assertTrue(
+      isEqual(exchange.safeTimestampN(
+                  inputDict, ccxt::list{std::string("a"), std::string("b"),
+                                        std::string("largeInt")}),
+              1000000000000000000));
 }
 void testSafeFloat() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -662,6 +706,87 @@ void testSafeFloat() {
   // @ts-expect-error
   assertTrue(isEqual(exchange.safeFloatN(inputList, ccxt::list{3, 2, 1}),
                      parseFloat(2)));
+  // safeFloat - negative paths (missing key, empty string, non-numeric string,
+  // undefined container)
+  assertTrue(isEqual(exchange.safeFloat(inputDict, std::string("nonexistent")),
+                     ccxt::any{}),
+             std::string("safeFloat failed for missing key"));
+  assertTrue(
+      isEqual(exchange.safeFloat(inputDict, std::string("nonexistent"), 5), 5),
+      std::string("safeFloat failed for missing key with default"));
+  assertTrue(isEqual(exchange.safeFloat(inputDict, std::string("emptyString")),
+                     ccxt::any{}),
+             std::string("safeFloat failed for empty string"));
+  assertTrue(
+      isEqual(exchange.safeFloat(inputDict, std::string("str")), ccxt::any{}),
+      std::string("safeFloat failed for non-numeric string"));
+  assertTrue(isEqual(exchange.safeFloat(inputDict, std::string("undefined")),
+                     ccxt::any{}),
+             std::string("safeFloat failed for None value"));
+  assertTrue(
+      isEqual(exchange.safeFloat(ccxt::any{}, std::string("i")), ccxt::any{}),
+      std::string("safeFloat failed for undefined container"));
+  assertTrue(
+      isEqual(exchange.safeFloat(ccxt::any{}, std::string("i"), 7), 7),
+      std::string("safeFloat failed for undefined container with default"));
+  assertTrue(isEqual(exchange.safeFloat(inputList, 5), ccxt::any{}),
+             std::string("safeFloat failed for out-of-range list index"));
+  // safeFloat2 - negative paths
+  assertTrue(isEqual(exchange.safeFloat2(inputDict, std::string("nonexistent"),
+                                         std::string("nonexistent2")),
+                     ccxt::any{}),
+             std::string("safeFloat2 failed for missing keys"));
+  assertTrue(isEqual(exchange.safeFloat2(inputDict, std::string("nonexistent"),
+                                         std::string("str")),
+                     ccxt::any{}),
+             std::string("safeFloat2 failed for missing then non-numeric"));
+  assertTrue(isEqual(exchange.safeFloat2(inputDict, std::string("nonexistent"),
+                                         std::string("emptyString")),
+                     ccxt::any{}),
+             std::string("safeFloat2 failed for missing then empty string"));
+  assertTrue(isEqual(exchange.safeFloat2(inputDict, std::string("nonexistent"),
+                                         std::string("nonexistent2"), 9),
+                     9),
+             std::string("safeFloat2 failed for missing keys with default"));
+  assertTrue(isEqual(exchange.safeFloat2(ccxt::any{}, std::string("i"),
+                                         std::string("f")),
+                     ccxt::any{}),
+             std::string("safeFloat2 failed for undefined container"));
+  // safeFloatN - negative paths
+  assertTrue(
+      isEqual(exchange.safeFloatN(inputDict,
+                                  ccxt::list{std::string("a"), std::string("b"),
+                                             std::string("nonexistent")}),
+              ccxt::any{}),
+      std::string("safeFloatN failed for missing keys"));
+  assertTrue(
+      isEqual(exchange.safeFloatN(inputDict,
+                                  ccxt::list{std::string("a"), std::string("b"),
+                                             std::string("emptyString")}),
+              ccxt::any{}),
+      std::string("safeFloatN failed for empty string"));
+  assertTrue(
+      isEqual(exchange.safeFloatN(inputDict,
+                                  ccxt::list{std::string("a"), std::string("b"),
+                                             std::string("str")}),
+              ccxt::any{}),
+      std::string("safeFloatN failed for non-numeric string"));
+  assertTrue(
+      isEqual(exchange.safeFloatN(inputDict,
+                                  ccxt::list{std::string("a"), std::string("b"),
+                                             std::string("nonexistent")},
+                                  11),
+              11),
+      std::string("safeFloatN failed for missing keys with default"));
+  assertTrue(
+      isEqual(exchange.safeFloatN(ccxt::any{},
+                                  ccxt::list{std::string("a"), std::string("b"),
+                                             std::string("i")}),
+              ccxt::any{}),
+      std::string("safeFloatN failed for undefined container"));
+  assertTrue(
+      isEqual(exchange.safeFloatN(inputList, ccxt::list{5, 6}), ccxt::any{}),
+      std::string("safeFloatN failed for out-of-range list indices"));
 }
 void testSafeNumber() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{

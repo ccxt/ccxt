@@ -311,6 +311,51 @@ public:
         return this->callEndpoint (std::string ("privateGetApiV1AgentExportUrl"), parameters);
     }
 
+    // Calls the privateGetApiV2AccountBalanceFlow endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2AccountBalanceFlow (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2AccountBalanceFlow"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesOrder"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesOpenOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesOpenOrders"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesHistoryOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesHistoryOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesHistoryOrders"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesUserTrades endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesUserTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesUserTrades"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesAlgoOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesAlgoOrder"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesOpenAlgoOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesOpenAlgoOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesOpenAlgoOrders"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesHistoryAlgoOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesHistoryAlgoOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesHistoryAlgoOrders"), parameters);
+    }
+
+    // Calls the privateGetApiV2FuturesVoucherList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV2FuturesVoucherList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV2FuturesVoucherList"), parameters);
+    }
+
     // Calls the privatePostApiV1SpotOrderTest endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostApiV1SpotOrderTest (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostApiV1SpotOrderTest"), parameters);

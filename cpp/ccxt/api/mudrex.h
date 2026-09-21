@@ -46,6 +46,11 @@ public:
         return this->callEndpoint (std::string ("privateGetFuturesFunds"), parameters);
     }
 
+    // Calls the privateGetFuturesTransactions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetFuturesTransactions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetFuturesTransactions"), parameters);
+    }
+
     // Calls the privateGetFuturesOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetFuturesOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetFuturesOrders"), parameters);

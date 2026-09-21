@@ -181,6 +181,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 15},
                                  }},
+                                {std::string("markets/sparkline/{window}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("travel_rule/operation_reasons"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 30},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
@@ -223,6 +231,11 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 60},
                                  }},
+                                {std::string(
+                                     "prime_desk/executions/{quote_id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -241,6 +254,11 @@ public:
                                 {std::string("withdrawals"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "deposits/{deposit_sn}/travel_rule"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 30},
                                  }},
                             }},
                            {std::string("put"),

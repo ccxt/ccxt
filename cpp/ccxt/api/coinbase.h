@@ -151,6 +151,11 @@ public:
         return this->callEndpoint (std::string ("v2PrivateGetUserAuth"), parameters);
     }
 
+    // Calls the v2PrivateGetSubscriptionsCoinbaseOne endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivateGetSubscriptionsCoinbaseOne (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivateGetSubscriptionsCoinbaseOne"), parameters);
+    }
+
     // Calls the v2PrivatePostAccounts endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v2PrivatePostAccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v2PrivatePostAccounts"), parameters);
@@ -366,6 +371,21 @@ public:
         return this->callEndpoint (std::string ("v3PrivateGetBrokerageCfmSweeps"), parameters);
     }
 
+    // Calls the v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow"), parameters);
+    }
+
+    // Calls the v3PrivateGetBrokerageCfmIntradayMarginSetting endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivateGetBrokerageCfmIntradayMarginSetting (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivateGetBrokerageCfmIntradayMarginSetting"), parameters);
+    }
+
+    // Calls the v3PrivateGetBrokerageIntxBalancesPortfolioUuid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivateGetBrokerageIntxBalancesPortfolioUuid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivateGetBrokerageIntxBalancesPortfolioUuid"), parameters);
+    }
+
     // Calls the v3PrivateGetBrokerageIntxPortfolioPortfolioUuid endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v3PrivateGetBrokerageIntxPortfolioPortfolioUuid"), parameters);
@@ -446,9 +466,19 @@ public:
         return this->callEndpoint (std::string ("v3PrivatePostBrokerageCfmSweepsSchedule"), parameters);
     }
 
+    // Calls the v3PrivatePostBrokerageCfmIntradayMarginSetting endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePostBrokerageCfmIntradayMarginSetting (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePostBrokerageCfmIntradayMarginSetting"), parameters);
+    }
+
     // Calls the v3PrivatePostBrokerageIntxAllocate endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v3PrivatePostBrokerageIntxAllocate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v3PrivatePostBrokerageIntxAllocate"), parameters);
+    }
+
+    // Calls the v3PrivatePostBrokerageIntxMultiAssetCollateral endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePostBrokerageIntxMultiAssetCollateral (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePostBrokerageIntxMultiAssetCollateral"), parameters);
     }
 
     // Calls the v3PrivatePostBrokerageOrdersClosePosition endpoint. Returns a JSON object.

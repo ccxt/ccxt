@@ -661,6 +661,146 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
+                                {std::string("v3/market/risk-reserve-all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 6.6667},
+                                 }},
+                                {std::string("v3/market/risk-reserve-hour"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v3/market/score-weights"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/market/fee-group"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/market/cash-dividend-records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/market/split-records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/market/liquidations"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/market/rpi-orderbook"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/market/rpi-symbols"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/market/spot-whale-flow"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/market/spot-fund-flow"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/market/spot-net-flow"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/market/margin-long-short"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/market/margin-loan-growth"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/market/margin-isolated-borrow"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/market/futures-active-buy-sell"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/market/futures-long-short"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/market/futures-position-long-short"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/market/futures-account-long-short"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/stock-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/states"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/calendar"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/reality/market/company-overview"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/reality/market/valuation-indicators"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/reality/market/earnings-forecast"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/"
+                                             "suspension-resumption-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/dividends"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/reality/market/share-capital-change"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/inner-trades"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/reality/market/"
+                                             "executive-shareholdings"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/reality/market/sharehold-detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/account/custom-collateral-coins"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
                             }},
                        }},
                   }},
@@ -1721,6 +1861,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 4},
                                  }},
+                                {std::string("v2/user/create-agent-subaccount"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
                             }},
                        }},
                       {std::string("p2p"),
@@ -1835,6 +1979,34 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
+                                {std::string("v2/broker/sub-customer-list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/agent-commission"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-commissions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-kyc-result"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/order-commission"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/broker/rebate-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/broker/total-commission"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -1912,6 +2084,22 @@ public:
                                  }},
                                 {std::string("v2/broker/manage/"
                                              "modify-subaccount-apikey"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-asset"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-deposit"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/broker/customer-trade-volume"),
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
@@ -2714,6 +2902,30 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
+                                {std::string("v2/earn/elite/product"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/assets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/subscribe-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/subscribe-result"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/redeem-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -2740,6 +2952,14 @@ public:
                                 {std::string("v2/earn/loan/revise-pledge"),
                                  ccxt::dict{
                                      {std::string("cost"), 2},
+                                 }},
+                                {std::string("v2/earn/elite/subscribe"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v2/earn/elite/redeem"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
                                  }},
                             }},
                        }},
@@ -2969,6 +3189,305 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
+                                {std::string("v3/account/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/account/all-fee-rate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 6.6667},
+                                 }},
+                                {std::string("v3/account/delta-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v3/account/withdraw-address"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/account/max-withdrawal"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/account/move-position-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/account/collateral-type"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/pre-set-leverage"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/eligible-symbols"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/eligible-margin-tier"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/eligible-loan-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/account/eligible-discount-rate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v3/account/funding-financial-records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/reality-orderbook"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/reality-fills"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/copy/futures/trading-pairs"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string(
+                                     "v3/copy/futures/position-summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string(
+                                     "v3/copy/futures/max-transferable"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/copy/futures/transfer-record"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/copy/futures/current-follower"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/copy/futures/history-follower"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/copy/futures/profit-summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/copy/futures/profit-details"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/convert/small-assets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/convert/small-assets-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/earn/elite-product"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-assets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-subscribe-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-subscribe-result"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-redeem-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/trade/loan-data"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/trade/strategy-sub-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/trade/grid/bot-detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/trade/grid/list-details"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/trade/grid/neutral-bot-detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/trade/grid/neutral-list-details"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/user/rate-limit-quota"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/market/option-quote"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/market/option-chain-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/market/option-expiry-date"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/market/option-volume"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/depth"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/static"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/quote"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/trade"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/intraday"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/market/history-candlestick"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/market/candlestick"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/trade/today-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/trade/history-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/trade/order-detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/trade/today-executions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/trade/history-executions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/asset/account"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/stockplus/asset/cash-flow"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/asset/stock-position"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "v3/stockplus/asset/transfer-records"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/ad-list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/ad-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/ad-limit"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/my-ads"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/pending-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/all-orders"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/order-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/user-info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/currencies"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/pay-method"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/balance"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/exchange-rate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -3129,6 +3648,139 @@ public:
                                      {std::string("cost"), 2},
                                  }},
                                 {std::string("v3/user/delete-sub-api"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/move-positions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/account/cancel-withdrawal"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/account/set-margin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/account/set-collateral-type"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v3/copy/futures/transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/convert/small-assets-trade"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/earn/elite-subscribe"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/earn/elite-redeem"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/trade/place-reality-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/trade/cancel-reality-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/trade/grid/validate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/create-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/modify-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/trade/grid/modify-grid-interval"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/add-investment"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/close-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/validate-neutral"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/trade/grid/create-neutral-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "v3/trade/grid/modify-neutral-bot"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/trade/grid/"
+                                             "modify-neutral-grid-interval"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/user/set-rate-limit-quota"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string(
+                                     "v3/user/sub-account/agent-create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/trade/place-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/trade/cancel-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/trade/modify-order"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string("v3/stockplus/asset/transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
+                                 }},
+                                {std::string("v3/p2p/ad-create"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/ad-update"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/ad-operate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/fee-simulate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/order-pay"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("v3/p2p/order-release"),
                                  ccxt::dict{
                                      {std::string("cost"), 2},
                                  }},
@@ -3530,7 +4182,8 @@ public:
                       {std::string("40014"), std::string("PermissionDenied")},
                       {std::string("40015"), std::string("ExchangeError")},
                       {std::string("40016"), std::string("PermissionDenied")},
-                      {std::string("40017"), std::string("ExchangeError")},
+                      {std::string("40017"), std::string("BadRequest")},
+                      {std::string("400172"), std::string("BadRequest")},
                       {std::string("40018"), std::string("PermissionDenied")},
                       {std::string("40019"), std::string("BadRequest")},
                       {std::string("40031"), std::string("AccountSuspended")},
@@ -4291,7 +4944,7 @@ public:
                    // use the api to determine if the account is uta or not
                    ccxt::any accountIsUTa = false;
                    try {
-                     awaitValue(this->privateUtaGetV3AccountSettings(params));
+                     awaitValue(this->privateUtaGetV3AccountSettings());
                      accountIsUTa = true;
                    } catch (const std::exception &e) {
                      accountIsUTa = false;
@@ -7339,11 +7992,15 @@ public:
    * @name bitget#fetchTradingFee
    * @description fetch the trading fees for a market
    * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+   * @see
+   * https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
    * @param {string} symbol unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the
    * fee rate of spot margin trading pairs
+   * @param {boolean} [params.uta] set to true for the unified trading account
+   * (uta), defaults to false
    * @returns {object} a [fee structure]{@link
    * https://docs.ccxt.com/?id=fee-structure}
    */
@@ -7360,6 +8017,37 @@ public:
                      {std::string("symbol"),
                       ::getValue(market, std::string("id"))},
                  };
+                 ccxt::any uta = ccxt::any{};
+                 ccxt::any utaparamsVariable =
+                     awaitValue(this->handleUTAAndParams(
+                         params, std::string("fetchTradingFee"), false));
+                 uta = ::getValue(utaparamsVariable, 0);
+                 params = ::getValue(utaparamsVariable, 1);
+                 if (isTrue(isEqual(uta, true))) {
+                   ccxt::any productType = ccxt::any{};
+                   ccxt::any productTypeparamsVariable =
+                       this->handleProductTypeAndParams(market, params);
+                   productType = ::getValue(productTypeparamsVariable, 0);
+                   params = ::getValue(productTypeparamsVariable, 1);
+                   ::setValue(request, std::string("category"), productType);
+                   ccxt::any utaResponse =
+                       awaitValue(this->privateUtaGetV3AccountFeeRate(
+                           this->extend(request, params)));
+                   //
+                   //     {
+                   //         "code": "00000",
+                   //         "msg": "success",
+                   //         "requestTime": 1789206261241,
+                   //         "data": {
+                   //             "makerFeeRate": "0.001",
+                   //             "takerFeeRate": "0.001"
+                   //         }
+                   //     }
+                   //
+                   ccxt::any utaData = this->safeDict(
+                       utaResponse, std::string("data"), ccxt::dict{});
+                   return this->parseTradingFee(utaData, market);
+                 }
                  ccxt::any marginMode = ccxt::any{};
                  ccxt::any marginModeparamsVariable =
                      this->handleMarginModeAndParams(
@@ -7408,12 +8096,16 @@ public:
    * @see
    * https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
    * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+   * @see
+   * https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {string} [params.productType] *contract only* 'USDT-FUTURES',
    * 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or
    * 'SCOIN-FUTURES'
    * @param {boolean} [params.margin] set to true for spot margin
+   * @param {boolean} [params.uta] set to true for the unified trading account
+   * (uta), defaults to false
    * @returns {object} a dictionary of [fee structures]{@link
    * https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
    */
@@ -7438,6 +8130,90 @@ public:
                          std::string("fetchTradingFees"), ccxt::any{}, params);
                  marketType = ::getValue(marketTypeparamsVariable, 0);
                  params = ::getValue(marketTypeparamsVariable, 1);
+                 ccxt::any uta = ccxt::any{};
+                 ccxt::any utaparamsVariable =
+                     awaitValue(this->handleUTAAndParams(
+                         params, std::string("fetchTradingFees"), false));
+                 uta = ::getValue(utaparamsVariable, 0);
+                 params = ::getValue(utaparamsVariable, 1);
+                 if (isTrue(isEqual(uta, true))) {
+                   ccxt::any utaMargin =
+                       this->safeBool(params, std::string("margin"), false);
+                   params = this->omit(params, std::string("margin"));
+                   ccxt::any request = ccxt::dict{};
+                   if (isTrue(isEqual(marketType, std::string("spot")))) {
+                     if (isTrue(isTrue((!isEqual(marginMode, ccxt::any{}))) ||
+                                isTrue((isEqual(utaMargin, true))))) {
+                       ::setValue(request, std::string("category"),
+                                  std::string("MARGIN"));
+                     } else {
+                       ::setValue(request, std::string("category"),
+                                  std::string("SPOT"));
+                     }
+                   } else if (isTrue(
+                                  isTrue((isEqual(marketType,
+                                                  std::string("swap")))) ||
+                                  isTrue((isEqual(marketType,
+                                                  std::string("future")))))) {
+                     ccxt::any productType = ccxt::any{};
+                     ccxt::any productTypeparamsVariable =
+                         this->handleProductTypeAndParams(ccxt::any{}, params);
+                     productType = ::getValue(productTypeparamsVariable, 0);
+                     params = ::getValue(productTypeparamsVariable, 1);
+                     ::setValue(request, std::string("category"), productType);
+                   } else {
+                     throw NotSupported(toString(add(
+                         add(add(this->id, std::string(" does not support ")),
+                             marketType),
+                         std::string(" market"))));
+                   }
+                   ccxt::any utaResponse =
+                       awaitValue(this->privateUtaGetV3AccountAllFeeRate(
+                           this->extend(request, params)));
+                   //
+                   //     {
+                   //         "code": "00000",
+                   //         "msg": "success",
+                   //         "requestTime": 1789206286428,
+                   //         "data": [
+                   //             {
+                   //                 "makerFeeRate": "0.00036",
+                   //                 "takerFeeRate": "0.001",
+                   //                 "symbol": "BTCUSDT"
+                   //             }
+                   //         ]
+                   //     }
+                   //
+                   ccxt::any rows = this->safeList(
+                       utaResponse, std::string("data"), ccxt::list{});
+                   ccxt::any utaResult = ccxt::dict{};
+                   for (ccxt::any i = 0; isLessThan(i, getArrayLength(rows));
+                        postFixIncrement(i)) {
+                     ccxt::any entry = ::getValue(rows, i);
+                     ccxt::any entryMarketId =
+                         this->safeString(entry, std::string("symbol"));
+                     if (isTrue(isTrue(isTrue((isEqual(entryMarketId,
+                                                       ccxt::any{}))) ||
+                                       isTrue((isEqual(this->markets_by_id,
+                                                       ccxt::any{})))) ||
+                                !isTrue((inOp(this->markets_by_id,
+                                              entryMarketId))))) {
+                       continue;
+                     }
+                     ccxt::any entryMarket = this->safeMarket(
+                         entryMarketId, ccxt::any{}, ccxt::any{}, marketType);
+                     ccxt::any entrySymbol =
+                         this->safeString(entryMarket, std::string("symbol"));
+                     if (isTrue(
+                             isTrue((isEqual(entrySymbol, ccxt::any{}))) ||
+                             isTrue((isEqual(entrySymbol, entryMarketId))))) {
+                       continue;
+                     }
+                     ::setValue(utaResult, entrySymbol,
+                                this->parseTradingFee(entry, entryMarket));
+                   }
+                   return utaResult;
+                 }
                  if (isTrue(isEqual(marketType, std::string("spot")))) {
                    ccxt::any margin =
                        this->safeBool(params, std::string("margin"), false);
@@ -7539,8 +8315,8 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -12204,18 +12980,27 @@ public:
    * operations that altered the balance of the user
    * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
    * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+   * @see
+   * https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+   * @see
+   * https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
    * @param {string} [code] unified currency code, default is undefined
    * @param {int} [since] timestamp in ms of the earliest ledger entry, default
-   * is undefined
+   * is undefined, the uta endpoints allow a window of at most 30 days between
+   * since and until
    * @param {int} [limit] max number of ledger entries to return, default is
    * undefined
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {int} [params.until] end time in ms
    * @param {string} [params.symbol] *contract only* unified market symbol
-   * @param {string} [params.productType] *contract only* 'USDT-FUTURES',
-   * 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or
-   * 'SCOIN-FUTURES'
+   * @param {string} [params.productType] *contract and uta only*
+   * 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES',
+   * 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+   * @param {string} [params.type] set to 'funding' with uta to fetch the
+   * funding account ledger instead of the trading account ledger
+   * @param {boolean} [params.uta] set to true for the unified trading account
+   * (uta), defaults to false
    * @param {boolean} [params.paginate] default false, when true will
    * automatically paginate by calling this endpoint multiple times. See in the
    * docs all the [available
@@ -12246,6 +13031,12 @@ public:
                                                      market, params);
                  marketType = ::getValue(marketTypeparamsVariable, 0);
                  params = ::getValue(marketTypeparamsVariable, 1);
+                 ccxt::any uta = ccxt::any{};
+                 ccxt::any utaparamsVariable =
+                     awaitValue(this->handleUTAAndParams(
+                         params, std::string("fetchLedger"), false));
+                 uta = ::getValue(utaparamsVariable, 0);
+                 params = ::getValue(utaparamsVariable, 1);
                  ccxt::any paginate = false;
                  ccxt::any paginateparamsVariable = this->handleOptionAndParams(
                      params, std::string("fetchLedger"),
@@ -12253,12 +13044,42 @@ public:
                  paginate = ::getValue(paginateparamsVariable, 0);
                  params = ::getValue(paginateparamsVariable, 1);
                  if (isTrue(paginate)) {
+                   if (isTrue(isEqual(uta, true))) {
+                     // re-inject the resolved modes, the handle* helpers
+                     // stripped them from params and the recursive paginated
+                     // calls would silently fall back to the defaults
+                     params = this->extend(
+                         params, ccxt::dict{
+                                     {std::string("uta"), true},
+                                     {std::string("type"), marketType},
+                                 });
+                     if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                       params = this->extend(
+                           params, ccxt::dict{
+                                       {std::string("symbol"), symbol},
+                                   });
+                     }
+                     return awaitValue(this->fetchPaginatedCallCursor(
+                         std::string("fetchLedger"), code, since, limit, params,
+                         std::string("id"), std::string("cursor"), ccxt::any{},
+                         100));
+                   }
                    ccxt::any cursorReceived = ccxt::any{};
                    if (isTrue(!isEqual(marketType, std::string("spot")))) {
                      cursorReceived = std::string("endId");
                    }
+                   params = this->extend(params,
+                                         ccxt::dict{
+                                             {std::string("type"), marketType},
+                                         });
+                   if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                     params = this->extend(params,
+                                           ccxt::dict{
+                                               {std::string("symbol"), symbol},
+                                           });
+                   }
                    return awaitValue(this->fetchPaginatedCallCursor(
-                       std::string("fetchLedger"), symbol, since, limit, params,
+                       std::string("fetchLedger"), code, since, limit, params,
                        cursorReceived, std::string("idLessThan")));
                  }
                  ccxt::any currency = ccxt::any{};
@@ -12279,6 +13100,49 @@ public:
                    ::setValue(request, std::string("limit"), limit);
                  }
                  ccxt::any response = ccxt::any{};
+                 if (isTrue(isEqual(uta, true))) {
+                   if (isTrue(isEqual(marketType, std::string("funding")))) {
+                     response = awaitValue(
+                         this->privateUtaGetV3AccountFundingFinancialRecords(
+                             this->extend(request, params)));
+                   } else {
+                     ccxt::any marginMode = ccxt::any{};
+                     ccxt::any marginModeparamsVariable =
+                         this->handleMarginModeAndParams(
+                             std::string("fetchLedger"), params);
+                     marginMode = ::getValue(marginModeparamsVariable, 0);
+                     params = ::getValue(marginModeparamsVariable, 1);
+                     if (isTrue(isEqual(marketType, std::string("spot")))) {
+                       if (isTrue(!isEqual(marginMode, ccxt::any{}))) {
+                         ::setValue(request, std::string("category"),
+                                    std::string("MARGIN"));
+                       } else {
+                         ::setValue(request, std::string("category"),
+                                    std::string("SPOT"));
+                       }
+                     } else {
+                       ccxt::any productType = ccxt::any{};
+                       ccxt::any productTypeparamsVariable =
+                           this->handleProductTypeAndParams(market, params);
+                       productType = ::getValue(productTypeparamsVariable, 0);
+                       params = ::getValue(productTypeparamsVariable, 1);
+                       ::setValue(request, std::string("category"),
+                                  productType);
+                     }
+                     if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                       ::setValue(request, std::string("symbol"),
+                                  this->safeString(market, std::string("id")));
+                     }
+                     response = awaitValue(
+                         this->privateUtaGetV3AccountFinancialRecords(
+                             this->extend(request, params)));
+                   }
+                   ccxt::any utaData = this->safeDict(
+                       response, std::string("data"), ccxt::dict{});
+                   ccxt::any list = this->safeList(utaData, std::string("list"),
+                                                   ccxt::list{});
+                   return this->parseLedger(list, currency, since, limit);
+                 }
                  if (isTrue(isEqual(marketType, std::string("spot")))) {
                    response = awaitValue(this->privateSpotGetV2SpotAccountBills(
                        this->extend(request, params)));
@@ -12384,16 +13248,63 @@ public:
     //         "cTime": "1700728034996"
     //     }
     //
+    // uta financial records
+    //
+    //     {
+    //         "category": "Margin",
+    //         "id": "13111111111111111",
+    //         "symbol": "BTCUSDT",
+    //         "coin": "BTC",
+    //         "type": "ORDER_DEALT_IN",
+    //         "positionType": "crossed",
+    //         "fee": "-0.00000531",
+    //         "positionAmount": "0.001",
+    //         "positionBalance": "0.001",
+    //         "amount": "0.00531168",
+    //         "balance": "55.10017801",
+    //         "ts": "1745853486185"
+    //     }
+    //
+    // uta funding financial records
+    //
+    //     {
+    //         "id": "1477183363639320585",
+    //         "coin": "USDT",
+    //         "groupType": "transfer",
+    //         "type": "transfer_out",
+    //         "amount": "-30.00000000",
+    //         "balance": "0.00000000",
+    //         "ts": "1787913879280"
+    //     }
+    //
     ccxt::any currencyId = this->safeString(item, std::string("coin"));
     ccxt::any code = this->safeCurrencyCode(currencyId, currency);
     currency = this->safeCurrency(currencyId, currency);
-    ccxt::any timestamp = this->safeInteger(item, std::string("cTime"));
-    ccxt::any after = this->safeNumber(item, std::string("balance"));
-    ccxt::any fee =
-        this->safeNumber2(item, std::string("fees"), std::string("fee"));
+    ccxt::any timestamp =
+        this->safeInteger2(item, std::string("cTime"), std::string("ts"));
+    ccxt::any balanceString = this->safeString(item, std::string("balance"));
+    ccxt::any after = this->parseNumber(balanceString);
+    ccxt::any feeCostString =
+        this->safeString2(item, std::string("fees"), std::string("fee"));
+    ccxt::any feeCost = ccxt::any{};
+    if (isTrue(!isEqual(feeCostString, ccxt::any{}))) {
+      feeCost = this->parseNumber(ccxt::Precise::stringAbs(
+          feeCostString)); // deliberate for both generations, uta reports
+                           // charged fees as negative values and the v2 fields
+                           // hold signedFlag values too
+    }
     ccxt::any amountRaw = this->safeString2(
         item, std::string("size"), std::string("amount"), std::string(""));
     ccxt::any amount = this->parseNumber(ccxt::Precise::stringAbs(amountRaw));
+    ccxt::any before = ccxt::any{};
+    if (isTrue(isTrue((!isEqual(balanceString, ccxt::any{}))) &&
+               isTrue((!isEqual(amountRaw, std::string("")))))) {
+      before = this->parseNumber(ccxt::Precise::stringSub(
+          balanceString,
+          amountRaw)); // subtract the signedFlag change from the after-balance,
+                       // the base derivation assumes a signedFlag amount and
+                       // would produce a negative before on outflows
+    }
     ccxt::any direction = std::string("in");
     if (isTrue(
             isGreaterThanOrEqual(getIndexOf(amountRaw, std::string("-")), 0))) {
@@ -12402,24 +13313,28 @@ public:
     return this->safeLedgerEntry(
         ccxt::dict{
             {std::string("info"), item},
-            {std::string("id"), this->safeString(item, std::string("billId"))},
+            {std::string("id"),
+             this->safeString2(item, std::string("billId"), std::string("id"))},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
             {std::string("direction"), direction},
             {std::string("account"), ccxt::any{}},
             {std::string("referenceId"), ccxt::any{}},
             {std::string("referenceAccount"), ccxt::any{}},
-            {std::string("type"), this->parseLedgerType(this->safeString(
-                                      item, std::string("businessType")))},
+            {std::string("type"),
+             this->parseLedgerType(
+                 this->safeStringN(item, ccxt::list{std::string("businessType"),
+                                                    std::string("groupType"),
+                                                    std::string("type")}))},
             {std::string("currency"), code},
             {std::string("amount"), amount},
-            {std::string("before"), ccxt::any{}},
+            {std::string("before"), before},
             {std::string("after"), after},
             {std::string("status"), ccxt::any{}},
             {std::string("fee"),
              ccxt::dict{
                  {std::string("currency"), code},
-                 {std::string("cost"), fee},
+                 {std::string("cost"), feeCost},
              }},
         },
         currency);
@@ -12468,6 +13383,176 @@ public:
         {std::string("withdraw"), std::string("withdrawal")},
         {std::string("buy"), std::string("trade")},
         {std::string("sell"), std::string("trade")},
+        {std::string("transaction"), std::string("transaction")},
+        {std::string("transfer"), std::string("transfer")},
+        {std::string("financial"), std::string("transaction")},
+        {std::string("strategy"), std::string("trade")},
+        {std::string("trace"), std::string("trade")},
+        {std::string("loan"), std::string("transaction")},
+        {std::string("fait"), std::string("transaction")},
+        {std::string("convert"), std::string("trade")},
+        {std::string("ipo_prime"), std::string("transaction")},
+        {std::string("pre_c2c"), std::string("trade")},
+        {std::string("paptrading"), std::string("trade")},
+        {std::string("on_chain"), std::string("transaction")},
+        {std::string("debit"), std::string("transaction")},
+        {std::string("cfd"), std::string("trade")},
+        {std::string("pay"), std::string("transaction")},
+        {std::string("compliance_wall"), std::string("transaction")},
+        {std::string("live"), std::string("transaction")},
+        {std::string("broker"), std::string("transaction")},
+        {std::string("rwa"), std::string("transaction")},
+        {std::string("stock"), std::string("trade")},
+        {std::string("TRANSFER_IN"), std::string("transfer")},
+        {std::string("TRANSFER_OUT"), std::string("transfer")},
+        {std::string("RESERVE_TRANSFER_IN"), std::string("transfer")},
+        {std::string("RESERVE_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("LIQ_TRANSFER_IN"), std::string("transfer")},
+        {std::string("LIQ_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("ON_CHAIN_TRANSFER_REFUND"), std::string("transfer")},
+        {std::string("ON_CHAIN_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("MT5_TRANSFER_IN"), std::string("transfer")},
+        {std::string("MT5_REFUND_IN"), std::string("transfer")},
+        {std::string("MT5_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("TRACE_TRANSFER_USER_OUT"), std::string("transfer")},
+        {std::string("TRACE_TRANSFER_USER_IN"), std::string("transfer")},
+        {std::string("TRACE_TRANSFER_REFUND_IN"), std::string("transfer")},
+        {std::string("FINANCIAL_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("FINANCIAL_TRANSFER_IN"), std::string("transfer")},
+        {std::string("CONVERT_TRANSFER_IN"), std::string("transfer")},
+        {std::string("CONVERT_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("BGPAY_TRANSFER_OUT"), std::string("transfer")},
+        {std::string("BGPAY_REFUND_IN"), std::string("transfer")},
+        {std::string("ORDER_DEALT_FROZEN_OUT"), std::string("trade")},
+        {std::string("ORDER_DEALT_IN"), std::string("trade")},
+        {std::string("OPEN_LONG"), std::string("trade")},
+        {std::string("OPEN_SHORT"), std::string("trade")},
+        {std::string("BUY_DEAL"), std::string("trade")},
+        {std::string("SELL_DEAL"), std::string("trade")},
+        {std::string("CLOSE_LONG"), std::string("trade")},
+        {std::string("CLOSE_SHORT"), std::string("trade")},
+        {std::string("FORCE_CLOSE_LONG"), std::string("trade")},
+        {std::string("FORCE_CLOSE_SHORT"), std::string("trade")},
+        {std::string("BURST_CLOSE_LONG"), std::string("trade")},
+        {std::string("BURST_CLOSE_SHORT"), std::string("trade")},
+        {std::string("OFFSET_REDUCE_CLOSE_LONG"), std::string("trade")},
+        {std::string("OFFSET_REDUCE_CLOSE_SHORT"), std::string("trade")},
+        {std::string("FORCE_BUY_SSM"), std::string("trade")},
+        {std::string("FORCE_SELL_SSM"), std::string("trade")},
+        {std::string("BURST_BUY_SSM"), std::string("trade")},
+        {std::string("BURST_SELL_SSM"), std::string("trade")},
+        {std::string("RISK_LIQ_USER_IN"), std::string("trade")},
+        {std::string("RISK_LIQ_USER_OUT"), std::string("trade")},
+        {std::string("LIQ_FUND_OUT"), std::string("trade")},
+        {std::string("LIQ_FUND_IN"), std::string("trade")},
+        {std::string("LIQ_CONVERT_USER_OUT"), std::string("trade")},
+        {std::string("LIQ_CONVERT_SYS_IN"), std::string("trade")},
+        {std::string("LIQ_CONVERT_SYS_OUT"), std::string("trade")},
+        {std::string("LIQ_CONVERT_USER_IN"), std::string("trade")},
+        {std::string("MARGIN_OPEN_LONG"), std::string("trade")},
+        {std::string("MARGIN_OPEN_SHORT"), std::string("trade")},
+        {std::string("MARIN_BUY_DEAL"), std::string("trade")},
+        {std::string("MARIN_SELL_DEAL"), std::string("trade")},
+        {std::string("MARGIN_BACK"), std::string("trade")},
+        {std::string("MARGIN_OFFSET_IN_SSM_LONG"), std::string("trade")},
+        {std::string("MARGIN_OFFSET_IN_SSM_SHORT"), std::string("trade")},
+        {std::string("FIXED_OFFSET_IN_SSM_LONG"), std::string("trade")},
+        {std::string("FIXED_OFFSET_IN_SSM_SHORT"), std::string("trade")},
+        {std::string("FIXED_CLOSE_LONG"), std::string("trade")},
+        {std::string("FIXED_CLOSE_SHORT"), std::string("trade")},
+        {std::string("FIXED_FORCE_CLOSE_LONG"), std::string("trade")},
+        {std::string("FIXED_FORCE_CLOSE_SHORT"), std::string("trade")},
+        {std::string("FIXED_BURST_CLOSE_LONG"), std::string("trade")},
+        {std::string("FIXED_BURST_CLOSE_SHORT"), std::string("trade")},
+        {std::string("FIXED_ADL_CLOSE_LONG"), std::string("trade")},
+        {std::string("FIXED_ADL_CLOSE_SHORT"), std::string("trade")},
+        {std::string("FIXED_RISK_LIQ_USER_IN"), std::string("trade")},
+        {std::string("FIXED_RISK_LIQ_USER_OUT"), std::string("trade")},
+        {std::string("FIXED_FORCE_BUY_SSM"), std::string("trade")},
+        {std::string("FIXED_FORCE_SELL_SSM"), std::string("trade")},
+        {std::string("FIXED_BURST_BUY_SSM"), std::string("trade")},
+        {std::string("FIXED_BURST_SELL_SSM"), std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_OPEN_LONG"),
+         std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_OPEN_SHORT"),
+         std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_CLOSE_LONG"),
+         std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_CLOSE_SHORT"),
+         std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_BUY_IN_SSM"),
+         std::string("trade")},
+        {std::string("RWA_CONTRACT_REBASE_USER_SELL_IN_SSM"),
+         std::string("trade")},
+        {std::string("ORDER_PLF_FEE_OUT"), std::string("fee")},
+        {std::string("INTEREST_SETTLEMENT_OUT"), std::string("fee")},
+        {std::string("INTEREST_REPAYMENT"), std::string("fee")},
+        {std::string("CONTRACT_MAIN_SETTLE_FEE_USER_IN"), std::string("fee")},
+        {std::string("CONTRACT_MAIN_SETTLE_FEE_USER_OUT"), std::string("fee")},
+        {std::string("MARGIN_SETTLE_FEE_USER_IN"), std::string("fee")},
+        {std::string("MARGIN_SETTLE_FEE_USER_OUT"), std::string("fee")},
+        {std::string("LIQ_FEE"), std::string("fee")},
+        {std::string("SMALL_ASSET_FEE_SYS_IN"), std::string("fee")},
+        {std::string("RWA_FIXED_SETTLE_FEE_USER_IN"), std::string("fee")},
+        {std::string("RWA_FIXED_SETTLE_FEE_USER_OUT"), std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN"),
+         std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT"),
+         std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN"),
+         std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT"),
+         std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN"),
+         std::string("fee")},
+        {std::string("RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT"),
+         std::string("fee")},
+        {std::string("INCREASE_MARGIN"), std::string("margin")},
+        {std::string("REDUCE_MARGIN"), std::string("margin")},
+        {std::string("MARGIN_LEVER_ORDER_REFROZEN"), std::string("margin")},
+        {std::string("MARGIN_LEVER_ORDER_FROZEN"), std::string("margin")},
+        {std::string("MARGIN_LEVER_POS_IN"), std::string("margin")},
+        {std::string("CONVERSION_UPON_DELISTING"), std::string("transaction")},
+        {std::string("EXCHANGE_SOURCE_TOKEN_USER_OUT"),
+         std::string("transaction")},
+        {std::string("EXCHANGE_TARGET_TOKEN_USER_IN"),
+         std::string("transaction")},
+        {std::string("BORROW"), std::string("transaction")},
+        {std::string("REPAYMENT"), std::string("transaction")},
+        {std::string("LIQ_REPAYMENT"), std::string("transaction")},
+        {std::string("DELIST_MARGIN_TOKEN_SOURCE_USER_OUT"),
+         std::string("transaction")},
+        {std::string("DELIST_MARGIN_TOKEN_SOURCE_SYS_IN"),
+         std::string("transaction")},
+        {std::string("DELIST_MARGIN_TOKEN_TARGET_SYS_OUT"),
+         std::string("transaction")},
+        {std::string("DELIST_MARGIN_TOKEN_TARGET_USER_IN"),
+         std::string("transaction")},
+        {std::string("CONFISCATE_TOKEN_USER_OUT"), std::string("transaction")},
+        {std::string("CONFISCATE_TOKEN_SYS_IN"), std::string("transaction")},
+        {std::string("DELIST_SMALL_BALANCE_USER_OUT"),
+         std::string("transaction")},
+        {std::string("DELIST_SMALL_BALANCE_SYS_IN"),
+         std::string("transaction")},
+        {std::string("DELIST_SMALL_LIABILITY_SYS_OUT"),
+         std::string("transaction")},
+        {std::string("DELIST_SMALL_LIABILITY_USER_IN"),
+         std::string("transaction")},
+        {std::string("SMALL_ASSET_SOURCE_TOKEN_USER_OUT"),
+         std::string("transaction")},
+        {std::string("SMALL_ASSET_SOURCE_TOKEN_SYS_IN"),
+         std::string("transaction")},
+        {std::string("SMALL_ASSET_TARGET_TOKEN_SYS_OUT"),
+         std::string("transaction")},
+        {std::string("SMALL_ASSET_TARGET_TOKEN_USER_IN"),
+         std::string("transaction")},
+        {std::string("TRACE_LOCK_USER_OUT"), std::string("transaction")},
+        {std::string("TRACE_LOCK_USER_IN"), std::string("transaction")},
+        {std::string("TRACE_SHARE_BENEFIT_USER_OUT"), std::string("referral")},
+        {std::string("TRACE_SHARE_BENEFIT_SYSTEM_IN"), std::string("referral")},
+        {std::string("TRACE_SHARE_BENEFIT_SYSTEM_OUT"),
+         std::string("referral")},
+        {std::string("TRACE_SHARE_BENEFIT_USER_IN"), std::string("referral")},
     };
     return this->safeString(types, type, type);
   }
@@ -14845,8 +15930,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ::setValue(
                      data, std::string("ts"),
                      this->safeInteger(response, std::string("requestTime")));
@@ -14938,8 +16023,7 @@ public:
     //         "transfer": "true""
     //     }
     //
-    ccxt::any chains =
-        this->safeValue(fee, std::string("chains"), ccxt::list{});
+    ccxt::any chains = this->safeList(fee, std::string("chains"), ccxt::list{});
     ccxt::any chainsLength = getArrayLength(chains);
     ccxt::any result = ccxt::dict{
         {std::string("info"), fee},
@@ -15605,7 +16689,7 @@ public:
                      this->safeInteger(response, std::string("requestTime"));
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::list{});
-                 ccxt::any first = this->safeValue(data, 0, ccxt::dict{});
+                 ccxt::any first = this->safeDict(data, 0, ccxt::dict{});
                  ::setValue(first, std::string("timestamp"), timestamp);
                  return this->parseIsolatedBorrowRate(first, market);
                })
@@ -15756,7 +16840,7 @@ public:
                   //
                   ccxt::any data = this->safeValue(
                       response, std::string("data"), ccxt::list{});
-                  result = this->safeValue(data, 0, ccxt::dict{});
+                  result = this->safeDict(data, 0, ccxt::dict{});
                 }
                 ccxt::any timestamp =
                     this->safeInteger(response, std::string("requestTime"));

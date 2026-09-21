@@ -295,6 +295,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("wallet/currencies"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("wallet/haircuts"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("wallet/networks"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -309,7 +317,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("addressConfig"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("apiKey"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("apiKey/self"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -329,6 +345,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("leagueoftrader/myRankings"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/investor"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/tradingTeam"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("order"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -338,6 +366,22 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("position"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("referralCode"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("referralCode/check/{code}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("referralCode/code/{code}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("referralCode/{id}"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -365,6 +409,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("user/depositAddressInformation"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("user/executionHistory"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -374,6 +422,10 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("user/margin"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("user/marginingMode"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -394,6 +446,10 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("user/staking/tiers"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("user/tradingSettings"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -422,6 +478,14 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("userEvent"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("userPriceAlert"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("userStats/volumeRank"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -460,6 +524,31 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("managedSubAccountBinding/approve"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/cancel"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/createMSA"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/reject"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "managedSubAccountBinding/toggleTradeHistory"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("managedSubAccountBinding/unbind"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -469,6 +558,10 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("order/closePosition"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("position/crossLeverage"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -487,6 +580,10 @@ public:
                            {std::string("position/transferMargin"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                            }},
+                           {std::string("referralCode"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
                             }},
                            {std::string("user/addSubaccount"),
                             ccxt::dict{
@@ -508,7 +605,19 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("user/createIndependentSubaccount"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("user/logout"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("user/marginingMode"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("user/positionMode"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -532,9 +641,17 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("userPriceAlert"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                       {std::string("put"),
                        ccxt::dict{
+                           {std::string("address"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("guild"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -542,6 +659,14 @@ public:
                            {std::string("order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                            }},
+                           {std::string("referralCode/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("userPriceAlert/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
                             }},
                        }},
                       {std::string("delete"),
@@ -554,7 +679,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("referralCode/{id}"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("user/unstakingRequests"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("user/withdrawal"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("userPriceAlert"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("userPriceAlert/{id}"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -823,7 +964,7 @@ public:
     ccxt::any id = this->safeString(currency, std::string("currency"));
     ccxt::any name = this->safeString(currency, std::string("name"));
     ccxt::any chains =
-        this->safeValue(currency, std::string("networks"), ccxt::list{});
+        this->safeList(currency, std::string("networks"), ccxt::list{});
     ccxt::any depositEnabled = false;
     ccxt::any withdrawEnabled = false;
     ccxt::any networks = ccxt::dict{};
@@ -4291,7 +4432,7 @@ public:
     //    }
     //
     ccxt::any networks =
-        this->safeValue(fee, std::string("networks"), ccxt::list{});
+        this->safeList(fee, std::string("networks"), ccxt::list{});
     ccxt::any networksLength = getArrayLength(networks);
     ccxt::any result = ccxt::dict{
         {std::string("info"), fee},

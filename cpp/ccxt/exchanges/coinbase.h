@@ -323,6 +323,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10.6},
                                  }},
+                                {std::string("subscriptions/coinbase-one"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10.6},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -543,6 +547,21 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("brokerage/cfm/intraday/"
+                                             "current_margin_window"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "brokerage/cfm/intraday/margin_setting"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("brokerage/intx/balances/"
+                                             "{portfolio_uuid}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("brokerage/intx/portfolio/"
                                              "{portfolio_uuid}"),
                                  ccxt::dict{
@@ -615,7 +634,17 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "brokerage/cfm/intraday/margin_setting"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("brokerage/intx/allocate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "brokerage/intx/multi_asset_collateral"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},

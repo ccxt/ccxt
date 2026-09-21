@@ -268,6 +268,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("orders/twap"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("orders/twap/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 12},
+                            }},
+                           {std::string("orders/twap/history_by_id"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("spot_assets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -286,6 +298,18 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("account/builder_codes/approvals"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("builder/overview"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("builder/trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("leaderboard/builder_code"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -376,6 +400,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("orders/twap/create"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("orders/twap/cancel"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.5},
+                            }},
                            {std::string("account/builder_codes/approve"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -384,7 +416,43 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("builder/update_fee_rate"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("referral/user/code/claim"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("agent/bind"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/revoke"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/revoke_all"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/ip_whitelist/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/ip_whitelist/add"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/ip_whitelist/remove"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("agent/ip_whitelist/toggle"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1121,21 +1189,34 @@ public:
                  // {
                  //   "success": true,
                  //   "data": {
-                 //     "balance": "2000.000000",
-                 //     "fee_level": 0,
-                 //     "maker_fee": "0.00015",
+                 //     "balance": "4970.000323",           // USDC cash (perp
+                 //     collateral) "fee_level": 0, "maker_fee": "0.00015",
                  //     "taker_fee": "0.0004",
-                 //     "account_equity": "2150.250000",
-                 //     "available_to_spend": "1800.750000",
-                 //     "available_to_withdraw": "1500.850000",
-                 //     "pending_balance": "0.000000",
-                 //     "total_margin_used": "349.500000",
-                 //     "cross_mmr": "420.690000",
-                 //     "positions_count": 2,
-                 //     "orders_count": 3,
-                 //     "stop_orders_count": 1,
-                 //     "updated_at": 1716200000000,
-                 //     "use_ltp_for_stop_orders": false
+                 //     "account_equity": "5478.140323",     // balance +
+                 //     spot_market_value "cross_account_equity": "5376.512323",
+                 //     "spot_market_value": "508.14",
+                 //     "spot_collateral": "406.512",
+                 //     "available_to_spend": "5376.512323",
+                 //     "available_to_withdraw": "5376.512323",
+                 //     "pending_balance": "0",
+                 //     "pending_interest": "0",
+                 //     "total_margin_used": "0",
+                 //     "cross_mmr": "0",
+                 //     "positions_count": 0,
+                 //     "orders_count": 0,
+                 //     "stop_orders_count": 0,
+                 //     "spot_balances": [
+                 //       {
+                 //         "symbol": "SOL",
+                 //         "amount": "5",
+                 //         "available_to_withdraw": "5",
+                 //         "pending_balance": "0",
+                 //         "daily_withdraw_amount_usd": "0",
+                 //         "effective_daily_deposit_limit_usd": "50000",
+                 //         "effective_daily_withdraw_limit_usd": "250000"
+                 //       }
+                 //     ],
+                 //     "updated_at": 1789394568220
                  //   },
                  //   "error": null,
                  //   "code": null
@@ -1145,21 +1226,36 @@ public:
                  ccxt::any result = ccxt::dict{
                      {std::string("info"), data},
                  };
-                 ::setValue(result, std::string("free"), ccxt::dict{});
-                 ::setValue(result, std::string("used"), ccxt::dict{});
-                 ::setValue(result, std::string("total"), ccxt::dict{});
-                 ccxt::any totalBalance =
-                     this->safeNumber(data, std::string("account_equity"));
-                 ccxt::any usedMargin =
-                     this->safeNumber(data, std::string("total_margin_used"));
-                 ccxt::any freeBalance =
-                     this->safeNumber(data, std::string("available_to_spend"));
-                 ::setValue(::getValue(result, std::string("total")),
-                            std::string("USDC"), totalBalance);
-                 ::setValue(::getValue(result, std::string("used")),
-                            std::string("USDC"), usedMargin);
-                 ::setValue(::getValue(result, std::string("free")),
-                            std::string("USDC"), freeBalance);
+                 ccxt::any usdcAccount = this->account();
+                 ::setValue(usdcAccount, std::string("total"),
+                            this->safeString(data, std::string("balance")));
+                 ::setValue(
+                     usdcAccount, std::string("used"),
+                     this->safeString(data, std::string("total_margin_used")));
+                 ::setValue(result, std::string("USDC"), usdcAccount);
+                 ccxt::any spotBalances = this->safeList(
+                     data, std::string("spot_balances"), ccxt::list{});
+                 for (ccxt::any i = 0;
+                      isLessThan(i, getArrayLength(spotBalances));
+                      postFixIncrement(i)) {
+                   ccxt::any balance = ::getValue(spotBalances, i);
+                   ccxt::any currencyId =
+                       this->safeString(balance, std::string("symbol"));
+                   ccxt::any code = this->safeCurrencyCode(currencyId);
+                   ccxt::any account = this->account();
+                   ::setValue(account, std::string("total"),
+                              this->safeString(balance, std::string("amount")));
+                   ::setValue(
+                       account, std::string("free"),
+                       this->safeString(balance,
+                                        std::string("available_to_withdraw")));
+                   // skip a spot USDC entry so it can't clobber the
+                   // perp-collateral account above
+                   if (isTrue(isTrue((!isEqual(code, ccxt::any{}))) &&
+                              !isTrue((inOp(result, code))))) {
+                     ::setValue(result, code, account);
+                   }
+                 }
                  ccxt::any timestamp =
                      this->safeInteger(data, std::string("updated_at"));
                  ::setValue(result, std::string("timestamp"), timestamp);
@@ -1996,7 +2092,9 @@ public:
     ccxt::any timestamp = this->safeInteger(trade, std::string("created_at"));
     ccxt::any price = this->safeString(trade, std::string("price"));
     ccxt::any amount = this->safeString(trade, std::string("amount"));
-    ccxt::any symbol = this->safeSymbol(ccxt::any{}, market);
+    ccxt::any marketId = this->safeString(trade, std::string("symbol"));
+    market = this->safeMarket(marketId, market);
+    ccxt::any symbol = ::getValue(market, std::string("symbol"));
     ccxt::any id = this->safeString(trade, std::string("history_id"));
     ccxt::any side = this->safeString(trade, std::string("side"));
     if (isTrue(isEqual(side, std::string("open_long")))) {
@@ -2075,6 +2173,8 @@ public:
    * "PO_TOB" (or "TOB" - PO by top of book)
    * @param {boolean} [params.reduceOnly] Ensures that the executed order does
    * not flip the opened position.
+   * @param {string} [params.slippage] the slippage for market orders in
+   * percent, defaults to options.defaultSlippage (0.5)
    * @param {string} [params.clientOrderId] client order id, (optional uuid v4
    * e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
    * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -2101,6 +2201,7 @@ public:
                      ::getValue(requestoperationTypeVariable, 1);
                  params = this->omit(
                      params, ccxt::list{std::string("reduceOnly"),
+                                        std::string("reduce_only"),
                                         std::string("clientOrderId"),
                                         std::string("stopLimitPrice"),
                                         std::string("timeInForce"),
@@ -2111,7 +2212,9 @@ public:
                                         std::string("takeProfitCloid"),
                                         std::string("takeProfitPrice"),
                                         std::string("takeProfitLimitPrice"),
-                                        std::string("expiryWindow")});
+                                        std::string("expiryWindow"),
+                                        std::string("slippage"),
+                                        std::string("slippage_percent")});
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(operationType,
                                     std::string("create_market_order")))) {
@@ -2204,6 +2307,8 @@ public:
      * "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does
      * not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in
+     * percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4
      * e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -4114,9 +4219,11 @@ public:
                           awaitValue(this->loadMarkets());
                         }
                         symbols = this->marketSymbols(symbols);
-                        ccxt::any swapMarkets =
-                            awaitValue(this->fetchSwapMarkets());
-                        return this->parseOpenInterests(swapMarkets, symbols);
+                        ccxt::any response =
+                            awaitValue(this->publicGetInfoPrices(params));
+                        ccxt::any data = this->safeList(
+                            response, std::string("data"), ccxt::list{});
+                        return this->parseOpenInterests(data, symbols);
                       })
         .share();
   }
@@ -4137,13 +4244,21 @@ public:
                     ccxt::any params = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
                       [=]() mutable -> ccxt::any {
-                        symbol = this->symbol(symbol);
                         if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                           awaitValue(this->loadMarkets());
                         }
+                        symbol = this->symbol(symbol);
                         ccxt::any ois = awaitValue(this->fetchOpenInterests(
                             ccxt::list{symbol}, params));
-                        return ::getValue(ois, symbol);
+                        ccxt::any oi = this->safeDict(ois, symbol);
+                        if (isTrue(isEqual(oi, ccxt::any{}))) {
+                          throw BadSymbol(toString(add(
+                              add(this->id,
+                                  std::string(" fetchOpenInterest() could not "
+                                              "find open interest for ")),
+                              symbol)));
+                        }
+                        return oi;
                       })
         .share();
   }
@@ -4471,35 +4586,47 @@ public:
   std::shared_future<ccxt::any>
   transfer(ccxt::any code, ccxt::any amount, ccxt::any fromAccount,
            ccxt::any toAccount, ccxt::any params = ccxt::dict{}) override {
-    return std::async(std::launch::deferred,
-                      [=]() mutable -> ccxt::any {
-                        ccxt::any operationType = std::string("transfer_funds");
-                        ccxt::any sigPayload = ccxt::dict{
-                            {std::string("to_account"), toAccount},
-                            {std::string("amount"), amount},
-                        };
-                        ccxt::any request = this->postActionRequest(
-                            operationType, sigPayload, params);
-                        params = this->omit(
-                            params, ccxt::list{std::string("expiryWindow")});
-                        ccxt::any response =
-                            this->privatePostAccountSubaccountTransfer(
-                                this->extend(request, params));
-                        //
-                        // {
-                        //   "success": true,
-                        //   "data": {
-                        //     "success": true,
-                        //     "error": null
-                        //   },
-                        //   "error": null,
-                        //   "code": null
-                        // }
-                        //
-                        ccxt::any data = this->safeDict(
-                            response, std::string("data"), ccxt::dict{});
-                        return this->parseTransfer(data);
-                      })
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any currency = this->currency(code);
+                 ccxt::any operationType = std::string("transfer_funds");
+                 ccxt::any sigPayload = ccxt::dict{
+                     {std::string("to_account"), toAccount},
+                     {std::string("amount"), this->numberToString(amount)},
+                 };
+                 ccxt::any request =
+                     this->postActionRequest(operationType, sigPayload, params);
+                 params = this->omit(params,
+                                     ccxt::list{std::string("expiryWindow")});
+                 ccxt::any response =
+                     awaitValue(this->privatePostAccountSubaccountTransfer(
+                         this->extend(request, params)));
+                 //
+                 // {
+                 //   "success": true,
+                 //   "data": {
+                 //     "success": true,
+                 //     "error": null
+                 //   },
+                 //   "error": null,
+                 //   "code": null
+                 // }
+                 //
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
+                 return this->extend(
+                     this->parseTransfer(data, currency),
+                     ccxt::dict{
+                         {std::string("amount"), amount},
+                         {std::string("fromAccount"),
+                          this->safeString(request, std::string("account"))},
+                         {std::string("toAccount"), toAccount},
+                     });
+               })
         .share();
   }
 
@@ -4516,16 +4643,24 @@ public:
     //   "code": null
     // }
     //
+    ccxt::any success = this->safeBool(transfer, std::string("success"));
+    ccxt::any status = ccxt::any{};
+    if (isTrue(!isEqual(success, ccxt::any{}))) {
+      status =
+          (isTrue((isEqual(success, true))) ? ccxt::any(std::string("ok"))
+                                            : ccxt::any(std::string("failed")));
+    }
     return ccxt::dict{
         {std::string("info"), transfer},
         {std::string("id"), ccxt::any{}},
         {std::string("timestamp"), ccxt::any{}},
         {std::string("datetime"), ccxt::any{}},
-        {std::string("currency"), ccxt::any{}},
+        {std::string("currency"),
+         this->safeCurrencyCode(ccxt::any{}, currency)},
         {std::string("amount"), ccxt::any{}},
         {std::string("fromAccount"), ccxt::any{}},
         {std::string("toAccount"), ccxt::any{}},
-        {std::string("status"), std::string("ok")},
+        {std::string("status"), status},
     };
   }
 
@@ -4553,8 +4688,9 @@ public:
                  ccxt::any finalHeaders = ccxt::dict{};
                  ccxt::any agentAddress = ccxt::any{};
                  ccxt::any agentAddressparamsVariable =
-                     this->handleOption(std::string("createSubAccount"),
-                                        std::string("agentAddress"));
+                     this->handleOptionAndParams(
+                         params, std::string("createSubAccount"),
+                         std::string("agentAddress"));
                  agentAddress = ::getValue(agentAddressparamsVariable, 0);
                  params = ::getValue(agentAddressparamsVariable, 1);
                  ccxt::any originAddress = ccxt::any{};
@@ -4601,7 +4737,11 @@ public:
                        this->id, std::string(" createSubAccount() requires a "
                                              "\"subAccountPrivateKey\"!"))));
                  }
-                 ccxt::any timestamp = this->milliseconds();
+                 ccxt::any timestamp = ccxt::any{};
+                 ccxt::any timestampparamsVariable = this->handleParamInteger(
+                     params, std::string("timestamp"), this->milliseconds());
+                 timestamp = ::getValue(timestampparamsVariable, 0);
+                 params = ::getValue(timestampparamsVariable, 1);
                  ccxt::any expiryWindow = ccxt::any{};
                  ccxt::any expiryWindowparamsVariable =
                      this->handleOptionAndParams2(
@@ -4643,8 +4783,9 @@ public:
                  ::setValue(finalHeaders, std::string("expiry_window"),
                             expiryWindow);
                  ccxt::any request = finalHeaders;
-                 ccxt::any response = awaitValue(
-                     this->privatePostAccountSubaccountCreate(request));
+                 ccxt::any response =
+                     awaitValue(this->privatePostAccountSubaccountCreate(
+                         this->extend(request, params)));
                  //
                  // {
                  //   "success": true,

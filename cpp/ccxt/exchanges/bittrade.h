@@ -405,6 +405,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("retail/maintain/time"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -507,6 +511,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("retail/order/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -589,6 +597,10 @@ public:
                            {std::string("subuser/transfer"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
+                            }},
+                           {std::string("retail/order/place"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
                             }},
                        }},
                   }},
@@ -980,194 +992,191 @@ public:
    */
   std::shared_future<ccxt::any>
   fetchMarkets(ccxt::any params = ccxt::dict{}) override {
-    return std::async(
-               std::launch::deferred,
-               [=]() mutable -> ccxt::any {
-                 ccxt::any method = this->handleOption(
-                     std::string("fetchMarkets"), std::string("method"),
-                     std::string("publicGetCommonSymbols"));
-                 ccxt::any response = ccxt::any{};
-                 if (isTrue(isEqual(method,
-                                    std::string("publicGetCommonSymbols")))) {
-                   response = awaitValue(this->publicGetCommonSymbols(params));
-                 } else {
-                   throw NotSupported(toString(add(
-                       add(add(this->id,
-                               std::string(
-                                   " fetchMarkets() does not support the ")),
-                           method),
-                       std::string(" method"))));
-                 }
-                 //
-                 //    {
-                 //        "status": "ok",
-                 //        "data": [
-                 //            {
-                 //                "base-currency": "xrp",
-                 //                "quote-currency": "btc",
-                 //                "price-precision": 9,
-                 //                "amount-precision": 2,
-                 //                "symbol-partition": "default",
-                 //                "symbol": "xrpbtc",
-                 //                "state": "online",
-                 //                "value-precision": 8,
-                 //                "min-order-amt": 1,
-                 //                "max-order-amt": 5000000,
-                 //                "min-order-value": 0.0001,
-                 //                "limit-order-min-order-amt": 1,
-                 //                "limit-order-max-order-amt": 5000000,
-                 //                "limit-order-max-buy-amt": 5000000,
-                 //                "limit-order-max-sell-amt": 5000000,
-                 //                "sell-market-min-order-amt": 1,
-                 //                "sell-market-max-order-amt": 500000,
-                 //                "buy-market-max-order-value": 100,
-                 //                "leverage-ratio": 5,
-                 //                "super-margin-leverage-ratio": 3,
-                 //                "api-trading": "enabled",
-                 //                "tags": ""
-                 //            }
-                 //            ...
-                 //         ]
-                 //    }
-                 //
-                 ccxt::any markets = this->safeValue(
-                     response, std::string("data"), ccxt::list{});
-                 ccxt::any numMarkets = getArrayLength(markets);
-                 if (isTrue(isLessThan(numMarkets, 1))) {
-                   throw NetworkError(toString(add(
-                       add(this->id,
-                           std::string(
-                               " fetchMarkets() returned empty response: ")),
-                       this->json(markets))));
-                 }
-                 ccxt::any result = ccxt::list{};
-                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(markets));
-                      postFixIncrement(i)) {
-                   ccxt::any market = ::getValue(markets, i);
-                   ccxt::any baseId =
-                       this->safeString(market, std::string("base-currency"));
-                   ccxt::any quoteId =
-                       this->safeString(market, std::string("quote-currency"));
-                   ccxt::any base = this->safeCurrencyCode(baseId);
-                   ccxt::any quote = this->safeCurrencyCode(quoteId);
-                   ccxt::any state =
-                       this->safeString(market, std::string("state"));
-                   ccxt::any leverageRatio = this->safeString(
-                       market, std::string("leverage-ratio"), std::string("1"));
-                   ccxt::any superLeverageRatio = this->safeString(
-                       market, std::string("super-margin-leverage-ratio"),
-                       std::string("1"));
-                   ccxt::any margin =
-                       isTrue(ccxt::Precise::stringGt(leverageRatio,
-                                                      std::string("1"))) ||
-                       isTrue(ccxt::Precise::stringGt(superLeverageRatio,
-                                                      std::string("1")));
-                   ccxt::any fee =
-                       (isTrue((isEqual(base, std::string("OMG"))))
-                            ? ccxt::any(this->parseNumber(std::string("0")))
-                            : ccxt::any(
-                                  this->parseNumber(std::string("0.002"))));
-                   if (isTrue(isEqual(baseId, ccxt::any{}))) {
-                     throw ExchangeError(toString(
-                         add(this->id,
-                             std::string(" fetchMarkets() missing baseId"))));
-                   }
-                   if (isTrue(isEqual(quoteId, ccxt::any{}))) {
-                     throw ExchangeError(toString(
-                         add(this->id,
-                             std::string(" fetchMarkets() missing quoteId"))));
-                   }
-                   arrayPush(
-                       result,
-                       ccxt::dict{
-                           {std::string("id"), add(baseId, quoteId)},
-                           {std::string("symbol"),
-                            add(add(base, std::string("/")), quote)},
-                           {std::string("base"), base},
-                           {std::string("quote"), quote},
-                           {std::string("settle"), ccxt::any{}},
-                           {std::string("baseId"), baseId},
-                           {std::string("quoteId"), quoteId},
-                           {std::string("settleId"), ccxt::any{}},
-                           {std::string("type"), std::string("spot")},
-                           {std::string("spot"), true},
-                           {std::string("margin"), margin},
-                           {std::string("swap"), false},
-                           {std::string("future"), false},
-                           {std::string("option"), false},
-                           {std::string("active"),
-                            (isEqual(state, std::string("online")))},
-                           {std::string("contract"), false},
-                           {std::string("linear"), ccxt::any{}},
-                           {std::string("inverse"), ccxt::any{}},
-                           {std::string("taker"), fee},
-                           {std::string("maker"), fee},
-                           {std::string("contractSize"), ccxt::any{}},
-                           {std::string("expiry"), ccxt::any{}},
-                           {std::string("expiryDatetime"), ccxt::any{}},
-                           {std::string("strike"), ccxt::any{}},
-                           {std::string("optionType"), ccxt::any{}},
-                           {std::string("precision"),
-                            ccxt::dict{
-                                {std::string("price"),
-                                 this->parseNumber(
-                                     this->parsePrecision(this->safeString(
+    return std::
+        async(std::launch::deferred,
+              [=]() mutable -> ccxt::any {
+                ccxt::any method = this->handleOption(
+                    std::string("fetchMarkets"), std::string("method"),
+                    std::string("publicGetCommonSymbols"));
+                ccxt::any response = ccxt::any{};
+                if (isTrue(isEqual(method,
+                                   std::string("publicGetCommonSymbols")))) {
+                  response = awaitValue(this->publicGetCommonSymbols(params));
+                } else {
+                  throw NotSupported(toString(
+                      add(add(add(this->id,
+                                  std::string(
+                                      " fetchMarkets() does not support the ")),
+                              method),
+                          std::string(" method"))));
+                }
+                //
+                //    {
+                //        "status": "ok",
+                //        "data": [
+                //            {
+                //                "base-currency": "xrp",
+                //                "quote-currency": "btc",
+                //                "price-precision": 9,
+                //                "amount-precision": 2,
+                //                "symbol-partition": "default",
+                //                "symbol": "xrpbtc",
+                //                "state": "online",
+                //                "value-precision": 8,
+                //                "min-order-amt": 1,
+                //                "max-order-amt": 5000000,
+                //                "min-order-value": 0.0001,
+                //                "limit-order-min-order-amt": 1,
+                //                "limit-order-max-order-amt": 5000000,
+                //                "limit-order-max-buy-amt": 5000000,
+                //                "limit-order-max-sell-amt": 5000000,
+                //                "sell-market-min-order-amt": 1,
+                //                "sell-market-max-order-amt": 500000,
+                //                "buy-market-max-order-value": 100,
+                //                "leverage-ratio": 5,
+                //                "super-margin-leverage-ratio": 3,
+                //                "api-trading": "enabled",
+                //                "tags": ""
+                //            }
+                //            ...
+                //         ]
+                //    }
+                //
+                ccxt::any markets =
+                    this->safeList(response, std::string("data"), ccxt::list{});
+                ccxt::any numMarkets = getArrayLength(markets);
+                if (isTrue(isLessThan(numMarkets, 1))) {
+                  throw NetworkError(toString(
+                      add(add(this->id,
+                              std::string(
+                                  " fetchMarkets() returned empty response: ")),
+                          this->json(markets))));
+                }
+                ccxt::any result = ccxt::list{};
+                for (ccxt::any i = 0; isLessThan(i, getArrayLength(markets));
+                     postFixIncrement(i)) {
+                  ccxt::any market = ::getValue(markets, i);
+                  ccxt::any baseId =
+                      this->safeString(market, std::string("base-currency"));
+                  ccxt::any quoteId =
+                      this->safeString(market, std::string("quote-currency"));
+                  ccxt::any base = this->safeCurrencyCode(baseId);
+                  ccxt::any quote = this->safeCurrencyCode(quoteId);
+                  ccxt::any state =
+                      this->safeString(market, std::string("state"));
+                  ccxt::any leverageRatio = this->safeString(
+                      market, std::string("leverage-ratio"), std::string("1"));
+                  ccxt::any superLeverageRatio = this->safeString(
+                      market, std::string("super-margin-leverage-ratio"),
+                      std::string("1"));
+                  ccxt::any margin = isTrue(ccxt::Precise::stringGt(
+                                         leverageRatio, std::string("1"))) ||
+                                     isTrue(ccxt::Precise::stringGt(
+                                         superLeverageRatio, std::string("1")));
+                  ccxt::any fee =
+                      (isTrue((isEqual(base, std::string("OMG"))))
+                           ? ccxt::any(this->parseNumber(std::string("0")))
+                           : ccxt::any(
+                                 this->parseNumber(std::string("0.002"))));
+                  if (isTrue(isEqual(baseId, ccxt::any{}))) {
+                    throw ExchangeError(toString(
+                        add(this->id,
+                            std::string(" fetchMarkets() missing baseId"))));
+                  }
+                  if (isTrue(isEqual(quoteId, ccxt::any{}))) {
+                    throw ExchangeError(toString(
+                        add(this->id,
+                            std::string(" fetchMarkets() missing quoteId"))));
+                  }
+                  arrayPush(
+                      result,
+                      ccxt::dict{
+                          {std::string("id"), add(baseId, quoteId)},
+                          {std::string("symbol"),
+                           add(add(base, std::string("/")), quote)},
+                          {std::string("base"), base},
+                          {std::string("quote"), quote},
+                          {std::string("settle"), ccxt::any{}},
+                          {std::string("baseId"), baseId},
+                          {std::string("quoteId"), quoteId},
+                          {std::string("settleId"), ccxt::any{}},
+                          {std::string("type"), std::string("spot")},
+                          {std::string("spot"), true},
+                          {std::string("margin"), margin},
+                          {std::string("swap"), false},
+                          {std::string("future"), false},
+                          {std::string("option"), false},
+                          {std::string("active"),
+                           (isEqual(state, std::string("online")))},
+                          {std::string("contract"), false},
+                          {std::string("linear"), ccxt::any{}},
+                          {std::string("inverse"), ccxt::any{}},
+                          {std::string("taker"), fee},
+                          {std::string("maker"), fee},
+                          {std::string("contractSize"), ccxt::any{}},
+                          {std::string("expiry"), ccxt::any{}},
+                          {std::string("expiryDatetime"), ccxt::any{}},
+                          {std::string("strike"), ccxt::any{}},
+                          {std::string("optionType"), ccxt::any{}},
+                          {std::string("precision"),
+                           ccxt::dict{
+                               {std::string("price"),
+                                this->parseNumber(
+                                    this->parsePrecision(this->safeString(
+                                        market,
+                                        std::string("price-precision"))))},
+                               {std::string("amount"),
+                                this->parseNumber(
+                                    this->parsePrecision(this->safeString(
+                                        market,
+                                        std::string("amount-precision"))))},
+                               {std::string("cost"),
+                                this->parseNumber(
+                                    this->parsePrecision(this->safeString(
+                                        market,
+                                        std::string("value-precision"))))},
+                           }},
+                          {std::string("limits"),
+                           ccxt::dict{
+                               {std::string("leverage"),
+                                ccxt::dict{
+                                    {std::string("min"),
+                                     this->parseNumber(std::string("1"))},
+                                    {std::string("max"),
+                                     this->parseNumber(leverageRatio)},
+                                    {std::string("superMax"),
+                                     this->parseNumber(superLeverageRatio)},
+                                }},
+                               {std::string("amount"),
+                                ccxt::dict{
+                                    {std::string("min"),
+                                     this->safeNumber(
+                                         market, std::string("min-order-amt"))},
+                                    {std::string("max"),
+                                     this->safeNumber(
+                                         market, std::string("max-order-amt"))},
+                                }},
+                               {std::string("price"),
+                                ccxt::dict{
+                                    {std::string("min"), ccxt::any{}},
+                                    {std::string("max"), ccxt::any{}},
+                                }},
+                               {std::string("cost"),
+                                ccxt::dict{
+                                    {std::string("min"),
+                                     this->safeNumber(
                                          market,
-                                         std::string("price-precision"))))},
-                                {std::string("amount"),
-                                 this->parseNumber(
-                                     this->parsePrecision(this->safeString(
-                                         market,
-                                         std::string("amount-precision"))))},
-                                {std::string("cost"),
-                                 this->parseNumber(
-                                     this->parsePrecision(this->safeString(
-                                         market,
-                                         std::string("value-precision"))))},
-                            }},
-                           {std::string("limits"),
-                            ccxt::dict{
-                                {std::string("leverage"),
-                                 ccxt::dict{
-                                     {std::string("min"),
-                                      this->parseNumber(std::string("1"))},
-                                     {std::string("max"),
-                                      this->parseNumber(leverageRatio)},
-                                     {std::string("superMax"),
-                                      this->parseNumber(superLeverageRatio)},
-                                 }},
-                                {std::string("amount"),
-                                 ccxt::dict{
-                                     {std::string("min"),
-                                      this->safeNumber(
-                                          market,
-                                          std::string("min-order-amt"))},
-                                     {std::string("max"),
-                                      this->safeNumber(
-                                          market,
-                                          std::string("max-order-amt"))},
-                                 }},
-                                {std::string("price"),
-                                 ccxt::dict{
-                                     {std::string("min"), ccxt::any{}},
-                                     {std::string("max"), ccxt::any{}},
-                                 }},
-                                {std::string("cost"),
-                                 ccxt::dict{
-                                     {std::string("min"),
-                                      this->safeNumber(
-                                          market,
-                                          std::string("min-order-value"))},
-                                     {std::string("max"), ccxt::any{}},
-                                 }},
-                            }},
-                           {std::string("created"), ccxt::any{}},
-                           {std::string("info"), market},
-                       });
-                 }
-                 return result;
-               })
-        .share();
+                                         std::string("min-order-value"))},
+                                    {std::string("max"), ccxt::any{}},
+                                }},
+                           }},
+                          {std::string("created"), ccxt::any{}},
+                          {std::string("info"), market},
+                      });
+                }
+                return result;
+              })
+            .share();
   }
 
   ccxt::any parseTicker(ccxt::any ticker,
@@ -1431,7 +1440,7 @@ public:
                  symbols = this->marketSymbols(symbols);
                  ccxt::any response =
                      awaitValue(this->marketGetTickers(params));
-                 ccxt::any tickers = this->safeValue(
+                 ccxt::any tickers = this->safeList(
                      response, std::string("data"), ccxt::list{});
                  ccxt::any timestamp =
                      this->safeInteger(response, std::string("ts"));
@@ -1687,12 +1696,12 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
-                   ccxt::any trades = this->safeValue(
+                   ccxt::any trades = this->safeList(
                        ::getValue(data, i), std::string("data"), ccxt::list{});
                    for (ccxt::any j = 0; isLessThan(j, getArrayLength(trades));
                         postFixIncrement(j)) {
@@ -1968,8 +1977,8 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(::getValue(response, std::string("data")),
-                        std::string("list"), ccxt::list{});
+        this->safeList(::getValue(response, std::string("data")),
+                       std::string("list"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
     };

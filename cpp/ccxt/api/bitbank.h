@@ -71,6 +71,11 @@ public:
         return this->callEndpoint (std::string ("privateGetUserSpotActiveOrders"), parameters);
     }
 
+    // Calls the privateGetUserMarginStatus endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetUserMarginStatus (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetUserMarginStatus"), parameters);
+    }
+
     // Calls the privateGetUserMarginPositions endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetUserMarginPositions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetUserMarginPositions"), parameters);

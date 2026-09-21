@@ -457,6 +457,13 @@ public:
     ::setValue(this->options, std::string("sandboxMode"), enabled);
   }
 
+  ccxt::any nonce() override {
+    // the venue nonce is a millisecond timestamp and must be strictly
+    // increasing per signer incrementingNonce () reads this and bumps past the
+    // previous value when two signedFlag actions share a millisecond
+    return this->milliseconds();
+  }
+
   ccxt::any market(ccxt::any symbol) override {
     if (isTrue(isEqual(symbol, ccxt::any{}))) {
       throw ArgumentsRequired(toString(
@@ -785,7 +792,14 @@ public:
                    }
                  } else {
                    ccxt::any fetchDexesLength = getArrayLength(fetchDexes);
-                   for (ccxt::any i = 1; isLessThan(i, maxLimit);
+                   // index 0 is the null main dex, so the loop runs 1..maxLimit
+                   // to load exactly maxLimit dexes. do NOT rewrite this as `i
+                   // <= maxLimit`: the python transpiler collapses every
+                   // for-loop bound to an exclusive range(), so `<=` silently
+                   // emits range(1, maxLimit) and loads one dex too few
+                   // (build/transpile.ts treats <, <=, > and >= identically)
+                   ccxt::any maxIteration = this->sum(maxLimit, 1);
+                   for (ccxt::any i = 1; isLessThan(i, maxIteration);
                         postFixIncrement(i)) {
                      if (isTrue(isGreaterThanOrEqual(i, fetchDexesLength))) {
                        break;
@@ -2158,11 +2172,28 @@ public:
 
   ccxt::any amountToPrecision(ccxt::any symbol, ccxt::any amount) override {
     ccxt::any market = this->market(symbol);
-    return this->decimalToPrecision(
+    ccxt::any result = this->decimalToPrecision(
         amount, ROUND,
         ::getValue(::getValue(market, std::string("precision")),
                    std::string("amount")),
         this->precisionMode, this->paddingMode);
+    // a size of zero is meaningful to hyperliquid, a whole position tp/sl order
+    // is sent with grouping positionTpsl and size 0, so only reject a positive
+    // amount that became zero after rounding, never an explicitly requested
+    // zero
+    if (isTrue(isTrue(ccxt::Precise::stringEq(result, std::string("0"))) &&
+               isTrue(ccxt::Precise::stringGt(this->numberToString(amount),
+                                              std::string("0"))))) {
+      throw InvalidOrder(toString(
+          add(add(add(add(this->id, std::string(" amount of ")),
+                      ::getValue(market, std::string("symbol"))),
+                  std::string(
+                      " must be greater than minimum amount precision of ")),
+              this->numberToString(
+                  ::getValue(::getValue(market, std::string("precision")),
+                             std::string("amount"))))));
+    }
+    return result;
   }
 
   ccxt::any priceToPrecision(ccxt::any symbol, ccxt::any price) override {
@@ -2464,7 +2495,7 @@ public:
                              this->safeString(this->options, std::string("ref"),
                                               std::string("CCXT1"))},
                         };
-                        ccxt::any nonce = this->milliseconds();
+                        ccxt::any nonce = this->incrementingNonce();
                         ccxt::any signature = this->signL1Action(action, nonce);
                         ccxt::any request = ccxt::dict{
                             {std::string("action"), action},
@@ -2489,7 +2520,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any isSandboxMode = this->safeBool(
                      this->options, std::string("sandboxMode"), false);
                  ccxt::any payload = ccxt::dict{
@@ -2699,7 +2730,7 @@ public:
                          std::string("setUserAbstraction"), params);
                  userAddress = ::getValue(userAddressparamsVariable, 0);
                  params = ::getValue(userAddressparamsVariable, 1);
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any isSandboxMode = this->safeBool(
                      this->options, std::string("sandboxMode"), false);
                  ccxt::any type =
@@ -2770,7 +2801,7 @@ public:
                          std::string("enableUserDexAbstraction"), params);
                  userAddress = ::getValue(userAddressparamsVariable, 0);
                  params = ::getValue(userAddressparamsVariable, 1);
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any isSandboxMode = this->safeBool(
                      this->options, std::string("sandboxMode"), false);
                  ccxt::any type =
@@ -2831,7 +2862,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -2937,7 +2968,7 @@ public:
                  }
                  awaitValue(this->initializeClient());
                  ccxt::any market = this->market(symbol);
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any isBuy = (isEqual(side, std::string("BUY")));
                  ccxt::any vaultAddress = ccxt::any{};
                  ccxt::any randomize =
@@ -3250,7 +3281,7 @@ public:
                    std::string("triggerPrice"), std::string("stopPrice"),
                    std::string("stopLossPrice"), std::string("takeProfitPrice"),
                    std::string("timeInForce")});
-    ccxt::any nonce = this->milliseconds();
+    ccxt::any nonce = this->incrementingNonce();
     ccxt::any orderReq = ccxt::list{};
     ccxt::any grouping = std::string("na");
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(orders));
@@ -3358,9 +3389,10 @@ public:
     };
     if (isTrue(this->safeBool(this->options, std::string("approvedBuilderFee"),
                               false))) {
+      ccxt::any builder =
+          std::string("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
       ccxt::any wallet = this->safeStringLower(
-          this->options, std::string("builder"),
-          std::string("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"));
+          this->options, std::string("builder"), toLowerCase(builder));
       // when builderFee is disabled the builder is still attached but with a 0%
       // fee (f = 0), for statistics purposes only
       ccxt::any feeInt =
@@ -3546,7 +3578,7 @@ public:
                                             market, std::string("baseId")))},
                      {std::string("t"), this->parseToNumeric(id)},
                  };
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any signature =
                      this->signL1Action(action, nonce, vaultAddress);
                  ccxt::any request = ccxt::dict{
@@ -3616,7 +3648,7 @@ public:
         params, std::string("clientOrderId"), std::string("client_id"));
     params = this->omit(params, ccxt::list{std::string("clientOrderId"),
                                            std::string("client_id")});
-    ccxt::any nonce = this->milliseconds();
+    ccxt::any nonce = this->incrementingNonce();
     ccxt::any request = ccxt::dict{
         {std::string("nonce"), nonce},
     };
@@ -3699,7 +3731,7 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  awaitValue(this->initializeClient());
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -3820,7 +3852,7 @@ public:
                  params =
                      this->omit(params, ccxt::list{std::string("clientOrderId"),
                                                    std::string("client_id")});
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -4008,7 +4040,7 @@ public:
       };
       arrayPush(modifies, modifyReq);
     }
-    ccxt::any nonce = this->milliseconds();
+    ccxt::any nonce = this->incrementingNonce();
     ccxt::any modifyAction = ccxt::dict{
         {std::string("type"), std::string("batchModify")},
         {std::string("modifies"), modifies},
@@ -4182,7 +4214,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -5412,7 +5444,7 @@ public:
                      ::getValue(market, std::string("baseId")));
                  ccxt::any isCross =
                      (isEqual(marginMode, std::string("cross")));
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  params =
                      this->omit(params, ccxt::list{std::string("leverage")});
                  ccxt::any updateAction = ccxt::dict{
@@ -5495,7 +5527,7 @@ public:
                      (isEqual(marginMode, std::string("cross")));
                  ccxt::any asset = this->parseToInt(
                      ::getValue(market, std::string("baseId")));
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  params = this->omit(params, std::string("marginMode"));
                  ccxt::any updateAction = ccxt::dict{
                      {std::string("type"), std::string("updateLeverage")},
@@ -5609,7 +5641,7 @@ public:
                  if (isTrue(isEqual(type, std::string("reduce")))) {
                    sz = prefixUnaryNeg(sz);
                  }
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any updateAction = ccxt::dict{
                      {std::string("type"), std::string("updateIsolatedMargin")},
                      {std::string("asset"), asset},
@@ -5706,7 +5738,7 @@ public:
                  }
                  ccxt::any isSandboxMode =
                      this->safeBool(this->options, std::string("sandboxMode"));
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  if (isTrue(this->inArray(fromAccount,
                                           ccxt::list{std::string("spot"),
                                                      std::string("swap"),
@@ -5764,7 +5796,14 @@ public:
                    };
                    ccxt::any transferResponse =
                        awaitValue(this->privatePostExchange(transferRequest));
-                   return transferResponse;
+                   //
+                   // {'response': {'type': 'default'}, 'status': 'ok'}
+                   //
+                   // the sub-account branches below already hand back the
+                   // unified structure; the spot <> swap branch returned the
+                   // raw acknowledgement, breaking the shape
+                   ccxt::any currency = this->safeCurrency(code);
+                   return this->parseTransfer(transferResponse, currency);
                  }
                  // transfer between main account and subaccount
                  ccxt::any isDeposit = false;
@@ -5868,11 +5907,13 @@ public:
         {std::string("id"), ccxt::any{}},
         {std::string("timestamp"), ccxt::any{}},
         {std::string("datetime"), ccxt::any{}},
-        {std::string("currency"), ccxt::any{}},
+        {std::string("currency"),
+         this->safeCurrencyCode(ccxt::any{}, currency)},
         {std::string("amount"), ccxt::any{}},
         {std::string("fromAccount"), ccxt::any{}},
         {std::string("toAccount"), ccxt::any{}},
-        {std::string("status"), std::string("ok")},
+        {std::string("status"),
+         this->safeString(transfer, std::string("status"), std::string("ok"))},
     };
   }
 
@@ -5923,7 +5964,7 @@ public:
                  params = ::getValue(vaultAddressparamsVariable, 1);
                  vaultAddress = this->formatVaultAddress(vaultAddress);
                  params = this->omit(params, std::string("vaultAddress"));
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any action = ccxt::dict{};
                  ccxt::any sig = ccxt::any{};
                  if (isTrue(!isEqual(vaultAddress, ccxt::any{}))) {
@@ -6713,7 +6754,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -6747,7 +6788,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any nonce = this->milliseconds();
+                 ccxt::any nonce = this->incrementingNonce();
                  ccxt::any request = ccxt::dict{
                      {std::string("nonce"), nonce},
                  };
@@ -7007,6 +7048,10 @@ public:
         this->setSandboxMode(::getValue(args, 0));
         return ccxt::any{};
       }
+    }
+    if (which == "nonce") {
+      if (true)
+        return this->nonce();
     }
     if (which == "market") {
       if (true)

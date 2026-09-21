@@ -246,6 +246,36 @@ public:
         return this->callEndpoint (std::string ("indexerGetHistoricalPnlParentSubaccount"), parameters);
     }
 
+    // Calls the indexerGetPnl endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerGetPnl (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerGetPnl"), parameters);
+    }
+
+    // Calls the indexerGetPnlParentSubaccountNumber endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerGetPnlParentSubaccountNumber (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerGetPnlParentSubaccountNumber"), parameters);
+    }
+
+    // Calls the indexerGetTradeHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerGetTradeHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerGetTradeHistory"), parameters);
+    }
+
+    // Calls the indexerGetTradeHistoryParentSubaccountNumber endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerGetTradeHistoryParentSubaccountNumber (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerGetTradeHistoryParentSubaccountNumber"), parameters);
+    }
+
+    // Calls the indexerPostTurnkeySignin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerPostTurnkeySignin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerPostTurnkeySignin"), parameters);
+    }
+
+    // Calls the indexerPostTurnkeyUploadAddress endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> indexerPostTurnkeyUploadAddress (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("indexerPostTurnkeyUploadAddress"), parameters);
+    }
+
     // Calls the nodeRpcGetAbciInfo endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> nodeRpcGetAbciInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("nodeRpcGetAbciInfo"), parameters);

@@ -336,6 +336,16 @@ public:
         return this->callEndpoint (std::string ("privatePostBankWireWithdrawal"), parameters);
     }
 
+    // Calls the privatePostLightningDeposit endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostLightningDeposit (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostLightningDeposit"), parameters);
+    }
+
+    // Calls the privatePostLightningWithdraw endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostLightningWithdraw (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostLightningWithdraw"), parameters);
+    }
+
 };
 
 } // namespace ccxt

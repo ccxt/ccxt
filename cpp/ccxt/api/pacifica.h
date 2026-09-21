@@ -136,6 +136,21 @@ public:
         return this->callEndpoint (std::string ("publicGetOrdersHistoryById"), parameters);
     }
 
+    // Calls the publicGetOrdersTwap endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetOrdersTwap (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetOrdersTwap"), parameters);
+    }
+
+    // Calls the publicGetOrdersTwapHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetOrdersTwapHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetOrdersTwapHistory"), parameters);
+    }
+
+    // Calls the publicGetOrdersTwapHistoryById endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetOrdersTwapHistoryById (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetOrdersTwapHistoryById"), parameters);
+    }
+
     // Calls the publicGetSpotAssets endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetSpotAssets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetSpotAssets"), parameters);
@@ -159,6 +174,21 @@ public:
     // Calls the publicGetAccountBuilderCodesApprovals endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetAccountBuilderCodesApprovals (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetAccountBuilderCodesApprovals"), parameters);
+    }
+
+    // Calls the publicGetBuilderOverview endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetBuilderOverview (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetBuilderOverview"), parameters);
+    }
+
+    // Calls the publicGetBuilderTrades endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetBuilderTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetBuilderTrades"), parameters);
+    }
+
+    // Calls the publicGetLeaderboardBuilderCode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetLeaderboardBuilderCode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetLeaderboardBuilderCode"), parameters);
     }
 
     // Calls the privatePostAccountLeverage endpoint. Returns a JSON object.
@@ -261,6 +291,16 @@ public:
         return this->callEndpoint (std::string ("privatePostOrdersBatch"), parameters);
     }
 
+    // Calls the privatePostOrdersTwapCreate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostOrdersTwapCreate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOrdersTwapCreate"), parameters);
+    }
+
+    // Calls the privatePostOrdersTwapCancel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostOrdersTwapCancel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOrdersTwapCancel"), parameters);
+    }
+
     // Calls the privatePostAccountBuilderCodesApprove endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostAccountBuilderCodesApprove (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAccountBuilderCodesApprove"), parameters);
@@ -271,9 +311,54 @@ public:
         return this->callEndpoint (std::string ("privatePostAccountBuilderCodesRevoke"), parameters);
     }
 
+    // Calls the privatePostBuilderUpdateFeeRate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostBuilderUpdateFeeRate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostBuilderUpdateFeeRate"), parameters);
+    }
+
+    // Calls the privatePostReferralUserCodeClaim endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostReferralUserCodeClaim (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostReferralUserCodeClaim"), parameters);
+    }
+
     // Calls the privatePostAgentBind endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostAgentBind (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAgentBind"), parameters);
+    }
+
+    // Calls the privatePostAgentList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentList"), parameters);
+    }
+
+    // Calls the privatePostAgentRevoke endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentRevoke (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentRevoke"), parameters);
+    }
+
+    // Calls the privatePostAgentRevokeAll endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentRevokeAll (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentRevokeAll"), parameters);
+    }
+
+    // Calls the privatePostAgentIpWhitelistList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentIpWhitelistList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentIpWhitelistList"), parameters);
+    }
+
+    // Calls the privatePostAgentIpWhitelistAdd endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentIpWhitelistAdd (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentIpWhitelistAdd"), parameters);
+    }
+
+    // Calls the privatePostAgentIpWhitelistRemove endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentIpWhitelistRemove (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentIpWhitelistRemove"), parameters);
+    }
+
+    // Calls the privatePostAgentIpWhitelistToggle endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostAgentIpWhitelistToggle (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAgentIpWhitelistToggle"), parameters);
     }
 
     // Calls the privatePostAccountApiKeysCreate endpoint. Returns a JSON object.

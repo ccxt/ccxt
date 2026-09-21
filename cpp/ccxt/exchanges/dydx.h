@@ -361,6 +361,33 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("pnl"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("pnl/parentSubaccountNumber"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("tradeHistory"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("tradeHistory/parentSubaccountNumber"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                       }},
+                      {std::string("post"),
+                       ccxt::dict{
+                           {std::string("turnkey/signin"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("turnkey/uploadAddress"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("nodeRpc"),

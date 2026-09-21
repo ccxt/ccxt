@@ -1630,8 +1630,8 @@ public:
     };
     ccxt::any timestamp =
         this->safeInteger(response, std::string("updateTime"));
-    ccxt::any balances = this->safeValue2(response, std::string("balances"),
-                                          std::string("account"), ccxt::list{});
+    ccxt::any balances = this->safeList2(response, std::string("balances"),
+                                         std::string("account"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
          postFixIncrement(i)) {
       ccxt::any balance = ::getValue(balances, i);

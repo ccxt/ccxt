@@ -524,6 +524,22 @@ public:
                        ccxt::dict{
                            {std::string("get"),
                             ccxt::dict{
+                                {std::string("future/copytrade/user/v1/"
+                                             "copy-trade/current-following-v2"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/copytrade/user/v1/copy-trade/"
+                                     "follower-balance-bill"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/copytrade/user/v1/"
+                                             "copy-trade/follower-position"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string(
                                      "future/trade/v1/entrust/plan-detail"),
                                  ccxt::dict{
@@ -549,6 +565,21 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "profit-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "reverse-plan-list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "reverse-plan-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string(
                                      "future/trade/v1/entrust/track-detail"),
                                  ccxt::dict{
@@ -561,6 +592,11 @@ public:
                                  }},
                                 {std::string("future/trade/v1/entrust/"
                                              "track-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/order-entrust/list"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -578,7 +614,27 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string(
+                                     "future/trade/v1/order/trade-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
                                      "future/trade/v1/position/list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/position/"
+                                             "cross-margin/{symbol}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/position/leverage/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/position/list/active"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -587,7 +643,17 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "future/trade/v1/order/trade-list-all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("future/user/v1/account/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/user/v1/auto-deleverage/history"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -608,6 +674,11 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "future/user/v1/compat/balance/{coin}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("future/user/v1/position/adl"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -618,6 +689,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("future/user/v1/position/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/user/v1/taker-over/list"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -778,6 +853,21 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "profit-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "reverse-plan-list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/entrust/"
+                                             "reverse-plan-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string(
                                      "future/trade/v1/entrust/track-detail"),
                                  ccxt::dict{
@@ -790,6 +880,11 @@ public:
                                  }},
                                 {std::string("future/trade/v1/entrust/"
                                              "track-list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/order-entrust/list"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -807,7 +902,27 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string(
+                                     "future/trade/v1/order/trade-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
                                      "future/trade/v1/position/list-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/trade/v1/position/"
+                                             "cross-margin/{symbol}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/position/leverage/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/trade/v1/position/list/active"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -816,7 +931,17 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "future/trade/v1/order/trade-list-all"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("future/user/v1/account/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "future/user/v1/auto-deleverage/history"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -837,6 +962,11 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "future/user/v1/compat/balance/{coin}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("future/user/v1/position/adl"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -847,6 +977,10 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("future/user/v1/position/list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("future/user/v1/taker-over/list"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},

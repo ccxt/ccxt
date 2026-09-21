@@ -216,6 +216,16 @@ public:
         return this->callEndpoint (std::string ("privateDeleteOrdersAll"), parameters);
     }
 
+    // Calls the privatePatchOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePatchOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePatchOrders"), parameters);
+    }
+
+    // Calls the privatePatchOrdersOid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePatchOrdersOid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePatchOrdersOid"), parameters);
+    }
+
 };
 
 } // namespace ccxt

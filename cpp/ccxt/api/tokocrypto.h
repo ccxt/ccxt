@@ -71,6 +71,11 @@ public:
         return this->callEndpoint (std::string ("binanceGetExchangeInfo"), parameters);
     }
 
+    // Calls the binanceGetExecutionRules endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> binanceGetExecutionRules (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("binanceGetExecutionRules"), parameters);
+    }
+
     // Calls the binancePutUserDataStream endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> binancePutUserDataStream (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("binancePutUserDataStream"), parameters);
@@ -179,6 +184,11 @@ public:
     // Calls the privatePostOpenV1UserDataStream endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostOpenV1UserDataStream (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostOpenV1UserDataStream"), parameters);
+    }
+
+    // Calls the privatePostOpenV1UserListenToken endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostOpenV1UserListenToken (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOpenV1UserListenToken"), parameters);
     }
 
 };

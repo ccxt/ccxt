@@ -283,6 +283,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("public/index-sources"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("md/v2/orderbook"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
@@ -530,6 +534,39 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string(
+                                "phemex-lb/public/api/trader/performance-info"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-api/risk/risk-mode"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-api/risk/risk-units"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-biz/assets"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-funds/contract/borrow"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-funds/contract/payback"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-funds/contract/borrow/interests"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-exchanger/assets/convert"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -601,6 +638,14 @@ public:
                             }},
                            {std::string(
                                 "phemex-withdraw/wallets/api/cancelWithdraw"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-account/switch-mode"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("uta-funds/contract/payback"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
@@ -873,8 +918,8 @@ public:
                       {std::string("11028"), std::string("BadSymbol")},
                       {std::string("11029"), std::string("ExchangeError")},
                       {std::string("11030"), std::string("ExchangeError")},
-                      {std::string("11031"), std::string("DDoSProtection")},
-                      {std::string("11032"), std::string("DDoSProtection")},
+                      {std::string("11031"), std::string("InvalidOrder")},
+                      {std::string("11032"), std::string("InvalidOrder")},
                       {std::string("11033"), std::string("DuplicateOrderId")},
                       {std::string("11034"), std::string("InvalidOrder")},
                       {std::string("11035"), std::string("InvalidOrder")},
@@ -2812,7 +2857,7 @@ public:
         {std::string("info"), response},
     };
     ccxt::any data =
-        this->safeValue(response, std::string("data"), ccxt::list{});
+        this->safeList(response, std::string("data"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
          postFixIncrement(i)) {
       ccxt::any balance = ::getValue(data, i);
@@ -3279,8 +3324,8 @@ public:
     }
     ccxt::any timeInForce = this->parseTimeInForce(
         this->safeString(order, std::string("timeInForce")));
-    ccxt::any triggerPrice = this->parseNumber(this->omitZero(
-        this->fromEp(this->safeString(order, std::string("stopPxEp")))));
+    ccxt::any triggerPrice = this->parseNumber(this->omitZero(this->fromEp(
+        this->safeString(order, std::string("stopPxEp")), market)));
     ccxt::any postOnly = (isEqual(timeInForce, std::string("PO")));
     return this->safeOrder(
         ccxt::dict{
@@ -4370,6 +4415,26 @@ public:
                                         true))) {
                    ccxt::any rows =
                        this->safeList(data, std::string("rows"), ccxt::list{});
+                   ccxt::any numRows = getArrayLength(rows);
+                   if (isTrue(isLessThan(numRows, 1))) {
+                     if (isTrue(!isEqual(clientOrderId, ccxt::any{}))) {
+                       throw OrderNotFound(toString(add(
+                           add(add(add(add(this->id,
+                                           std::string(" fetchOrder() ")),
+                                       symbol),
+                                   std::string(" order with clientOrderId ")),
+                               clientOrderId),
+                           std::string(" not found"))));
+                     } else {
+                       throw OrderNotFound(toString(
+                           add(add(add(add(add(this->id,
+                                               std::string(" fetchOrder() ")),
+                                           symbol),
+                                       std::string(" order with id ")),
+                                   id),
+                               std::string(" not found"))));
+                     }
+                   }
                    order = this->safeDict(rows, 0, ccxt::dict{});
                  }
                  return this->parseOrder(order, market);
@@ -5368,7 +5433,7 @@ public:
                  //
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
-                 ccxt::any positions = this->safeValue(
+                 ccxt::any positions = this->safeList(
                      data, std::string("positions"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(positions));
@@ -5767,7 +5832,7 @@ public:
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
                  ccxt::any rows =
-                     this->safeValue(data, std::string("rows"), ccxt::list{});
+                     this->safeList(data, std::string("rows"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(rows));
                       postFixIncrement(i)) {
@@ -7528,7 +7593,7 @@ public:
                  }
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
-                 ccxt::any ranks = this->safeValue(
+                 ccxt::any ranks = this->safeList(
                      data, std::string("positions"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(ranks));

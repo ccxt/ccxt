@@ -251,9 +251,19 @@ public:
         return this->callEndpoint (std::string ("v2PrivatePostMyBuyNow"), parameters);
     }
 
+    // Calls the v2PrivatePostMyBuyNowCoinlist endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostMyBuyNowCoinlist (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostMyBuyNowCoinlist"), parameters);
+    }
+
     // Calls the v2PrivatePostMySellNow endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v2PrivatePostMySellNow (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v2PrivatePostMySellNow"), parameters);
+    }
+
+    // Calls the v2PrivatePostMySellNowCoinlist endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostMySellNowCoinlist (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostMySellNowCoinlist"), parameters);
     }
 
     // Calls the v2PrivatePostMySwapNow endpoint. Returns a JSON object.
@@ -289,6 +299,16 @@ public:
     // Calls the v2PrivatePostMyCoinWithdrawSend endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v2PrivatePostMyCoinWithdrawSend (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v2PrivatePostMyCoinWithdrawSend"), parameters);
+    }
+
+    // Calls the v2PrivatePostMyCoinWithdrawSendAsync endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostMyCoinWithdrawSendAsync (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostMyCoinWithdrawSendAsync"), parameters);
+    }
+
+    // Calls the v2PrivatePostMyCoinWithdrawSendStatus endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostMyCoinWithdrawSendStatus (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostMyCoinWithdrawSendStatus"), parameters);
     }
 
     // Calls the v2PrivatePostRoStatus endpoint. Returns a JSON object.

@@ -226,6 +226,11 @@ public:
         return this->callEndpoint (std::string ("v1PrivatePostPrivateGetInstrumentFeeRate"), parameters);
     }
 
+    // Calls the v1PrivatePostPrivateGetFeeCreditBalances endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateGetFeeCreditBalances (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateGetFeeCreditBalances"), parameters);
+    }
+
     // Calls the v1PrivatePostPrivateFiatFiatDepositInfo endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostPrivateFiatFiatDepositInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostPrivateFiatFiatDepositInfo"), parameters);
@@ -319,6 +324,41 @@ public:
     // Calls the v1PrivatePostPrivateChangeIsolatedMarginLeverage endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostPrivateChangeIsolatedMarginLeverage (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostPrivateChangeIsolatedMarginLeverage"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotCreateTradingBot endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotCreateTradingBot (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotCreateTradingBot"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotUpdateTradingBot endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotUpdateTradingBot (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotUpdateTradingBot"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotTerminateTradingBot endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotTerminateTradingBot (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotTerminateTradingBot"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotPauseTradingBot endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotPauseTradingBot (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotPauseTradingBot"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotResumeTradingBot endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotResumeTradingBot (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotResumeTradingBot"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotGetTradingBots endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotGetTradingBots (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotGetTradingBots"), parameters);
+    }
+
+    // Calls the v1PrivatePostPrivateBotGetTradingBotExecutions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPrivateBotGetTradingBotExecutions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPrivateBotGetTradingBotExecutions"), parameters);
     }
 
     // Calls the v2PublicGetPublicAuth endpoint. Returns a JSON object.

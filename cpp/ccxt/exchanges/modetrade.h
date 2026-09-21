@@ -146,6 +146,10 @@ public:
                   }},
                  {std::string("www"),
                   std::string("https://trade.mode.network")},
+                 {std::string("doc"),
+                  ccxt::list{
+                      std::string("https://orderly.network/docs/"
+                                  "build-on-omnichain/building-on-omnichain")}},
                  {std::string("referral"),
                   ccxt::dict{
                       {std::string("url"),
@@ -309,6 +313,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("tv/kline_history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
                                 {std::string("public/funding_rate_history"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -349,6 +357,10 @@ public:
                            {std::string("post"),
                             ccxt::dict{
                                 {std::string("register_account"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("public/query"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -432,6 +444,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("internal_transfer_history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("volume/user/daily"),
                                  ccxt::dict{
                                      {std::string("cost"), 60},
@@ -485,11 +501,65 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
+                                {std::string("broker/daily_fee_revenue"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("orderbook/{symbol}"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("kline"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("client/leverages"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("client/margin_modes"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/admin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/referee_list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/max_rebate_rate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/rebate_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/referee_list"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/statistics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/"
+                                             "volume_prerequisite"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -538,6 +608,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("internal_transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("notification/inbox/mark_read"),
                                  ccxt::dict{
                                      {std::string("cost"), 60},
@@ -550,6 +624,18 @@ public:
                                 {std::string("client/leverage"),
                                  ccxt::dict{
                                      {std::string("cost"), 120},
+                                 }},
+                                {std::string("client/leverages"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 120},
+                                 }},
+                                {std::string("client/margin_mode"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("position_margin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
                                  }},
                                 {std::string("client/maintenance_config"),
                                  ccxt::dict{
@@ -596,6 +682,49 @@ public:
                                      {std::string("cost"), 10},
                                  }},
                                 {std::string("referral/edit_split"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/edit_referee_description"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/admin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/admin/update"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/"
+                                             "create/affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("referral/multi_level/admin/reset/"
+                                             "affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/admin/"
+                                             "update/affiliate"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/claim_code"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("referral/multi_level/rebate_rate/"
+                                             "set_default"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string(
+                                     "referral/multi_level/rebate_rate/update"),
                                  ccxt::dict{
                                      {std::string("cost"), 10},
                                  }},
@@ -698,12 +827,12 @@ public:
                                 {std::string("GTD"), false},
                             }},
                            {std::string("hedged"), false},
-                           {std::string("trailing"), true},
-                           {std::string("leverage"), true},
+                           {std::string("trailing"), false},
+                           {std::string("leverage"), false},
                            {std::string("marketBuyByCost"), false},
                            {std::string("marketBuyRequiresPrice"), false},
                            {std::string("selfTradePrevention"), false},
-                           {std::string("iceberg"), true},
+                           {std::string("iceberg"), false},
                        }},
                       {std::string("createOrders"),
                        ccxt::dict{
@@ -732,7 +861,16 @@ public:
                            {std::string("trailing"), false},
                            {std::string("symbolRequired"), false},
                        }},
-                      {std::string("fetchOrders"), ccxt::any{}},
+                      {std::string("fetchOrders"),
+                       ccxt::dict{
+                           {std::string("marginMode"), false},
+                           {std::string("limit"), 500},
+                           {std::string("daysBack"), ccxt::any{}},
+                           {std::string("untilDays"), 100000},
+                           {std::string("trigger"), true},
+                           {std::string("trailing"), false},
+                           {std::string("symbolRequired"), false},
+                       }},
                       {std::string("fetchClosedOrders"),
                        ccxt::dict{
                            {std::string("marginMode"), false},
@@ -749,10 +887,7 @@ public:
                            {std::string("limit"), 1000},
                        }},
                   }},
-                 {std::string("spot"),
-                  ccxt::dict{
-                      {std::string("extends"), std::string("default")},
-                  }},
+                 {std::string("spot"), ccxt::any{}},
                  {std::string("forDerivatives"),
                   ccxt::dict{
                       {std::string("extends"), std::string("default")},
@@ -830,7 +965,7 @@ public:
    * @description the latest known information on the availability of the
    * exchange API
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} a [status structure]{@link
@@ -880,7 +1015,7 @@ public:
    * @description fetches the current integer timestamp in milliseconds from the
    * exchange server
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {int} the current integer timestamp in milliseconds from the
@@ -1018,7 +1153,7 @@ public:
    * @name modetrade#fetchMarkets
    * @description retrieves data on all markets for modetrade
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object[]} an array of objects representing market data
@@ -1078,7 +1213,7 @@ public:
    * @name modetrade#fetchCurrencies
    * @description fetches all available currencies on an exchange
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} an associative dictionary of currencies
@@ -1293,7 +1428,7 @@ public:
    * @name modetrade#fetchTrades
    * @description get the list of most recent trades for a particular symbol
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
    * @param {string} symbol unified symbol of the market to fetch trades for
    * @param {int} [since] timestamp in ms of the earliest trade to fetch
    * @param {int} [limit] the maximum amount of trades to fetch
@@ -1421,7 +1556,7 @@ public:
    * @name modetrade#fetchFundingInterval
    * @description fetch the current funding rate interval
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
    * @param {string} symbol unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -1444,7 +1579,7 @@ public:
    * @name modetrade#fetchFundingRate
    * @description fetch the current funding rate
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
    * @param {string} symbol unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -1493,7 +1628,7 @@ public:
    * @name modetrade#fetchFundingRates
    * @description fetch the current funding rate for multiple markets
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
    * @param {string[]} symbols unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -1543,7 +1678,7 @@ public:
    * @name modetrade#fetchFundingRateHistory
    * @description fetches historical funding rate prices
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
    * @param {string} symbol unified symbol of the market to fetch the funding
    * rate history for
    * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
@@ -1691,7 +1826,7 @@ public:
    * @description fetch the history of funding payments paid and received on
    * this account
    * @see
-   * https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
    * @param {string} [symbol] unified market symbol
    * @param {int} [since] the earliest time in ms to fetch funding history for
    * @param {int} [limit] the maximum number of funding history structures to
@@ -1785,7 +1920,7 @@ public:
    * @name modetrade#fetchTradingFees
    * @description fetch the trading fees for multiple markets
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} a dictionary of [fee structures]{@link
@@ -1866,7 +2001,7 @@ public:
    * @description fetches information on open orders with bid (buy) and ask
    * (sell) prices, volumes and other data
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
    * @param {string} symbol unified symbol of the market to fetch the order book
    * for
    * @param {int} [limit] the maximum amount of order book entries to return
@@ -1938,7 +2073,7 @@ public:
    * @method
    * @name modetrade#fetchOHLCV
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+   * https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
    * @description fetches historical candlestick data containing the open, high,
    * low, and close price, and the volume of a market
    * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -2102,7 +2237,7 @@ public:
     if (isTrue(!isEqual(childOrders, ccxt::any{}))) {
       ccxt::any first = this->safeValue(childOrders, 0);
       ccxt::any innerChildOrders =
-          this->safeValue(first, std::string("childOrders"), ccxt::list{});
+          this->safeList(first, std::string("childOrders"), ccxt::list{});
       ccxt::any innerChildOrdersLength = getArrayLength(innerChildOrders);
       if (isTrue(isGreaterThan(innerChildOrdersLength, 0))) {
         ccxt::any takeProfitOrder = this->safeValue(innerChildOrders, 0);
@@ -2181,7 +2316,7 @@ public:
       }
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   virtual ccxt::any parseOrderType(ccxt::any type) {
@@ -2355,9 +2490,9 @@ public:
    * @name modetrade#createOrder
    * @description create a trade order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {string} type 'market' or 'limit'
    * @param {string} side 'buy' or 'sell'
@@ -2377,9 +2512,14 @@ public:
    * the triggerPrice at which the attached stop loss order will be triggered
    * (perpetual swap markets only)
    * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-   * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-   * @param {float} [params.cost] *spot market buy only* the quote quantity that
-   * can be used as an alternative for the amount
+   * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+   * @param {bool} [params.reduceOnly] true or false whether the order is
+   * reduce-only
+   * @param {bool} [params.postOnly] true or false whether the order is
+   * post-only
+   * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+   * @param {object[]} [params.childOrders] *algo order only* a list of child
+   * orders passed through to the exchange
    * @param {string} [params.clientOrderId] a unique id for the order
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
@@ -2435,7 +2575,7 @@ public:
    * @name modetrade#createOrders
    * @description *contract only* create a list of trade orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
    * @param {Array} orders list of orders to create, each object should contain
    * the parameters required by createOrder, namely symbol, type, side, amount,
    * price and params
@@ -2535,9 +2675,9 @@ public:
    * @name modetrade#editOrder
    * @description edit a trade order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
    * @param {string} id order id
    * @param {string} symbol unified symbol of the market to create an order in
    * @param {string} type 'market' or 'limit'
@@ -2681,13 +2821,13 @@ public:
    * @method
    * @name modetrade#cancelOrder
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
    * @description cancels an open order
    * @param {string} id order id
    * @param {string} symbol unified symbol of the market the order was made in
@@ -2808,9 +2948,9 @@ public:
    * @name modetrade#cancelOrders
    * @description cancel multiple orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
    * @param {string[]} ids order ids
    * @param {string} [symbol] unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
@@ -2870,9 +3010,9 @@ public:
    * @method
    * @name modetrade#cancelAllOrders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
    * @description cancel all open orders in a market
    * @param {string} [symbol] unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
@@ -2935,13 +3075,13 @@ public:
    * @method
    * @name modetrade#fetchOrder
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
    * @description fetches information on an order made by the user
    * @param {string} id the order id
    * @param {string} symbol unified symbol of the market the order was made in
@@ -3048,13 +3188,14 @@ public:
    * @name modetrade#fetchOrders
    * @description fetches information on multiple orders made by the user
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
    * @param {string} symbol unified market symbol of the market orders were made
    * in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500, or max 100 when params.trigger (or the legacy params.stop) is true
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -3108,7 +3249,8 @@ public:
                    ::setValue(request, std::string("start_t"), since);
                  }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("size"), limit);
+                   ::setValue(request, std::string("size"),
+                              mathMin(limit, maxLimit));
                  } else {
                    ::setValue(request, std::string("size"), maxLimit);
                  }
@@ -3176,13 +3318,14 @@ public:
    * @name modetrade#fetchOpenOrders
    * @description fetches information on multiple orders made by the user
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
    * @param {string} symbol unified market symbol of the market orders were made
    * in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500, or max 100 when params.trigger (or the legacy params.stop) is true
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -3220,13 +3363,14 @@ public:
    * @name modetrade#fetchClosedOrders
    * @description fetches information on multiple orders made by the user
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
    * @param {string} symbol unified market symbol of the market orders were made
    * in
    * @param {int} [since] the earliest time in ms to fetch orders for
-   * @param {int} [limit] the maximum number of order structures to retrieve
+   * @param {int} [limit] the maximum number of order structures to retrieve,
+   * max 500, or max 100 when params.trigger (or the legacy params.stop) is true
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -3263,7 +3407,7 @@ public:
    * @name modetrade#fetchOrderTrades
    * @description fetch all the trades made from a single order
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
    * @param {string} id order id
    * @param {string} symbol unified market symbol
    * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3327,7 +3471,7 @@ public:
    * @method
    * @name modetrade#fetchMyTrades
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
    * @description fetch all trades made by the user
    * @param {string} symbol unified market symbol
    * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3446,7 +3590,7 @@ public:
    * @description query for balance and get the amount of funds available for
    * trading or funds locked in orders
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @returns {object} a [balance structure]{@link
@@ -3496,14 +3640,14 @@ public:
                  ccxt::any currency = ccxt::any{};
                  if (isTrue(!isEqual(code, ccxt::any{}))) {
                    currency = this->currency(code);
-                   ::setValue(request, std::string("balance_token"),
+                   ::setValue(request, std::string("token"),
                               ::getValue(currency, std::string("id")));
                  }
                  if (isTrue(!isEqual(since, ccxt::any{}))) {
                    ::setValue(request, std::string("start_t"), since);
                  }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("pageSize"), limit);
+                   ::setValue(request, std::string("size"), limit);
                  }
                  ccxt::any transactionType =
                      this->safeString(params, std::string("type"));
@@ -3550,29 +3694,53 @@ public:
 
   ccxt::any parseLedgerEntry(ccxt::any item,
                              ccxt::any currency = ccxt::any{}) override {
+    //
+    //     {
+    //         "id": "230707030600002",
+    //         "tx_id":
+    //         "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+    //         "side": "WITHDRAW",
+    //         "token": "USDC",
+    //         "amount": 555,
+    //         "fee": 123,
+    //         "trans_status": "FAILED",
+    //         "created_time": 1688699193034,
+    //         "updated_time": 1688699193096,
+    //         "chain_id": "986532"
+    //     }
+    //
     ccxt::any currencyId = this->safeString(item, std::string("token"));
     ccxt::any code = this->safeCurrencyCode(currencyId, currency);
     currency = this->safeCurrency(currencyId, currency);
     ccxt::any amount = this->safeNumber(item, std::string("amount"));
-    ccxt::any side = this->safeString(item, std::string("token_side"));
-    ccxt::any direction = (isTrue((isEqual(side, std::string("DEPOSIT"))))
-                               ? ccxt::any(std::string("in"))
-                               : ccxt::any(std::string("out")));
+    ccxt::any side = this->safeString(item, std::string("side"));
+    ccxt::any direction = ccxt::any{};
+    if (isTrue(!isEqual(side, ccxt::any{}))) {
+      direction = (isTrue((isEqual(side, std::string("DEPOSIT"))))
+                       ? ccxt::any(std::string("in"))
+                       : ccxt::any(std::string("out")));
+    }
     ccxt::any timestamp = this->safeInteger(item, std::string("created_time"));
-    ccxt::any fee = this->parseTokenAndFeeTemp(item, std::string("fee_token"),
-                                               std::string("fee_amount"));
+    ccxt::any feeCost =
+        this->parseNumber(this->safeString(item, std::string("fee")));
+    ccxt::any fee = ccxt::any{};
+    if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
+      fee = ccxt::dict{
+          {std::string("currency"), code},
+          {std::string("cost"), feeCost},
+      };
+    }
     return this->safeLedgerEntry(
         ccxt::dict{
             {std::string("id"), this->safeString(item, std::string("id"))},
             {std::string("currency"), code},
-            {std::string("account"),
-             this->safeString(item, std::string("account"))},
+            {std::string("account"), ccxt::any{}},
             {std::string("referenceAccount"), ccxt::any{}},
             {std::string("referenceId"),
              this->safeString(item, std::string("tx_id"))},
             {std::string("status"),
              this->parseTransactionStatus(
-                 this->safeString(item, std::string("status")))},
+                 this->safeString(item, std::string("trans_status")))},
             {std::string("amount"), amount},
             {std::string("before"), ccxt::any{}},
             {std::string("after"), ccxt::any{}},
@@ -3580,8 +3748,9 @@ public:
             {std::string("direction"), direction},
             {std::string("timestamp"), timestamp},
             {std::string("datetime"), this->iso8601(timestamp)},
-            {std::string("type"), this->parseLedgerEntryType(this->safeString(
-                                      item, std::string("type")))},
+            {std::string("type"),
+             this->parseLedgerEntryType(this->safeString2(
+                 item, std::string("type"), std::string("side")))},
             {std::string("info"), item},
         },
         currency);
@@ -3591,6 +3760,8 @@ public:
     ccxt::any types = ccxt::dict{
         {std::string("BALANCE"), std::string("transaction")},
         {std::string("COLLATERAL"), std::string("transfer")},
+        {std::string("DEPOSIT"), std::string("transaction")},
+        {std::string("WITHDRAW"), std::string("transaction")},
     };
     return this->safeString(types, type, type);
   }
@@ -3601,7 +3772,7 @@ public:
    * @description fetch the history of changes, actions done by the user or
    * operations that altered the balance of the user
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
    * @param {string} [code] unified currency code, default is undefined
    * @param {int} [since] timestamp in ms of the earliest ledger entry, default
    * is undefined
@@ -3632,19 +3803,37 @@ public:
                              ccxt::any currency = ccxt::any{},
                              ccxt::any p2 = ccxt::any{},
                              ccxt::any p3 = ccxt::any{}) override {
-    // example in fetchLedger
-    ccxt::any code = this->safeString(transaction, std::string("token"));
+    //
+    //     {
+    //         "id": "230707030600002",
+    //         "tx_id":
+    //         "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+    //         "side": "WITHDRAW",
+    //         "token": "USDC",
+    //         "amount": 555,
+    //         "fee": 123,
+    //         "trans_status": "FAILED",
+    //         "created_time": 1688699193034,
+    //         "updated_time": 1688699193096,
+    //         "chain_id": "986532"
+    //     }
+    //
+    ccxt::any currencyId = this->safeString(transaction, std::string("token"));
+    ccxt::any code = this->safeCurrencyCode(currencyId, currency);
     ccxt::any movementDirection =
-        this->safeStringLower(transaction, std::string("token_side"));
+        this->safeStringLower(transaction, std::string("side"));
     if (isTrue(isEqual(movementDirection, std::string("withdraw")))) {
       movementDirection = std::string("withdrawal");
     }
-    ccxt::any fee = this->parseTokenAndFeeTemp(
-        transaction, std::string("fee_token"), std::string("fee_amount"));
-    ccxt::any addressTo =
-        this->safeString(transaction, std::string("target_address"));
-    ccxt::any addressFrom =
-        this->safeString(transaction, std::string("source_address"));
+    ccxt::any feeCost =
+        this->parseNumber(this->safeString(transaction, std::string("fee")));
+    ccxt::any fee = ccxt::any{};
+    if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
+      fee = ccxt::dict{
+          {std::string("currency"), code},
+          {std::string("cost"), feeCost},
+      };
+    }
     ccxt::any timestamp =
         this->safeInteger(transaction, std::string("created_time"));
     return ccxt::dict{
@@ -3656,10 +3845,9 @@ public:
         {std::string("timestamp"), timestamp},
         {std::string("datetime"), this->iso8601(timestamp)},
         {std::string("address"), ccxt::any{}},
-        {std::string("addressFrom"), addressFrom},
-        {std::string("addressTo"), addressTo},
-        {std::string("tag"),
-         this->safeString(transaction, std::string("extra"))},
+        {std::string("addressFrom"), ccxt::any{}},
+        {std::string("addressTo"), ccxt::any{}},
+        {std::string("tag"), ccxt::any{}},
         {std::string("tagFrom"), ccxt::any{}},
         {std::string("tagTo"), ccxt::any{}},
         {std::string("type"), movementDirection},
@@ -3667,7 +3855,7 @@ public:
          this->safeNumber(transaction, std::string("amount"))},
         {std::string("currency"), code},
         {std::string("status"), this->parseTransactionStatus(this->safeString(
-                                    transaction, std::string("status")))},
+                                    transaction, std::string("trans_status")))},
         {std::string("updated"),
          this->safeInteger(transaction, std::string("updated_time"))},
         {std::string("comment"), ccxt::any{}},
@@ -3681,8 +3869,11 @@ public:
     ccxt::any statuses = ccxt::dict{
         {std::string("NEW"), std::string("pending")},
         {std::string("CONFIRMING"), std::string("pending")},
+        {std::string("PENDING"), std::string("pending")},
+        {std::string("PENDING_REBALANCE"), std::string("pending")},
         {std::string("PROCESSING"), std::string("pending")},
         {std::string("COMPLETED"), std::string("ok")},
+        {std::string("FAILED"), std::string("failed")},
         {std::string("CANCELED"), std::string("canceled")},
     };
     if (isTrue(isEqual(status, ccxt::any{}))) {
@@ -3696,7 +3887,7 @@ public:
    * @name modetrade#fetchDeposits
    * @description fetch all deposits made to an account
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
    * @param {string} code unified currency code
    * @param {int} [since] the earliest time in ms to fetch deposits for
    * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3725,7 +3916,7 @@ public:
    * @name modetrade#fetchWithdrawals
    * @description fetch all withdrawals made from an account
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
    * @param {string} code unified currency code
    * @param {int} [since] the earliest time in ms to fetch withdrawals for
    * @param {int} [limit] the maximum number of withdrawals structures to
@@ -3755,7 +3946,7 @@ public:
    * @name modetrade#fetchDepositsWithdrawals
    * @description fetch history of deposits and withdrawals
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
    * @param {string} [code] unified currency code for the currency of the
    * deposit/withdrawals, default is undefined
    * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal,
@@ -3789,6 +3980,9 @@ public:
                  //         "success":true
                  //     }
                  //
+                 params = this->omit(
+                     params, std::string("side")); // request-side filter, not a
+                                                   // unified transaction field
                  return this->parseTransactions(rows, currency, since, limit,
                                                 params);
                })
@@ -3846,7 +4040,7 @@ public:
    * @name modetrade#withdraw
    * @description make a withdrawal
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
    * @param {string} code unified currency code
    * @param {float} amount the amount to withdraw
    * @param {string} address the address to withdraw to
@@ -3998,7 +4192,7 @@ public:
    * @name modetrade#fetchLeverage
    * @description fetch the set leverage for a market
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
    * @param {string} symbol unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
@@ -4054,7 +4248,7 @@ public:
    * @name modetrade#setLeverage
    * @description set the level of leverage for a market
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
    * @param {int} [leverage] the rate of leverage
    * @param {string} [symbol] unified market symbol
    * @param {object} [params] extra parameters specific to the exchange API
@@ -4167,7 +4361,7 @@ public:
    * @method
    * @name modetrade#fetchPosition
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
    * @description fetch data on an open position
    * @param {string} symbol unified market symbol of the market the position is
    * held in
@@ -4236,7 +4430,7 @@ public:
    * @name modetrade#fetchPositions
    * @description fetch all open positions
    * @see
-   * https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+   * https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint

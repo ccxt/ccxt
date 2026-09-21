@@ -74,7 +74,7 @@ public:
                  {std::string("fetchFundingInterval"), true},
                  {std::string("fetchFundingRate"), true},
                  {std::string("fetchFundingRateHistory"), true},
-                 {std::string("fetchFundingRates"), false},
+                 {std::string("fetchFundingRates"), true},
                  {std::string("fetchIndexOHLCV"), true},
                  {std::string("fetchIsolatedBorrowRate"), false},
                  {std::string("fetchIsolatedBorrowRates"), false},
@@ -154,6 +154,8 @@ public:
                       {std::string("earn"),
                        std::string("https://api.kucoin.com")},
                       {std::string("uta"),
+                       std::string("https://api.kucoin.com")},
+                      {std::string("utaV2"),
                        std::string("https://api.kucoin.com")},
                       {std::string("utaPrivate"),
                        std::string("https://api.kucoin.com")},
@@ -252,6 +254,10 @@ public:
                                 {std::string("cost"), 20},
                             }},
                            {std::string("margin/collateralRatio"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("margin/available-inventory"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
                             }},
@@ -561,6 +567,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 20},
                             }},
+                           {std::string("margin/borrowRate"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
+                            }},
                            {std::string("project/list"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
@@ -622,6 +632,26 @@ public:
                                 {std::string("cost"), 5},
                             }},
                            {std::string("affiliate/inviter/statistics"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("affiliate/queryInvitees"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("affiliate/queryMyCommission"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("affiliate/queryTransactionByUid"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("affiliate/queryTransactionByTime"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("affiliate/queryKumining"),
                             ccxt::dict{
                                 {std::string("cost"), 30},
                             }},
@@ -1334,6 +1364,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("broker/nd/mark-up"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                            {std::string("asset/ndbroker/deposit/list"),
                             ccxt::dict{
                                 {std::string("cost"), 2},
@@ -1366,6 +1400,10 @@ public:
                                 {std::string("cost"), 6},
                             }},
                            {std::string("broker/nd/account/update-apikey"),
+                            ccxt::dict{
+                                {std::string("cost"), 6},
+                            }},
+                           {std::string("broker/nd/mark-up"),
                             ccxt::dict{
                                 {std::string("cost"), 6},
                             }},
@@ -1523,6 +1561,16 @@ public:
                                 {std::string("cost"), 20},
                             }},
                            {std::string("market/fiat-price"),
+                            ccxt::dict{
+                                {std::string("cost"), 6},
+                            }},
+                       }},
+                  }},
+                 {std::string("utaV2"),
+                  ccxt::dict{
+                      {std::string("get"),
+                       ccxt::dict{
+                           {std::string("market/funding-rate"),
                             ccxt::dict{
                                 {std::string("cost"), 6},
                             }},
@@ -2263,6 +2311,8 @@ public:
                                  std::string("v3")},
                                 {std::string("announcements"),
                                  std::string("v3")},
+                                {std::string("margin/available-inventory"),
+                                 std::string("v3")},
                             }},
                        }},
                       {std::string("private"),
@@ -2331,6 +2381,8 @@ public:
                                  std::string("v3")},
                                 {std::string("margin/interest"),
                                  std::string("v3")},
+                                {std::string("margin/borrowRate"),
+                                 std::string("v3")},
                                 {std::string("project/list"),
                                  std::string("v3")},
                                 {std::string("project/marketInterestRate"),
@@ -2344,6 +2396,17 @@ public:
                                 {std::string("margin/symbols"),
                                  std::string("v3")},
                                 {std::string("affiliate/inviter/statistics"),
+                                 std::string("v2")},
+                                {std::string("affiliate/queryInvitees"),
+                                 std::string("v2")},
+                                {std::string("affiliate/queryMyCommission"),
+                                 std::string("v2")},
+                                {std::string("affiliate/queryTransactionByUid"),
+                                 std::string("v2")},
+                                {std::string(
+                                     "affiliate/queryTransactionByTime"),
+                                 std::string("v2")},
+                                {std::string("affiliate/queryKumining"),
                                  std::string("v2")},
                                 {std::string("asset/ndbroker/deposit/list"),
                                  std::string("v1")},
@@ -4439,12 +4502,6 @@ public:
     //         "markPrice": "1572.68"
     //     }
     //
-    ccxt::any percentage = this->safeString(ticker, std::string("changeRate"));
-    if (isTrue(!isEqual(percentage, ccxt::any{}))) {
-      percentage = ccxt::Precise::stringMul(percentage, std::string("100"));
-    } else {
-      percentage = this->safeString(ticker, std::string("priceChangePercent"));
-    }
     ccxt::any last = this->safeStringN(
         ticker, ccxt::list{std::string("last"), std::string("lastTradedPrice"),
                            std::string("lastPrice")});
@@ -4452,6 +4509,18 @@ public:
     ccxt::any marketId = this->safeString(ticker, std::string("symbol"));
     market = this->safeMarket(marketId, market, std::string("-"));
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
+    ccxt::any percentage = this->safeString(ticker, std::string("changeRate"));
+    if (isTrue(!isEqual(percentage, ccxt::any{}))) {
+      percentage = ccxt::Precise::stringMul(percentage, std::string("100"));
+    } else {
+      percentage = this->safeString(ticker, std::string("priceChangePercent"));
+      // uta spot sends a ratio under this name and uta swap sends a percentage.
+      // An unresolved market has no `spot` key at all, so read it the way okx
+      // does and leave the value alone rather than scaling on a guess.
+      if (isTrue(this->safeBool(market, std::string("spot"), false))) {
+        percentage = ccxt::Precise::stringMul(percentage, std::string("100"));
+      }
+    }
     ccxt::any baseVolume = this->safeString2(ticker, std::string("vol"),
                                              std::string("baseVolume"));
     ccxt::any quoteVolume = this->safeString2(ticker, std::string("volValue"),
@@ -4604,6 +4673,16 @@ public:
                                        std::string("lastTradePrice"));
     ccxt::any timestamp =
         this->safeIntegerProduct(ticker, std::string("ts"), 0.000001);
+    ccxt::any change = this->safeString(ticker, std::string("priceChg"));
+    ccxt::any percentage = ccxt::any{};
+    if (isTrue(isTrue((isEqual(last, ccxt::any{}))) ||
+               isTrue((isEqual(change, ccxt::any{}))))) {
+      percentage = ccxt::Precise::stringMul(
+          this->safeString(ticker, std::string("priceChgPct")),
+          std::string("100"));
+    }
+    // Otherwise safeTicker derives percentage from last and change, since
+    // priceChgPct can be inconsistent.
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), ::getValue(market, std::string("symbol"))},
@@ -4626,12 +4705,8 @@ public:
             {std::string("close"), last},
             {std::string("last"), last},
             {std::string("previousClose"), ccxt::any{}},
-            {std::string("change"),
-             this->safeString(ticker, std::string("priceChg"))},
-            {std::string("percentage"),
-             ccxt::Precise::stringMul(
-                 this->safeString(ticker, std::string("priceChgPct")),
-                 std::string("100"))},
+            {std::string("change"), change},
+            {std::string("percentage"), percentage},
             {std::string("average"), ccxt::any{}},
             {std::string("baseVolume"),
              this->safeString(ticker, std::string("volumeOf24h"))},
@@ -5796,8 +5871,8 @@ public:
    * endpoint
    * @param {boolean} [params.uta] set to true for the unified trading account
    * (uta) endpoint, defaults to false
-   * @returns {object} an array of [address structures]{@link
-   * https://docs.ccxt.com/?id=address-structure}
+   * @returns {object} a dictionary of [address structures]{@link
+   * https://docs.ccxt.com/?id=address-structure} indexed by the network
    */
   std::shared_future<ccxt::any>
   fetchDepositAddressesByNetwork(ccxt::any code,
@@ -12263,10 +12338,6 @@ public:
                    for (ccxt::any i = 0; isLessThan(i, getArrayLength(assets));
                         postFixIncrement(i)) {
                      ccxt::any entry = ::getValue(assets, i);
-                     ccxt::any marketId =
-                         this->safeString(entry, std::string("symbol"));
-                     ccxt::any symbol = this->safeSymbol(marketId, ccxt::any{},
-                                                         std::string("_"));
                      ccxt::any base = this->safeDict(
                          entry, std::string("baseAsset"), ccxt::dict{});
                      ccxt::any quote = this->safeDict(
@@ -12275,16 +12346,14 @@ public:
                          this->safeString(base, std::string("currency")));
                      ccxt::any quoteCode = this->safeCurrencyCode(
                          this->safeString(quote, std::string("currency")));
-                     ccxt::any subResult = ccxt::dict{};
                      if (isTrue(!isEqual(baseCode, ccxt::any{}))) {
-                       ::setValue(subResult, baseCode,
-                                  this->parseBalanceHelper(base));
+                       result = this->mergeBalanceAccount(
+                           result, baseCode, this->parseBalanceHelper(base));
                      }
                      if (isTrue(!isEqual(quoteCode, ccxt::any{}))) {
-                       ::setValue(subResult, quoteCode,
-                                  this->parseBalanceHelper(quote));
+                       result = this->mergeBalanceAccount(
+                           result, quoteCode, this->parseBalanceHelper(quote));
                      }
-                     ::setValue(result, symbol, this->safeBalance(subResult));
                    }
                  } else if (isTrue(cross)) {
                    ccxt::any data = this->safeDict(
@@ -12332,11 +12401,7 @@ public:
                      }
                    }
                  }
-                 ccxt::any returnType = result;
-                 if (!isTrue(isolated)) {
-                   returnType = this->safeBalance(result);
-                 }
-                 return returnType;
+                 return this->safeBalance(result);
                })
         .share();
   }
@@ -12571,11 +12636,6 @@ public:
                         isLessThan(i, getArrayLength(accounts));
                         postFixIncrement(i)) {
                      ccxt::any entry = ::getValue(accounts, i);
-                     ccxt::any marketId =
-                         this->safeString(entry, std::string("accountSubtype"));
-                     ccxt::any symbol = this->safeSymbol(marketId, ccxt::any{},
-                                                         std::string("-"));
-                     ccxt::any subResult = ccxt::dict{};
                      ccxt::any currencies = this->safeList(
                          entry, std::string("currencies"), ccxt::list{});
                      for (ccxt::any j = 0;
@@ -12588,11 +12648,11 @@ public:
                        ccxt::any currencyCode =
                            this->safeCurrencyCode(currencyId);
                        if (isTrue(!isEqual(currencyCode, ccxt::any{}))) {
-                         ::setValue(subResult, currencyCode,
-                                    this->parseBalanceHelper(currencyEntry));
+                         result = this->mergeBalanceAccount(
+                             result, currencyCode,
+                             this->parseBalanceHelper(currencyEntry));
                        }
                      }
-                     ::setValue(result, symbol, this->safeBalance(subResult));
                    }
                  } else {
                    ccxt::any firstAccount =
@@ -12614,11 +12674,7 @@ public:
                      }
                    }
                  }
-                 ccxt::any returnType = result;
-                 if (!isTrue(isIsolated)) {
-                   returnType = this->safeBalance(result);
-                 }
-                 return returnType;
+                 return this->safeBalance(result);
                })
         .share();
   }
@@ -13598,7 +13654,7 @@ public:
     //
     ccxt::any timestampId = this->safeString2(info, std::string("createdAt"),
                                               std::string("timestamp"));
-    ccxt::any timestamp = this->milliseconds();
+    ccxt::any timestamp = ccxt::any{};
     if (isTrue(!isEqual(timestampId, ccxt::any{}))) {
       timestamp = this->parseToInt(slice(timestampId, 0, 13));
     }
@@ -14328,7 +14384,6 @@ public:
     //         "actualSize": 10
     //     }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any currencyId = this->safeString(info, std::string("currency"));
     return ccxt::dict{
         {std::string("id"), this->safeString(info, std::string("orderNo"))},
@@ -14336,8 +14391,8 @@ public:
         {std::string("amount"),
          this->safeNumber(info, std::string("actualSize"))},
         {std::string("symbol"), ccxt::any{}},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
         {std::string("info"), info},
     };
   }
@@ -14786,6 +14841,75 @@ public:
                         ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         return this->parseFundingRate(data, market);
+                      })
+        .share();
+  }
+
+  /**
+   * @method
+   * @name kucoin#fetchFundingRates
+   * @description fetch the current funding rates for multiple markets
+   * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+   * @param {string[]} [symbols] unified market symbols, all markets are
+   * returned if not assigned
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES
+   * or COIN-FUTURES
+   * @param {string} [params.symbol] exchange-specific contract id (e.g.
+   * XBTUSDTM), overrides productType when provided
+   * @returns {object} a dictionary of [funding rate structures]{@link
+   * https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market
+   * symbols
+   */
+  std::shared_future<ccxt::any>
+  fetchFundingRates(ccxt::any symbols = ccxt::any{},
+                    ccxt::any params = ccxt::dict{}) override {
+    return std::async(std::launch::deferred,
+                      [=]() mutable -> ccxt::any {
+                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                          awaitValue(this->loadMarkets());
+                        }
+                        symbols = this->marketSymbols(symbols);
+                        ccxt::any response =
+                            awaitValue(this->utaV2GetMarketFundingRate(params));
+                        //
+                        //     {
+                        //         "code": "200000",
+                        //         "data": [
+                        //             {
+                        //                 "symbol": "XBTUSDTM",
+                        //                 "nextFundingRate": "-0.000004",
+                        //                 "fundingTime": 1789315200000,
+                        //                 "fundingRateCap": "0.003",
+                        //                 "fundingRateFloor": "-0.003",
+                        //                 "currentGranularity": 28800000,
+                        //                 "newGranularity": 28800000,
+                        //                 "newGranularityStartTime":
+                        //                 1750147200000
+                        //             }
+                        //         ]
+                        //     }
+                        //
+                        ccxt::any data = this->safeList(
+                            response, std::string("data"), ccxt::list{});
+                        ccxt::any rates = ccxt::list{};
+                        for (ccxt::any i = 0;
+                             isLessThan(i, getArrayLength(data));
+                             postFixIncrement(i)) {
+                          ccxt::any entry = ::getValue(data, i);
+                          ccxt::any marketId =
+                              this->safeString(entry, std::string("symbol"));
+                          // kucoin returns funding index symbols (e.g.
+                          // .ETHUSDTMFPI8H) alongside tradeable contracts
+                          ccxt::any isFundingIndex =
+                              isTrue((!isEqual(marketId, ccxt::any{}))) &&
+                              isTrue((startsWith(marketId, std::string("."))));
+                          if (!isTrue(isFundingIndex)) {
+                            arrayPush(rates, entry);
+                          }
+                        }
+                        return this->parseFundingRates(rates, symbols);
                       })
         .share();
   }
@@ -16837,6 +16961,10 @@ public:
     ccxt::any endpoint =
         add(add(add(std::string("/api/"), version), std::string("/")),
             this->implodeParams(path, params));
+    if (isTrue(isEqual(api, std::string("utaV2")))) {
+      endpoint =
+          add(std::string("/api/ua/v2/"), this->implodeParams(path, params));
+    }
     if (isTrue(isEqual(api, std::string("webExchange")))) {
       endpoint = add(std::string("/"), this->implodeParams(path, params));
     }
@@ -18479,6 +18607,15 @@ public:
       if (count >= 2)
         return awaitValue(
             this->fetchFundingRate(::getValue(args, 0), ::getValue(args, 1)));
+    }
+    if (which == "fetchFundingRates") {
+      if (count <= 0)
+        return awaitValue(this->fetchFundingRates());
+      if (count == 1)
+        return awaitValue(this->fetchFundingRates(::getValue(args, 0)));
+      if (count >= 2)
+        return awaitValue(
+            this->fetchFundingRates(::getValue(args, 0), ::getValue(args, 1)));
     }
     if (which == "parseFundingRate") {
       if (count <= 1)

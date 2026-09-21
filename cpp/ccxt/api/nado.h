@@ -36,6 +36,11 @@ public:
         return this->callEndpoint (std::string ("gatewayPublicPostQuery"), parameters);
     }
 
+    // Calls the gatewayPublicPostEdgeQuery endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> gatewayPublicPostEdgeQuery (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("gatewayPublicPostEdgeQuery"), parameters);
+    }
+
     // Calls the gatewayPrivatePostExecute endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> gatewayPrivatePostExecute (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("gatewayPrivatePostExecute"), parameters);
@@ -74,6 +79,11 @@ public:
     // Calls the archiveV2PublicGetTrades endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> archiveV2PublicGetTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("archiveV2PublicGetTrades"), parameters);
+    }
+
+    // Calls the archiveV2PublicGetSymbols endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> archiveV2PublicGetSymbols (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("archiveV2PublicGetSymbols"), parameters);
     }
 
     // Calls the triggerPrivatePostExecute endpoint. Returns a JSON object.

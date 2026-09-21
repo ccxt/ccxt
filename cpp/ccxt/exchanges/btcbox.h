@@ -164,6 +164,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("order_history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("trade_add"),
                             ccxt::dict{
                                 {std::string("cost"), 1},

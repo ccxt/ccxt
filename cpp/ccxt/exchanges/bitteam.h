@@ -229,6 +229,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("trade/api/stats"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("trade/api/trade/{id}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -2678,11 +2682,10 @@ public:
     //         }
     //     }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any balance = ccxt::dict{
         {std::string("info"), response},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
     };
     ccxt::any result =
         this->safeValue(response, std::string("result"), ccxt::dict{});
@@ -2999,7 +3002,7 @@ public:
       this->checkRequiredCredentials();
       if (isTrue(isEqual(method, std::string("POST")))) {
         body = this->json(request);
-      } else if (isTrue(!isEqual(getArrayLength(query), 0))) {
+      } else if (isTrue(!isEqual(getStringLength(query), 0))) {
         url = add(url, add(std::string("?"), query));
       }
       ccxt::any auth = add(add(this->apiKey, std::string(":")), this->secret);
@@ -3009,7 +3012,7 @@ public:
           {std::string("Authorization"), signature},
           {std::string("Content-Type"), std::string("application/json")},
       };
-    } else if (isTrue(!isEqual(getArrayLength(query), 0))) {
+    } else if (isTrue(!isEqual(getStringLength(query), 0))) {
       url = add(url, add(std::string("?"), query));
     }
     return ccxt::dict{

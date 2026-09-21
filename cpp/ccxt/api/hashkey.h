@@ -241,6 +241,11 @@ public:
         return this->callEndpoint (std::string ("privateGetApiV1AccountWithdrawOrders"), parameters);
     }
 
+    // Calls the privateGetApiV1AffiliateInviteeInfo endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetApiV1AffiliateInviteeInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV1AffiliateInviteeInfo"), parameters);
+    }
+
     // Calls the privatePostApiV1UserDataStream endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostApiV1UserDataStream (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostApiV1UserDataStream"), parameters);
@@ -331,6 +336,11 @@ public:
         return this->callEndpoint (std::string ("privateDeleteApiV1SpotCancelOrderByIds"), parameters);
     }
 
+    // Calls the privateDeleteApiV1SpotCancelAllOpenOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateDeleteApiV1SpotCancelAllOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateDeleteApiV1SpotCancelAllOpenOrders"), parameters);
+    }
+
     // Calls the privateDeleteApiV1FuturesOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDeleteApiV1FuturesOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteApiV1FuturesOrder"), parameters);
@@ -344,6 +354,11 @@ public:
     // Calls the privateDeleteApiV1FuturesCancelOrderByIds endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateDeleteApiV1FuturesCancelOrderByIds (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateDeleteApiV1FuturesCancelOrderByIds"), parameters);
+    }
+
+    // Calls the privateDeleteApiV1FuturesCancelAllOpenOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateDeleteApiV1FuturesCancelAllOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateDeleteApiV1FuturesCancelAllOpenOrders"), parameters);
     }
 
     // Calls the privateDeleteApiV1UserDataStream endpoint. Returns a JSON object.

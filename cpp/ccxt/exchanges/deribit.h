@@ -204,6 +204,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_apr_history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_book_summary_by_currency"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -224,6 +228,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_expirations"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_funding_chart_data"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -241,6 +249,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_index"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_index_chart_data"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -290,6 +302,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_order_book"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_supported_index_names"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -395,6 +411,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_currencies"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_email_language"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -451,6 +471,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("set_disabled_trading_products"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("set_email_for_subaccount"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -463,11 +487,19 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("simulate_portfolio"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("toggle_notifications_from_subaccount"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("toggle_subaccount_login"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("approve_block_trade"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -479,6 +511,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_block_trade_requests"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_block_trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_last_block_trades_by_currency"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -486,6 +526,14 @@ public:
                            {std::string("invalidate_block_trade_signature"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                            }},
+                           {std::string("reject_block_trade"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("simulate_block_trade"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
                             }},
                            {std::string("verify_block_trade"),
                             ccxt::dict{
@@ -527,6 +575,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("cancel_quotes"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                            {std::string("close_position"),
                             ccxt::dict{
                                 {std::string("cost"), 4},
@@ -539,11 +591,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_mmp_status"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_open_orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_open_orders_by_currency"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_open_orders_by_instrument"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_open_orders_by_label"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -560,6 +624,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_order_state"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_order_state_by_label"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -592,6 +660,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("mass_quote"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("move_positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                            {std::string("reset_mmp"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -608,6 +684,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("add_to_address_book"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("cancel_transfer_by_id"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -620,11 +700,19 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_address_book"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_current_deposit_address"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("get_deposits"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("get_reward_eligibility"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -636,11 +724,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("remove_from_address_book"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("set_clearance_originator"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("submit_transfer_to_subaccount"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("submit_transfer_to_user"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("update_in_address_book"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1330,7 +1430,7 @@ public:
                    //         "testnet": false
                    //     }
                    //
-                   ccxt::any currenciesResult = this->safeValue(
+                   ccxt::any currenciesResult = this->safeList(
                        currenciesResponse, std::string("result"), ccxt::list{});
                    for (ccxt::any i = 0;
                         isLessThan(i, getArrayLength(currenciesResult));
@@ -1424,8 +1524,8 @@ public:
                       isLessThan(i, getArrayLength(instrumentsResponses));
                       postFixIncrement(i)) {
                    ccxt::any instrumentsResult =
-                       this->safeValue(::getValue(instrumentsResponses, i),
-                                       std::string("result"), ccxt::list{});
+                       this->safeList(::getValue(instrumentsResponses, i),
+                                      std::string("result"), ccxt::list{});
                    for (ccxt::any k = 0;
                         isLessThan(k, getArrayLength(instrumentsResult));
                         postFixIncrement(k)) {
@@ -2513,7 +2613,7 @@ public:
                  ccxt::any result = this->safeValue(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any fees =
-                     this->safeValue(result, std::string("fees"), ccxt::list{});
+                     this->safeList(result, std::string("fees"), ccxt::list{});
                  ccxt::any perpetualFee = ccxt::dict{};
                  ccxt::any futureFee = ccxt::dict{};
                  ccxt::any optionFee = ccxt::dict{};
@@ -4080,7 +4180,7 @@ public:
     //     }
     //
     ccxt::any volatilityResult =
-        this->safeValue(volatility, std::string("result"), ccxt::list{});
+        this->safeList(volatility, std::string("result"), ccxt::list{});
     ccxt::any result = ccxt::list{};
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(volatilityResult));
          postFixIncrement(i)) {
@@ -4599,7 +4699,7 @@ public:
                  //    }
                  //
                  ccxt::any rates = ccxt::list{};
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      response, std::string("result"), ccxt::list{});
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
                       postFixIncrement(i)) {

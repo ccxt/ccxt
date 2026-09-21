@@ -264,6 +264,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v3/stock/account"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -292,6 +296,22 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v3/contract-transfer-out"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/contract-transfer-to"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/submit-withdraw-claim"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/stock/register-account"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v3/stock/generate-api"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -474,11 +494,10 @@ public:
     // }
     // }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
     };
     ccxt::any code = std::string("USDT");
     ccxt::any account = this->account();
@@ -980,7 +999,6 @@ public:
     //     "tradeCount": 100
     // }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any marketId = this->safeString(ticker, std::string("symbol"));
     market = this->safeMarket(marketId, market);
     ccxt::any symbol = this->safeSymbol(marketId, market);
@@ -995,8 +1013,8 @@ public:
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
-            {std::string("timestamp"), timestamp},
-            {std::string("datetime"), this->iso8601(timestamp)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("high"), high},
             {std::string("low"), low},
             {std::string("bid"), ccxt::any{}},
@@ -1417,7 +1435,6 @@ public:
     //     "tradeCount": 100
     // }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any marketId = this->safeString(interest, std::string("symbol"));
     market = this->safeMarket(marketId, market);
     ccxt::any symbol = this->safeSymbol(marketId, market);
@@ -1427,8 +1444,8 @@ public:
             {std::string("openInterestAmount"),
              this->safeString(interest, std::string("openInterest"))},
             {std::string("openInterestValue"), ccxt::any{}},
-            {std::string("timestamp"), timestamp},
-            {std::string("datetime"), this->iso8601(timestamp)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("info"), interest},
         },
         market);
@@ -1681,7 +1698,7 @@ public:
       };
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   virtual ccxt::any parseOrderType(ccxt::any type) {

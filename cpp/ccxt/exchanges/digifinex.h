@@ -1345,7 +1345,7 @@ public:
                  //         "code":0
                  //     }
                  //
-                 ccxt::any markets = this->safeValue(
+                 ccxt::any markets = this->safeList(
                      response, std::string("data"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(markets));
@@ -1781,8 +1781,8 @@ public:
                  //
                  ccxt::any result = ccxt::dict{};
                  ccxt::any tickers =
-                     this->safeValue2(response, std::string("ticker"),
-                                      std::string("data"), ccxt::list{});
+                     this->safeList2(response, std::string("ticker"),
+                                     std::string("data"), ccxt::list{});
                  ccxt::any date =
                      this->safeInteger(response, std::string("date"));
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(tickers));
@@ -1969,6 +1969,12 @@ public:
       timestamp = this->safeInteger(ticker, std::string("timestamp"));
     }
     ccxt::any last = this->safeString(ticker, std::string("last"));
+    ccxt::any percentage = this->safeString2(
+        ticker, std::string("change"), std::string("price_change_percent"));
+    if (isTrue(isEqual(::getValue(market, std::string("swap")), true))) {
+      // swap endpoints return a raw ratio, spot already returns a percent
+      percentage = ccxt::Precise::stringMul(percentage, std::string("100"));
+    }
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
@@ -1993,9 +1999,7 @@ public:
             {std::string("last"), last},
             {std::string("previousClose"), ccxt::any{}},
             {std::string("change"), ccxt::any{}},
-            {std::string("percentage"),
-             this->safeString2(ticker, std::string("change"),
-                               std::string("price_change_percent"))},
+            {std::string("percentage"), percentage},
             {std::string("average"), ccxt::any{}},
             {std::string("baseVolume"),
              this->safeString2(ticker, std::string("vol"),
@@ -3028,7 +3032,7 @@ public:
                          isTrue((isEqual(marketType, std::string("spot")))) ||
                          isTrue(
                              (isEqual(marketType, std::string("margin")))))) {
-                   ccxt::any canceledOrders = this->safeValue(
+                   ccxt::any canceledOrders = this->safeList(
                        response, std::string("success"), ccxt::list{});
                    ccxt::any numCanceledOrders = getArrayLength(canceledOrders);
                    if (isTrue(!isEqual(numCanceledOrders, 1))) {
@@ -4723,8 +4727,8 @@ public:
                  //         "equity": 45.133305540922
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("list"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("list"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::any{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -4795,14 +4799,13 @@ public:
     //         "currency": "USDT"
     //     }
     //
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any currencyId = this->safeString(info, std::string("currency"));
     return ccxt::dict{
         {std::string("currency"), this->safeCurrencyCode(currencyId, currency)},
         {std::string("rate"), 0.001},
         {std::string("period"), 86400000},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("timestamp"), ccxt::any{}},
+        {std::string("datetime"), ccxt::any{}},
         {std::string("info"), info},
     };
   }
@@ -5029,7 +5032,7 @@ public:
                  //
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      data, std::string("funding_rates"), ccxt::list{});
                  ccxt::any rates = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
@@ -5268,7 +5271,7 @@ public:
                           ? ccxt::any(std::string("data"))
                           : ccxt::any(std::string("positions")));
                  ccxt::any positions =
-                     this->safeValue(response, positionRequest, ccxt::list{});
+                     this->safeList(response, positionRequest, ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(positions));
                       postFixIncrement(i)) {
@@ -5395,7 +5398,7 @@ public:
                           ? ccxt::any(std::string("data"))
                           : ccxt::any(std::string("positions")));
                  ccxt::any data =
-                     this->safeValue(response, dataRequest, ccxt::list{});
+                     this->safeList(response, dataRequest, ccxt::list{});
                  ccxt::any position =
                      this->parsePosition(::getValue(data, 0), market);
                  if (isTrue(isEqual(marketType, std::string("swap")))) {

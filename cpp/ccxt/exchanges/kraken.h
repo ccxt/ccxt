@@ -230,6 +230,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("MaintenanceSchedule"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("Assets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -353,6 +357,10 @@ public:
                                 {std::string("cost"), 3},
                             }},
                            {std::string("GetApiKeyInfo"),
+                            ccxt::dict{
+                                {std::string("cost"), 3},
+                            }},
+                           {std::string("ListWalletAccounts"),
                             ccxt::dict{
                                 {std::string("cost"), 3},
                             }},
@@ -2031,7 +2039,7 @@ public:
                  //                                                },
                  ccxt::any result = this->safeValue(
                      response, std::string("result"), ccxt::dict{});
-                 ccxt::any ledger = this->safeValue(
+                 ccxt::any ledger = this->safeDict(
                      result, std::string("ledger"), ccxt::dict{});
                  ccxt::any keys = getObjectKeys(ledger);
                  ccxt::any items = ccxt::list{};
@@ -2342,7 +2350,7 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(response, std::string("result"), ccxt::dict{});
+        this->safeDict(response, std::string("result"), ccxt::dict{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
         {std::string("timestamp"), ccxt::any{}},
@@ -2666,7 +2674,7 @@ public:
   }
 
   virtual ccxt::any findMarketByAltnameOrId(ccxt::any id) {
-    ccxt::any marketsByAltname = this->safeValue(
+    ccxt::any marketsByAltname = this->safeDict(
         this->options, std::string("marketsByAltname"), ccxt::dict{});
     if (isTrue(inOp(marketsByAltname, id))) {
       return ::getValue(marketsByAltname, id);
@@ -2961,7 +2969,7 @@ public:
     ccxt::any clientOrderId =
         this->safeString(order, std::string("cl_ord_id"), userref);
     ccxt::any rawTrades =
-        this->safeValue(order, std::string("trades"), ccxt::list{});
+        this->safeList(order, std::string("trades"), ccxt::list{});
     ccxt::any trades = ccxt::list{};
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(rawTrades));
          postFixIncrement(i)) {
@@ -3629,7 +3637,7 @@ public:
                              {std::string("txid"), join(ids, std::string(","))},
                          },
                          params)));
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any orders = ccxt::list{};
                  ccxt::any orderIds = getObjectKeys(result);

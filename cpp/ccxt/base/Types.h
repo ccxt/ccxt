@@ -52,6 +52,7 @@ struct Account;
 struct PartialBalances;
 struct Balances;
 struct DepositAddress;
+struct DepositAddresses;
 struct WithdrawalResponse;
 struct FundingRate;
 struct FundingRates;
@@ -75,6 +76,7 @@ struct CancellationRequest;
 struct FundingHistory;
 struct MarginMode;
 struct Greeks;
+struct AllGreeks;
 struct Conversion;
 struct Option;
 struct LastPrice;
@@ -281,6 +283,7 @@ struct TradingFee {
     std::optional<double> taker;
     std::optional<bool> percentage;
     std::optional<bool> tierBased;
+    dict tiers;
 
     TradingFee () = default;
     explicit TradingFee (const ccxt::any& raw) {
@@ -291,6 +294,7 @@ struct TradingFee {
         this->taker = typedsupport::optNum (raw, "taker");
         this->percentage = typedsupport::optBool (raw, "percentage");
         this->tierBased = typedsupport::optBool (raw, "tierBased");
+        this->tiers = typedsupport::dictOrEmpty (raw, "tiers");
     }
 };
 
@@ -310,6 +314,8 @@ struct Precision {
     std::optional<double> amount;
     std::optional<double> price;
     std::optional<double> cost;
+    std::optional<double> base;
+    std::optional<double> quote;
 
     Precision () = default;
     explicit Precision (const ccxt::any& raw) {
@@ -317,6 +323,8 @@ struct Precision {
         this->amount = typedsupport::optNum (raw, "amount");
         this->price = typedsupport::optNum (raw, "price");
         this->cost = typedsupport::optNum (raw, "cost");
+        this->base = typedsupport::optNum (raw, "base");
+        this->quote = typedsupport::optNum (raw, "quote");
     }
 };
 
@@ -356,6 +364,7 @@ struct Market {
     std::optional<bool> swap;
     std::optional<bool> future;
     std::optional<bool> option;
+    std::optional<bool> index;
     std::optional<bool> stock;
     std::optional<bool> prediction;
     std::optional<bool> contract;
@@ -401,6 +410,7 @@ struct Market {
         this->swap = typedsupport::optBool (raw, "swap");
         this->future = typedsupport::optBool (raw, "future");
         this->option = typedsupport::optBool (raw, "option");
+        this->index = typedsupport::optBool (raw, "index");
         this->stock = typedsupport::optBool (raw, "stock");
         this->prediction = typedsupport::optBool (raw, "prediction");
         this->contract = typedsupport::optBool (raw, "contract");
@@ -1404,6 +1414,25 @@ struct DepositAddress {
     }
 };
 
+struct DepositAddresses {
+    std::map<std::string, DepositAddress> depositAddresses;
+    ccxt::any info;
+
+    DepositAddresses () = default;
+    explicit DepositAddresses (const ccxt::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
+            if (kv.first == "info") { continue; }
+            this->depositAddresses.emplace (kv.first, DepositAddress (kv.second));
+        }
+    }
+
+    const DepositAddress& operator[] (const std::string& key) const { return this->depositAddresses.at (key); }
+    bool has (const std::string& key) const { return this->depositAddresses.count (key) > 0; }
+    std::size_t size () const { return this->depositAddresses.size (); }
+};
+
 struct WithdrawalResponse {
     ccxt::any info;
     std::optional<std::string> id;
@@ -2032,6 +2061,25 @@ struct Greeks {
         this->underlyingPrice = typedsupport::optNum (raw, "underlyingPrice");
         this->info = typedsupport::getAny (raw, "info");
     }
+};
+
+struct AllGreeks {
+    std::map<std::string, Greeks> allGreeks;
+    ccxt::any info;
+
+    AllGreeks () = default;
+    explicit AllGreeks (const ccxt::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        for (const auto& kv : ccxt::any_cast<dict> (raw).entries ()) {
+            if (kv.first == "info") { continue; }
+            this->allGreeks.emplace (kv.first, Greeks (kv.second));
+        }
+    }
+
+    const Greeks& operator[] (const std::string& key) const { return this->allGreeks.at (key); }
+    bool has (const std::string& key) const { return this->allGreeks.count (key) > 0; }
+    std::size_t size () const { return this->allGreeks.size (); }
 };
 
 struct Conversion {

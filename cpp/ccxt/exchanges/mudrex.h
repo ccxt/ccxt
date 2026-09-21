@@ -145,6 +145,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("futures/transactions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("futures/orders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -664,13 +668,12 @@ public:
     ccxt::any ms = this->safeString(ticker, std::string("symbol"));
     market = this->safeMarket(ms, market);
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
-    ccxt::any ts = this->milliseconds();
     ccxt::any pct = this->safeNumber(ticker, std::string("change_perc"));
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
-            {std::string("timestamp"), ts},
-            {std::string("datetime"), this->iso8601(ts)},
+            {std::string("timestamp"), ccxt::any{}},
+            {std::string("datetime"), ccxt::any{}},
             {std::string("high"), ccxt::any{}},
             {std::string("low"), ccxt::any{}},
             {std::string("bid"), ccxt::any{}},
@@ -933,11 +936,8 @@ public:
         this->safeDict(response, std::string("data"), ccxt::dict{});
     ccxt::any currency = this->safeString(response, std::string("currency"),
                                           std::string("USDT"));
-    ccxt::any timestamp = this->milliseconds();
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
-        {std::string("timestamp"), timestamp},
-        {std::string("datetime"), this->iso8601(timestamp)},
     };
     ccxt::any account = this->account();
     ccxt::any futuresBalance = this->safeString(data, std::string("balance"));
@@ -1209,13 +1209,20 @@ public:
                          this->extend(request, params)));
                  ccxt::any data =
                      this->safeDict(response, std::string("data"), response);
-                 // the create response omits the order/trigger type, so restore
-                 // them from the request
-                 ::setValue(data, std::string("order_type"),
-                            ::getValue(request, std::string("order_type")));
-                 ::setValue(data, std::string("trigger_type"),
-                            ::getValue(request, std::string("trigger_type")));
-                 return this->parseOrder(data, market);
+                 // the create response omits the order/trigger type, so parse a
+                 // merged copy - the base derivations, like timeInForce, need
+                 // to see them - then keep the untouched raw payload under info
+                 ccxt::any merged = this->extend(
+                     data,
+                     ccxt::dict{
+                         {std::string("order_type"),
+                          ::getValue(request, std::string("order_type"))},
+                         {std::string("trigger_type"),
+                          ::getValue(request, std::string("trigger_type"))},
+                     });
+                 ccxt::any order = this->parseOrder(merged, market);
+                 ::setValue(order, std::string("info"), data);
+                 return order;
                })
         .share();
   }
@@ -1302,6 +1309,26 @@ public:
     } else if (isTrue(isEqual(rawSide, std::string("SHORT")))) {
       side = std::string("sell");
     }
+    // stop-loss / take-profit rows attached to a position carry the trigger
+    // value under the "price" key
+    ccxt::any isRiskOrder =
+        isTrue((isEqual(rawSide, std::string("STOPLOSS")))) ||
+        isTrue((isEqual(rawSide, std::string("TAKEPROFIT"))));
+    ccxt::any priceString = this->safeString2(order, std::string("price"),
+                                              std::string("order_price"));
+    ccxt::any orderPrice = priceString;
+    ccxt::any triggerPrice = ccxt::any{};
+    ccxt::any stopLossPrice = ccxt::any{};
+    ccxt::any takeProfitPrice = ccxt::any{};
+    if (isTrue(isRiskOrder)) {
+      triggerPrice = priceString;
+      orderPrice = ccxt::any{};
+      if (isTrue(isEqual(rawSide, std::string("STOPLOSS")))) {
+        stopLossPrice = priceString;
+      } else {
+        takeProfitPrice = priceString;
+      }
+    }
     ccxt::any trig = this->safeStringUpper(order, std::string("trigger_type"));
     ccxt::any typ = ccxt::any{};
     if (isTrue(isEqual(trig, std::string("MARKET")))) {
@@ -1311,9 +1338,6 @@ public:
     }
     ccxt::any ts =
         this->parse8601(this->safeString(order, std::string("created_at")));
-    if (isTrue(isEqual(ts, ccxt::any{}))) {
-      ts = this->milliseconds();
-    }
     ccxt::any status = this->parseOrderStatus(
         this->safeStringLower(order, std::string("status")));
     ccxt::any sym = ::getValue(market, std::string("symbol"));
@@ -1330,23 +1354,26 @@ public:
             {std::string("timeInForce"), ccxt::any{}},
             {std::string("postOnly"), ccxt::any{}},
             {std::string("side"), side},
-            {std::string("price"),
-             this->safeNumber2(order, std::string("price"),
-                               std::string("order_price"))},
-            {std::string("stopPrice"), ccxt::any{}},
-            {std::string("triggerPrice"), ccxt::any{}},
+            {std::string("price"), orderPrice},
+            {std::string("triggerPrice"), triggerPrice},
+            {std::string("stopLossPrice"), stopLossPrice},
+            {std::string("takeProfitPrice"), takeProfitPrice},
             {std::string("amount"),
-             this->safeNumber2(order, std::string("quantity"),
+             this->safeString2(order, std::string("quantity"),
                                std::string("amount"))},
             {std::string("cost"), ccxt::any{}},
-            {std::string("average"), ccxt::any{}},
-            {std::string("filled"), ccxt::any{}},
+            {std::string("average"),
+             this->safeString(order, std::string("filled_price"))},
+            {std::string("filled"),
+             this->safeString(order, std::string("filled_quantity"))},
             {std::string("remaining"), ccxt::any{}},
             {std::string("status"), status},
             {std::string("fee"), ccxt::any{}},
             {std::string("trades"), ccxt::list{}},
             {std::string("fees"), ccxt::list{}},
-            {std::string("lastUpdateTimestamp"), ccxt::any{}},
+            {std::string("lastUpdateTimestamp"),
+             this->parse8601(
+                 this->safeString(order, std::string("updated_at")))},
             {std::string("reduceOnly"),
              this->safeBool(order, std::string("reduce_only"))},
         },
@@ -1923,15 +1950,24 @@ public:
   /**
    * @method
    * @name mudrex#fetchMyTrades
-   * @description fetch all trades made by the user
-   * @see https://docs.trade.mudrex.com/docs
-   * @param {string} [symbol] unified market symbol
-   * @param {int} [since] the earliest time in ms to fetch trades for
-   * @param {int} [limit] the maximum number of trade structures to retrieve
+   * @description fetch all trades made by the user, derived from the
+   * TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded
+   * and each fill's REBATE row is netted into the trade fee
+   * @see https://docs.trade.mudrex.com/docs/fees
+   * @param {string} [symbol] unified market symbol, applied client-side because
+   * the endpoint has no symbol filter
+   * @param {int} [since] the earliest time in ms to fetch trades for, applied
+   * client-side
+   * @param {int} [limit] the maximum number of trade structures to retrieve,
+   * further pages are requested until the limit is satisfied, the history ends
+   * or the page cap is reached
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
    * @param {string} [params.trade_currency] the settlement currency to filter
-   * trades by
+   * trades by, 'USDT' (default) or 'INR'
+   * @param {int} [params.paginationCalls] the maximum number of pages to
+   * request (default 10) - a symbol with few or no recent fills can exhaust the
+   * cap and return fewer than limit trades
    * @returns {Trade[]} a list of [trade
    * structures](https://docs.ccxt.com/#/?id=trade-structure)
    */
@@ -1939,62 +1975,198 @@ public:
   fetchMyTrades(ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
                 ccxt::any limit = ccxt::any{},
                 ccxt::any params = ccxt::dict{}) override {
-    return std::async(std::launch::deferred,
-                      [=]() mutable -> ccxt::any {
-                        if (isTrue(isEqual(this->markets, ccxt::any{}))) {
-                          awaitValue(this->loadMarkets());
-                        }
-                        ccxt::any market = ccxt::any{};
-                        if (isTrue(!isEqual(symbol, ccxt::any{}))) {
-                          market = this->market(symbol);
-                        }
-                        ccxt::any request = ccxt::dict{};
-                        if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                          ::setValue(request, std::string("limit"), limit);
-                        }
-                        ccxt::any response =
-                            awaitValue(this->privateGetFuturesFeeHistory(
-                                this->extend(request, params)));
-                        ccxt::any data = this->safeValue(
-                            response, std::string("data"), ccxt::list{});
-                        ccxt::any rows = this->toArray(data);
-                        return this->parseTrades(rows, market, since, limit);
-                      })
-        .share();
+    return std::
+        async(std::launch::deferred,
+              [=]() mutable -> ccxt::any {
+                if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                  awaitValue(this->loadMarkets());
+                }
+                ccxt::any market = ccxt::any{};
+                if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                  market = this->market(symbol);
+                }
+                ccxt::any maxCalls = ccxt::any{};
+                ccxt::any maxCallsparamsVariable = this->handleOptionAndParams(
+                    params, std::string("fetchMyTrades"),
+                    std::string("paginationCalls"), 10);
+                maxCalls = ::getValue(maxCallsparamsVariable, 0);
+                params = ::getValue(maxCallsparamsVariable, 1);
+                ccxt::any pageSize = 0;
+                if (isTrue(!isEqual(limit, ccxt::any{}))) {
+                  // every fill produces a TRANSACTION row plus a REBATE row and
+                  // funding rows share the page, so over-request and paginate
+                  // until the unified limit is satisfied
+                  pageSize = multiply(limit, 2);
+                }
+                ccxt::any allRows = ccxt::list{};
+                ccxt::any transactionsCount = 0;
+                ccxt::any calls = 0;
+                ccxt::any offset = 0;
+                ccxt::any paging = true;
+                while (isEqual(paging, true)) {
+                  ccxt::any request = ccxt::dict{};
+                  if (isTrue(isGreaterThan(pageSize, 0))) {
+                    ::setValue(request, std::string("limit"), pageSize);
+                    ::setValue(request, std::string("offset"), offset);
+                  }
+                  ccxt::any response =
+                      awaitValue(this->privateGetFuturesFeeHistory(
+                          this->extend(request, params)));
+                  ccxt::any data = this->safeList(response, std::string("data"),
+                                                  ccxt::list{});
+                  ccxt::any dataLength = getArrayLength(data);
+                  for (ccxt::any i = 0; isLessThan(i, dataLength);
+                       postFixIncrement(i)) {
+                    ccxt::any entry = ::getValue(data, i);
+                    arrayPush(allRows, entry);
+                    if (isTrue(isEqual(
+                            this->safeString(entry, std::string("fee_type")),
+                            std::string("TRANSACTION")))) {
+                      // count only rows the client-side symbol filter keeps,
+                      // otherwise a symbol-filtered call under-returns
+                      if (isTrue(
+                              isTrue((isEqual(market, ccxt::any{}))) ||
+                              isTrue((isEqual(
+                                  this->safeString(entry,
+                                                   std::string("symbol")),
+                                  ::getValue(market, std::string("id"))))))) {
+                        transactionsCount = this->sum(transactionsCount, 1);
+                      }
+                    }
+                  }
+                  calls = this->sum(calls, 1);
+                  paging = false;
+                  // the page cap bounds the walk when the requested symbol has
+                  // few or no rows anywhere near the top of the history
+                  if (isTrue(
+                          isTrue(
+                              isTrue(isTrue((!isEqual(limit, ccxt::any{}))) &&
+                                     isTrue((isEqual(dataLength, pageSize)))) &&
+                              isTrue((isLessThan(transactionsCount, limit)))) &&
+                          isTrue((isLessThan(calls, maxCalls))))) {
+                    // this.sum keeps the offset numeric across the php
+                    // transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = this->sum(offset, pageSize);
+                    paging = true;
+                  }
+                }
+                // a REBATE row is a partial refund of one fill's TRANSACTION
+                // fee, matched by symbol, time and notional - each rebate is
+                // consumed once, so equal fills sharing a key net exactly one
+                // refund apiece
+                ccxt::any rebateKeys = ccxt::list{};
+                ccxt::any rebateAmounts = ccxt::list{};
+                ccxt::any transactions = ccxt::list{};
+                ccxt::any transactionKeys = ccxt::list{};
+                for (ccxt::any i = 0; isLessThan(i, getArrayLength(allRows));
+                     postFixIncrement(i)) {
+                  ccxt::any entry = ::getValue(allRows, i);
+                  ccxt::any feeType =
+                      this->safeString(entry, std::string("fee_type"));
+                  ccxt::any pairKey = add(
+                      add(add(add(this->safeString(entry, std::string("symbol"),
+                                                   std::string("")),
+                                  std::string(":")),
+                              this->safeString(entry, std::string("created_at"),
+                                               std::string(""))),
+                          std::string(":")),
+                      this->safeString(entry, std::string("transaction_amount"),
+                                       std::string("")));
+                  if (isTrue(isEqual(feeType, std::string("TRANSACTION")))) {
+                    arrayPush(transactions, entry);
+                    arrayPush(transactionKeys, pairKey);
+                  } else if (isTrue(isEqual(feeType, std::string("REBATE")))) {
+                    arrayPush(rebateKeys, pairKey);
+                    arrayPush(rebateAmounts,
+                              this->safeString(entry, std::string("fee_amount"),
+                                               std::string("0")));
+                  }
+                }
+                ccxt::any rows = ccxt::list{};
+                for (ccxt::any i = 0;
+                     isLessThan(i, getArrayLength(transactions));
+                     postFixIncrement(i)) {
+                  ccxt::any rebate = ccxt::any{};
+                  for (ccxt::any j = 0;
+                       isLessThan(j, getArrayLength(rebateKeys));
+                       postFixIncrement(j)) {
+                    if (isTrue(isEqual(::getValue(rebateKeys, j),
+                                       ::getValue(transactionKeys, i)))) {
+                      rebate = ::getValue(rebateAmounts, j);
+                      // blank the consumed key so the next equal fill matches
+                      // the next rebate, never the same one twice
+                      ::setValue(rebateKeys, j, ccxt::any{});
+                      break;
+                    }
+                  }
+                  if (isTrue(isEqual(rebate, ccxt::any{}))) {
+                    arrayPush(rows, ::getValue(transactions, i));
+                  } else {
+                    arrayPush(
+                        rows,
+                        this->extend(::getValue(transactions, i),
+                                     ccxt::dict{
+                                         {std::string("rebate_amount"), rebate},
+                                     }));
+                  }
+                }
+                return this->parseTrades(rows, market, since, limit);
+              })
+            .share();
   }
 
   ccxt::any parseTrade(ccxt::any trade,
                        ccxt::any market = ccxt::any{}) override {
+    //
+    //     {
+    //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+    //         "symbol": "APTUSDT",
+    //         "fee_amount": "0.02468116",
+    //         "fee_perc": "0.05900003",
+    //         "fee_type": "TRANSACTION",
+    //         "created_at": "2026-07-02T08:10:58Z",
+    //         "transaction_amount": "41.83245",
+    //         "trade_currency": "USDT",
+    //         "order_type": "LONG",
+    //         "trigger_type": "MARKET",
+    //         "gst_amount": "0.00376492"
+    //     }
+    //
     ccxt::any ms = this->safeString(trade, std::string("symbol"));
     market = this->safeMarket(ms, market);
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
     ccxt::any ts =
         this->parse8601(this->safeString(trade, std::string("created_at")));
-    if (isTrue(isEqual(ts, ccxt::any{}))) {
-      ts = this->safeInteger(trade, std::string("time"));
-    }
-    ccxt::any side = this->safeStringLower2(trade, std::string("side"),
-                                            std::string("order_type"));
+    // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing
+    // direction, so their unified direction stays undefined
+    ccxt::any side = this->safeStringLower(trade, std::string("order_type"));
     ccxt::any tradeSide = ccxt::any{};
-    if (isTrue(isTrue(isEqual(side, std::string("buy"))) ||
-               isTrue(isEqual(side, std::string("long"))))) {
+    if (isTrue(isEqual(side, std::string("long")))) {
       tradeSide = std::string("buy");
-    } else if (isTrue(isTrue(isEqual(side, std::string("sell"))) ||
-                      isTrue(isEqual(side, std::string("short"))))) {
+    } else if (isTrue(isEqual(side, std::string("short")))) {
       tradeSide = std::string("sell");
     }
-    ccxt::any feeType = this->safeStringUpper(trade, std::string("fee_type"));
+    ccxt::any trig = this->safeStringUpper(trade, std::string("trigger_type"));
     ccxt::any takerOrMaker = ccxt::any{};
-    if (isTrue(isEqual(feeType, std::string("TRANSACTION")))) {
+    if (isTrue(isEqual(trig, std::string("MARKET")))) {
+      // a market execution always takes liquidity, a limit execution can be
+      // either
       takerOrMaker = std::string("taker");
-    } else if (isTrue(isEqual(feeType, std::string("REBATE")))) {
-      takerOrMaker = std::string("maker");
     }
     ccxt::any fee = ccxt::any{};
-    ccxt::any feeCost = this->safeNumber(trade, std::string("fee_amount"));
-    if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
+    ccxt::any feeCostString =
+        this->safeString(trade, std::string("fee_amount"));
+    // rebate_amount is attached by fetchMyTrades from the fill's REBATE row -
+    // the reported fee is the net charge
+    ccxt::any rebateString =
+        this->safeString(trade, std::string("rebate_amount"));
+    if (isTrue(isTrue((!isEqual(feeCostString, ccxt::any{}))) &&
+               isTrue((!isEqual(rebateString, ccxt::any{}))))) {
+      feeCostString = ccxt::Precise::stringSub(feeCostString, rebateString);
+    }
+    if (isTrue(!isEqual(feeCostString, ccxt::any{}))) {
       fee = ccxt::dict{
-          {std::string("cost"), feeCost},
+          {std::string("cost"), feeCostString},
           {std::string("currency"),
            this->safeString(trade, std::string("trade_currency"))},
       };
@@ -2005,21 +2177,16 @@ public:
             {std::string("timestamp"), ts},
             {std::string("datetime"), this->iso8601(ts)},
             {std::string("symbol"), symbol},
-            {std::string("id"), this->safeString2(trade, std::string("execId"),
-                                                  std::string("id"))},
-            {std::string("order"),
-             this->safeString(trade, std::string("order_id"))},
+            {std::string("id"), this->safeString(trade, std::string("id"))},
+            {std::string("order"), ccxt::any{}},
             {std::string("type"),
              this->safeStringLower(trade, std::string("trigger_type"))},
             {std::string("side"), tradeSide},
             {std::string("takerOrMaker"), takerOrMaker},
-            {std::string("price"),
-             this->safeNumber(trade, std::string("price"))},
-            {std::string("amount"),
-             this->safeNumber2(trade, std::string("size"),
-                               std::string("quantity"))},
+            {std::string("price"), ccxt::any{}},
+            {std::string("amount"), ccxt::any{}},
             {std::string("cost"),
-             this->safeNumber(trade, std::string("transaction_amount"))},
+             this->safeString(trade, std::string("transaction_amount"))},
             {std::string("fee"), fee},
         },
         market);

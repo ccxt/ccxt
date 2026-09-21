@@ -944,6 +944,28 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("v2/invitee/rebate/referrals"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 10},
+                                 }},
+                                {std::string("v2/invitee/rebate/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("v2/invitee/rebate/history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v2/invitee/rebate/all_rebate/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "v2/invitee/rebate/batcher_rebate/detail"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -1113,6 +1135,10 @@ public:
                                 {std::string("v2/etp/batch-cancel"),
                                  ccxt::dict{
                                      {std::string("cost"), 50},
+                                 }},
+                                {std::string("v5/account/universal_transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 4},
                                  }},
                             }},
                        }},
@@ -1674,6 +1700,37 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 0.41679},
                                  }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/instruments"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/statistics"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("api/v6/copyTrading/trader/"
+                                             "profit-sharing-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("api/v6/copyTrading/trader/"
+                                             "profit-sharing-history-summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/"
+                                     "unrealized-profit-sharing-summary"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/followers"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
                             }},
                            {std::string("post"),
                             ccxt::dict{
@@ -2228,6 +2285,31 @@ public:
                                 {std::string("v5/algo/cancel_orders"),
                                  ccxt::dict{
                                      {std::string("cost"), 0.41679},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/follower"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string("api/v6/copyTrading/trader/"
+                                             "follower-settings"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/config"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
+                                 }},
+                                {std::string(
+                                     "api/v6/copyTrading/trader/apikey"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2},
                                  }},
                             }},
                        }},
@@ -5008,12 +5090,12 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
-                   ccxt::any trades = this->safeValue(
+                   ccxt::any trades = this->safeList(
                        ::getValue(data, i), std::string("data"), ccxt::list{});
                    for (ccxt::any j = 0; isLessThan(j, getArrayLength(trades));
                         postFixIncrement(j)) {
@@ -5671,7 +5753,7 @@ public:
               std::string(
                   " networkCodeToId() - markets need to be loaded at first"))));
     }
-    ccxt::any uniqueNetworkIds = this->safeValue(
+    ccxt::any uniqueNetworkIds = this->safeDict(
         ::getValue(this->options, std::string("networkChainIdsByNames")),
         currencyCode, ccxt::dict{});
     if (isTrue(inOp(uniqueNetworkIds, networkCode))) {
@@ -6010,8 +6092,6 @@ public:
                      for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                           postFixIncrement(i)) {
                        ccxt::any entry = ::getValue(data, i);
-                       ccxt::any symbol = this->safeSymbol(
-                           this->safeString(entry, std::string("symbol")));
                        ccxt::any balances =
                            this->safeValue(entry, std::string("list"));
                        ccxt::any subResult = ccxt::dict{};
@@ -6028,10 +6108,18 @@ public:
                                           balance, code, subResult));
                          }
                        }
-                       ::setValue(result, symbol, this->safeBalance(subResult));
+                       ccxt::any subCodes = getObjectKeys(subResult);
+                       for (ccxt::any j = 0;
+                            isLessThan(j, getArrayLength(subCodes));
+                            postFixIncrement(j)) {
+                         ccxt::any subCode = ::getValue(subCodes, j);
+                         result = this->mergeBalanceAccount(
+                             result, subCode, ::getValue(subResult, subCode));
+                       }
                      }
+                     result = this->safeBalance(result);
                    } else {
-                     ccxt::any balances = this->safeValue(
+                     ccxt::any balances = this->safeList(
                          data, std::string("list"), ccxt::list{});
                      for (ccxt::any i = 0;
                           isLessThan(i, getArrayLength(balances));
@@ -8030,7 +8118,7 @@ public:
                                         std::string("stopPrice"),
                                         std::string("stop-price")});
                  if (isTrue(isEqual(triggerPrice, ccxt::any{}))) {
-                   ccxt::any stopOrderTypes = this->safeValue(
+                   ccxt::any stopOrderTypes = this->safeDict(
                        options, std::string("stopOrderTypes"), ccxt::dict{});
                    if (isTrue(inOp(stopOrderTypes, orderType))) {
                      throw ArgumentsRequired(toString(
@@ -8165,7 +8253,7 @@ public:
                    ::setValue(request, std::string("amount"),
                               this->amountToPrecision(symbol, amount));
                  }
-                 ccxt::any limitOrderTypes = this->safeValue(
+                 ccxt::any limitOrderTypes = this->safeDict(
                      options, std::string("limitOrderTypes"), ccxt::dict{});
                  if (isTrue(inOp(limitOrderTypes, orderType))) {
                    ::setValue(request, std::string("price"),
@@ -11039,7 +11127,7 @@ public:
                   ccxt::any cursor =
                       this->safeValue(data, std::string("current_page"));
                   ccxt::any result =
-                      this->safeValue(data, std::string("data"), ccxt::list{});
+                      this->safeList(data, std::string("data"), ccxt::list{});
                   for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
                        postFixIncrement(i)) {
                     ccxt::any entry = ::getValue(result, i);
@@ -12221,8 +12309,8 @@ public:
                                                "this market type"))));
                    }
                  }
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any timestamp =
                      this->safeInteger(response, std::string("ts"));
                  ccxt::any result = ccxt::list{};
@@ -13024,8 +13112,8 @@ public:
                            {std::string("datetime"), this->iso8601(timestamp)},
                        });
                  }
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any openInterest =
                      this->parseOpenInterest(::getValue(data, 0), market);
                  ::setValue(openInterest, std::string("timestamp"), timestamp);
@@ -13640,8 +13728,7 @@ public:
     //              "instStatus": "normal"
     //          }
     //
-    ccxt::any chains =
-        this->safeValue(fee, std::string("chains"), ccxt::list{});
+    ccxt::any chains = this->safeList(fee, std::string("chains"), ccxt::list{});
     ccxt::any code = this->safeString(currency, std::string("code"));
     ccxt::any result = this->depositWithdrawFee(fee);
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(chains));

@@ -126,6 +126,11 @@ public:
         return this->callEndpoint (std::string ("privateGetUserWithdrawalFee"), parameters);
     }
 
+    // Calls the privateGetSubaccounts endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetSubaccounts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetSubaccounts"), parameters);
+    }
+
     // Calls the privateGetUserTrades endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetUserTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetUserTrades"), parameters);
@@ -144,6 +149,11 @@ public:
     // Calls the privatePostUserWithdrawal endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostUserWithdrawal (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostUserWithdrawal"), parameters);
+    }
+
+    // Calls the privatePostSubaccountTransfer endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostSubaccountTransfer (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostSubaccountTransfer"), parameters);
     }
 
     // Calls the privatePostOrder endpoint. Returns a JSON object.

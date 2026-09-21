@@ -1934,7 +1934,7 @@ ccxt::any Exchange::setMarkets(ccxt::any markets, ccxt::any currencies) {
       const ccxt::dict valueDict = ccxt::any_cast<ccxt::dict>(value);
       for (const auto &valueKv : valueDict.entries()) {
         if (isTrue(!isEqual(valueKv.second, ccxt::any{}))) {
-          ::setValue(valueDefined, std::string (valueKv.first), valueKv.second);
+          ::setValue(valueDefined, std::string(valueKv.first), valueKv.second);
         }
       }
     }
@@ -3076,7 +3076,9 @@ ccxt::any Exchange::safeTicker(ccxt::any ticker, ccxt::any market) {
     // close (using average)
     if (isTrue(isTrue(isEqual(close, ccxt::any{})) &&
                isTrue(!isEqual(average, ccxt::any{})))) {
-      close = ccxt::Precise::stringMul(average, std::string("2"));
+      // average is the midpoint of open and close, so twice it is their sum
+      close = ccxt::Precise::stringSub(
+          ccxt::Precise::stringMul(average, std::string("2")), open);
     }
     // average
     if (isTrue(isTrue(isEqual(average, ccxt::any{})) &&
@@ -3988,6 +3990,19 @@ ccxt::any Exchange::parseLedger(ccxt::any data, ccxt::any currency,
 
 ccxt::any Exchange::nonce() { return this->seconds(); }
 
+ccxt::any Exchange::incrementingNonce() {
+  ccxt::any currentNonce = this->nonce();
+  this->lockLastNonce();
+  ccxt::any lastNonce =
+      this->safeInteger(this->options, std::string("lastNonce"), 0);
+  ccxt::any result = (isTrue((isGreaterThan(currentNonce, lastNonce)))
+                          ? ccxt::any(currentNonce)
+                          : ccxt::any(add(lastNonce, 1)));
+  ::setValue(this->options, std::string("lastNonce"), result);
+  this->unlockLastNonce();
+  return result;
+}
+
 ccxt::any Exchange::setHeaders(ccxt::any headers) { return headers; }
 
 ccxt::any Exchange::currencyId(ccxt::any code) {
@@ -4481,9 +4496,12 @@ ccxt::any Exchange::getSupportedMapping(ccxt::any key, ccxt::any mapping) {
   if (isTrue(inOp(mapping, key))) {
     return ::getValue(mapping, key);
   } else {
+    ccxt::any keys = getObjectKeys(mapping);
     throw NotSupported(
-        toString(add(add(add(this->id, std::string(" ")), key),
-                     std::string(" does not have a value in mapping"))));
+        toString(add(add(add(add(add(this->id, std::string(" ")), key),
+                             std::string(" does not have a value in mapping")),
+                         std::string(", must be one of ")),
+                     join(keys, std::string(", ")))));
   }
 }
 
@@ -4821,6 +4839,29 @@ ccxt::any Exchange::account() {
       {std::string("used"), ccxt::any{}},
       {std::string("total"), ccxt::any{}},
   };
+}
+
+ccxt::any Exchange::mergeBalanceAccount(ccxt::any result, ccxt::any code,
+                                        ccxt::any account) {
+  if (!isTrue((inOp(result, code)))) {
+    ::setValue(result, code, account);
+    return result;
+  }
+  ccxt::any fields = ccxt::list{std::string("free"), std::string("used"),
+                                std::string("total"), std::string("debt")};
+  for (ccxt::any i = 0; isLessThan(i, getArrayLength(fields));
+       postFixIncrement(i)) {
+    ccxt::any field = ::getValue(fields, i);
+    ccxt::any current = this->safeString(::getValue(result, code), field);
+    ccxt::any incoming = this->safeString(account, field);
+    if (isTrue(isEqual(current, ccxt::any{}))) {
+      ::setValue(::getValue(result, code), field, incoming);
+    } else if (isTrue(!isEqual(incoming, ccxt::any{}))) {
+      ::setValue(::getValue(result, code), field,
+                 ccxt::Precise::stringAdd(current, incoming));
+    }
+  }
+  return result;
 }
 
 ccxt::any Exchange::commonCurrencyCode(ccxt::any code) {
@@ -6297,11 +6338,14 @@ ccxt::any Exchange::convertExpireDate(ccxt::any date) {
   ccxt::any year = slice(date, 0, 2);
   ccxt::any month = slice(date, 2, 4);
   ccxt::any day = slice(date, 4, 6);
+  // the milliseconds are spelled out because every caller writes the result
+  // into expiryDatetime, which types.ts documents in the ISO 8601 form with
+  // them
   ccxt::any reconstructedDate = add(
       add(add(add(add(add(std::string("20"), year), std::string("-")), month),
               std::string("-")),
           day),
-      std::string("T00:00:00Z"));
+      std::string("T00:00:00.000Z"));
   return reconstructedDate;
 }
 

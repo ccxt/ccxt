@@ -286,6 +286,26 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 0.67},
                             }},
+                           {std::string("pockets"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/api_keys"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/assets"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/universal_transfers"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/transfers"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -322,6 +342,14 @@ public:
                                 {std::string("cost"), 0.67},
                             }},
                            {std::string("travel_rule/deposit/txid"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/universal_transfers"),
+                            ccxt::dict{
+                                {std::string("cost"), 0.67},
+                            }},
+                           {std::string("pockets/transfers"),
                             ccxt::dict{
                                 {std::string("cost"), 0.67},
                             }},
@@ -2735,7 +2763,7 @@ public:
     ccxt::any marketId = this->safeString(order, std::string("market"));
     market = this->safeMarket(marketId, market);
     ccxt::any trades =
-        this->safeValue(order, std::string("trades"), ccxt::list{});
+        this->safeList(order, std::string("trades"), ccxt::list{});
     trades = this->parseTrades(trades, market, ccxt::any{}, ccxt::any{},
                                ccxt::dict{
                                    {std::string("order"), id},
