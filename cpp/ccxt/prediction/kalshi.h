@@ -1353,10 +1353,12 @@ public:
   parsePredictionOpenInterest(ccxt::any interest,
                               ccxt::any market = ccxt::any{}) override {
     //
-    //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open
-    //     interest in contracts
+    //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time":
+    //     "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET
+    //     /markets/{ticker}, open interest in contracts
     //
-    ccxt::any timestamp = this->milliseconds();
+    ccxt::any timestamp = this->parse8601(
+        this->safeString(interest, std::string("updated_time")));
     ccxt::any openInterest = this->safeOpenInterest(
         ccxt::dict{
             {std::string("symbol"), this->safeSymbol(ccxt::any{}, market)},
@@ -1460,7 +1462,8 @@ public:
                                     std::string("YES"))))
              : ccxt::any(std::string("YES")));
     ccxt::any isNo = isEqual(toUpperCase(outcomeLabel), std::string("NO"));
-    ccxt::any now = this->milliseconds();
+    ccxt::any timestamp =
+        this->parse8601(this->safeString(raw, std::string("updated_time")));
     ccxt::any outcome = this->safeString(outcomeObj, std::string("outcome"));
     ccxt::any yesAsk = this->safeNumber(raw, std::string("yes_ask_dollars"));
     ccxt::any yesBid = this->safeNumber(raw, std::string("yes_bid_dollars"));
@@ -1527,8 +1530,8 @@ public:
             {std::string("market"),
              this->safeString2(outcomeObj, std::string("market"),
                                std::string("outcome"))},
-            {std::string("timestamp"), now},
-            {std::string("datetime"), this->iso8601(now)},
+            {std::string("timestamp"), timestamp},
+            {std::string("datetime"), this->iso8601(timestamp)},
             {std::string("high"), ccxt::any{}},
             {std::string("low"), ccxt::any{}},
             {std::string("bid"), bid},
@@ -1718,7 +1721,6 @@ public:
                  //
                  ccxt::any book = this->safeValue(
                      response, std::string("orderbook_fp"), response);
-                 ccxt::any timestamp = this->milliseconds();
                  // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks
                  // (inverted)
                  ccxt::any rawYes = this->safeList(
@@ -1789,7 +1791,7 @@ public:
                      this->sortedOrders(this->safeString(outcomeObj,
                                                          std::string("outcome"),
                                                          outcome),
-                                        timestamp, bids, asks),
+                                        ccxt::any{}, bids, asks),
                      outcomeObj);
                })
         .share();
@@ -2065,7 +2067,8 @@ public:
                      {std::string("ticker"), ticker},
                  };
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
-                   ::setValue(request, std::string("limit"), limit);
+                   ::setValue(request, std::string("limit"),
+                              mathMin(limit, 1000));
                  }
                  ccxt::any response =
                      awaitValue(this->kalshiPublicGetMarketsTrades(

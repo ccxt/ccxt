@@ -974,7 +974,6 @@ public:
                            {std::string("levels"),
                             ccxt::list{ccxt::list{}, ccxt::list{}}},
                            {std::string("mid"), mid},
-                           {std::string("time"), this->milliseconds()},
                        },
                        outcomeObj);
                    ::setValue(tickers, outcomeHandle, ticker);
@@ -1007,8 +1006,7 @@ public:
     //         "time": 1704290104840
     //     }
     //
-    ccxt::any now = this->milliseconds();
-    ccxt::any timestamp = this->safeInteger(raw, std::string("time"), now);
+    ccxt::any timestamp = this->safeInteger(raw, std::string("time"));
     // the 2nd arg carries the outcome object (callers pass the resolved
     // outcome)
     ccxt::any mkt = this->safeOutcome(ccxt::any{}, market);
@@ -1903,8 +1901,8 @@ public:
                          {std::string("id"), oid},
                          {std::string("clientOrderId"), clientOrderId},
                          {std::string("info"), response},
-                         {std::string("timestamp"), nonce},
-                         {std::string("datetime"), this->iso8601(nonce)},
+                         {std::string("timestamp"), ccxt::any{}},
+                         {std::string("datetime"), ccxt::any{}},
                          {std::string("status"), orderStatus},
                          {std::string("outcome"),
                           this->safeString(outcomeObj, std::string("outcome"),
@@ -2115,9 +2113,8 @@ public:
                         this->safeString(outcomeObj, std::string("label"))},
                        {std::string("market"),
                         this->safeString(outcomeObj, std::string("market"))},
-                       {std::string("timestamp"), this->milliseconds()},
-                       {std::string("datetime"),
-                        this->iso8601(this->milliseconds())},
+                       {std::string("timestamp"), ccxt::any{}},
+                       {std::string("datetime"), ccxt::any{}},
                    };
                    arrayPush(orders, this->safePredictionOrder(order));
                  }
