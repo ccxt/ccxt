@@ -1850,7 +1850,7 @@ export default class bingx extends bingxRest {
             const data = this.safeValue (message, 'o', {});
             const type = this.safeString (data, 'x');
             const status = this.safeString (data, 'X');
-            let isExecution = status === 'FILLED';
+            let isExecution = (status === 'FILLED');
             if ((type === 'TRADE') && (status === 'PARTIALLY_FILLED')) {
                 const marketId = this.safeString (data, 's');
                 const market = this.safeMarket (marketId, undefined, '-', 'swap');
