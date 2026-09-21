@@ -1492,6 +1492,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchPaginatedCallIncremental': { 2: 'Int64?', 3: 'Int64?' },
     'filterByOutcomesSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
     'filterBySymbolsSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersHelper': { 1: 'Int64?', 2: 'Int64?' },
     'getAssetHistoryRows': { 1: 'Int64?', 2: 'Int64?' },
     'getClosestLimit': { 0: 'Int64?' },
     'handlePaginationParams': { 1: 'Int64?' },

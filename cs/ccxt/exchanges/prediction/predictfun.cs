@@ -2648,7 +2648,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> fetchOrdersHelper(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrdersHelper(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
