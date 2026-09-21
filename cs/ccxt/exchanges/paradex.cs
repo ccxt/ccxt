@@ -2728,7 +2728,7 @@ public partial class paradex : Exchange
         {
             object first = getValue(orders, 0);
             ((IDictionary<string,object>)first)["next"] = paginationCursor;
-            ((List<object>)orders)[Convert.ToInt32(0)] = first;
+            orders[Convert.ToInt32(0)] = first;
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }

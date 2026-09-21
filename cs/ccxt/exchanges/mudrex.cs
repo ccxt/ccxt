@@ -1596,7 +1596,7 @@ public partial class mudrex : Exchange
                 {
                     rebate = getValue(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    ((List<object>)rebateKeys)[Convert.ToInt32(j)] = null;
+                    rebateKeys[Convert.ToInt32(j)] = null;
                     break;
                 }
             }

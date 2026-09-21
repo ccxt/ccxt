@@ -1456,7 +1456,7 @@ public partial class binance : PredictionExchange
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             string? positionOutcome = this.safeString(position, "outcome");
-            if (((positionOutcome != null)) && (requestedOutcomeSymbols.ContainsKey(positionOutcome)))
+            if (((positionOutcome != null)) && (((positionOutcome != null) && requestedOutcomeSymbols.ContainsKey(positionOutcome))))
             {
                 filtered.Add(position);
             }

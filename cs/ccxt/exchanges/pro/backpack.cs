@@ -134,7 +134,7 @@ public partial class backpack : ccxt.backpack
                 List<object> splitHashes = ((string)messageHash).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
                 string? symbol = this.safeString(splitHashes, 2);
                 string? timeframe = this.safeString(splitHashes, 3);
-                if (((symbol != null)) && ((timeframe != null)) && (((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
+                if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                 {
                     if (inOp(getValue(this.ohlcvs, symbol), timeframe))
                     {

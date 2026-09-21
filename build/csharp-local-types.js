@@ -12144,8 +12144,28 @@ function listLocalReadType (csharp, node) {
     return type;
 }
 
+// Several installers answer csharpLocalTypeOf for disjoint local families; chain them so each
+// keeps the earlier answers instead of replacing the hook (first non-undefined answer wins).
+function chainCsharpLocalTypeOf (csharp, answer) {
+    const previous = (typeof csharp.csharpLocalTypeOf === 'function') ? csharp.csharpLocalTypeOf.bind (csharp) : undefined;
+    csharp.csharpLocalTypeOf = (node) => {
+        if (node?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        const own = answer (node);
+        if (own !== undefined) {
+            return own;
+        }
+        return (previous !== undefined) ? previous (node) : undefined;
+    };
+}
+
 function installCsharpListCastSkips (csharp) {
-    csharp.csharpLocalTypeOf = (node) => ((node?.kind === ts.SyntaxKind.Identifier) ? listLocalReadType (csharp, node) : undefined);
+    if (csharp._listCastSkipsPatched) {
+        return;
+    }
+    chainCsharpLocalTypeOf (csharp, (node) => listLocalReadType (csharp, node));
+    csharp._listCastSkipsPatched = true;
 }
 
 // ===== the printer's element-access cast skip (`((List<object>)x)[i] = v`) =====
@@ -12196,7 +12216,7 @@ function installCsharpElementAccessCastSkips (csharp) {
     if (csharp._elementAccessCastSkipsPatched) {
         return;
     }
-    csharp.csharpLocalTypeOf = (node) => ((node?.kind === ts.SyntaxKind.Identifier) ? elementAccessListReceiverType (csharp, node) : undefined);
+    chainCsharpLocalTypeOf (csharp, (node) => elementAccessListReceiverType (csharp, node));
     csharp._elementAccessCastSkipsPatched = true;
 }
 
@@ -12685,6 +12705,7 @@ export function installCsharpLocalTypes (transpiler) {
     // U60: `k in x` -> ContainsKey for the dict-typed locals THIS module retypes (see
     // installCsharpDictInOp); installed after the rewrite wrapper so it records the final line
     installCsharpDictInOp (csharp);
+    installCsharpNullableInOpKeyGuard (csharp);
     csharp._localTypesPatched = true;
     // S22: the declared-type record has to wrap the rewrite above — it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
@@ -12915,10 +12936,7 @@ export function installCsharpStringEquality (csharp) {
         }
         return printed;
     };
-    csharp.csharpLocalTypeOf = (node) => {
-        if (node?.kind !== ts.SyntaxKind.Identifier) {
-            return undefined;
-        }
+    chainCsharpLocalTypeOf (csharp, (node) => {
         const scope = enclosingFunctionScopeOf (csharp, node);
         if (scope === undefined) {
             return undefined;
@@ -12932,7 +12950,7 @@ export function installCsharpStringEquality (csharp) {
             return undefined;
         }
         return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
-    };
+    });
     // U55: the null-comparison hook. A no-op on a printer that has no such method (the base
     // pin), so the same classifier reproduces the pre-change emission.
     if (typeof csharp.csharpNullComparisonTypeOf === 'function') {
@@ -13150,6 +13168,43 @@ function concatInner (node) {
 // U60: `k in x` -> `(x?.ContainsKey(k) == true)` on a dictionary THIS module retypes. The printer
 // emits ContainsKey itself only for a receiver its own tables name AND the checker proves a
 // dictionary; it asks csharpDeclaredDictReceiverType for the type the PRINTED declaration carries.
+// A `string?` key printed bare into ContainsKey throws ArgumentNullException where `in`/inOp
+// answers false. The printer's native key proof accepts a nullable string local, so guard the
+// call here for exactly those keys; every other shape is returned untouched.
+export function installCsharpNullableInOpKeyGuard (csharp) {
+    if (!csharp || csharp._nullableInOpKeyGuardPatched || typeof csharp.csharpNativeInExpression !== 'function') {
+        return;
+    }
+    const upstream = csharp.csharpNativeInExpression.bind (csharp);
+    const bareCall = /^(.*)\.ContainsKey\((?:\(\(string\))?([A-Za-z_][A-Za-z0-9_]*)\)?\)$/;
+    csharp.csharpNativeInExpression = (key, obj) => {
+        const printed = upstream (key, obj);
+        if (typeof printed !== 'string') {
+            return printed;
+        }
+        // the printed key may be the printer's own `((string)x)` view of a nullable string local
+        let identifier = key;
+        while ((identifier?.kind === ts.SyntaxKind.ParenthesizedExpression) || (identifier?.kind === ts.SyntaxKind.AsExpression) || (identifier?.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+            identifier = identifier.expression;
+        }
+        if (identifier?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const match = bareCall.exec (printed);
+        if (match === null) {
+            return printed;
+        }
+        const local = (typeof csharp.csharpLocalTypeOf === 'function') ? csharp.csharpLocalTypeOf (identifier) : undefined;
+        const named = (typeof csharp.csharpTypedLocalType === 'function') ? csharp.csharpTypedLocalType (identifier) : undefined;
+        const type = local ?? named;
+        if (type !== 'string?') {
+            return printed;
+        }
+        return '((' + match[2] + ' != null) && ' + printed + ')';
+    };
+    csharp._nullableInOpKeyGuardPatched = true;
+}
+
 export function installCsharpDictInOp (csharp) {
     if (!csharp || csharp._dictInOpPatched || typeof csharp.printVariableDeclarationList !== 'function') {
         return;

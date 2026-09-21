@@ -1749,7 +1749,7 @@ public partial class bitmex : ccxt.bitmex
                 {
                     return;  // protecting from weird update
                 }
-                if (!(numUpdatesByMarketId.ContainsKey(marketId)))
+                if (!(((marketId != null) && numUpdatesByMarketId.ContainsKey(marketId))))
                 {
                     numUpdatesByMarketId[(string)marketId] = 0;
                 }

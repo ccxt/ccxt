@@ -1038,12 +1038,12 @@ public partial class bitopro : Exchange
             } else
             {
                 List<object> copy = this.arrayConcat(new List<object>() {}, copyFrom);
-                ((List<object>)copy)[Convert.ToInt32(0)] = timestamp;
+                copy[Convert.ToInt32(0)] = timestamp;
                 // set open, high, low to close
-                ((List<object>)copy)[Convert.ToInt32(1)] = getValue(copy, 4);
-                ((List<object>)copy)[Convert.ToInt32(2)] = getValue(copy, 4);
-                ((List<object>)copy)[Convert.ToInt32(3)] = getValue(copy, 4);
-                ((List<object>)copy)[Convert.ToInt32(5)] = this.parseNumber("0");
+                copy[Convert.ToInt32(1)] = getValue(copy, 4);
+                copy[Convert.ToInt32(2)] = getValue(copy, 4);
+                copy[Convert.ToInt32(3)] = getValue(copy, 4);
+                copy[Convert.ToInt32(5)] = this.parseNumber("0");
                 result.Add(copy);
             }
             timestamp = this.sum(timestamp, multiply(distance, 1000));

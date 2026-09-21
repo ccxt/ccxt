@@ -86,32 +86,32 @@ public partial class testMainClass : BaseTest
         List<object> emptyAllowedFor = new List<object>() {"margin"};
         if ((contract != true))
         {
-            ((IList<object>)emptyAllowedFor).Add("contractSize");
-            ((IList<object>)emptyAllowedFor).Add("linear");
-            ((IList<object>)emptyAllowedFor).Add("inverse");
-            ((IList<object>)emptyAllowedFor).Add("quanto");
-            ((IList<object>)emptyAllowedFor).Add("settle");
-            ((IList<object>)emptyAllowedFor).Add("settleId");
+            emptyAllowedFor.Add("contractSize");
+            emptyAllowedFor.Add("linear");
+            emptyAllowedFor.Add("inverse");
+            emptyAllowedFor.Add("quanto");
+            emptyAllowedFor.Add("settle");
+            emptyAllowedFor.Add("settleId");
         }
         if (((future != true)) && ((option != true)))
         {
-            ((IList<object>)emptyAllowedFor).Add("expiry");
-            ((IList<object>)emptyAllowedFor).Add("expiryDatetime");
+            emptyAllowedFor.Add("expiry");
+            emptyAllowedFor.Add("expiryDatetime");
         }
         if ((option != true))
         {
-            ((IList<object>)emptyAllowedFor).Add("optionType");
-            ((IList<object>)emptyAllowedFor).Add("strike");
+            emptyAllowedFor.Add("optionType");
+            emptyAllowedFor.Add("strike");
         }
         if (isInactiveMarket)
         {
-            ((IList<object>)emptyAllowedFor).Add("contractSize");
-            ((IList<object>)emptyAllowedFor).Add("settle");
-            ((IList<object>)emptyAllowedFor).Add("settleId");
-            ((IList<object>)emptyAllowedFor).Add("baseId");
-            ((IList<object>)emptyAllowedFor).Add("quoteId");
-            ((IList<object>)emptyAllowedFor).Add("base");
-            ((IList<object>)emptyAllowedFor).Add("quote");
+            emptyAllowedFor.Add("contractSize");
+            emptyAllowedFor.Add("settle");
+            emptyAllowedFor.Add("settleId");
+            emptyAllowedFor.Add("baseId");
+            emptyAllowedFor.Add("quoteId");
+            emptyAllowedFor.Add("base");
+            emptyAllowedFor.Add("quote");
         }
         if (isEqual(exchange.safeString(market, "type"), "prediction"))
         {

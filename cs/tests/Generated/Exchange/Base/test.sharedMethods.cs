@@ -693,11 +693,11 @@ public partial class testMainClass : BaseTest
                 List<object> result = new List<object>() {};
                 for (int i = 0; i < getArrayLength(a); i++)
                 {
-                    ((IList<object>)result).Add(getValue(a, i));
+                    result.Add(getValue(a, i));
                 }
                 for (int j = 0; j < getArrayLength(b); j++)
                 {
-                    ((IList<object>)result).Add(getValue(b, j));
+                    result.Add(getValue(b, j));
                 }
                 return result;
             }

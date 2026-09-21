@@ -1409,12 +1409,12 @@ public partial class bitstamp : Exchange
             }
             List<object> parts = minimumOrder.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? cost = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-            if (((bs != null)) && !(result.ContainsKey(bs)))
+            if (((bs != null)) && !(((bs != null) && result.ContainsKey(bs))))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
                 result[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
             }
-            if (((quote != null)) && !(result.ContainsKey(quote)))
+            if (((quote != null)) && !(((quote != null) && result.ContainsKey(quote))))
             {
                 Int64? counterDecimals = this.safeInteger(market, "counter_decimals");
                 result[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);

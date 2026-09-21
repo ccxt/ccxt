@@ -549,7 +549,7 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-            if (!(marketIdsByInterval.ContainsKey(interval)))
+            if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
@@ -629,7 +629,7 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-            if (!(marketIdsByInterval.ContainsKey(interval)))
+            if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
@@ -973,7 +973,7 @@ public partial class bitvavo : ccxt.bitvavo
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }

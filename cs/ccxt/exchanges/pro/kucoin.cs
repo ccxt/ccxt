@@ -1424,7 +1424,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> trade = this.parseTrade(data, market);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         string messageHash = ("trades:" + symbol);
-        if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1458,7 +1458,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> trade = this.parseWsUtaTrade(data, market);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         string messageHash = ("uta:trades:" + symbol);
-        if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);

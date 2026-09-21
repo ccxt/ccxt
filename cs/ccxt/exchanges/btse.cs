@@ -3253,7 +3253,7 @@ public partial class btse : Exchange
         {
             object entry = rawRows[i];
             string? type = this.safeString(entry, "type", "");
-            if (allowed.ContainsKey(type))
+            if (((type != null) && allowed.ContainsKey(type)))
             {
                 rows.Add(entry);
             }

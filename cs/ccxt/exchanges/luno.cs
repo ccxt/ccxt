@@ -746,7 +746,7 @@ public partial class luno : Exchange
             string? balance = this.safeString(wallet, "balance");
             string? reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
             string? balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
-            if (((code != null)) && (result.ContainsKey(code)))
+            if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
                 ((IDictionary<string,object>)getValue(result, code))["used"] = Precise.stringAdd(getValue(getValue(result, code), "used"), reservedUnconfirmed);
                 ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);

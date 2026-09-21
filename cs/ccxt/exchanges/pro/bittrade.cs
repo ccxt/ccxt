@@ -553,7 +553,7 @@ public partial class bittrade : ccxt.bittrade
             return;
         }
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }

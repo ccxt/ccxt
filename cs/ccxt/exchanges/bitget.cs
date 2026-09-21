@@ -6297,7 +6297,7 @@ public partial class bitget : Exchange
             {
                 object entry = rows[i];
                 string? entryMarketId = this.safeString(entry, "symbol");
-                if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(entryMarketId)))
+                if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(((entryMarketId != null) && this.markets_by_id.ContainsKey(entryMarketId))))
                 {
                     continue;
                 }

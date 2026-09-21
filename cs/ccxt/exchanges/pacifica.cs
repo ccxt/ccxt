@@ -1039,7 +1039,7 @@ public partial class pacifica : Exchange
             account["total"] = this.safeString(balance, "amount");
             account["free"] = this.safeString(balance, "available_to_withdraw");
             // skip a spot USDC entry so it can't clobber the perp-collateral account above
-            if (((code != null)) && !(result.ContainsKey(code)))
+            if (((code != null)) && !(((code != null) && result.ContainsKey(code))))
             {
                 result[(string)code] = account;
             }

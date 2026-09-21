@@ -332,7 +332,7 @@ public partial class limitless : PredictionExchange
                 {
                     object raw = found[j];
                     string? slug = this.safeString(raw, "slug");
-                    if (((slug != null) && slug != "") && !(seen.ContainsKey(slug)))
+                    if (((slug != null) && slug != "") && !(((slug != null) && seen.ContainsKey(slug))))
                     {
                         seen[(string)slug] = true;
                         allRaw.Add(raw);
@@ -1344,7 +1344,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((this.id + " fetchTickers() missing slug")) ;
             }
-            if (!(outcomesBySlug.ContainsKey(slug)))
+            if (!(((slug != null) && outcomesBySlug.ContainsKey(slug))))
             {
                 if ((slug != null))
                 {
@@ -3319,7 +3319,7 @@ public partial class limitless : PredictionExchange
                 {
                     object raw = found[j];
                     string? rawSlug = this.safeString(raw, "slug");
-                    if (((rawSlug != null) && rawSlug != "") && !(seen.ContainsKey(rawSlug)))
+                    if (((rawSlug != null) && rawSlug != "") && !(((rawSlug != null) && seen.ContainsKey(rawSlug))))
                     {
                         seen[(string)rawSlug] = true;
                         rawMarkets.Add(raw);
@@ -3534,7 +3534,7 @@ public partial class limitless : PredictionExchange
             {
                 object raw = getValue(categoryMarkets, mi);
                 string? slug = this.safeString(raw, "slug");
-                if (((slug != null)) && !(seen.ContainsKey(slug)))
+                if (((slug != null)) && !(((slug != null) && seen.ContainsKey(slug))))
                 {
                     seen[(string)slug] = true;
                     allRaw.Add(raw);

@@ -50,7 +50,7 @@ public partial class testMainClass : BaseTest
                 {
                     assert(!isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + (networkId)) + "\""));
                 }
-                ((IList<object>)collectedNetworkIds).Add(networkId);
+                collectedNetworkIds.Add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
             List<object> collectedNetworkCodes = new List<object>() {};
@@ -58,7 +58,7 @@ public partial class testMainClass : BaseTest
             {
                 string networkCodeLower = ((string)(networkCodes[i])).ToLower();
                 assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes[i])) + "\" in different uppercase/lowercase format"));
-                ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
+                collectedNetworkCodes.Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
             for (int i = 0; i < networkCodes.Count; i++)

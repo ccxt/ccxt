@@ -1541,7 +1541,7 @@ public partial class woofipro : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
+            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
             {
                 continue;
             }
@@ -1665,7 +1665,7 @@ public partial class woofipro : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
+            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
             {
                 continue;
             }

@@ -46,15 +46,15 @@ public partial class testMainClass : BaseTest
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if (currencyType != "crypto" && (inOp(skippedProperties, "depositForNonCrypto")))
             {
-                ((IList<object>)emptyAllowedFor).Add("deposit");
+                emptyAllowedFor.Add("deposit");
             }
             if (currencyType != "crypto" && (inOp(skippedProperties, "withdrawForNonCrypto")))
             {
-                ((IList<object>)emptyAllowedFor).Add("withdraw");
+                emptyAllowedFor.Add("withdraw");
             }
             if (currencyType == "leveraged" || currencyType == "other")
             {
-                ((IList<object>)emptyAllowedFor).Add("precision");
+                emptyAllowedFor.Add("precision");
             }
         }
         //

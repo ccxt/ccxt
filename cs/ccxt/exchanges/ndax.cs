@@ -1516,7 +1516,7 @@ public partial class ndax : Exchange
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
-            if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((IDictionary<string, object>)this.currencies_by_id).ContainsKey(currencyId)))
+            if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((currencyId != null) && ((IDictionary<string, object>)this.currencies_by_id).ContainsKey(currencyId))))
             {
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();

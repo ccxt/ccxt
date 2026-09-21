@@ -728,7 +728,7 @@ public partial class polymarket : PredictionExchange
             {
                 object rawEvent = allEvents[ei];
                 string? eventId = this.safeString(rawEvent, "id");
-                if (((eventId != null) && eventId != "") && !(seen.ContainsKey(eventId)))
+                if (((eventId != null) && eventId != "") && !(((eventId != null) && seen.ContainsKey(eventId))))
                 {
                     seen[(string)eventId] = true;
                     rawEvents.Add(rawEvent);
@@ -834,7 +834,7 @@ public partial class polymarket : PredictionExchange
                 {
                     object rawEvent = tagEvents[ei];
                     string? eventId = this.safeString(rawEvent, "id");
-                    if (((eventId != null)) && !(seen.ContainsKey(eventId)))
+                    if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
                         seen[(string)eventId] = true;
                         unioned.Add(rawEvent);
@@ -1414,7 +1414,7 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome(targets[i]);
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
-            if (((tokenId != null)) && !(outcomesByTokenId.ContainsKey(tokenId)))
+            if (((tokenId != null)) && !(((tokenId != null) && outcomesByTokenId.ContainsKey(tokenId))))
             {
                 outcomesByTokenId[(string)tokenId] = outcomeObj;
                 tokenIds.Add(tokenId);
@@ -1463,7 +1463,7 @@ public partial class polymarket : PredictionExchange
             {
                 object book = getValue(books, i);
                 string? tokenId = this.safeString(book, "asset_id");
-                if (((tokenId == null)) || !(outcomesByTokenId.ContainsKey(tokenId)))
+                if (((tokenId == null)) || !(((tokenId != null) && outcomesByTokenId.ContainsKey(tokenId))))
                 {
                     continue;
                 }
@@ -2159,7 +2159,7 @@ public partial class polymarket : PredictionExchange
             IDictionary<string, object> position = ((IDictionary<string, object>)parsed[i]);
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? assetId = this.safeString(info, "asset");
-            if (((assetId != null)) && (wantedIds.ContainsKey(assetId)))
+            if (((assetId != null)) && (((assetId != null) && wantedIds.ContainsKey(assetId))))
             {
                 result.Add(position);
             }

@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
-                        ((IList<object>)returnedSymbols).Add(symbol);
+                        returnedSymbols.Add(symbol);
                     }
                 }
                 if (elapsedMs > maxIdleTime)

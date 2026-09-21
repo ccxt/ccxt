@@ -432,7 +432,7 @@ public partial class PredictionExchange : BaseExchange
         {
             object eventVar = getValue(this.events, keys[i]);
             string? identity = this.safeString2(eventVar, "id", "event", keys[i]);
-            if (!(seen.ContainsKey(identity)))
+            if (!(((identity != null) && seen.ContainsKey(identity))))
             {
                 seen[(string)identity] = true;
                 result.Add(eventVar);

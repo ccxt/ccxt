@@ -254,7 +254,7 @@ public partial class cex : ccxt.cex
         {
             return;
         }
-        if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);

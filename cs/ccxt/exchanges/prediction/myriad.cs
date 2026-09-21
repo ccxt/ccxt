@@ -544,7 +544,7 @@ public partial class myriad : PredictionExchange
             {
                 object raw = getValue(found, j);
                 string? questionId = this.safeString(raw, "id");
-                if (((questionId != null)) && !(seen.ContainsKey(questionId)))
+                if (((questionId != null)) && !(((questionId != null) && seen.ContainsKey(questionId))))
                 {
                     seen[(string)questionId] = true;
                     rawQuestions.Add(raw);
@@ -597,7 +597,7 @@ public partial class myriad : PredictionExchange
             {
                 object rawQuestion = getValue(rawQuestions, i);
                 string? questionId = this.safeString(rawQuestion, "id");
-                if (((questionId != null)) && (seen.ContainsKey(questionId)))
+                if (((questionId != null)) && (((questionId != null) && seen.ContainsKey(questionId))))
                 {
                     continue;
                 }
@@ -3461,7 +3461,7 @@ public partial class myriad : PredictionExchange
                 string? marketHandle = this.safeString(m, "market");
                 if ((marketHandle != null))
                 {
-                    if (seenMarketHandles.ContainsKey(marketHandle))
+                    if (((marketHandle != null) && seenMarketHandles.ContainsKey(marketHandle)))
                     {
                         continue;
                     }
@@ -3485,7 +3485,7 @@ public partial class myriad : PredictionExchange
             object raw = getValue(rawMarkets, i);
             Dictionary<string, object> m = this.parseMyriadMarket(raw);
             string? marketHandle = this.safeString(m, "market");
-            if (((marketHandle != null)) && (seenMarketHandles.ContainsKey(marketHandle)))
+            if (((marketHandle != null)) && (((marketHandle != null) && seenMarketHandles.ContainsKey(marketHandle))))
             {
                 ((IDictionary<string,object>)this.markets)[(string)marketHandle] = m;
                 continue;

@@ -2261,8 +2261,8 @@ public partial class kucoin : Exchange
             string? takerFeeRate = this.safeString(ticker, "takerFeeRate");
             string? makerCoefficient = this.safeString(ticker, "makerCoefficient");
             string? takerCoefficient = this.safeString(ticker, "takerCoefficient");
-            bool hasCrossMargin = (crossById.ContainsKey(id));
-            bool hasIsolatedMargin = (isolatedById.ContainsKey(id));
+            bool hasCrossMargin = (((id != null) && crossById.ContainsKey(id)));
+            bool hasIsolatedMargin = (((id != null) && isolatedById.ContainsKey(id)));
             bool isMarginable = (this.safeBool(market, "isMarginEnabled", false) == true) || hasCrossMargin || hasIsolatedMargin;
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
@@ -10916,7 +10916,7 @@ public partial class kucoin : Exchange
             string? code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if (((code != null)) && ((codes == null) || this.inArray(code, codes)))
             {
-                if (!(borrowRateHistories.ContainsKey(code)))
+                if (!(((code != null) && borrowRateHistories.ContainsKey(code))))
                 {
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
@@ -13020,7 +13020,7 @@ public partial class kucoin : Exchange
             string? symbol = this.safeString(tier, "symbol");
             if ((symbol != null))
             {
-                if (!(result.ContainsKey(symbol)))
+                if (!(((symbol != null) && result.ContainsKey(symbol))))
                 {
                     result[(string)symbol] = new List<object>() {};
                 }

@@ -293,7 +293,7 @@ public partial class woo : ccxt.woo
         {
             return;
         }
-        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
+        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }

@@ -380,7 +380,7 @@ public partial class hyperliquid : Exchange
             List<object> symbolParts = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             string? baseName = this.safeString(symbolParts, 0);
             IDictionary<string, object> spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
-            if (spotCurrencyMapping.ContainsKey(baseName))
+            if (((baseName != null) && spotCurrencyMapping.ContainsKey(baseName)))
             {
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 string? quote = this.safeString(symbolParts, 1);
@@ -679,7 +679,7 @@ public partial class hyperliquid : Exchange
                 data["dex"] = dexName;
                 IDictionary<string, object> cachedCurrencies = this.safeDict(this.options, "cachedCurrenciesById", new Dictionary<string, object>() {});
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                if (cachedCurrencies.ContainsKey(collateralToken))
+                if (((collateralToken != null) && cachedCurrencies.ContainsKey(collateralToken)))
                 {
                     string? name = this.safeString(data, "name");
                     string? collateralTokenCode = this.safeString(cachedCurrencies, collateralToken);
@@ -3665,7 +3665,7 @@ public partial class hyperliquid : Exchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(deduplicatedByOid.ContainsKey(oid)))
+                if (!(((oid != null) && deduplicatedByOid.ContainsKey(oid))))
                 {
                     deduplicatedByOid[(string)oid] = rawOrder;
                 } else

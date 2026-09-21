@@ -1505,7 +1505,7 @@ public partial class bittrade : Exchange
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             object account = null;
-            if (((code != null)) && (result.ContainsKey(code)))
+            if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
                 account = getValue(result, code);
             } else

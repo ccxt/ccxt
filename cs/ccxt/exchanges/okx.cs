@@ -5810,7 +5810,7 @@ public partial class okx : Exchange
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
-        if (((trailing == true)) || isTrigger || (((ordType != null)) && (algoOrderTypes.ContainsKey(ordType))))
+        if (((trailing == true)) || isTrigger || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoPending";
         }
@@ -5983,7 +5983,7 @@ public partial class okx : Exchange
         {
             method = "privateGetTradeOrdersAlgoHistory";
             request["ordType"] = "move_order_stop";
-        } else if (isTrigger || (((ordType != null)) && (algoOrderTypes.ContainsKey(ordType))))
+        } else if (isTrigger || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             string? algoId = this.safeString(parameters, "algoId");
@@ -6184,7 +6184,7 @@ public partial class okx : Exchange
         string? ordType = this.safeString(parameters, "ordType");
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        if (((trailing == true)) || ((trigger == true)) || (((ordType != null)) && (algoOrderTypes.ContainsKey(ordType))))
+        if (((trailing == true)) || ((trigger == true)) || (((ordType != null)) && (((ordType != null) && algoOrderTypes.ContainsKey(ordType)))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
             request["state"] = "effective";
@@ -8811,7 +8811,7 @@ public partial class okx : Exchange
             string? code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if (((code != null)) && ((codes == null) || this.inArray(code, codes)))
             {
-                if (!(borrowRateHistories.ContainsKey(code)))
+                if (!(((code != null) && borrowRateHistories.ContainsKey(code))))
                 {
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }

@@ -153,8 +153,8 @@ public partial class testMainClass
     public async virtual Task<object> importFiles(BaseExchange exchange)
     {
         List<object> properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
-        ((IList<object>)properties).Add("loadMarkets");
-        ((IList<object>)properties).Add("afterConstruct");
+        properties.Add("loadMarkets");
+        properties.Add("afterConstruct");
         if (isTrue(isSync()))
         {
             this.testFiles = getTestFilesSync(properties, this.wsTests);
@@ -602,7 +602,7 @@ public partial class testMainClass
         {
             string? testName = ((string)testNames[i]);
             object testArgs = getValue(tests, testName);
-            ((IList<object>)promises).Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
+            promises.Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
@@ -615,7 +615,7 @@ public partial class testMainClass
             object testReturnedValue = getValue(results, i);
             if (!isEqual(testReturnedValue, true))
             {
-                ((IList<object>)failedMethods).Add(testName);
+                failedMethods.Add(testName);
             }
         }
         string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
@@ -743,7 +743,7 @@ public partial class testMainClass
             List<object> activeSymbols = new List<object>() {};
             for (int i = 0; i < getArrayLength(activeMarkets); i++)
             {
-                ((IList<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
+                activeSymbols.Add(getValue(getValue(activeMarkets, i), "symbol"));
             }
             symbol = this.getTestSymbol(exchange, spot, activeSymbols);
         }
@@ -857,7 +857,7 @@ public partial class testMainClass
                         Dictionary<string, object> entry = new Dictionary<string, object>() {};
                         entry["symbol"] = tickerSymbol;
                         entry["volume"] = volume;
-                        ((IList<object>)candidates).Add(entry);
+                        candidates.Add(entry);
                     }
                 }
             }
@@ -871,7 +871,7 @@ public partial class testMainClass
         List<object> result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
         if (rankedLength > 1)
         {
-            ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
+            result.Add(exchange.safeString(getValue(ranked, 1), "symbol"));
         }
         return result;
     }
@@ -1118,7 +1118,7 @@ public partial class testMainClass
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
                     object eventIdScope = eventId;
-                    ((IList<object>)scopesToTest).Add(new Dictionary<string, object>() {
+                    scopesToTest.Add(new Dictionary<string, object>() {
                         { "eventId", eventIdScope },
                     });
                 }
@@ -1128,7 +1128,7 @@ public partial class testMainClass
                 int extraScopesLength = getArrayLength(extraScopes);
                 for (int si = 0; si < extraScopesLength; si++)
                 {
-                    ((IList<object>)scopesToTest).Add(getValue(extraScopes, si));
+                    scopesToTest.Add(getValue(extraScopes, si));
                 }
                 int scopesToTestLength = (scopesToTest?.Count ?? 0);
                 for (int sj = 0; sj < scopesToTestLength; sj++)
@@ -2126,10 +2126,10 @@ public partial class testMainClass
             object current = getValue(input, i);
             if (isTrue(isNullValue(current)))
             {
-                ((IList<object>)newInput).Add(null);
+                newInput.Add(null);
             } else
             {
-                ((IList<object>)newInput).Add(current);
+                newInput.Add(current);
             }
         }
         return newInput;
@@ -2572,7 +2572,7 @@ public partial class testMainClass
                     // on prediction structures and must be absent
                     assert(!isEqual(exchange.safeString(evMarket, "market"), null), add(exchangeName, " static events fixture: market row missing the unified market handle"));
                     assert(isEqual(exchange.safeString(evMarket, "symbol"), null), add(exchangeName, " static events fixture: market row must not carry the deprecated symbol key"));
-                    ((IList<object>)eventMarkets).Add(evMarket);
+                    eventMarkets.Add(evMarket);
                 }
             }
             if ((eventMarkets?.Count ?? 0) > 0)
@@ -2890,13 +2890,13 @@ public partial class testMainClass
             sum = exchange.sum(sum, numberOfTests);
             if (isEqual(type, "request"))
             {
-                ((IList<object>)promises).Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
             } else if (isEqual(type, "ws"))
             {
-                ((IList<object>)promises).Add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
             } else
             {
-                ((IList<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
+                promises.Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
         }
         try

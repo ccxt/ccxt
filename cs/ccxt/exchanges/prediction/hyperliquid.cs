@@ -1140,7 +1140,7 @@ public partial class hyperliquid : PredictionExchange
             if ((outcomes != null))
             {
                 string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-                if ((outcomeHandle == null) || !(requestedOutcomeSymbols.ContainsKey(outcomeHandle)))
+                if ((outcomeHandle == null) || !(((outcomeHandle != null) && requestedOutcomeSymbols.ContainsKey(outcomeHandle))))
                 {
                     continue;
                 }
@@ -1715,7 +1715,7 @@ public partial class hyperliquid : PredictionExchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(deduped.ContainsKey(oid)))
+                if (!(((oid != null) && deduped.ContainsKey(oid))))
                 {
                     deduped[(string)oid] = raw;
                 } else
@@ -2178,7 +2178,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 throw new ExchangeError ((this.id + " fetchEvents() missing parentSymbol")) ;
             }
-            if (!(groupMap.ContainsKey(parentSymbol)))
+            if (!(((parentSymbol != null) && groupMap.ContainsKey(parentSymbol))))
             {
                 if ((parentSymbol != null))
                 {

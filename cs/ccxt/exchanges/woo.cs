@@ -2756,7 +2756,7 @@ public partial class woo : Exchange
             {
                 continue;
             }
-            if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
+            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
             {
                 continue;
             }

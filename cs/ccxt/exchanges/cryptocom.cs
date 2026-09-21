@@ -2637,7 +2637,7 @@ public partial class cryptocom : Exchange
         parameters = this.omit(parameters, new List<object>() {"network"});
         Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
         Dictionary<string, object> depositAddresses = depositAddressesRaw;
-        if (depositAddresses.ContainsKey(network))
+        if (((network != null) && depositAddresses.ContainsKey(network)))
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, network));
         }

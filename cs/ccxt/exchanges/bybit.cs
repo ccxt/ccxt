@@ -10470,7 +10470,7 @@ public partial class bybit : Exchange
         last["info"] = new Dictionary<string, object>() {
             { "nextPageCursor", cursorValue },
         };
-        ((List<object>)result)[Convert.ToInt32(lastIndex)] = last;
+        result[Convert.ToInt32(lastIndex)] = last;
         return result;
     }
 

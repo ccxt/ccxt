@@ -1259,7 +1259,7 @@ public partial class bithumb : Exchange
                     string? symbol = ((string)getValue(symbols, i));
                     Dictionary<string, object> market = this.market(symbol);
                     string? quoteId = this.safeString(market, "quoteId");
-                    if (((quoteId != null)) && (quoteCurrencies.ContainsKey(quoteId)))
+                    if (((quoteId != null)) && (((quoteId != null) && quoteCurrencies.ContainsKey(quoteId))))
                     {
                         requiredQuotes[(string)quoteId] = true;
                     }

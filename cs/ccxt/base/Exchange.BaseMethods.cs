@@ -7825,7 +7825,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((this.id + " cleanCache() requires a timeframe argument")) ;
                 }
-                if (((this.ohlcvs != null)) && (((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
+                if (((this.ohlcvs != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
                 {
                     if (inOp(getValue(this.ohlcvs, symbol), timeframe))
                     {

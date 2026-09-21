@@ -720,7 +720,7 @@ public partial class bithumb : ccxt.bithumb
             }
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = this.safeString(parsed, "symbol", fallbackSymbol);
-            if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 var stored = new ArrayCache(limit);

@@ -635,7 +635,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Dictionary<string, object> trade = this.parseWsTrade(message);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         object channel = this.safeString(message, "channel");
-        if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);

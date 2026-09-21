@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             object market = allMarkets[i];
             if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
             {
-                ((IList<object>)collectedTypes).Add(getValue(market, "type"));
+                collectedTypes.Add(getValue(market, "type"));
             }
         }
         for (int i = 0; i < (marketTypes?.Count ?? 0); i++)

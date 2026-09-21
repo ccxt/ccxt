@@ -731,7 +731,7 @@ public partial class predictfun : PredictionExchange
                 {
                     // nothing to key a duplicate on, keep the row rather than drop it
                     result.Add(category);
-                } else if (!(seenSlugs.ContainsKey(categorySlug)))
+                } else if (!(((categorySlug != null) && seenSlugs.ContainsKey(categorySlug))))
                 {
                     seenSlugs[(string)categorySlug] = true;
                     result.Add(category);
@@ -748,7 +748,7 @@ public partial class predictfun : PredictionExchange
                 string? marketSlug = this.safeString(rawMarket, "categorySlug");
                 if ((marketSlug != null))
                 {
-                    if (orphanMarkets.ContainsKey(marketSlug))
+                    if (((marketSlug != null) && orphanMarkets.ContainsKey(marketSlug)))
                     {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
@@ -2312,7 +2312,7 @@ public partial class predictfun : PredictionExchange
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
             string? outcomeId = this.safeString(position, "outcomeId");
-            if (((outcomeId != null)) && (wanted.ContainsKey(outcomeId)))
+            if (((outcomeId != null)) && (((outcomeId != null) && wanted.ContainsKey(outcomeId))))
             {
                 result.Add(position);
             }
@@ -3748,7 +3748,7 @@ public partial class predictfun : PredictionExchange
             string? outcomeHandle = this.safeString(outcomeObj, "outcome");
             if ((outcomeHandle != null))
             {
-                if (!(((IDictionary<string, object>)this.orderbooks).ContainsKey(outcomeHandle)))
+                if (!(((outcomeHandle != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(outcomeHandle))))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)outcomeHandle] = this.orderBook(new Dictionary<string, object>() {});
                 }
