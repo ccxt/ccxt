@@ -15,7 +15,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name woofipro#fetchTime
@@ -24,7 +24,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -34,7 +34,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name woofipro#fetchCurrencies
@@ -44,9 +44,9 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): FeeString;
+    parseTokenAndFeeTemp(item: Dict, feeTokenKey: string, feeAmountKey: string): FeeString;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -59,9 +59,9 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseFundingRate(fundingRate: any, market?: Market): FundingRate;
-    parseFundingInterval(interval: any): string;
+    parseFundingInterval(interval: Str): Str;
     /**
      * @method
      * @name woofipro#fetchFundingInterval
@@ -71,7 +71,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name woofipro#fetchFundingRate
@@ -91,7 +91,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -102,7 +102,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name woofipro#fetchTickers
@@ -112,7 +112,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     /**
      * @method
@@ -123,7 +123,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     /**
      * @method
      * @name woofipro#fetchOpenInterests
@@ -133,7 +133,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
     /**
      * @method
      * @name woofipro#fetchFundingRateHistory
@@ -147,17 +147,8 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseIncome(income: any, market?: Market): {
-        info: any;
-        symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: undefined;
-        amount: number;
-        rate: Num;
-    };
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
+    parseIncome(income: any, market?: Market): object;
     /**
      * @method
      * @name woofipro#fetchFundingHistory
@@ -170,7 +161,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     /**
      * @method
      * @name woofipro#fetchTradingFees
@@ -179,7 +170,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
     /**
      * @method
      * @name woofipro#fetchOrderBook
@@ -190,7 +181,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -204,12 +195,12 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): string | undefined;
     parseOrderType(type: Str): Str;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name woofipro#createOrder
@@ -232,7 +223,7 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woofipro#createOrders
@@ -242,7 +233,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#editOrder
@@ -261,7 +252,7 @@ export default class woofipro extends Exchange {
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woofipro#cancelOrder
@@ -277,7 +268,7 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woofipro#cancelOrders
@@ -290,7 +281,7 @@ export default class woofipro extends Exchange {
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#cancelAllOrders
@@ -302,7 +293,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#fetchOrder
@@ -318,7 +309,7 @@ export default class woofipro extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woofipro#fetchOrders
@@ -336,7 +327,7 @@ export default class woofipro extends Exchange {
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#fetchOpenOrders
@@ -354,7 +345,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#fetchClosedOrders
@@ -372,7 +363,7 @@ export default class woofipro extends Exchange {
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#fetchOrderTrades
@@ -385,7 +376,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name woofipro#fetchMyTrades
@@ -399,7 +390,7 @@ export default class woofipro extends Exchange {
      * @param {int} params.until timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -409,10 +400,10 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     /**
      * @method
      * @name woofipro#fetchLedger
@@ -424,7 +415,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     /**
@@ -438,7 +429,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name woofipro#fetchWithdrawals
@@ -450,7 +441,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name woofipro#fetchDepositsWithdrawals
@@ -462,11 +453,11 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    getWithdrawNonce(params?: {}): Promise<Num>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    getWithdrawNonce(params?: Dict): Promise<Num>;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): string;
-    signMessage(message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signMessage(message: any, privateKey: string): string;
     /**
      * @method
      * @name woofipro#withdraw
@@ -479,7 +470,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -490,7 +481,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    fetchMarginModes(symbols?: Strings, params?: Dict): Promise<MarginModes>;
     /**
      * @method
      * @name woofipro#fetchMarginMode
@@ -500,7 +491,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     /**
      * @method
      * @name woofipro#setMarginMode
@@ -511,7 +502,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -525,7 +516,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: {}): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: string, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name woofipro#addMargin
@@ -536,7 +527,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name woofipro#reduceMargin
@@ -547,7 +538,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -558,7 +549,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     /**
      * @method
      * @name woofipro#setLeverage
@@ -569,7 +560,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -580,7 +571,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name woofipro#fetchPositions
@@ -590,13 +581,8 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

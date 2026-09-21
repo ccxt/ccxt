@@ -258,7 +258,7 @@ export default class bingx extends bingxRest {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         // const marketId = messageHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
@@ -860,7 +860,7 @@ export default class bingx extends bingxRest {
             candles = [this.safeDict(data, 'K', {})];
         }
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const rawTimeframe = dataType.split('_')[1];
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
@@ -922,8 +922,8 @@ export default class bingx extends bingxRest {
         if (url === undefined) {
             throw new BadRequest(this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
-        const options = this.safeValue(this.options, marketType, {});
-        const timeframes = this.safeValue(options, 'timeframes', {});
+        const options = this.safeDict(this.options, marketType, {});
+        const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = this.getMessageHash('ohlcv', market['symbol'], timeframe);
         const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
@@ -965,8 +965,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const options = this.safeValue(this.options, market['type'], {});
-        const timeframes = this.safeValue(options, 'timeframes', {});
+        const options = this.safeDict(this.options, market['type'], {});
+        const timeframes = this.safeDict(options, 'timeframes', {});
         const rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const subMessageHash = market['id'] + '@kline_' + rawTimeframe;
         const messageHash = 'unsubscribe::' + subMessageHash;
@@ -1185,7 +1185,7 @@ export default class bingx extends bingxRest {
     }
     async loadBalanceSnapshot(client, messageHash, type, subType) {
         const response = await this.fetchBalance({ 'type': type, 'subType': subType });
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1615,7 +1615,7 @@ export default class bingx extends bingxRest {
         //    }
         //
         const isSpot = ('dataType' in message);
-        const data = this.safeValue2(message, 'data', 'o', {});
+        const data = this.safeDict2(message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1820,7 +1820,7 @@ export default class bingx extends bingxRest {
             return;
         }
         if (dataType.indexOf('executionReport') >= 0) {
-            const data = this.safeValue(message, 'data', {});
+            const data = this.safeDict(message, 'data', {});
             const type = this.safeString(data, 'x');
             if (type === 'TRADE') {
                 this.handleMyTrades(client, message);
@@ -1835,14 +1835,14 @@ export default class bingx extends bingxRest {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder(client, message);
-            const data = this.safeValue(message, 'o', {});
+            const data = this.safeDict(message, 'o', {});
             const type = this.safeString(data, 'x');
             const status = this.safeString(data, 'X');
             if ((type === 'TRADE') && (status === 'FILLED')) {
                 this.handleMyTrades(client, message);
             }
         }
-        const msgData = this.safeValue(message, 'data');
+        const msgData = this.safeDict(message, 'data');
         const msgEvent = this.safeString(msgData, 'e');
         if (msgEvent === '24hTicker') {
             this.handleTicker(client, message);

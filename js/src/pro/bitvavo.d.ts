@@ -3,8 +3,8 @@ import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV,
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
-    watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
-    watchPublicMultiple(methodName: any, channelName: string, symbols: any, params?: {}): Promise<any>;
+    watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
+    watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#watchTicker
@@ -14,7 +14,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bitvavo#watchTickers
@@ -24,8 +24,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#watchBidsAsks
@@ -35,9 +35,9 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name bitvavo#watchTrades
@@ -48,8 +48,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrade(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrade(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#watchTradesForSymbols
@@ -61,7 +61,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitvavo#unWatchTrades
@@ -93,9 +93,9 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleFetchOHLCV(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleFetchOHLCV(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#watchOHLCVForSymbols
@@ -107,7 +107,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name bitvavo#unWatchOHLCV
@@ -138,7 +138,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bitvavo#watchOrderBookForSymbols
@@ -149,7 +149,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name bitvavo#unWatchOrderBook
@@ -172,14 +172,14 @@ export default class bitvavo extends bitvavoRest {
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
-    handleOrderBook(client: Client, message: any): void;
-    watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
-    handleOrderBookSnapshot(client: Client, message: any): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleOrderBookSubscriptions(client: Client, message: any, marketIds: any): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
+    handleOrderBook(client: Client, message: Dict): void;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<any>;
+    handleOrderBookSnapshot(client: Client, message: Dict): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
+    handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;
     unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
-    handleUnsubscriptionStatus(client: Client, message: any): any;
+    handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name bitvavo#watchOrders
@@ -190,7 +190,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bitvavo#watchMyTrades
@@ -201,7 +201,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitvavo#createOrderWs
@@ -226,7 +226,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitvavo#editOrderWs
@@ -241,7 +241,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitvavo#cancelOrderWs
@@ -252,7 +252,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitvavo#cancelAllOrdersWs
@@ -262,8 +262,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    handleMultipleOrders(client: Client, message: any): void;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleMultipleOrders(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#fetchOrderWs
@@ -274,7 +274,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bitvavo#fetchOrdersWs
@@ -286,9 +286,9 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     requestId(): number;
-    watchRequest(action: any, request: any): Promise<any>;
+    watchRequest(action: string, request: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#fetchOpenOrdersWs
@@ -299,7 +299,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bitvavo#fetchMyTradesWs
@@ -311,8 +311,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#withdrawWs
@@ -324,8 +324,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    handleWithdraw(client: Client, message: any): void;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    handleWithdraw(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#fetchWithdrawalsWs
@@ -337,8 +337,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    handleWithdraws(client: Client, message: any): void;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    handleWithdraws(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#fetchOHLCVWs
@@ -351,7 +351,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bitvavo#fetchDepositsWs
@@ -363,8 +363,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    handleDeposits(client: Client, message: any): void;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    handleDeposits(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#fetchTradingFeesWs
@@ -373,7 +373,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFeesWs(params?: {}): Promise<TradingFees>;
+    fetchTradingFeesWs(params?: Dict): Promise<TradingFees>;
     /**
      * @method
      * @name bitvavo#fetchMarketsWs
@@ -391,9 +391,9 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrenciesWs(params?: {}): Promise<Currencies>;
-    handleFetchCurrencies(client: Client, message: any): void;
-    handleTradingFees(client: Client, message: any): void;
+    fetchCurrenciesWs(params?: Dict): Promise<Currencies>;
+    handleFetchCurrencies(client: Client, message: Dict): void;
+    handleTradingFees(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitvavo#fetchBalanceWs
@@ -402,18 +402,18 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
-    fetchBalanceWs(params?: {}): Promise<Balances>;
-    handleFetchBalance(client: Client, message: any): void;
-    handleSingleOrder(client: Client, message: any): void;
-    handleMarkets(client: Client, message: any): void;
-    buildMessageHash(action: any, params?: {}): any;
-    actionAndMarketMessageHash(action: any, params?: {}): string;
-    actionAndOrderIdMessageHash(action: any, params?: {}): string;
-    handleOrder(client: Client, message: any): void;
-    handleMyTrade(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
+    fetchBalanceWs(params?: Dict): Promise<Balances>;
+    handleFetchBalance(client: Client, message: Dict): void;
+    handleSingleOrder(client: Client, message: Dict): void;
+    handleMarkets(client: Client, message: Dict): void;
+    buildMessageHash(action: Str, params?: Dict): Str;
+    actionAndMarketMessageHash(action: string, params?: Dict): string;
+    actionAndOrderIdMessageHash(action: string, params?: Dict): string;
+    handleOrder(client: Client, message: Dict): void;
+    handleMyTrade(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    authenticate(params?: Dict): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
 }

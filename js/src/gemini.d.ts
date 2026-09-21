@@ -1,5 +1,6 @@
 import Exchange from './abstract/gemini.js';
 import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, NullableDict, DepositAddresses } from './base/types.js';
+import type { OpenInterest } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -13,7 +14,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     /**
      * @method
      * @name gemini#fetchCurrenciesFromWeb
@@ -22,7 +23,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrenciesFromWeb(params?: {}): Promise<Currencies>;
+    fetchCurrenciesFromWeb(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
@@ -32,12 +33,12 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsFromWeb(params?: {}): Promise<Market[]>;
-    parseMarketActive(status: any): Bool;
-    fetchUSDTMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsFromAPI(params?: {}): Promise<Market[]>;
-    parseMarket(response: any): Market;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
+    fetchMarketsFromWeb(params?: Dict): Promise<Market[]>;
+    parseMarketActive(status: Str): Bool;
+    fetchUSDTMarkets(params?: Dict): Promise<Market[]>;
+    fetchMarketsFromAPI(params?: Dict): Promise<Market[]>;
+    parseMarket(response: Dict): Market;
     /**
      * @method
      * @name gemini#fetchOrderBook
@@ -48,10 +49,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchTickerV1(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickerV1AndV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    fetchTickerV1(symbol: string, params?: Dict): Promise<Ticker>;
+    fetchTickerV2(symbol: string, params?: Dict): Promise<Ticker>;
+    fetchTickerV1AndV2(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name gemini#fetchTicker
@@ -63,7 +64,7 @@ export default class gemini extends Exchange {
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -74,7 +75,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -87,7 +88,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -97,7 +98,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
     /**
      * @method
      * @name gemini#fetchBalance
@@ -106,7 +107,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -118,7 +119,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gemini#fetchOpenOrders
@@ -130,7 +131,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gemini#createOrder
@@ -144,7 +145,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gemini#cancelOrder
@@ -155,7 +156,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gemini#fetchMyTrades
@@ -167,7 +168,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name gemini#withdraw
@@ -180,7 +181,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     nonce(): number;
     /**
      * @method
@@ -193,16 +194,10 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: Str;
-        network: undefined;
-        address: Str;
-        tag: undefined;
-        info: any;
-    };
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name gemini#fetchDepositAddress
@@ -213,7 +208,7 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     /**
      * @method
      * @name gemini#fetchDepositAddressesByNetwork
@@ -224,13 +219,8 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    fetchDepositAddressesByNetwork(code: string, params?: Dict): Promise<DepositAddresses>;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
@@ -241,7 +231,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     /**
      * @method
      * @name gemini#fetchOHLCV
@@ -254,7 +244,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name gemini#fetchOpenInterest
@@ -264,6 +254,6 @@ export default class gemini extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): OpenInterest;
 }

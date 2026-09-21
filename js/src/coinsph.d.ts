@@ -14,9 +14,9 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: any): any;
     /**
      * @method
      * @name coinsph#fetchStatus
@@ -25,7 +25,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<Status>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name coinsph#fetchTime
@@ -34,7 +34,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name coinsph#fetchMarkets
@@ -43,7 +43,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name coinsph#fetchTickers
@@ -55,7 +55,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name coinsph#fetchTicker
@@ -67,7 +67,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -79,7 +79,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name coinsph#fetchOHLCV
@@ -93,7 +93,7 @@ export default class coinsph extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -106,7 +106,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinsph#fetchMyTrades
@@ -118,7 +118,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinsph#fetchOrderTrades
@@ -131,7 +131,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -141,7 +141,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -158,7 +158,7 @@ export default class coinsph extends Exchange {
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinsph#fetchOrder
@@ -169,7 +169,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinsph#fetchOpenOrders
@@ -181,7 +181,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinsph#fetchClosedOrders
@@ -193,7 +193,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinsph#cancelOrder
@@ -204,7 +204,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinsph#cancelAllOrders
@@ -214,14 +214,14 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderSide(status: any): string | undefined;
-    encodeOrderSide(status: any): string | undefined;
-    parseOrderType(status: any): string | undefined;
-    encodeOrderType(status: any): string | undefined;
+    parseOrderSide(status: Str): string | undefined;
+    encodeOrderSide(status: Str): string | undefined;
+    parseOrderType(status: Str): string | undefined;
+    encodeOrderType(status: Str): string | undefined;
     parseOrderStatus(status: Str): string | undefined;
-    parseOrderTimeInForce(status: any): string | undefined;
+    parseOrderTimeInForce(status: Str): string | undefined;
     /**
      * @method
      * @name coinsph#fetchTradingFee
@@ -231,7 +231,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     /**
      * @method
      * @name coinsph#fetchTradingFees
@@ -240,7 +240,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFees(params?: Dict): Promise<TradingFees>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
@@ -254,7 +254,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name coinsph#fetchDeposits
@@ -266,7 +266,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name coinsph#fetchWithdrawals
@@ -278,7 +278,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): string | undefined;
     /**
@@ -291,15 +291,10 @@ export default class coinsph extends Exchange {
      * @param {string} [params.network] network for fetch deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     urlEncodeQuery(query?: Dict): string;
-    parseArrayParam(array: any, key: any): string;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: any;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    parseArrayParam(array: any, key: string): string;
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

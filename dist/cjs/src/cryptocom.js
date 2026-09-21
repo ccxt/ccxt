@@ -1214,7 +1214,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        const orderBook = this.safeValue(data, 0);
+        const orderBook = this.safeDict(data, 0);
         const timestamp = this.safeInteger(orderBook, 't');
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
@@ -2529,7 +2529,7 @@ class cryptocom extends cryptocom$1["default"] {
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const execInst = this.safeValue(order, 'exec_inst');
+        const execInst = this.safeList(order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = false;
@@ -2767,7 +2767,7 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         const currencyMap = this.safeList(data, 'currency_map');
         return this.parseDepositWithdrawFees(currencyMap, codes, 'full_name');
     }
@@ -3054,7 +3054,7 @@ class cryptocom extends cryptocom$1["default"] {
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    parseSettlement(settlement, market) {
+    parseSettlement(settlement, market = undefined) {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3073,7 +3073,7 @@ class cryptocom extends cryptocom$1["default"] {
             'datetime': this.iso8601(timestamp),
         };
     }
-    parseSettlements(settlements, market) {
+    parseSettlements(settlements, market = undefined) {
         //
         //     [
         //         {

@@ -4,9 +4,9 @@ import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
     describe(): any;
     requestId(): string | undefined;
-    subscribePublic(messageHashes: any, channels: any, isContract?: boolean, params?: {}, subscription?: {}): Promise<any>;
-    subscribePrivate(messageHash: any, subscribeHash: any, channel: any, isContract?: boolean, params?: any, subscription?: {}): Promise<any>;
-    authenticate(url: any): void;
+    subscribePublic(messageHashes: string[], channels: Strings, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
+    subscribePrivate(messageHash: string, subscribeHash: string, channel: Str, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
+    authenticate(url: string): void;
     /**
      * @method
      * @name weex#watchTicker
@@ -18,7 +18,7 @@ export default class weex extends weexRest {
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name weex#watchTickers
@@ -29,7 +29,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name weex#unWatchTicker
@@ -52,7 +52,7 @@ export default class weex extends weexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
+    handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -66,7 +66,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name weex#watchTradesForSymbols
@@ -79,7 +79,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name weex#unWatchTrades
@@ -102,8 +102,8 @@ export default class weex extends weexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrade(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name weex#watchOHLCV
@@ -117,7 +117,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name weex#watchOHLCVForSymbols
@@ -130,7 +130,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name weex#unWatchOHLCV
@@ -154,7 +154,7 @@ export default class weex extends weexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -167,7 +167,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name weex#watchOrderBookForSymbols
@@ -179,7 +179,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name weex#unWatchOrderBook
@@ -202,7 +202,7 @@ export default class weex extends weexRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
      * @method
@@ -213,7 +213,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name weex#unWatchBidsAsks
@@ -224,8 +224,8 @@ export default class weex extends weexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(message: any, market?: Market): Ticker;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(message: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name weex#watchMyTrades
@@ -239,7 +239,7 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name weex#unWatchMyTrades
@@ -252,8 +252,8 @@ export default class weex extends weexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    handleMyTrades(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: Market): Trade;
+    handleMyTrades(client: Client, message: Dict): void;
+    parseWsMyTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name weex#watchOrders
@@ -267,7 +267,7 @@ export default class weex extends weexRest {
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name weex#unWatchOrders
@@ -279,8 +279,8 @@ export default class weex extends weexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    handleOrders(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
     /**
      * @method
      * @name weex#watchBalance
@@ -291,10 +291,10 @@ export default class weex extends weexRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any): void;
-    loadBalanceSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
-    handleBalance(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name weex#watchPositions
@@ -307,9 +307,9 @@ export default class weex extends weexRest {
      * @param {int} [params.accountNumber] account number to query orders for, required
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, params?: Dict): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, params: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: string, params: any): Promise<void>;
     /**
      * @method
      * @name weex#unWatchPositions
@@ -320,12 +320,12 @@ export default class weex extends weexRest {
      * @returns {object} status of the unwatch request
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
-    handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
-    getMarketFromClientAndMessage(client: Client, message: any): import("../base/types.js").MarketInterface;
-    pong(client: Client, message: any): Promise<void>;
-    handlePing(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
+    getMarketFromClientAndMessage(client: Client, message: Dict): Market;
+    pong(client: Client, message: Dict): Promise<void>;
+    handlePing(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleErrorMessage(client: Client, message: Dict): boolean;
+    handleMessage(client: Client, message: Dict): void;
 }
