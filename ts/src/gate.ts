@@ -2466,8 +2466,6 @@ export default class gate extends Exchange {
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
         const chains = this.safeList (response, 'multichain_addresses', []);
-        const currencyId = this.safeString (response, 'currency');
-        const responseCurrency = this.safeCurrency (currencyId, currency);
         const successfulChains: List = [];
         for (let i = 0; i < chains.length; i++) {
             const chain = chains[i];
@@ -2476,9 +2474,8 @@ export default class gate extends Exchange {
                 successfulChains.push (chain);
             }
         }
-        const parsed = this.parseDepositAddresses (successfulChains, [ responseCurrency['code'] ], false, {
-            'currency': responseCurrency['code'],
-        });
+        // Preserve the existing by-network response shape used by fetchDepositAddress.
+        const parsed = this.parseDepositAddresses (successfulChains, undefined, false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
