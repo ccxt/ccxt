@@ -23,7 +23,7 @@ export default class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v5',
             'userAgent': undefined,
-            'rateLimit': 20,
+            'rateLimit': 20 * 1.01, // give a slight buffer 
             'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,
@@ -182,8 +182,7 @@ export default class bybit extends Exchange {
                 },
                 'www': 'https://www.bybit.com',
                 'doc': [
-                    'https://bybit-exchange.github.io/docs/inverse/',
-                    'https://bybit-exchange.github.io/docs/linear/',
+                    'https://bybit-exchange.github.io/docs/v5/guide',
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
