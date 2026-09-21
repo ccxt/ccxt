@@ -393,6 +393,116 @@
                 ]
             },
             {
+                "description": "linear partial execution for an unresolved market id is skipped, not delivered with order aggregate values",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "NEWCOIN-USDT",
+                            "i": "230000000000000003",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "l": "2",
+                            "z": "2",
+                            "L": "90",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741020",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000002,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "i": "230000000000000004",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "l": "2",
+                            "z": "2",
+                            "L": "90",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000001,
+                            "t": "9007199254741021",
+                            "m": false,
+                            "ps": "LONG"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "9007199254741021",
+                            "info": {
+                                "s": "LTC-USDT",
+                                "i": "230000000000000004",
+                                "S": "BUY",
+                                "o": "LIMIT",
+                                "q": "5",
+                                "p": "100",
+                                "x": "TRADE",
+                                "X": "PARTIALLY_FILLED",
+                                "l": "2",
+                                "z": "2",
+                                "L": "90",
+                                "N": "USDT",
+                                "n": "-0.21",
+                                "T": 1720000000001,
+                                "t": "9007199254741021",
+                                "m": false,
+                                "ps": "LONG"
+                            },
+                            "timestamp": 1720000000001,
+                            "datetime": "2024-07-03T09:46:40.001Z",
+                            "symbol": "LTC/USDT:USDT",
+                            "order": "230000000000000004",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 90,
+                            "amount": 2,
+                            "cost": 180,
+                            "fee": {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": 0.21,
+                                    "currency": "USDT"
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
                 "description": "linear swap final execution uses last fill instead of order or cumulative values",
                 "input": [
                     "LTC/USDT:USDT"
