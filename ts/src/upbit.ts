@@ -781,7 +781,9 @@ export default class upbit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': this.safeString (ticker, 'prev_closing_price'),
-            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            // signed_change_* are measured against prev_closing_price, so safeTicker derives
+            // change/percentage from open instead; change, percentage and average are all
+            // undefined when opening_price is missing or zero.
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
