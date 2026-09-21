@@ -3478,6 +3478,7 @@ func (this *Ndax) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name ndax#fetchStatus

@@ -1962,7 +1962,6 @@ func (this *Krakenfutures) HandleErrorMessage(client any, message any) any {
 			panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " "), errMsg)))
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -2048,6 +2047,7 @@ func (this *Krakenfutures) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name krakenfutures#watchOrderBookForSymbols

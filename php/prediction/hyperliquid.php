@@ -695,7 +695,7 @@ class hyperliquid extends Exchange {
                 continue;
             }
             // Build minimal ticker from mid price
-            $ticker = $this->parse_prediction_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid, 'time' => $this->milliseconds() ), $outcomeObj);
+            $ticker = $this->parse_prediction_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid ), $outcomeObj);
             $tickers[$outcomeHandle] = $ticker;
         }
         return $tickers;
@@ -719,8 +719,7 @@ class hyperliquid extends Exchange {
         //         "time": 1704290104840
         //     }
         //
-        $now = $this->milliseconds();
-        $timestamp = $this->safe_integer($raw, 'time', $now);
+        $timestamp = $this->safe_integer($raw, 'time');
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         $mkt = $this->safe_outcome(null, $market);
         $outcome = $this->safe_string($mkt, 'outcome');
@@ -1335,8 +1334,8 @@ class hyperliquid extends Exchange {
             'id' => $oid,
             'clientOrderId' => $clientOrderId,
             'info' => $response,
-            'timestamp' => $nonce,
-            'datetime' => $this->iso8601($nonce),
+            'timestamp' => null,
+            'datetime' => null,
             'status' => $orderStatus,
             'outcome' => $this->safe_string($outcomeObj, 'outcome', $outcome),
             'outcomeId' => $this->safe_string($outcomeObj, 'id'),
@@ -1463,8 +1462,8 @@ class hyperliquid extends Exchange {
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
                 'market' => $this->safe_string($outcomeObj, 'market'),
-                'timestamp' => $this->milliseconds(),
-                'datetime' => $this->iso8601($this->milliseconds()),
+                'timestamp' => null,
+                'datetime' => null,
             );
             $orders[] = $this->safe_prediction_order($order);
         }

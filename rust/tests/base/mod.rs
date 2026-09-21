@@ -59,6 +59,8 @@ pub use test_handleMethods::testHandleMethods;
 pub use test_implodeParams::testImplodeParams;
 #[path = "test.inArray.rs"] pub mod test_inArray;
 pub use test_inArray::testInArray;
+#[path = "test.incrementingNonce.rs"] pub mod test_incrementingNonce;
+pub use test_incrementingNonce::testIncrementingNonce;
 #[path = "test.indexBy.rs"] pub mod test_indexBy;
 pub use test_indexBy::testIndexBy;
 #[path = "test.io.rs"] pub mod test_io;

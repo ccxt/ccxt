@@ -96,7 +96,7 @@ public partial class bingx : Exchange
                 { "fetchPositionHistory", true },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
-                { "fetchPositionsHistory", true },
+                { "fetchPositionsHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -1111,7 +1111,7 @@ public partial class bingx : Exchange
                         { "trailing", true },
                         { "leverage", false },
                         { "marketBuyRequiresPrice", false },
-                        { "marketBuyByCost", true },
+                        { "marketBuyByCost", false },
                         { "selfTradePrevention", false },
                         { "iceberg", false },
                     } },
@@ -1182,6 +1182,7 @@ public partial class bingx : Exchange
                         { "private", true },
                     } },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marketBuyByCost", true },
                         { "triggerPriceType", null },
                         { "attachedStopLossTakeProfit", null },
                         { "trailing", false },
@@ -2023,8 +2024,20 @@ public partial class bingx : Exchange
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
+        string? price = this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"});
+        if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue((isEqual(getValue(market, "linear"), true)))) && isTrue((isEqual(this.safeString(trade, "x"), "TRADE")))))
+        {
+            string? lastAmount = this.safeString(trade, "l");
+            string? lastPrice = this.safeString(trade, "L");
+            if (isTrue(isTrue((!isEqual(lastAmount, null))) && isTrue((!isEqual(lastPrice, null)))))
+            {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount;
+                price = lastPrice;
+            }
+        }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeString2(trade, "id", "t") },
+            { "id", this.safeStringN(trade, new List<object>() {"id", "t", "fillId"}) },
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
@@ -2033,7 +2046,7 @@ public partial class bingx : Exchange
             { "type", this.safeStringLower(trade, "o") },
             { "side", this.parseOrderSide(side) },
             { "takerOrMaker", takeOrMaker },
-            { "price", this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"}) },
+            { "price", price },
             { "amount", amount },
             { "cost", cost },
             { "fee", new Dictionary<string, object>() {

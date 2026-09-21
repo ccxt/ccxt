@@ -1979,8 +1979,8 @@ impl BitstampCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_410: bool = true;
-            while { if !__for_first_410 { i = add(&i, &Value::Int(1)); } __for_first_410 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_411: bool = true;
+            while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut market: Value = get_value(&response, &i);
             let mut market: Value = get_value(&response, &i);
             let mut baseIdquoteIdVariable = Value::List(vec![self.safe_string_k(market.clone(), "base_currency", &[]), self.safe_string_k(market.clone(), "counter_currency", &[])]);
@@ -2212,8 +2212,8 @@ impl BitstampCore {
         let mut arr: Value = self.to_array(rawCurrencies.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_411: bool = true;
-            while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&arr)) } {
+            let mut __for_first_412: bool = true;
+            while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut market: Value = get_value(&arr, &i);
             let mut market: Value = get_value(&arr, &i);
             let mut baseIdquoteIdVariable = Value::List(vec![self.safe_string_k(market.clone(), "base_currency", &[]), self.safe_string_k(market.clone(), "counter_currency", &[])]);
@@ -2433,8 +2433,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&transaction);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_412: bool = true;
-            while { if !__for_first_412 { i = add(&i, &Value::Int(1)); } __for_first_412 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_413: bool = true;
+            while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if is_less_than(&get_index_of(&id, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -2526,8 +2526,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&trade);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_413: bool = true;
-                while { if !__for_first_413 { i = add(&i, &Value::Int(1)); } __for_first_413 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_414: bool = true;
+                while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut currentKey: Value = get_value(&keys, &i);
                 let mut currentKey: Value = get_value(&keys, &i);
                 if !is_equal(&currentKey, &Value::Str("order_id".to_string())) && is_greater_than_or_equal(&get_index_of(&currentKey, &Value::Str("_".to_string())), &Value::Int(0)) {
@@ -2680,6 +2680,7 @@ impl BitstampCore {
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -2701,24 +2702,44 @@ impl BitstampCore {
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut untilIsDefined: bool = !is_equal(&until, &Value::Null);
         if is_equal(&limit, &Value::Null) {
+            limit = Value::Int(1000);
             if is_equal(&since, &Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(1000)); // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+                if is_true(&untilIsDefined) {
+                    let mut end: Value = self.parse_to_int(divide(&until, &Value::Int(1000)));
+                    add_element_to_object(&mut request, &Value::Str("start".to_string()), subtract(&subtract(&end, &(multiply(&duration, &limit))), &Value::Int(1)));
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+                }
             }  else {
-                limit = Value::Int(1000);
                 let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
                 add_element_to_object(&mut request, &Value::Str("start".to_string()), start.clone());
-                add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), multiply(&duration, &(subtract(&limit, &Value::Int(1))))]));
+                if is_true(&untilIsDefined) {
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000))));
+                }  else {
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), subtract(&multiply(&duration, &limit), &Value::Int(1))]));
+                }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
         }  else {
             if !is_equal(&since, &Value::Null) {
                 let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
                 add_element_to_object(&mut request, &Value::Str("start".to_string()), start.clone());
-                add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), multiply(&duration, &(subtract(&limit, &Value::Int(1))))]));
+                let mut end: Value = self.sum(&[start.clone(), subtract(&multiply(&duration, &limit), &Value::Int(1))]);
+                if is_true(&untilIsDefined) {
+                    end = crate::runtime::Math::min(&end, &self.parse_to_int(divide(&until, &Value::Int(1000))));
+                }
+                add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+            }  else if is_true(&untilIsDefined) {
+                let mut end: Value = self.parse_to_int(divide(&until, &Value::Int(1000)));
+                add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+                add_element_to_object(&mut request, &Value::Str("start".to_string()), subtract(&subtract(&end, &(multiply(&duration, &limit))), &Value::Int(1)));
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // min 1, max 1000
         }
+        params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_ohlc_pair(&[__ws_arg_3]).await;
         //
@@ -2757,8 +2778,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_414: bool = true;
-            while { if !__for_first_414 { i = add(&i, &Value::Int(1)); } __for_first_414 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { i = add(&i, &Value::Int(1)); } __for_first_415 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyBalance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(currencyBalance.clone(), "currency", &[]);
@@ -2880,8 +2901,8 @@ impl BitstampCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { i = add(&i, &Value::Int(1)); } __for_first_415 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
@@ -2951,8 +2972,8 @@ impl BitstampCore {
         let mut ids: Value = object_keys(&currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_416: bool = true;
-            while { if !__for_first_416 { i = add(&i, &Value::Int(1)); } __for_first_416 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { i = add(&i, &Value::Int(1)); } __for_first_417 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut fees: Value = self.safe_value(response.clone(), i.clone(), &[Value::Map({
@@ -3023,8 +3044,8 @@ impl BitstampCore {
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { j = add(&j, &Value::Int(1)); } __for_first_417 = false; is_less_than(&j, &get_array_length(&fee)) } {
+            let mut __for_first_418: bool = true;
+            while { if !__for_first_418 { j = add(&j, &Value::Int(1)); } __for_first_418 = false; is_less_than(&j, &get_array_length(&fee)) } {
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -3907,8 +3928,8 @@ impl BitstampCore {
             let mut keys: Value = object_keys(&item);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_418: bool = true;
-                while { if !__for_first_418 { i = add(&i, &Value::Int(1)); } __for_first_418 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_419: bool = true;
+                while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 if is_greater_than_or_equal(&get_index_of(&get_value(&keys, &i), &Value::Str("_".to_string())), &Value::Int(0)) {
                     let mut marketId: Value = replace_str(&get_value(&keys, &i), &Value::Str("_".to_string()), &Value::Str("".to_string()));
                     market = self.safe_market(&[marketId.clone(), market.clone()]);
@@ -4419,8 +4440,8 @@ impl BitstampCore {
                 let mut keys: Value = object_keys(&error);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_419: bool = true;
-                    while { if !__for_first_419 { i = add(&i, &Value::Int(1)); } __for_first_419 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                    let mut __for_first_420: bool = true;
+                    while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &get_array_length(&keys)) } {
                     let mut key: Value = get_value(&keys, &i);
                     let mut key: Value = get_value(&keys, &i);
                     let mut value: Value = self.safe_value(error.clone(), key.clone(), &[]);
@@ -4442,8 +4463,8 @@ impl BitstampCore {
                 let mut all: Value = self.safe_list_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_420: bool = true;
-                    while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &get_array_length(&all)) } {
+                    let mut __for_first_421: bool = true;
+                    while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&all)) } {
                     append_to_array(&mut errors, get_value(&all, &i));
                 }
                 }
@@ -4455,8 +4476,8 @@ impl BitstampCore {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_421: bool = true;
-                while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&errors)) } {
+                let mut __for_first_422: bool = true;
+                while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&errors)) } {
                 let mut value: Value = get_value(&errors, &i);
                 let mut value: Value = get_value(&errors, &i);
                 self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), value.clone(), feedback.clone());

@@ -8,6 +8,7 @@ import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 import testBingxPositionTransitions from "./test.bingxPositionTransitions.js";
+import testBingxOrderFreshness from "./test.bingxOrderFreshness.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -15,6 +16,7 @@ async function testBaseWs () {
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
     testBingxPositionTransitions (); // js-only: native handler/cache regression test
     testCacheRemoveSymbol (); // js-only: native cache removal regression checks
+    testBingxOrderFreshness (); // js-only: native handler/cache regression test
     // todo : testWsClose ();
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();

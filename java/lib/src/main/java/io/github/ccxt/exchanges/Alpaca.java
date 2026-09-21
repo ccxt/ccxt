@@ -2626,8 +2626,11 @@ public class Alpaca extends AlpacaApi
      * @name alpaca#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.alpaca.markets/reference/getaccount-1
+     * @see https://docs.alpaca.markets/reference/getallopenpositions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}. note that `info` is
+     * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+     * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
      */
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
@@ -2639,7 +2642,10 @@ public class Alpaca extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> response = (this.traderPrivateGetV2Account(parameters)).join();
+            // the two calls stay sequential deliberately — the static request harness records one request per case,
+            // and concurrent calls make the recorded url nondeterministic per language
+            Map<String, Object> account = (this.traderPrivateGetV2Account(parameters)).join();
+            List<Object> positions = (this.traderPrivateGetV2Positions()).join();
             //
             //     {
             //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2688,6 +2694,10 @@ public class Alpaca extends AlpacaApi
             //         "pending_reg_taf_fees": "0"
             //     }
             //
+            Map<String, Object> response = new HashMap<String, Object>() {{
+                put( "account", account );
+                put( "positions", positions );
+            }};
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
@@ -2695,17 +2705,78 @@ public class Alpaca extends AlpacaApi
 
     public Object parseBalance(Object response)
     {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        Object account = this.safeDict(response, "account", new HashMap<String, Object>() {{}});
+        Object positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object account = this.account();
-        String currencyId = this.safeString(response, "currency");
+        String currencyId = this.safeString(account, "currency");
         String code = this.safeCurrencyCode(currencyId);
-        Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
-        Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
-            Helpers.addElementToObject(result, code, account);
+            Object cashAccount = this.account();
+            Helpers.addElementToObject(cashAccount, "free", this.safeString(account, "cash")); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            String equity = this.safeString(account, "equity");
+            String positionsValue = this.safeString(account, "position_market_value");
+            Helpers.addElementToObject(cashAccount, "total", Precise.stringSub(equity, positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            Helpers.addElementToObject(result, code, cashAccount);
+        }
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+        {
+            Object position = Helpers.GetValue(positions, i);
+            String positionSymbol = this.safeString(position, "symbol");
+            if (Helpers.isTrue(Helpers.isEqual(positionSymbol, null)))
+            {
+                continue;
+            }
+            Object baseId = null;
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(positionSymbol, "/"), 0)))
+            {
+                Object parts = Helpers.split(positionSymbol, "/");
+                baseId = this.safeString(parts, 0);
+            } else
+            {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                Object baseLength = Helpers.subtract(positionSymbol.length(), 3);
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(baseLength, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.slice(positionSymbol, baseLength, null), "USD")))))
+                {
+                    baseId = Helpers.slice(positionSymbol, 0, baseLength);
+                }
+            }
+            if (Helpers.isTrue(Helpers.isEqual(baseId, null)))
+            {
+                continue;
+            }
+            String positionCode = this.safeCurrencyCode(baseId);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(positionCode, null))) && !Helpers.isTrue((Helpers.inOp(result, positionCode)))))
+            {
+                Object positionAccount = this.account();
+                Helpers.addElementToObject(positionAccount, "free", this.safeString(position, "qty_available"));
+                Helpers.addElementToObject(positionAccount, "total", this.safeString(position, "qty"));
+                Helpers.addElementToObject(result, positionCode, positionAccount);
+            }
         }
         return this.safeBalance(result);
     }

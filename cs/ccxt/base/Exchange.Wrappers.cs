@@ -39,6 +39,7 @@ public class  Btse: btse { public Btse(object args = null) : base(args) { } }
 public class  Bullish: bullish { public Bullish(object args = null) : base(args) { } }
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public class  Bybiteu: bybiteu { public Bybiteu(object args = null) : base(args) { } }
+public class  Bybitid: bybitid { public Bybitid(object args = null) : base(args) { } }
 public class  Bydfi: bydfi { public Bydfi(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }

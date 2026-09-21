@@ -8688,7 +8688,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         timestampId = self.safe_string_2(info, 'createdAt', 'timestamp')
-        timestamp = self.milliseconds()
+        timestamp = None
         if timestampId is not None:
             timestamp = self.parse_to_int(timestampId[0:13])
         currencyId = self.safe_string(info, 'currency')
@@ -9204,15 +9204,14 @@ class kucoin(Exchange, ImplicitAPI):
         #         "actualSize": 10
         #     }
         #
-        timestamp = self.milliseconds()
         currencyId = self.safe_string(info, 'currency')
         return {
             'id': self.safe_string(info, 'orderNo'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'actualSize'),
             'symbol': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 

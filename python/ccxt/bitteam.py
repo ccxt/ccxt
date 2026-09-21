@@ -2120,11 +2120,10 @@ class bitteam(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        timestamp = self.milliseconds()
         balance = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         result = self.safe_value(response, 'result', {})
         balanceByCurrencies = self.omit(result, ['free', 'used', 'total'])

@@ -779,8 +779,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Long timestamp = this.milliseconds();
-            Object orderBook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
+            Object orderBook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
             Helpers.addElementToObject(orderBook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
         }).thenApply(OrderBook::new);
@@ -3234,11 +3233,10 @@ public class Bydfi extends BydfiApi
 
     public Object parseBalance(Object response)
     {
-        Long timestamp = this.milliseconds();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
-            put( "timestamp", timestamp );
-            put( "datetime", Bydfi.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
@@ -3301,9 +3299,6 @@ public class Bydfi extends BydfiApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
-                Long timestamp = this.milliseconds();
-                Helpers.addElementToObject(transfer, "timestamp", timestamp);
-                Helpers.addElementToObject(transfer, "datetime", this.iso8601(timestamp));
                 Helpers.addElementToObject(transfer, "currency", code);
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);

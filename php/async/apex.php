@@ -352,11 +352,10 @@ class apex extends Exchange {
         // }
         // }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $code = 'USDT';
         $account = $this->account();
@@ -765,7 +764,6 @@ class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -777,8 +775,8 @@ class apex extends Exchange {
         $low = $this->safe_string($ticker, 'lowPrice24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $high,
             'low' => $low,
             'bid' => null,
@@ -1113,7 +1111,6 @@ class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($interest, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1121,8 +1118,8 @@ class apex extends Exchange {
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'openInterest'),
             'openInterestValue' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $interest,
         ), $market);
     }

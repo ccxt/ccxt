@@ -2193,6 +2193,7 @@ func (this *Luno) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name luno#fetchCurrencies

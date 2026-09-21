@@ -2474,7 +2474,6 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}
@@ -2540,6 +2539,7 @@ func (this *Weex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name weex#watchTicker

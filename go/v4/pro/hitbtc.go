@@ -1776,7 +1776,6 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}
@@ -1799,6 +1798,7 @@ func (this *Hitbtc) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hitbtc#watchOrderBook

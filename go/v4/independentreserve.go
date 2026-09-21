@@ -1552,6 +1552,7 @@ func (this *Independentreserve) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name independentreserve#fetchMarkets

@@ -18,6 +18,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 	exchange.InitParent(map[string]any{
 		"id":                    "sampleexchange",
 		"fetchHistoryCacheSize": 2,
+		"enableRateLimit":       false,
 	}, map[string]any{}, exchange)
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
 	var trueAssertion bool = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
@@ -38,8 +39,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes168 := (<-exchange.Fetch2Async("sample1"))
-			ccxt.PanicOnError(retRes168)
+			retRes178 := (<-exchange.Fetch2Async("sample1"))
+			ccxt.PanicOnError(retRes178)
 			return nil
 		}()
 
@@ -62,8 +63,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes228 := (<-exchange.Fetch2Async("sample2"))
-			ccxt.PanicOnError(retRes228)
+			retRes238 := (<-exchange.Fetch2Async("sample2"))
+			ccxt.PanicOnError(retRes238)
 			return nil
 		}()
 
@@ -86,8 +87,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes288 := (<-exchange.Fetch2Async("sample3"))
-			ccxt.PanicOnError(retRes288)
+			retRes298 := (<-exchange.Fetch2Async("sample3"))
+			ccxt.PanicOnError(retRes298)
 			return nil
 		}()
 
@@ -97,47 +98,27 @@ func testFetchHistoryBaseBody(ch chan any) any {
 	return nil
 }
 
-//	async function testFetchHistoryDerived () {
-//	    const exchange = new ccxt.coinbase ({
-//	        'id': 'sampleexchange',
-//	        'fetchHistoryCacheSize': 2,
-//	    });
-//	    // try 3 times
-//	    // first
-//	    await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
-//	    assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
-//	    // second
-//	    await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//	    // third
-//	    await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//	    const finalCache = exchange.getFetchCache ();
-//	    assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
-//	    assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
-//	    assert (1 + 1 < 3, 'sample assertion');
-//	}
-//
-//	async function testFetchHistoryDerived () {
-//	    const exchange = new ccxt.coinbase ({
-//	        'id': 'sampleexchange',
-//	        'fetchHistoryCacheSize': 2,
-//	    });
-//	    // try 3 times
-//	    // first
-//	    await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
-//	    assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
-//	    // second
-//	    await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//	    // third
-//	    await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//	    const finalCache = exchange.getFetchCache ();
-//	    assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
-//	    assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
-//	    assert (1 + 1 < 3, 'sample assertion');
-//	}
+// async function testFetchHistoryDerived () {
+//     const exchange = new ccxt.coinbase ({
+//         'id': 'sampleexchange',
+//         'fetchHistoryCacheSize': 2,
+//     });
+//     // try 3 times
+//     // first
+//     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
+//     assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
+//     // second
+//     await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
+//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//     // third
+//     await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
+//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//     const finalCache = exchange.getFetchCache ();
+//     assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+//     assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
+//     assert (1 + 1 < 3, 'sample assertion');
+// }
+
 func TestFetchHistoryAsync() <-chan any {
 	ch := make(chan any, 1)
 	go testFetchHistoryBody(ch)
@@ -147,7 +128,7 @@ func testFetchHistoryBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	retRes604 := (<-TestFetchHistoryBaseAsync())
-	ccxt.PanicOnError(retRes604)
+	retRes614 := (<-TestFetchHistoryBaseAsync())
+	ccxt.PanicOnError(retRes614)
 	return nil
 }

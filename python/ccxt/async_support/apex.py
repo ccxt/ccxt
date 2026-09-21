@@ -349,11 +349,10 @@ class apex(Exchange, ImplicitAPI):
         # }
         # }
         #
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         code = 'USDT'
         account = self.account()
@@ -732,7 +731,6 @@ class apex(Exchange, ImplicitAPI):
         #     "tradeCount": 100
         # }
         #
-        timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
@@ -744,8 +742,8 @@ class apex(Exchange, ImplicitAPI):
         low = self.safe_string(ticker, 'lowPrice24h')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': high,
             'low': low,
             'bid': None,
@@ -1037,7 +1035,6 @@ class apex(Exchange, ImplicitAPI):
         #     "tradeCount": 100
         # }
         #
-        timestamp = self.milliseconds()
         marketId = self.safe_string(interest, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
@@ -1045,8 +1042,8 @@ class apex(Exchange, ImplicitAPI):
             'symbol': symbol,
             'openInterestAmount': self.safe_string(interest, 'openInterest'),
             'openInterestValue': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': interest,
         }, market)
 

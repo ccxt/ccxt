@@ -32,6 +32,7 @@ var FunctionsMap = map[string]any{
 	"handleMethods":                   TestHandleMethods,
 	"implodeParams":                   TestImplodeParams,
 	"inArray":                         TestInArray,
+	"incrementingNonce":               TestIncrementingNonce,
 	"indexBy":                         TestIndexBy,
 	"io":                              TestIo,
 	"isDictionary":                    TestIsDictionary,

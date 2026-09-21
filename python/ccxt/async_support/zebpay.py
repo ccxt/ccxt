@@ -1812,7 +1812,6 @@ class zebpay(Exchange, ImplicitAPI):
         #         "status": "ok"
         #    }
         #
-        timestamp = self.milliseconds()
         return {
             'info': info,
             'symbol': self.safe_string(market, 'id'),
@@ -1822,8 +1821,8 @@ class zebpay(Exchange, ImplicitAPI):
             'total': None,
             'code': self.safe_string(info, 'code'),
             'status': self.safe_string(info, 'status'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):

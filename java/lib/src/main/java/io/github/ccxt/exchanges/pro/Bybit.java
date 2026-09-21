@@ -324,7 +324,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
-            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade"));
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -379,7 +379,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade"));
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -425,7 +425,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrderWs() requires a symbol argument")) ;
             }
             Object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade"));
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
             if (Helpers.isTrue(Helpers.inOp(orderRequest, "orderFilter")))

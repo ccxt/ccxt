@@ -1,6 +1,6 @@
 {
     "exchange": "bingx",
-    "skipKeys": [ "tranId", "timestamp", "id" ],
+    "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
         "fetchInverseSwapMarkets": [
@@ -4597,6 +4597,135 @@
               }
         ],
         "fetchTrades": [
+            {
+                "description": "public swap trade fillId fallback preserves id and t precedence",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "time": 1789884514243,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450238",
+                            "ts": 1789884514243
+                        },
+                        {
+                            "time": 1789884514244,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450239",
+                            "ts": 1789884514244,
+                            "id": "123"
+                        },
+                        {
+                            "time": 1789884514245,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450240",
+                            "ts": 1789884514245,
+                            "t": "456"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "729450238",
+                        "info": {
+                            "time": 1789884514243,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450238",
+                            "ts": 1789884514243
+                        },
+                        "timestamp": 1789884514243,
+                        "datetime": "2026-09-20T06:08:34.243Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "123",
+                        "info": {
+                            "time": 1789884514244,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450239",
+                            "ts": 1789884514244,
+                            "id": "123"
+                        },
+                        "timestamp": 1789884514244,
+                        "datetime": "2026-09-20T06:08:34.244Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "456",
+                        "info": {
+                            "time": 1789884514245,
+                            "isBuyerMaker": true,
+                            "price": "80407.1",
+                            "qty": "0.0041",
+                            "quoteQty": "329.67",
+                            "fillId": "729450240",
+                            "ts": 1789884514245,
+                            "t": "456"
+                        },
+                        "timestamp": 1789884514245,
+                        "datetime": "2026-09-20T06:08:34.245Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80407.1,
+                        "amount": 0.0041,
+                        "cost": 329.67,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
             {
                 "description": "public spot trades",
                 "method": "fetchTrades",
