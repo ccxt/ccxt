@@ -1,0 +1,95 @@
+{
+    "exchange": "lighter",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "an id-less 30003 Already Subscribed notice must not reject an unrelated pending watch",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "url": "wss://mainnet.zklighter.elliot.ai/stream",
+                "messages": [
+                    {
+                        "error": {
+                            "code": 30003,
+                            "message": "Already Subscribed to : market_stats:all"
+                        }
+                    },
+                    {
+                        "channel": "order_book:0",
+                        "offset": 11413309,
+                        "order_book": {
+                            "code": 0,
+                            "asks": [
+                                {
+                                    "price": "2979.64",
+                                    "size": "61.9487"
+                                }
+                            ],
+                            "bids": [
+                                {
+                                    "price": "2979.36",
+                                    "size": "12.3456"
+                                }
+                            ],
+                            "offset": 11413309,
+                            "nonce": 3107818665
+                        },
+                        "timestamp": 1763448665923,
+                        "type": "subscribed/order_book"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "channel": "order_book/0"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "ETH/USDC:USDC",
+                    "bids": [
+                        [
+                            2979.36,
+                            12.3456
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2979.64,
+                            61.9487
+                        ]
+                    ],
+                    "timestamp": 1763448665923,
+                    "datetime": "2025-11-18T06:51:05.923Z",
+                    "nonce": 11413309
+                }
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "an id-less 30002 Not Subscribed notice resolves only the unsubscribe of the channel it names",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "url": "wss://mainnet.zklighter.elliot.ai/stream",
+                "messages": [
+                    {
+                        "error": {
+                            "code": 30002,
+                            "message": "Not Subscribed to : order_book:0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "unsubscribe",
+                        "channel": "order_book/0"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
