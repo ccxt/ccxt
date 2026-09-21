@@ -75,7 +75,7 @@ export default class predictfun extends Exchange {
                 'watchTrades': false,
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/9fb5dccf-faa3-4b5a-b144-81d6994bc598',
                 'api': {
                     'predictfun': 'https://api.predict.fun',
                     // the socket authenticates on the handshake and the venue documents only a
