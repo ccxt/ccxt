@@ -2453,7 +2453,7 @@
     },
     "woo": {
         "httpsProxy": "http://188.245.226.105:8911",
-        "wsProxy": "http://188.245.226.105:8911",
+        "wssProxy": "http://188.245.226.105:8911",
         "//skipWs": "requires auth",
         "skipMethods": {
             "fetchTicker.go": "the go test harness intermittently crashes on NotSupported panics, other languages tolerate NotSupported by design",
