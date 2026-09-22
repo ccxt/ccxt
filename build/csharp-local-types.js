@@ -9598,6 +9598,24 @@ function urlsLiteralChain (initializer) {
     return keys;
 }
 
+// `x.padStart (n, c)` / `x.padEnd (n, c)`: the printer casts the receiver to System.String itself, so
+// the printed call is a non-null `string` (PadLeft/PadRight) whatever the TS receiver type is
+function stringPadCallType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return undefined;
+    }
+    const name = callee.name?.escapedText;
+    if (name !== 'padStart' && name !== 'padEnd') {
+        return undefined;
+    }
+    const printed = csharp.printNode (initializer, 0).trim ();
+    return /^\((?:\(string\)[^()]*|[^()]*\sas\sString)\)\.(?:PadLeft|PadRight)\s*\(/.test (printed) ? 'string' : undefined;
+}
+
 // does this initialiser's runtime box provably hold a string or null? (see the family comment)
 function urlsDescribeStringProducer (initializer) {
     const keys = urlsLiteralChain (initializer);
@@ -10346,6 +10364,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // checker proves the element a string at a proven key — same `(string)` cast
             csharpType = 'string?';
             cast = 'string';
+        } else if (stringPadCallType (csharp, declaration.initializer) !== undefined) {
+            // no cast: the printed PadLeft/PadRight call is already statically `string`
+            csharpType = 'string';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above
