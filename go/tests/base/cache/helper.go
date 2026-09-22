@@ -155,10 +155,6 @@ func GetArrayLength(value any) int {
 	return base.GetArrayLength(value)
 }
 
-func GetPrecisionMode(v any) int {
-	return v.(ccxt.Exchange).PrecisionMode
-}
-
 // the ws cache test ends on Object.keys (cache.hashmap); package `base` resolves
 // the bare ObjectKeys through its own shim, package `cache` needs its own.
 // ccxt.ObjectKeys only knows map[string]any / *sync.Map, but the nested caches
