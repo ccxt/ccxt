@@ -294,7 +294,6 @@
                 "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
             },
             "fetchTrades": {
-                "cost": "absent market.precision.amount",
                 "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
                 "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json",
                 "amountPriceCost": "todo check"
@@ -444,7 +443,7 @@
             "watchTrades":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "timestamp": "messed order coming from exchange",
-                "cost": "assertAmountPriceCost fails: https://app.travis-ci.com/github/ccxt/ccxt/builds/273689721#L4102"
+                "amountPriceCost": "assertAmountPriceCost fails: https://app.travis-ci.com/github/ccxt/ccxt/builds/273689721#L4102"
             },
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
@@ -637,7 +636,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined",
-                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610",
+                "amountPriceCost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610",
                 "requireBothSides": "same",
                 "sideSequence": "todo check"
             },
@@ -2608,10 +2607,10 @@
                 "active": "is undefined"
             },
             "watchTrades": {
-                "cost": "absent market.precision.amount"
+                "amountPriceCost": "absent market.precision.amount"
             },
             "watchTradesForSymbols": {
-                "cost": "same as above"
+                "amountPriceCost": "same as above"
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
