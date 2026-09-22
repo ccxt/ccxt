@@ -59,7 +59,7 @@ export default class sxbet extends Exchange {
                 'watchTrades': true,
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/user-attachments/assets/6d1d1e37-2b9c-4011-93c6-c9c25cd2c2f7',
                 'api': {
                     'sxbet': 'https://api.sx.bet',
                     'ws': 'wss://realtime.sx.bet/connection/websocket',
