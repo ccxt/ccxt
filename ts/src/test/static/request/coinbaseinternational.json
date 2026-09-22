@@ -248,6 +248,16 @@
       }
     ],
     "fetchOHLCV": [
+            {
+                "description": "without since",
+                "method": "fetchOHLCV",
+                "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_MINUTE&start=2026-09-22T17%3A39%3A23.381Z",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m"
+                ],
+                "output": null
+            },
       {
         "description": "fetchOHLCV",
         "method": "fetchOHLCV",
