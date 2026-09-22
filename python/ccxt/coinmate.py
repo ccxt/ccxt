@@ -342,7 +342,7 @@ class coinmate(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -359,7 +359,7 @@ class coinmate(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for coinmate
 
@@ -456,7 +456,7 @@ class coinmate(Exchange, ImplicitAPI):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(balances, currencyId)
+            balance = self.safe_dict(balances, currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
@@ -464,7 +464,7 @@ class coinmate(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -478,7 +478,7 @@ class coinmate(Exchange, ImplicitAPI):
         response = self.privatePostBalances(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -501,7 +501,7 @@ class coinmate(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -619,7 +619,7 @@ class coinmate(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -753,7 +753,7 @@ class coinmate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        withdrawOptions = self.safe_dict(self.options, 'withdraw', {})
         methods = self.safe_dict(withdrawOptions, 'methods', {})
         method = self.safe_string(methods, code)
         if method is None:
@@ -796,7 +796,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         transaction = self.parse_transaction(data, currency)
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest is True:
@@ -808,7 +808,7 @@ class coinmate(Exchange, ImplicitAPI):
             transaction['status'] = 'pending'
         return transaction
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -898,7 +898,7 @@ class coinmate(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -937,7 +937,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -961,7 +961,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         makerString = self.safe_string(data, 'maker')
         takerString = self.safe_string(data, 'taker')
         maker = self.parse_number(Precise.string_div(makerString, '100'))
@@ -975,7 +975,7 @@ class coinmate(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -992,7 +992,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, None, since, limit, extension)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1121,7 +1121,7 @@ class coinmate(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1173,7 +1173,7 @@ class coinmate(Exchange, ImplicitAPI):
             'id': id,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1197,7 +1197,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1224,10 +1224,10 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
             if len(params) > 0:

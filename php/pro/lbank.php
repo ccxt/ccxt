@@ -101,8 +101,8 @@ class lbank extends \ccxt\async\lbank {
         $market = $this->market($symbol);
         $this->check_contract_market($market, 'fetchOHLCVWs');
         $url = $this->urls['api']['ws'];
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'fetchOHLCV:' . $market['symbol'] . ':' . $timeframeId;
         $message = array(
@@ -144,8 +144,8 @@ class lbank extends \ccxt\async\lbank {
         }
         $market = $this->market($symbol);
         $this->check_contract_market($market, 'watchOHLCV');
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
         $url = $this->urls['api']['ws'];
@@ -163,7 +163,7 @@ class lbank extends \ccxt\async\lbank {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(mixed $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // request
         //    {
@@ -217,11 +217,11 @@ class lbank extends \ccxt\async\lbank {
         //
         $marketId = $this->safe_string($message, 'pair');
         $symbol = $this->safe_symbol($marketId, null, '_');
-        $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
-        $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
-        $records = $this->safe_value($message, 'records');
+        $watchOHLCVOptions = $this->safe_dict($this->options, 'watchOHLCV', array());
+        $timeframes = $this->safe_dict($watchOHLCVOptions, 'timeframes', array());
+        $records = $this->safe_list($message, 'records');
         if ($records !== null) {  // from request
-            $rawOHLCV = $this->safe_value($records, 0, array());
+            $rawOHLCV = $this->safe_list($records, 0, array());
             $parsed = array(
                 $this->safe_integer($rawOHLCV, 0),
                 $this->safe_number($rawOHLCV, 1),
@@ -232,7 +232,7 @@ class lbank extends \ccxt\async\lbank {
             );
             $timeframeId = $this->safe_string($message, 'kbar');
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -243,7 +243,7 @@ class lbank extends \ccxt\async\lbank {
             $messageHash = 'fetchOHLCV:' . $symbol . ':' . $timeframeId;
             $client->resolve($stored, $messageHash);
         } else {  // from subscription
-            $rawOHLCV = $this->safe_value($message, 'kbar', array());
+            $rawOHLCV = $this->safe_dict($message, 'kbar', array());
             $timeframeId = $this->safe_string($rawOHLCV, 'slot');
             $datetime = $this->safe_string($rawOHLCV, 't');
             $parsed = array(
@@ -255,7 +255,7 @@ class lbank extends \ccxt\async\lbank {
                 $this->safe_number($rawOHLCV, 'v'),
             );
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -329,7 +329,7 @@ class lbank extends \ccxt\async\lbank {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "tick":{
@@ -387,7 +387,7 @@ class lbank extends \ccxt\async\lbank {
         $marketId = $this->safe_string($ticker, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
         $datetime = $this->safe_string($ticker, 'TS');
-        $tickerData = $this->safe_value($ticker, 'tick');
+        $tickerData = $this->safe_dict($ticker, 'tick');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse8601($datetime),
@@ -483,7 +483,7 @@ class lbank extends \ccxt\async\lbank {
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // request
         //     {
@@ -520,7 +520,7 @@ class lbank extends \ccxt\async\lbank {
             $this->trades[$symbol] = $stored;
         }
         $rawTrade = $this->safe_value($message, 'trade');
-        $rawTrades = $this->safe_value($message, 'trades', array( $rawTrade ));
+        $rawTrades = $this->safe_list($message, 'trades', array( $rawTrade ));
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_ws_trade($rawTrades[$i], $market);
             $trade['symbol'] = $symbol;
@@ -533,7 +533,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -619,7 +619,7 @@ class lbank extends \ccxt\async\lbank {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
         //         "orderUpdate":{
@@ -656,7 +656,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($myOrders, $messageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "orderUpdate":{
@@ -698,7 +698,7 @@ class lbank extends \ccxt\async\lbank {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        $orderUpdate = $this->safe_value($order, 'orderUpdate', array());
+        $orderUpdate = $this->safe_dict($order, 'orderUpdate', array());
         $rawType = $this->safe_string($orderUpdate, 'type', '');
         $typeParts = explode('_', $rawType);
         $side = $this->safe_string($typeParts, 0);
@@ -740,7 +740,7 @@ class lbank extends \ccxt\async\lbank {
         ), $market);
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled',  // Withdrawn
             '0' => 'open',   // Unsettled
@@ -779,7 +779,7 @@ class lbank extends \ccxt\async\lbank {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "data": {
@@ -887,7 +887,7 @@ class lbank extends \ccxt\async\lbank {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // request
         //    {
@@ -962,7 +962,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //    {
         //        SERVER: 'V2',
@@ -998,7 +998,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
             $this->handle_error_message($client, $message);
@@ -1046,13 +1046,13 @@ class lbank extends \ccxt\async\lbank {
         }
         $future = $client->reusableFuture($messageHash);
         try {
-            $authenticated = $this->safe_value($client->subscriptions, 'authenticated');
+            $authenticated = $this->safe_dict($client->subscriptions, 'authenticated');
             if ($authenticated === null) {
                 $response = Async\await($this->spotPrivatePostSubscribeGetKey($params));
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                $result = $this->safe_value($response, 'result');
+                $result = $this->safe_bool($response, 'result');
                 if ($result !== true) {
                     throw new ExchangeError($this->id . ' failed to get subscribe key');
                 }

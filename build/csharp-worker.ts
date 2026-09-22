@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { installCacheRemoveCall } from './cache-remove-call.js';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
+import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -58,6 +58,9 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // concrete types for generated locals (see build/csharp-local-types.js); installed here
     // so the pooled workers and the main-thread transpiler emit identical declarations
     installCsharpLocalTypes (transpiler);
+    // the numeric-literal / call-result locals this module retypes are printable as native
+    // comparisons once the printer can ask for their read type (build/csharp-local-types.js)
+    installCsharpNumericComparisons (transpiler);
     // concrete return types for the numeric base helpers whose C# signature was `object`
     // (see the numeric-returns section of build/csharp-local-types.js) — the locals map
     // registers the same types
@@ -122,10 +125,23 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // local-types hook so both see the
     // same table
     installCsharpStringReturns (transpiler);
+    // native arithmetic in place of the add / subtract / multiply / divide helpers where
+    // both operands' C# static types are proven (see the native-arithmetic section of
+    // build/csharp-local-types.js); installed last so it sees every other hook's proof
+    installCsharpNativeArithmetic (transpiler);
     // concrete return types for generated non-async dict/list-returning methods (see
     // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
     // the same boundary cast and the locals map registers the same types
     installCsharpCollectionReturns (transpiler);
+    // the C# type the emitted signature carries for a narrowed core argument (see the
+    // parameter-type section of build/csharp-local-types.js); installed last so it wraps the
+    // read-type resolver the numeric-comparison installer above already set
+    installCsharpParameterTypes (transpiler);
+    // native parameter declarations for the annotated internal methods (see the typed-parameter
+    // section of build/csharp-local-types.js) -- installed after every other hook so the
+    // call-site proof sees the same tables, and registers its parameters with
+    // csharpDeclaredLocalTypeResolver for the body's own reads
+    installCsharpParameterDeclarations (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

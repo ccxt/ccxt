@@ -184,7 +184,6 @@ class IndexedOrderBook extends OrderBook {
 //     }
 // }
 
-
 // // ----------------------------------------------------------------------------
 // // incremental and indexed (2 in 1)
 

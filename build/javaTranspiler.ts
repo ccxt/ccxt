@@ -20,7 +20,7 @@ import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -1094,6 +1094,126 @@ export function patchJavaLocalTypes (transpiler: any): void {
     printer._localTypesPatched = true;
 }
 
+// ===== java-13: the printed-Java String proof the `+` concat anchor needs =====
+//
+// `x + y` prints Helpers.add(x, y) unless one operand's printed text is statically a
+// String — javac compiles `+` only when one side is. The generator proves string
+// literals and the concats it prints itself; the two operand families only this layer
+// can prove are
+//
+//   * a local whose FINAL emitted declaration is `String <name> = ` — every local-typing
+//     slice rewrites the declaration text, so the proof is an observer of that text
+//     (the same trick java-local-types.js#observeJavaStringDeclaration uses, with this
+//     wrapper installed LAST so it sees what the whole chain emitted);
+//   * a call to a hand-written `public String` runtime method (BaseExchange accessors,
+//     the Precise string statics).
+//
+// javaExpressionTypeResolver hands both to the generator, whose javaProvableString then
+// emits the native concat (ast-transpiler src/javaTranspiler.ts). Anything unproven
+// returns undefined and keeps the helper.
+//
+// Every name below is a hand-written Java method declared `public String` /
+// `public static String` in java/lib/src/main/java/io/github/ccxt (BaseExchange,
+// base/SafeMethods, base/Strings, base/Time, base/NumberHelpers, base/Precise) and is
+// not redeclared with another return type anywhere in the generated tree (grepped:
+// only Kraken.java redeclares safeCurrencyCode, also as String).
+const JAVA_STRING_RUNTIME_METHODS = new Set ([
+    'safeString', 'safeString2', 'safeStringN', 'safeStringUpper', 'safeStringLower',
+    'uuid22', 'capitalize', 'numberToString', 'decimalToPrecision', 'safeCurrencyCode',
+    'yymmdd', 'yyyymmdd',
+]);
+const JAVA_STRING_PRECISE_METHODS = new Set ([
+    'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr', 'stringMax',
+    'stringMin', 'stringAbs', 'stringNeg', 'stringMod',
+]);
+
+// the printed Java type of an expression, or undefined when this layer cannot prove it
+function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<any>, node: any): string | undefined {
+    if (node === undefined) {
+        return undefined;
+    }
+    let current = node;
+    while (current.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current.kind === ts.SyntaxKind.StringLiteral || current.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return 'String';
+    }
+    if (current.kind === ts.SyntaxKind.Identifier) {
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+        } catch (e) {
+            return undefined;
+        }
+        if (declaration === undefined || !emittedStringLocals.has (declaration)) {
+            return undefined;
+        }
+        // the Java printer renames the identifiers captured by an object literal in place
+        // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
+        // renamed use site is NOT the type the local's own declaration was emitted with
+        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+            return undefined;
+        }
+        return 'String';
+    }
+    if (current.kind === ts.SyntaxKind.CallExpression) {
+        const callee = current.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            const receiver = callee.expression;
+            const name = String (callee.name?.escapedText);
+            const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
+            if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
+                return 'String';
+            }
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
+                return 'String';
+            }
+        }
+    }
+    return undefined;
+}
+
+// install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed
+// LAST in the main thread and in every worker so the declaration observer below sees the
+// final text of the whole local-typing chain.
+export function installJavaExpressionTypeResolver (transpiler: any): void {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaExpressionTypeResolverInstalled) {
+        return;
+    }
+    const emittedStringLocals = new WeakSet<any> ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node: any, identation: number) {
+        const printed = upstream (node, identation);
+        try {
+            const declarations = node?.declarations;
+            if (declarations !== undefined && declarations.length === 1) {
+                const declaration = declarations[0];
+                if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
+                    // a pro/prediction declaration the ws post-process rewrites back to
+                    // `Object` is not a String at the use sites either (same guard the
+                    // SS-03 `+` acceptance uses: wsPostProcessReverts)
+                    if (!wsPostProcessReverts (declaration)) {
+                        const iden = printer.getIden (identation);
+                        const printedName = printer.printNode (declaration.name, 0);
+                        const marker = `${iden}String ${printedName} = `;
+                        const at = printed.lastIndexOf (marker);
+                        if (at !== -1 && (at === 0 || printed.charAt (at - 1) === '\n')) {
+                            emittedStringLocals.add (declaration);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            // never break a print on an observer error
+        }
+        return printed;
+    };
+    printer.javaExpressionTypeResolver = (node: any) => javaPrintedExpressionType (printer, emittedStringLocals, node);
+    printer._javaExpressionTypeResolverInstalled = true;
+}
+
 // ===== SS-02 census: safeString-family locals with later writes (env-gated) =====
 //
 // Read-only instrumentation for the SS-02 slice — one JSON line per local whose
@@ -1614,6 +1734,21 @@ class NewTranspiler {
         // LAST so its declaration observer sees the final text of the whole chain
         // (also applied per worker thread in java-worker.ts)
         patchJavaStringReceiverCasts(this.transpiler);
+        // java-09: record the Java type every rewritten declaration carries and hand the
+        // table to the printer, so `Helpers.GetValue(x, "lit")` on a declared map local
+        // prints `x.get("lit")`. Installed LAST so the observer sees the final text
+        // (also applied per worker thread in java-worker.ts)
+        installJavaDeclaredLocalTypes(this.transpiler);
+        // hx7 java-03: box the row-builder parameter positions the pin types `Map<String, Object>`
+        // although the exchange hands them a raw row/list response (parseCurrency / parseTicker /
+        // parseTransfer — the java STATIC_RESPONSE ArrayList->Map sites). Installed LAST so no
+        // earlier installer's proof reads a native type this one removes
+        // (also applied per worker thread in java-worker.ts)
+        installJavaObjectParamPositions(this.transpiler);
+        // java-13: hand the generator the printed-Java String proof for a `+` concat
+        // anchor (declared-String locals + hand-written String runtime calls) — installed
+        // LAST for the same reason (also applied per worker thread in java-worker.ts)
+        installJavaExpressionTypeResolver(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3973,10 +4108,46 @@ class NewTranspiler {
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
-            const spawnMatch = lines[i].match(/this\.spawn\(\(\)\s*->\s*\{.*this\.(\w+)\(([^)]+)\)/);
+            const spawnMatch = lines[i].match(/this\.spawn\(\(\)\s*->\s*\{.*this\.(\w+)\(/);
             if (!spawnMatch) continue;
 
-            const args = spawnMatch[2].split(',').map((a: string) => a.trim());
+            // the arguments may carry the checkcast a retyped parameter demands
+            // (`(Map<String, Object>) (x)`), whose parens hold commas of their own: take the
+            // raw argument span to the matching close paren, split it at depth 0, and use the
+            // trailing identifier of each argument as the captured-variable candidate
+            let methodOpen = lines[i].indexOf(`this.${spawnMatch[1]}(`, lines[i].indexOf('this.spawn'));
+            if (methodOpen === -1) continue;
+            methodOpen += spawnMatch[1].length + 5;
+            let depth = 1;
+            let methodClose = methodOpen + 1;
+            for (; methodClose < lines[i].length && depth > 0; methodClose++) {
+                const ch = lines[i][methodClose];
+                if (ch === '(') depth++;
+                else if (ch === ')') depth--;
+            }
+            const argsText = lines[i].slice(methodOpen + 1, methodClose - 1);
+            const argOrigin = methodOpen + 1;
+            const candidates: { name: string, start: number, end: number }[] = [];
+            let argStart = 0;
+            depth = 0;
+            const addCandidate = (start: number, end: number) => {
+                const nameMatch = argsText.slice(start, end).match(/([a-z]\w*)\s*\)*\s*$/);
+                if (nameMatch !== null) {
+                    candidates.push({ name: nameMatch[1], start: argOrigin + start, end: argOrigin + end });
+                }
+            };
+            for (let k = 0; k < argsText.length; k++) {
+                const ch = argsText[k];
+                if (ch === ',' && depth === 0) {
+                    addCandidate(argStart, k);
+                    argStart = k + 1;
+                } else if (ch === '(' || ch === '<') {
+                    depth++;
+                } else if (ch === ')' || ch === '>') {
+                    depth--;
+                }
+            }
+            addCandidate(argStart, argsText.length);
 
             let methodStart = 0;
             for (let j = i - 1; j >= 0; j--) {
@@ -3986,8 +4157,10 @@ class NewTranspiler {
                 }
             }
 
-            for (const arg of args) {
-                if (!arg.match(/^[a-z]\w+$/)) continue;
+            const finals: { name: string, start: number, end: number }[] = [];
+            for (const candidate of candidates) {
+                const arg = candidate.name;
+                if (finals.some((f) => f.name === arg)) continue;
                 let reassigned = false;
                 for (let j = methodStart; j < i; j++) {
                     if (new RegExp(`^\\s+${arg}\\s*=\\s`).test(lines[j])) {
@@ -3996,16 +4169,23 @@ class NewTranspiler {
                     }
                 }
                 if (reassigned) {
-                    const finalName = `_final_${arg}`;
-                    const indent = lines[i].match(/^\s*/)?.[0] || '';
-                    lines.splice(i, 0, `${indent}final Object ${finalName} = ${arg};`);
-                    i++;
-                    lines[i] = lines[i].replace(
-                        new RegExp(`this\\.(\\w+)\\(([^)]*\\b)${arg}\\b`),
-                        (m: string, method: string, before: string) => `this.${method}(${before}${finalName}`
-                    );
+                    finals.push(candidate);
                 }
             }
+            if (finals.length === 0) continue;
+
+            // from the last argument to the first, so the earlier offsets stay valid
+            let line = lines[i];
+            for (const candidate of finals.slice().reverse()) {
+                const finalName = `_final_${candidate.name}`;
+                const segment = line.slice(candidate.start, candidate.end);
+                const replaced = segment.replace(new RegExp(`\\b${candidate.name}\\b`), finalName);
+                line = line.slice(0, candidate.start) + replaced + line.slice(candidate.end);
+            }
+            const indent = lines[i].match(/^\s*/)?.[0] || '';
+            lines.splice(i, 0, ...finals.map((c) => `${indent}final Object _final_${c.name} = ${c.name};`));
+            lines[i + finals.length] = line;
+            i += finals.length;
         }
 
         return lines.join('\n');

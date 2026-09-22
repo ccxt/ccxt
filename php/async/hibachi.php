@@ -738,7 +738,7 @@ class hibachi extends Exchange {
             $remainingString = Precise::string_sub($totalQuantity, $filled);
         }
         $timeInForce = 'GTC';
-        $orderFlags = $this->safe_value($order, 'orderFlags');
+        $orderFlags = $this->safe_string($order, 'orderFlags');
         $postOnly = false;
         $reduceOnly = false;
         if ($orderFlags === 'POST_ONLY') {
@@ -852,7 +852,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function order_message(mixed $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
+    public function order_message(array $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -908,7 +908,7 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function create_order_request(float $nonce, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(float $nonce, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -961,7 +961,7 @@ class hibachi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1021,8 +1021,8 @@ class hibachi extends Exchange {
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($nonce . $i, $symbol, $type, $side, $amount, $price, $orderParams);
             $orderRequest['action'] = 'place';
@@ -1049,7 +1049,7 @@ class hibachi extends Exchange {
         return $ret;
     }
 
-    public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1075,7 +1075,7 @@ class hibachi extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1136,8 +1136,8 @@ class hibachi extends Exchange {
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->edit_order_request($nonce . $i, $id, $symbol, $type, $side, $amount, $price, $orderParams);
             $orderRequest['action'] = 'modify';
@@ -1176,7 +1176,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1205,7 +1205,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1247,7 +1247,7 @@ class hibachi extends Exchange {
         return $ret;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1390,11 +1390,11 @@ class hibachi extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         if (strlen($privateKey) === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
@@ -1476,7 +1476,7 @@ class hibachi extends Exchange {
         return $this->parse_order_book($formattedResponse, $symbol, $this->milliseconds(), 'bid', 'ask', 'price', 'quantity');
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1852,7 +1852,7 @@ class hibachi extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "direction": "Short",
@@ -1899,7 +1899,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
@@ -1943,7 +1943,7 @@ class hibachi extends Exchange {
         return null;
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'deposit' => 'transaction',
             'withdrawal' => 'transaction',
@@ -2294,7 +2294,7 @@ class hibachi extends Exchange {
         return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
     }
 
-    public function parse_settlement(mixed $settlement, ?array $market = null) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         //     {
         //         "direction": "Long",
@@ -2317,7 +2317,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, ?array $market = null) {
+    public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -2405,7 +2405,7 @@ class hibachi extends Exchange {
         return $this->safe_integer($response, 'timestampMs');
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -2502,7 +2502,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 

@@ -54,12 +54,12 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", "maker", null});
         }
         testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (!isTrue((inOp(skippedProperties, "fees"))))
+        if (!(inOp(skippedProperties, "fees")))
         {
             // todo: remove undefined check and probably non-empty array check later
-            if (isTrue(!isEqual(getValue(entry, "fees"), null)))
+            if (!isEqual(getValue(entry, "fees"), null))
             {
-                for (int i = 0; isLessThan(i, getArrayLength(getValue(entry, "fees"))); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(getValue(entry, "fees")); i++)
                 {
                     testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, getValue(entry, "fees"), i);
                 }

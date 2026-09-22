@@ -347,7 +347,7 @@ class bitopro(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -407,7 +407,7 @@ class bitopro(Exchange, ImplicitAPI):
             'networks': None,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bitopro
 
@@ -541,7 +541,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -574,7 +574,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -605,7 +605,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -726,7 +726,7 @@ class bitopro(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -760,7 +760,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -773,7 +773,7 @@ class bitopro(Exchange, ImplicitAPI):
             self.load_markets()
         response = self.publicGetProvisioningLimitationsAndFees(params)
         tradingFeeRate = self.safe_dict(response, 'tradingFeeRate', {})
-        first = self.safe_value(tradingFeeRate, 0)
+        first = self.safe_dict(tradingFeeRate, 0)
         #
         #     {
         #         "tradingFeeRate":[
@@ -861,7 +861,7 @@ class bitopro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -978,7 +978,7 @@ class bitopro(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1106,7 +1106,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1136,7 +1136,7 @@ class bitopro(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
             if triggerPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders')
@@ -1163,7 +1163,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1209,7 +1209,7 @@ class bitopro(Exchange, ImplicitAPI):
                 }))
         return orders
 
-    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1243,7 +1243,7 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1278,7 +1278,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_cancel_orders(data)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1324,7 +1324,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1384,7 +1384,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1407,7 +1407,7 @@ class bitopro(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1424,7 +1424,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1562,7 +1562,7 @@ class bitopro(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1612,7 +1612,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1661,7 +1661,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1701,7 +1701,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1751,7 +1751,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #    {
         #        "currency":"eth",
         #        "withdrawFee":"0.007",
@@ -1775,7 +1775,7 @@ class bitopro(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -1807,7 +1807,7 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if headers is None:

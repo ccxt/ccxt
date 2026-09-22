@@ -1580,7 +1580,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         return this.safeTrade({
-            'id': this.safeStringN(trade, ['id', 't', 'fillId']),
+            'id': this.safeStringN(trade, ['id', 't', 'fillId', 'tradeId']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
@@ -4452,7 +4452,7 @@ class bingx extends bingx$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeValue(params, 'clientOrderIds');
+        const clientOrderIds = this.safeList(params, 'clientOrderIds');
         params = this.omit(params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
@@ -5730,7 +5730,7 @@ class bingx extends bingx$1["default"] {
         //
         // parse withdraw-type output first...
         //
-        const data = this.safeValue(transaction, 'data');
+        const data = this.safeDict(transaction, 'data');
         const dataId = (data === undefined) ? undefined : this.safeString(data, 'id');
         const id = this.safeString(transaction, 'id', dataId);
         const address = this.safeString(transaction, 'address');

@@ -8,7 +8,7 @@ from ccxt.abstract.zebpay import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -240,7 +240,7 @@ class zebpay(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -281,7 +281,7 @@ class zebpay(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the poloniexfutures server
 
@@ -316,7 +316,7 @@ class zebpay(Exchange, ImplicitAPI):
         time = self.safe_integer(data, 'timestamp')
         return time
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for zebpay
 
@@ -343,7 +343,7 @@ class zebpay(Exchange, ImplicitAPI):
         futureMarkets = self.safe_list(promises, 1, [])
         return self.array_concat(spotMarkets, futureMarkets)
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -464,7 +464,7 @@ class zebpay(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -480,7 +480,7 @@ class zebpay(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         response = None
-        data
+        data = None
         request = {
             'symbol': market['id'],
         }
@@ -520,7 +520,7 @@ class zebpay(Exchange, ImplicitAPI):
             data = self.safe_dict(responseData, 0, {})
         return self.parse_trading_fee(data, market)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -559,7 +559,7 @@ class zebpay(Exchange, ImplicitAPI):
                 result[symbol] = fee
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -601,7 +601,7 @@ class zebpay(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(bookData, 'nonce')
         return orderbook
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -644,7 +644,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -683,7 +683,7 @@ class zebpay(Exchange, ImplicitAPI):
         tickerList = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickerList, symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -762,7 +762,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -803,7 +803,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -831,7 +831,7 @@ class zebpay(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_trades(items, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -933,7 +933,7 @@ class zebpay(Exchange, ImplicitAPI):
             'fee': self.safe_dict(trade, 'fee'),
         }, market)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -973,7 +973,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         Create an order on the exchange
 
@@ -1041,7 +1041,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol: object, type: object, amount: object, request: object, price: Num = None, params={}):
+    def order_request(self, symbol: str, type: str, amount: Num, request: dict, price: Num = None, params: dict = {}):
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
@@ -1062,7 +1062,7 @@ class zebpay(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         return [request, params]
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1100,7 +1100,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         return self.parse_order(self.safe_dict(response, 'data', {}))
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancels all open orders
 
@@ -1130,7 +1130,7 @@ class zebpay(Exchange, ImplicitAPI):
         parsedOrder = self.parse_order(data)
         return [parsedOrder]
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple open orders made by the user
 
@@ -1193,7 +1193,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, None, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1304,7 +1304,7 @@ class zebpay(Exchange, ImplicitAPI):
         }, market)
         return parsedOrder
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -1326,7 +1326,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """
         fetch the set leverage for all contract and margin markets
 
@@ -1354,7 +1354,7 @@ class zebpay(Exchange, ImplicitAPI):
         leveragePreferences = self.safe_list(response, 'data', [])
         return self.parse_leverages(leveragePreferences, symbols, 'symbol')
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -1379,7 +1379,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -1405,7 +1405,7 @@ class zebpay(Exchange, ImplicitAPI):
         response = await self.privateSwapPostV1TradeUpdateUserLeverage(self.extend(request, params))
         return response
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
 
         [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-positions
@@ -1438,7 +1438,7 @@ class zebpay(Exchange, ImplicitAPI):
         result = self.parse_positions(positions)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -1483,7 +1483,7 @@ class zebpay(Exchange, ImplicitAPI):
             'direction': 'in',
         })
 
-    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
 
@@ -1522,7 +1522,7 @@ class zebpay(Exchange, ImplicitAPI):
             'direction': 'out',
         })
 
-    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         response = await self.publicSpotGetV2ExExchangeInfo(params)
         #
         #    {
@@ -1594,7 +1594,7 @@ class zebpay(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         response = await self.publicSwapGetV1MarketMarkets(params)
         #
         #    {
@@ -1802,7 +1802,7 @@ class zebpay(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_margin_modification(self, info: object, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, info: dict, market: Market = None) -> MarginModification:
         #
         #    {
         #         "symbol": "BTCINR",
@@ -1825,7 +1825,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'

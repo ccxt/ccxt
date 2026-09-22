@@ -423,7 +423,7 @@ class coinone extends Exchange {
         $tickers = $this->safe_list($response, 'tickers', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $entry = $this->safe_value($tickers, $i);
+            $entry = $this->safe_dict($tickers, $i);
             $id = $this->safe_string($entry, 'id');
             $baseId = $this->safe_string_upper($entry, 'target_currency');
             $quoteId = $this->safe_string_upper($entry, 'quote_currency');
@@ -883,7 +883,7 @@ class coinone extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -935,7 +935,7 @@ class coinone extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1163,7 +1163,7 @@ class coinone extends Exchange {
         return $this->parse_orders($openOrders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1211,7 +1211,7 @@ class coinone extends Exchange {
         return $this->parse_trades($completeOrders, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1291,10 +1291,10 @@ class coinone extends Exchange {
                 continue;
             }
             $parts = explode('_', $key);
-            $currencyId = $this->safe_value($parts, 0);
-            $secondPart = $this->safe_value($parts, 1);
+            $currencyId = $this->safe_string($parts, 0);
+            $secondPart = $this->safe_string($parts, 1);
             $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_value($result, $code);
+            $depositAddress = $this->safe_dict($result, $code);
             if ($depositAddress === null) {
                 $depositAddress = array(
                     'info' => $value,
@@ -1319,7 +1319,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . '/';

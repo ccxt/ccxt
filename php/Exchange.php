@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.81';
+$version = '4.5.82';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.81';
+    const VERSION = '4.5.82';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.81';
+    public static $ccxt_version = '4.5.82';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3780,7 +3780,7 @@ class BaseExchange {
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
 
-    public function check_ws_proxy_settings() {
+    public function check_ws_proxy_settings(): array {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
@@ -4446,7 +4446,7 @@ class BaseExchange {
         }
     }
 
-    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+    public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
         // if exchange does not have that market-type (eg. future>inverse)
         if ($featuresObj === null) {
@@ -6525,7 +6525,7 @@ class BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->seconds();
     }
 
@@ -7009,7 +7009,7 @@ class BaseExchange {
         return true;
     }
 
-    public function oath() {
+    public function oath(): string {
         if ($this->twofa !== null) {
             return $this->totp($this->twofa);
         } else {

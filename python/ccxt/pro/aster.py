@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, MarketInterface
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -135,7 +135,7 @@ class aster(ccxt.async_support.aster):
         params['callerMethodName'] = 'unWatchTicker'
         return await self.un_watch_tickers([symbol], params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -254,7 +254,7 @@ class aster(ccxt.async_support.aster):
         params['callerMethodName'] = 'unWatchMarkPrice'
         return await self.un_watch_mark_prices([symbol], params)
 
-    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches the mark price for all markets
 
@@ -341,7 +341,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #             "e": "24hrTicker",
@@ -383,7 +383,7 @@ class aster(ccxt.async_support.aster):
             self.tickers[symbol] = parsed
             client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, message: object, marketType: object):
+    def parse_ws_ticker(self, message: dict, marketType: Str) -> Ticker:
         event = self.safe_string(message, 'e')
         marketId = self.safe_string(message, 's')
         timestamp = self.safe_integer(message, 'E')
@@ -421,7 +421,7 @@ class aster(ccxt.async_support.aster):
             'info': message,
         }, market)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -500,7 +500,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('unsubscribe:bidask:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #     {
         #             "e": "bookTicker",
@@ -525,7 +525,7 @@ class aster(ccxt.async_support.aster):
         messageHash = 'bidask:' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message: object, market: Market = None):
+    def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'T')
         bidAskSymbol = market['symbol'] if (market is not None) else None
         return self.safe_ticker({
@@ -571,7 +571,7 @@ class aster(ccxt.async_support.aster):
         params['callerMethodName'] = 'unWatchTrades'
         return await self.un_watch_trades_for_symbols([symbol], params)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -612,7 +612,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('trade::' + market['symbol'])
         trades = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -653,7 +653,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('unsubscribe:trade:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    def handle_trade(self, client: Client, message: object):
+    def handle_trade(self, client: Client, message: dict):
         #
         #     {
         #         "e": "aggTrade",
@@ -683,7 +683,7 @@ class aster(ccxt.async_support.aster):
         stored.append(parsed)
         client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public watchTrades (spot)
         #
@@ -859,7 +859,7 @@ class aster(ccxt.async_support.aster):
         params['callerMethodName'] = 'unWatchOrderBook'
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -944,7 +944,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('unsubscribe:orderbook:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #             "e": "depthUpdate",
@@ -1019,7 +1019,7 @@ class aster(ccxt.async_support.aster):
         params['callerMethodName'] = 'unWatchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1111,7 +1111,7 @@ class aster(ccxt.async_support.aster):
             messageHashes.append('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #             "e": "kline",
@@ -1148,7 +1148,7 @@ class aster(ccxt.async_support.aster):
         timeframe = self.find_timeframe(timeframeId)
         if timeframe is None:
             return
-        ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
+        ohlcvsByTimeframe = self.safe_dict(self.ohlcvs, symbol)
         if ohlcvsByTimeframe is None:
             self.ohlcvs[symbol] = {}
         if self.safe_value(ohlcvsByTimeframe, timeframe) is None:
@@ -1171,7 +1171,7 @@ class aster(ccxt.async_support.aster):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def authenticate(self, type='spot', params={}):
+    async def authenticate(self, type: str = 'spot', params: dict = {}):
         time = self.milliseconds()
         lastAuthenticatedTimeOptions = self.safe_dict(self.options, 'lastAuthenticatedTime', {})
         lastAuthenticatedTime = self.safe_integer(lastAuthenticatedTimeOptions, type, 0)
@@ -1223,7 +1223,7 @@ class aster(ccxt.async_support.aster):
                 client.reject(e, messageHash)
             await future
 
-    async def keep_alive_listen_key(self, params={}):
+    async def keep_alive_listen_key(self, params: dict = {}):
         type = self.safe_string(params, 'type', 'spot')
         listenKeyOptions = self.safe_dict(self.options, 'listenKey', {})
         listenKey = self.safe_string(listenKeyOptions, type)
@@ -1249,13 +1249,13 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
-    def get_private_url(self, type='spot'):
+    def get_private_url(self, type: str = 'spot') -> str:
         listenKeyOptions = self.safe_dict(self.options, 'listenKey', {})
         listenKey = self.safe_string(listenKeyOptions, type)
         url = self.urls['api']['ws']['private'][type] + '/' + listenKey
         return url
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1286,7 +1286,7 @@ class aster(ccxt.async_support.aster):
     def set_balance_cache(self, client: Client, type: object):
         if (type in client.subscriptions) and (type in self.balance):
             return
-        options = self.safe_value(self.options, 'watchBalance')
+        options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
@@ -1296,19 +1296,19 @@ class aster(ccxt.async_support.aster):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: object, type: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: object):
         params = {
             'type': type,
         }
         response = await self.fetch_balance(params)
-        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]
             future.resolve()
             client.resolve(self.balance[type], type + ':balance')
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # spot balance update
         #     {
@@ -1386,7 +1386,7 @@ class aster(ccxt.async_support.aster):
         self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watch all open positions
 
@@ -1437,7 +1437,7 @@ class aster(ccxt.async_support.aster):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1452,7 +1452,7 @@ class aster(ccxt.async_support.aster):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client: object, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         #     {
         #         "e": "ACCOUNT_UPDATE",
@@ -1508,7 +1508,7 @@ class aster(ccxt.async_support.aster):
                 client.resolve(position, symbolMessageHash)
             client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position: object, market: Market = None):
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "s": "BTCUSDT", // Symbol
@@ -1559,7 +1559,7 @@ class aster(ccxt.async_support.aster):
             'marginRatio': None,
         })
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1593,7 +1593,7 @@ class aster(ccxt.async_support.aster):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1627,7 +1627,7 @@ class aster(ccxt.async_support.aster):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_order_update(self, client: Client, message: object):
+    def handle_order_update(self, client: Client, message: dict):
         rawOrder = self.safe_dict(message, 'o', message)
         e = self.safe_string(message, 'e')
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
@@ -1635,7 +1635,7 @@ class aster(ccxt.async_support.aster):
         self.handle_order(client, rawOrder)
         self.handle_my_trade(client, message)
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict):
         messageHash = 'myTrades'
         executionType = self.safe_string(message, 'x')
         if executionType == 'TRADE':
@@ -1650,12 +1650,12 @@ class aster(ccxt.async_support.aster):
             if orderId is not None and tradeFee is not None and symbol is not None:
                 cachedOrders = self.orders
                 if cachedOrders is not None:
-                    orders = self.safe_value(cachedOrders.hashmap, symbol, {})
-                    order = self.safe_value(orders, orderId)
+                    orders = self.safe_dict(cachedOrders.hashmap, symbol, {})
+                    order = self.safe_dict(orders, orderId)
                     if order is not None:
                         # accumulate order fees
-                        fees = self.safe_value(order, 'fees')
-                        fee = self.safe_value(order, 'fee')
+                        fees = self.safe_list(order, 'fees', [])
+                        fee = self.safe_dict(order, 'fee')
                         if not self.is_empty(fees):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
@@ -1695,7 +1695,7 @@ class aster(ccxt.async_support.aster):
             messageHashSymbol = messageHash + '::' + symbol
             client.resolve(self.myTrades, messageHashSymbol)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         # spot
         #     {
@@ -1785,7 +1785,7 @@ class aster(ccxt.async_support.aster):
             client.resolve(cache, symbolMessageHash)
             client.resolve(cache, messageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
         market = self.safe_market(marketId, market)
@@ -1844,16 +1844,16 @@ class aster(ccxt.async_support.aster):
             'trades': None,
         })
 
-    def get_market_from_order(self, client: Client, order: object):
+    def get_market_from_order(self, client: Client, order: dict) -> MarketInterface:
         marketId = self.safe_string(order, 's')
         marketType = self.get_account_type_from_url(client.url)
         return self.safe_market(marketId, None, None, marketType)
 
-    def handle_balance_and_position(self, client: Client, message: object):
+    def handle_balance_and_position(self, client: Client, message: dict):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         messageInner = self.safe_dict(message, 'data', message)  # can be either wrapped in 'data' or full object itself
         event = self.safe_string(messageInner, 'e')
         methods = {

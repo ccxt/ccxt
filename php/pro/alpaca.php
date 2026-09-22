@@ -99,7 +99,7 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //    {
         //         "T": "q",
@@ -120,7 +120,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //         "T": "q",
@@ -194,7 +194,7 @@ class alpaca extends \ccxt\async\alpaca {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //    {
         //        "T": "b",
@@ -254,7 +254,7 @@ class alpaca extends \ccxt\async\alpaca {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // snapshot
         //    {
@@ -347,7 +347,7 @@ class alpaca extends \ccxt\async\alpaca {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "T": "t",
@@ -450,12 +450,12 @@ class alpaca extends \ccxt\async\alpaca {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_trade_update(Client $client, mixed $message) {
+    public function handle_trade_update(Client $client, array $message) {
         $this->handle_order($client, $message);
         $this->handle_my_trade($client, $message);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -501,8 +501,8 @@ class alpaca extends \ccxt\async\alpaca {
         //        }
         //      }
         //
-        $data = $this->safe_value($message, 'data', array());
-        $rawOrder = $this->safe_value($data, 'order', array());
+        $data = $this->safe_dict($message, 'data', array());
+        $rawOrder = $this->safe_dict($data, 'order', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -516,7 +516,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($orders, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -562,12 +562,12 @@ class alpaca extends \ccxt\async\alpaca {
         //        }
         //      }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $event = $this->safe_string($data, 'event');
         if ($event !== 'fill' && $event !== 'partial_fill') {
             return;
         }
-        $rawOrder = $this->safe_value($data, 'order', array());
+        $rawOrder = $this->safe_dict($data, 'order', array());
         $myTrades = $this->myTrades;
         if ($myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -584,7 +584,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function parse_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_my_trade(array $trade, ?array $market = null) {
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -649,11 +649,11 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function authenticate(mixed $url, $params = array()) {
+    public function authenticate(string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(mixed $url, $params = array()) {
+    private function do_authenticate(string $url, $params = array()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
@@ -680,7 +680,7 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
         //        "T": "error",
@@ -693,7 +693,7 @@ class alpaca extends \ccxt\async\alpaca {
         throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
     }
 
-    public function handle_connected(Client $client, mixed $message) {
+    public function handle_connected(Client $client, array $message): array {
         //
         //    {
         //        "T": "success",
@@ -703,7 +703,7 @@ class alpaca extends \ccxt\async\alpaca {
         return $message;
     }
 
-    public function handle_crypto_message(Client $client, mixed $message) {
+    public function handle_crypto_message(Client $client, array $message) {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
@@ -734,7 +734,7 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_trading_message(Client $client, mixed $message) {
+    public function handle_trading_message(Client $client, array $message) {
         $stream = $this->safe_string($message, 'stream');
         $methods = array(
             'authorization' => array($this, 'handle_authenticate'),
@@ -755,7 +755,7 @@ class alpaca extends \ccxt\async\alpaca {
         $this->handle_trading_message($client, $message);
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message) {
         //
         // crypto
         //    {
@@ -782,7 +782,7 @@ class alpaca extends \ccxt\async\alpaca {
         //    }
         //
         $T = $this->safe_string($message, 'T');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $status = $this->safe_string($data, 'status');
         if ($T === 'success' || $status === 'authorized') {
             $promise = $client->futures['authenticated'];
@@ -792,7 +792,7 @@ class alpaca extends \ccxt\async\alpaca {
         throw new AuthenticationError($this->id . ' failed to authenticate.');
     }
 
-    public function handle_subscription(Client $client, mixed $message) {
+    public function handle_subscription(Client $client, array $message): array {
         //
         // crypto
         //    {

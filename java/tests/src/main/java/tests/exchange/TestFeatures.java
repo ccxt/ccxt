@@ -25,30 +25,30 @@ public class TestFeatures extends BaseTest {
         List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option"));
         List<Object> subTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
-        Object keys = Helpers.objectKeys(features);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)features).keySet());
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
-            Object marketType = Helpers.GetValue(keys, i);
+            Object marketType = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(features, marketType);
             // Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
-            if (Helpers.isTrue(Helpers.isEqual(value, null)))
+            if (java.util.Objects.equals(value, null))
             {
                 continue;
             }
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            if (java.util.Objects.equals(marketType, "spot"))
             {
                 testFeaturesInner(exchange, skippedProperties, value);
             } else
             {
-                Object subKeys = Helpers.objectKeys(value);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subKeys)); j++)
+                List<Object> subKeys = new ArrayList<Object>(((Map<String, Object>)value).keySet());
+                for (var j = 0; j < ((List<?>)subKeys).size(); j++)
                 {
-                    Object subKey = Helpers.GetValue(subKeys, j);
+                    Object subKey = (subKeys == null || j < 0 || j >= subKeys.size() ? null : subKeys.get(j));
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
                     Object subValue = Helpers.GetValue(value, subKey);
                     // sometimes it might not be available for exchange, eg. future>inverse)
-                    if (Helpers.isTrue(!Helpers.isEqual(subValue, null)))
+                    if (!java.util.Objects.equals(subValue, null))
                     {
                         testFeaturesInner(exchange, skippedProperties, subValue);
                     }
@@ -137,9 +137,9 @@ public class TestFeatures extends BaseTest {
                 put( "limit", 0 );
             }} );
         }};
-        Object featureKeys = Helpers.objectKeys(featureObj);
-        Object allMethods = Helpers.objectKeys(exchange.has);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(featureKeys)); i++)
+        List<Object> featureKeys = Helpers.objectKeys(featureObj);
+        List<Object> allMethods = Helpers.objectKeys(exchange.has);
+        for (var i = 0; i < ((List<?>)featureKeys).size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);
             TestSharedMethods.AssertStructure(exchange, skippedProperties, "features", featureObj, format, null, true); // deep structure check

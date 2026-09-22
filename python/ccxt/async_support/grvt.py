@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.grvt import ImplicitAPI
 import asyncio
 import math
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -511,7 +511,7 @@ class grvt(Exchange, ImplicitAPI):
             raise ExchangeError('You should provide either "privateKey" or "apikey & secret"')
         return privateKeyDefined
 
-    async def sign_in(self, params={}):
+    async def sign_in(self, params: dict = {}):
         """
         sign in, must be called prior to using other authenticated methods
 
@@ -533,7 +533,7 @@ class grvt(Exchange, ImplicitAPI):
         await self.load_account_infos()
         return True
 
-    async def sign_in_with_api_key(self, params={}):
+    async def sign_in_with_api_key(self, params: dict = {}) -> dict:
         now = self.milliseconds()
         # expires in 24 hours as CS suggested
         expires = self.safe_integer(self.options, 'signInExpiration', 0)
@@ -553,7 +553,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['signInExpiration'] = now + 86400000  # 24 hours
         return response
 
-    async def sign_in_with_private_key(self, params={}):
+    async def sign_in_with_private_key(self, params: dict = {}) -> dict:
         self.check_required_credentials()
         now = self.milliseconds()
         # expires in 24 hours as CS suggested
@@ -577,7 +577,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['signInExpiration'] = now + 86400000  # 24 hours
         return response
 
-    async def initialize_client(self, params={}):
+    async def initialize_client(self, params: dict = {}) -> Bool:
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
         if builderFee is not True:
             return False  # skip if builder fee is not enabled
@@ -635,7 +635,7 @@ class grvt(Exchange, ImplicitAPI):
                 self.options['builderFee'] = False  # disable builder fee if an error occurs
         return None  # just c#
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets
 
@@ -772,7 +772,7 @@ class grvt(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -837,7 +837,7 @@ class grvt(Exchange, ImplicitAPI):
             'numericId': self.safe_integer(rawCurrency, 'id'),
         })
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -946,7 +946,7 @@ class grvt(Exchange, ImplicitAPI):
             'previousClose': None,
         })
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -989,7 +989,7 @@ class grvt(Exchange, ImplicitAPI):
         marketId = self.safe_string(result, 'instrument')
         return self.parse_order_book(result, self.safe_symbol(marketId), timestamp, 'bids', 'asks', 'price', 'size')
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1119,7 +1119,7 @@ class grvt(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'order_id'),
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1206,7 +1206,7 @@ class grvt(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume_b'),
         ]
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1257,7 +1257,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_funding_rate_histories(result, market)
 
-    def parse_funding_rate_history(self, rawItem: object, market: Market = None):
+    def parse_funding_rate_history(self, rawItem: object, market: Market = None) -> FundingRateHistory:
         #
         #            {
         #                "instrument": "BTC_USDT_Perp",
@@ -1281,14 +1281,14 @@ class grvt(Exchange, ImplicitAPI):
             'datetime': self.iso8601(ts),
         }
 
-    def get_sub_account_id(self, params: object):
+    def get_sub_account_id(self, params: dict) -> str:
         subAccountId = None
         subAccountId, params = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
         return str(subAccountId)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for account info
 
@@ -1379,7 +1379,7 @@ class grvt(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1429,7 +1429,7 @@ class grvt(Exchange, ImplicitAPI):
             result = self.safe_list(response, 'result', [])
             return self.parse_transactions(result, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1490,7 +1490,7 @@ class grvt(Exchange, ImplicitAPI):
             result = self.safe_list(response, 'result', [])
             return self.parse_transactions(result, currency, since, limit)
 
-    async def internal_fetch_transfers(self, req: object, currency: object = None, since: Int = None, limit: Int = None):
+    async def internal_fetch_transfers(self, req: dict, currency: Currency = None, since: Int = None, limit: Int = None) -> list[TransferEntry]:
         response = await self.privateTradingPostFullV1TransferHistory(req)
         #
         #    {
@@ -1635,7 +1635,7 @@ class grvt(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -1713,7 +1713,7 @@ class grvt(Exchange, ImplicitAPI):
                     nonMatchedResults.append(transfer)
         return [matchedResults, nonMatchedResults]
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -1870,7 +1870,7 @@ class grvt(Exchange, ImplicitAPI):
             self.options['accountId'] = subAccountId
         return True
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1912,7 +1912,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_transaction(result, currency)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2109,7 +2109,7 @@ class grvt(Exchange, ImplicitAPI):
     def convert_to_big_int_custom(self, x: object):
         return int(x)
 
-    def eip_message_for_order(self, order: object, structureType: object):
+    def eip_message_for_order(self, order: dict, structureType: Str) -> dict:
         priceMultiplier = '1000000000'
         orderLegs = self.safe_list(order, 'legs', [])
         legs = []
@@ -2159,7 +2159,7 @@ class grvt(Exchange, ImplicitAPI):
             returnValue['builderFee'] = self.parse_to_int(self.convert_to_big_int_custom(self.fee_amount_multiplier()) * float(order['builder_fee']))  # the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         return returnValue
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2228,7 +2228,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, None, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2282,7 +2282,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_positions(result, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #            {
         #                "event_time": "1765258069092857642",
@@ -2339,7 +2339,7 @@ class grvt(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+    async def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """
         fetch the set leverage for all contract markets
 
@@ -2368,7 +2368,7 @@ class grvt(Exchange, ImplicitAPI):
         results = self.safe_list(response, 'results', [])
         return self.parse_leverages(results, symbols)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> Leverage:
         """
         set the level of leverage for a market
 
@@ -2425,7 +2425,7 @@ class grvt(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+    async def fetch_margin_modes(self, symbols: Strings = None, params: dict = {}) -> MarginModes:
         """
         fetches margin mode of the user
 
@@ -2473,7 +2473,7 @@ class grvt(Exchange, ImplicitAPI):
             'marginMode': self.safe_string_lower(marginMode, 'margin_type'),
         }
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -2551,7 +2551,7 @@ class grvt(Exchange, ImplicitAPI):
             'amount': self.safe_number(income, 'amount'),
         }
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2647,7 +2647,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2727,7 +2727,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, None, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2972,7 +2972,7 @@ class grvt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -3003,7 +3003,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_orders([result])
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -3131,7 +3131,7 @@ class grvt(Exchange, ImplicitAPI):
             'chain_id': '326' if self.isSandboxModeEnabled else '325',
         }
 
-    def handle_until_option_string(self, key: str, request: object, params: object, multiplier=1):
+    def handle_until_option_string(self, key: str, request: dict, params: dict = None, multiplier: float = 1) -> list[object]:
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
             request[key] = self.number_to_string(self.parse_to_int(until * multiplier))
@@ -3143,7 +3143,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + path
         queryString = ''

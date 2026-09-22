@@ -55,7 +55,6 @@ import {
     isAmd64,
 } from './tests.helpers.js';
 
-
 class testMainClass {
     idTests: boolean = false;
     requestTestsFailed: boolean = false;

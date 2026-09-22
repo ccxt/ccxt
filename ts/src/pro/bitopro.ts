@@ -49,7 +49,7 @@ export default class bitopro extends bitoproRest {
         });
     }
 
-    async watchPublic (path: any, messageHash: any, marketId: any) {
+    async watchPublic (path: string, messageHash: string, marketId: Str) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
         return await this.watch (url, messageHash, undefined, messageHash);
     }
@@ -64,7 +64,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
@@ -86,7 +86,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "event": "ORDER_BOOK",
@@ -134,7 +134,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -148,7 +148,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         //     {
         //         "event": "TRADE",
@@ -173,7 +173,7 @@ export default class bitopro extends bitoproRest {
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
-        const rawData = this.safeValue (message, 'data', []);
+        const rawData = this.safeList (message, 'data', []);
         const trades = this.parseTrades (rawData, market);
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
@@ -198,7 +198,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -217,7 +217,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "event": "USER_TRADE",
@@ -241,7 +241,7 @@ export default class bitopro extends bitoproRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeString (data, 'base');
         const quoteId = this.safeString (data, 'quote');
         const base = this.safeCurrencyCode (baseId);
@@ -308,7 +308,7 @@ export default class bitopro extends bitoproRest {
                 'rate': undefined,
             };
         }
-        const isMaker = this.safeValue (trade, 'isMaker');
+        const isMaker = this.safeBool (trade, 'isMaker');
         let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
             if (isMaker === true) {
@@ -343,7 +343,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -353,7 +353,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "event": "TICKER",
@@ -390,7 +390,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (result, messageHash);
     }
 
-    authenticate (url: any) {
+    authenticate (url: string) {
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
@@ -432,7 +432,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -443,7 +443,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "event": "ACCOUNT_BALANCE",
@@ -461,7 +461,7 @@ export default class bitopro extends bitoproRest {
         //     }
         //
         const event = this.safeString (message, 'event');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const timestamp = this.safeInteger (message, 'timestamp');
         const datetime = this.safeString (message, 'datetime');
         const currencies = Object.keys (data);
@@ -472,7 +472,7 @@ export default class bitopro extends bitoproRest {
         };
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString (currencies, i);
-            const balance = this.safeValue (data, currency);
+            const balance = this.safeDict (data, currency, {});
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -486,7 +486,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

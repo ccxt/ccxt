@@ -13,8 +13,8 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: any, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     /**
      * @method
@@ -25,8 +25,8 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: any): void;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    handleTicker(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -39,13 +39,11 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
-    ping(client: Client): {
-        request_type: string;
-    };
-    handlePong(client: Client, message: any): any;
+    handleMessage(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): Dict;
 }

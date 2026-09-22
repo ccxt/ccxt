@@ -82,7 +82,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "topic":"orderbook",
@@ -111,7 +111,7 @@ class hollaex extends \ccxt\async\hollaex {
         if ($symbol === null) {
             return;
         }
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $timestamp = $this->safe_string($data, 'timestamp');
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
@@ -159,7 +159,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "topic": "trade",
@@ -185,7 +185,7 @@ class hollaex extends \ccxt\async\hollaex {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($parsedTrades[$j]);
@@ -228,7 +228,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_my_trades(Client $client, array $message, ?array $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -319,7 +319,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_order(Client $client, array $message, ?array $subscription = null) {
         //
         //     {
         //         "topic": "order",
@@ -434,7 +434,7 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch_private($messageHash, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "topic": "wallet",
@@ -478,11 +478,11 @@ class hollaex extends \ccxt\async\hollaex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function watch_public(mixed $messageHash, $params = array()) {
+    public function watch_public(string $messageHash, $params = array()) {
         return Async\async(self::do_watch_public(...))($messageHash, $params);
     }
 
-    private function do_watch_public(mixed $messageHash, $params = array()) {
+    private function do_watch_public(string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
@@ -492,11 +492,11 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function watch_private(mixed $messageHash, $params = array()) {
+    public function watch_private(string $messageHash, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHash, $params);
     }
 
-    private function do_watch_private(mixed $messageHash, $params = array()) {
+    private function do_watch_private(string $messageHash, $params = array()) {
         $this->check_required_credentials();
         $expires = $this->safe_string($this->options, 'ws-expires');
         if ($expires === null) {
@@ -546,7 +546,7 @@ class hollaex extends \ccxt\async\hollaex {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // pong
         //
@@ -647,19 +647,19 @@ class hollaex extends \ccxt\async\hollaex {
             'wallet' => array($this, 'handle_balance'),
             'usertrade' => array($this, 'handle_my_trades'),
         );
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $method = $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         $client->lastPong = $this->milliseconds();
         return $message;
     }

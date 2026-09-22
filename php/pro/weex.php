@@ -94,11 +94,11 @@ class weex extends \ccxt\async\weex {
         return $this->number_to_string($requestId);
     }
 
-    public function subscribe_public(mixed $messageHashes, mixed $channels, $isContract = false, $params = array(), $subscription = array()) {
+    public function subscribe_public(array $messageHashes, ?array $channels, bool $isContract = false, $params = array(), array $subscription = array()) {
         return Async\async(self::do_subscribe_public(...))($messageHashes, $channels, $isContract, $params, $subscription);
     }
 
-    private function do_subscribe_public(mixed $messageHashes, mixed $channels, $isContract = false, $params = array(), $subscription = array()) {
+    private function do_subscribe_public(array $messageHashes, ?array $channels, bool $isContract = false, $params = array(), array $subscription = array()) {
         $id = $this->request_id();
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
@@ -116,11 +116,11 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $subscription));
     }
 
-    public function subscribe_private(mixed $messageHash, mixed $subscribeHash, mixed $channel, $isContract = false, $params = array(), $subscription = array()) {
+    public function subscribe_private(string $messageHash, string $subscribeHash, ?string $channel, bool $isContract = false, $params = array(), array $subscription = array()) {
         return Async\async(self::do_subscribe_private(...))($messageHash, $subscribeHash, $channel, $isContract, $params, $subscription);
     }
 
-    private function do_subscribe_private(mixed $messageHash, mixed $subscribeHash, mixed $channel, $isContract = false, $params = array(), $subscription = array()) {
+    private function do_subscribe_private(string $messageHash, string $subscribeHash, ?string $channel, bool $isContract = false, $params = array(), array $subscription = array()) {
         $type = $isContract ? 'contract' : 'spot';
         $url = $this->urls['api']['ws'][$type] . '/private';
         $this->authenticate($url);
@@ -139,7 +139,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($message, $params), $subscribeHash, $subscription));
     }
 
-    public function authenticate(mixed $url) {
+    public function authenticate(string $url) {
         $this->check_required_credentials();
         if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
@@ -302,7 +302,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "e": "ticker",
@@ -441,7 +441,7 @@ class weex extends \ccxt\async\weex {
         }
         $trades = Async\await($this->subscribe_public($messageHashes, $channels, $isContract, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -507,7 +507,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
         //         "e": "trade",
@@ -552,7 +552,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($tradesArray, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "T": 1776089287762,
@@ -747,7 +747,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         e: 'kline',
@@ -965,7 +965,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "e": "depth",
@@ -1105,7 +1105,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_public($unSubHashes, $channels, false, $params, $subscription));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         "e": "bookTicker",
@@ -1131,7 +1131,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $message, ?array $market = null) {
+    public function parse_ws_bid_ask(array $message, ?array $market = null): array {
         $timestamp = $this->safe_integer($message, 'E');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_ticker(array(
@@ -1223,7 +1223,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, $isContract, $params, $subscription));
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // spot
         //     {
@@ -1300,7 +1300,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($trades, $messageHash);
     }
 
-    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         //
         // spot
         //     {
@@ -1438,7 +1438,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, $isContract, $params, $subscription));
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
         //         "e": "orders",
@@ -1516,7 +1516,7 @@ class weex extends \ccxt\async\weex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //     {
@@ -1704,7 +1704,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_private($messageHash, $type, 'account', $isContract, $params));
     }
 
-    public function set_balance_cache(Client $client, mixed $type) {
+    public function set_balance_cache(Client $client, string $type) {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
@@ -1721,16 +1721,16 @@ class weex extends \ccxt\async\weex {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type) {
         $params = array(
             'type' => $type,
         );
         $response = Async\await($this->fetch_balance($params));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
@@ -1739,7 +1739,7 @@ class weex extends \ccxt\async\weex {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         //     {
@@ -1884,11 +1884,11 @@ class weex extends \ccxt\async\weex {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $params) {
+    public function load_positions_snapshot(Client $client, string $messageHash, mixed $params) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $params);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash, mixed $params) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, mixed $params) {
         $positions = Async\await($this->fetch_positions(null, $params));
         $this->positions = new ArrayCacheBySymbolById();
         $cache = $this->positions;
@@ -1932,7 +1932,7 @@ class weex extends \ccxt\async\weex {
         return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, true, $params, $subscription));
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "e": "positions",
@@ -1997,12 +1997,12 @@ class weex extends \ccxt\async\weex {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         // same as REST api
         return $this->parse_position($position, $market);
     }
 
-    public function get_market_from_client_and_message(Client $client, mixed $message) {
+    public function get_market_from_client_and_message(Client $client, array $message): array {
         $url = $client->url;
         $marketType = 'spot';
         if (mb_strpos($url, 'contract') !== false) {
@@ -2013,11 +2013,11 @@ class weex extends \ccxt\async\weex {
         return $market;
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         //
         //     { "event": "ping", "time": "1776078750000" } - public
         //
@@ -2030,11 +2030,11 @@ class weex extends \ccxt\async\weex {
         Async\await($client->send($response));
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     { "result": true, "id": 2 }
         //
@@ -2056,7 +2056,7 @@ class weex extends \ccxt\async\weex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message): bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "result": false,
@@ -2080,7 +2080,7 @@ class weex extends \ccxt\async\weex {
         return false;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         //     { "id": "5", "method": "PONG" }
         //

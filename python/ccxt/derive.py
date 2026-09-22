@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -460,7 +460,7 @@ class derive(Exchange, ImplicitAPI):
         super(derive, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -478,7 +478,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'result')
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -565,7 +565,7 @@ class derive(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -627,7 +627,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.array_concat(result, optionMarkets)
         return result
 
-    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
+    def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'erc20',
@@ -637,7 +637,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
+    def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
@@ -647,7 +647,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    def fetch_option_markets(self, params: object = {}) -> list[Market]:
+    def fetch_option_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
@@ -761,7 +761,7 @@ class derive(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -927,7 +927,7 @@ class derive(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -994,7 +994,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'trades', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -1065,7 +1065,7 @@ class derive(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1181,7 +1181,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order: object, privateKey: object):
+    def sign_order(self, order: object, privateKey: str) -> str:
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
 
@@ -1193,7 +1193,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -1201,10 +1201,10 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def parse_units(self, num: str, dec='1000000000000000000'):
+    def parse_units(self, num: str, dec: str = '1000000000000000000') -> Str:
         return Precise.string_mul(num, dec)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1562,7 +1562,7 @@ class derive(Exchange, ImplicitAPI):
         order = self.parse_order(rawOrder, market)
         return order
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.derive.xyz/reference/post_private-cancel
@@ -1651,7 +1651,7 @@ class derive(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         return self.extend(self.parse_order(order, market), extendParams)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://docs.derive.xyz/reference/post_private-cancel-by-instrument
@@ -1694,7 +1694,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1778,7 +1778,7 @@ class derive(Exchange, ImplicitAPI):
         #     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         # }
         #
-        data = self.safe_value(response, 'result')
+        data = self.safe_dict(response, 'result')
         page = self.safe_integer(params, 'page')
         if page is not None:
             pagination = self.safe_dict(data, 'pagination')
@@ -1788,7 +1788,7 @@ class derive(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1806,7 +1806,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'open'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1824,7 +1824,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'filled'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -1981,7 +1981,7 @@ class derive(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2052,7 +2052,7 @@ class derive(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2132,7 +2132,7 @@ class derive(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2194,7 +2194,7 @@ class derive(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'positions', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         # {
         #     "instrument_type": "perp",
@@ -2269,7 +2269,7 @@ class derive(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -2343,7 +2343,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: object, market: Market = None) -> dict:
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2457,7 +2457,7 @@ class derive(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2503,7 +2503,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_transactions(events, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2630,7 +2630,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + path
         if method == 'POST':
             headers = {

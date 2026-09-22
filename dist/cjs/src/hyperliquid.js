@@ -2347,8 +2347,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             let orderParams = this.safeDict(rawOrder, 'params', {});
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
             const hasStopLoss = (stopLoss !== undefined);
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);

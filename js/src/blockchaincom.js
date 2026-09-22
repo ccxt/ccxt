@@ -332,7 +332,7 @@ export default class blockchaincom extends Exchange {
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(markets, marketId);
             const baseId = this.safeString(market, 'base_currency');
             const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
@@ -1191,7 +1191,7 @@ export default class blockchaincom extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue(response, accountName);
+        const balances = this.safeList(response, accountName);
         if (balances === undefined) {
             throw new ExchangeError(this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }

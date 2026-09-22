@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NuGet version](https://img.shields.io/nuget/v/ccxt)](https://www.nuget.org/packages/ccxt) [![GoDoc](https://img.shields.io/github/v/tag/ccxt/ccxt?label=go)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Mvn](https://badges.mvnrepository.com/badge/io.github.ccxt/ccxt/badge.svg?label=mvn)](https://mvnrepository.com/artifact/io.github.ccxt/ccxt) [![Packagist](https://img.shields.io/packagist/v/ccxt/ccxt)](https://packagist.org/packages/ccxt/ccxt) [![Crates.io](https://img.shields.io/crates/v/ccxt.svg)](https://crates.io/crates/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-104-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![CCXT Chat in Telegram](https://telegram-badge.vercel.app/api/telegram-badge?channelId=@ccxt_chat&label=chat)](https://t.me/ccxt_chat) [![CCXT Discord Server](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
+[![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NuGet version](https://img.shields.io/nuget/v/ccxt)](https://www.nuget.org/packages/ccxt) [![GoDoc](https://img.shields.io/github/v/tag/ccxt/ccxt?label=go)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Mvn](https://badges.mvnrepository.com/badge/io.github.ccxt/ccxt/badge.svg?label=mvn)](https://mvnrepository.com/artifact/io.github.ccxt/ccxt) [![Packagist](https://img.shields.io/packagist/v/ccxt/ccxt)](https://packagist.org/packages/ccxt/ccxt) [![Crates.io](https://img.shields.io/crates/v/ccxt.svg)](https://crates.io/crates/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-105-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![CCXT Chat in Telegram](https://telegram-badge.vercel.app/api/telegram-badge?channelId=@ccxt_chat&label=chat)](https://t.me/ccxt_chat) [![CCXT Discord Server](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
 
 A crypto trading API with more than 100 exchanges and prediction markets in JavaScript / TypeScript / Python / C# / PHP / Go / Java / Rust.
 
@@ -179,7 +179,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 
 ## Prediction Market Exchanges
 
-<!--- init prediction list -->The CCXT library currently supports the following 7 prediction market exchanges and trading APIs:
+<!--- init prediction list -->The CCXT library currently supports the following 8 prediction market exchanges and trading APIs:
 
 |logo                                                                                                                                          |id           |name                                                      |ver                                                                                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -190,6 +190,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 | [![myriad](https://github.com/user-attachments/assets/a393c885-99e8-4943-897d-ebc0555c3773)](https://myriad.markets)                         | myriad      | [Myriad](https://myriad.markets)                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.myriad.markets)                                                   |
 | [![opinion](https://github.com/user-attachments/assets/9905d9d4-3eb3-48d2-bdb3-551a9ddc7559)](https://opinion.trade)                         | opinion     | [Opinion](https://opinion.trade)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.opinion.trade)                                                    |
 | [![polymarket](https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437)](https://polymarket.com)                     | polymarket  | [Polymarket](https://polymarket.com)                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.polymarket.com)                                                   |
+| [![predictfun](https://github.com/user-attachments/assets/9fb5dccf-faa3-4b5a-b144-81d6994bc598)](https://predict.fun)                        | predictfun  | [predict.fun](https://predict.fun)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.predict.fun)                                                      |
 <!--- end prediction list -->
 
 ## Builder Code Exchanges
@@ -269,13 +270,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.81/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.81/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.82/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.82/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.81/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.82/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:

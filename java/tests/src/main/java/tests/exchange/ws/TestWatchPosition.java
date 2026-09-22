@@ -38,9 +38,9 @@ public class TestWatchPosition extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();
                 TestPosition.testPosition(exchange, skippedProperties, method, response, symbol, now);
             }

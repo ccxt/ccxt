@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -20,9 +21,9 @@ public class TestFetchAccounts extends BaseTest {
         String method = "fetchAccounts";
         Object accounts = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchAccounts", new Object[]{})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, accounts);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
+        for (var i = 0; i < ((List<?>)accounts).size(); i++)
         {
-            TestAccount.testAccount(exchange, skippedProperties, method, Helpers.GetValue(accounts, i));
+            TestAccount.testAccount(exchange, skippedProperties, method, (accounts == null || i < 0 || i >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(i)));
         }
         return true;
         });

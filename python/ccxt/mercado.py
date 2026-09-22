@@ -279,7 +279,7 @@ class mercado(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for mercado
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -308,7 +308,7 @@ class mercado(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        amountLimits = self.safe_value(self.options, 'limits', {})
+        amountLimits = self.safe_dict(self.options, 'limits', {})
         coins = self.to_array(response)
         for i in range(0, len(coins)):
             coin = coins[i]
@@ -370,7 +370,7 @@ class mercado(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -426,7 +426,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -440,7 +440,7 @@ class mercado(Exchange, ImplicitAPI):
             'coin': market['base'],
         }
         response = self.publicGetCoinTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         #
         #     {
         #         "ticker": {
@@ -488,7 +488,7 @@ class mercado(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -516,7 +516,7 @@ class mercado(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def parse_balance(self, response: object) -> Balances:
-        data = self.safe_value(response, 'response_data', {})
+        data = self.safe_dict(response, 'response_data', {})
         balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -524,7 +524,7 @@ class mercado(Exchange, ImplicitAPI):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             if currencyId in balances:
-                balance = self.safe_value(balances, currencyId, {})
+                balance = self.safe_dict(balances, currencyId, {})
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available')
                 account['total'] = self.safe_string(balance, 'total')
@@ -532,7 +532,7 @@ class mercado(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -543,7 +543,7 @@ class mercado(Exchange, ImplicitAPI):
         response = self.privatePostGetAccountInfo(params)
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -586,7 +586,7 @@ class mercado(Exchange, ImplicitAPI):
             'id': str(response['response_data']['order']['order_id']),
         }, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
         :param str id: order id
@@ -627,7 +627,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "server_unix_timestamp": "1536956499"
         #     }
         #
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
@@ -684,7 +684,7 @@ class mercado(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
-        rawTrades = self.safe_value(order, 'operations', [])
+        rawTrades = self.safe_list(order, 'operations', [])
         symbol = market['symbol']
         return self.safe_order({
             'info': order,
@@ -710,7 +710,7 @@ class mercado(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
         :param str id: order id
@@ -728,11 +728,11 @@ class mercado(Exchange, ImplicitAPI):
             'order_id': int(id),
         }
         response = self.privatePostGetOrder(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order')
         return self.parse_order(order, market)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -786,7 +786,7 @@ class mercado(Exchange, ImplicitAPI):
         #         "server_unix_timestamp": "1453912088"
         #     }
         #
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         withdrawal = self.safe_dict(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
@@ -838,7 +838,7 @@ class mercado(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -868,7 +868,7 @@ class mercado(Exchange, ImplicitAPI):
         # then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
         return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -886,11 +886,11 @@ class mercado(Exchange, ImplicitAPI):
             'coin_pair': market['id'],
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -909,11 +909,11 @@ class mercado(Exchange, ImplicitAPI):
             'status_list': '[2]',  # open only
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
+        responseData = self.safe_dict(response, 'response_data', {})
         orders = self.safe_list(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -932,13 +932,13 @@ class mercado(Exchange, ImplicitAPI):
             'has_fills': True,
         }
         response = self.privatePostListOrders(self.extend(request, params))
-        responseData = self.safe_value(response, 'response_data', {})
-        ordersRaw = self.safe_value(responseData, 'orders', [])
+        responseData = self.safe_dict(response, 'response_data', {})
+        ordersRaw = self.safe_list(responseData, 'orders', [])
         orders = self.parse_orders(ordersRaw, market, since, limit)
         trades = self.orders_to_trades(orders)
         return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit)
 
-    def orders_to_trades(self, orders: object):
+    def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
             trades = self.safe_list(orders[i], 'trades', [])
@@ -946,7 +946,7 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):

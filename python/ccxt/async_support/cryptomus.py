@@ -282,7 +282,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'features': {},
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for the exchange
 
@@ -394,7 +394,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -468,7 +468,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -497,7 +497,7 @@ class cryptomus(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_tickers(data, symbols)
 
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "currency_pair": "XMR_USDT",
@@ -533,7 +533,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -578,7 +578,7 @@ class cryptomus(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -648,7 +648,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -697,7 +697,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -762,7 +762,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open limit order
 
@@ -785,7 +785,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         return self.safe_order({'info': response})
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -858,7 +858,7 @@ class cryptomus(Exchange, ImplicitAPI):
             orders.append(self.parse_order(order, market))
         return orders
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1025,7 +1025,7 @@ class cryptomus(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -1108,7 +1108,7 @@ class cryptomus(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_fee_tiers(self, feeTiers: object, market: Market = None):
+    def parse_fee_tiers(self, feeTiers: list[object], market: Market = None) -> dict:
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
@@ -1125,7 +1125,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + '/' + endpoint

@@ -60,7 +60,7 @@ class bullish extends \ccxt\async\bullish {
         return $requestId;
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         $id = (string) $this->request_id();
@@ -73,7 +73,7 @@ class bullish extends \ccxt\async\bullish {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
         //         "id": "7",
@@ -162,7 +162,7 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "type": "snapshot",
@@ -231,7 +231,7 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "type": "update",
@@ -322,7 +322,7 @@ class bullish extends \ccxt\async\bullish {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "type": "snapshot",
@@ -371,7 +371,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function separate_bids_or_asks(mixed $entry) {
+    public function separate_bids_or_asks(array $entry): array {
         $result = array();
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -428,7 +428,7 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         // snapshot
         //     {
         //         "type": "snapshot",
@@ -550,7 +550,7 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // snapshot
         //     {
@@ -654,7 +654,7 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch_private($messageHash, $messageHash, $request, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // snapshot
         //     {
@@ -761,7 +761,7 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_symbols_since_limit($positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
@@ -798,7 +798,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($positions, 'positions');
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
         //         "data": {

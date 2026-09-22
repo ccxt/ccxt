@@ -18,6 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { installCcxtGoLocalTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
 import { installCacheRemoveCall } from './cache-remove-call.js';
+import { installCcxtGoIndexableTypes } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -164,6 +165,510 @@ function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): 
         stripped += char;
     }
     return stripped;
+}
+
+// Free helpers that normalize every argument with derefScalar at entry, so a *T boxed in
+// an `any` reads there exactly like the plain value it points at. A DerefScalar() wrap at
+// the assignment adds nothing when every read of that local goes through one of these.
+const GO_POINTER_TRANSPARENT_SHIMS = new Set ([
+    'IsEqual', 'EvalTruthy', 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'Negate', 'OpNeg', 'UnaryPlus',
+    'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
+    'GetValue', 'GetArrayLength', 'GetLength', 'GetIndexOf', 'InOp', 'Contains', 'IsNil',
+    'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice',
+    'JsonParse', 'JsonStringify', 'ParseInt', 'ParseFloat', 'ToFloat64',
+    'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'mathMin', 'mathMax', 'mathFloor', 'mathCeil', 'mathRound', 'mathAbs',
+    'IsArray', 'IsString', 'IsInt', 'IsBool', 'IsNumber', 'IsObject', 'IsDictionary',
+    'ObjectKeys', 'ObjectValues', 'derefScalar', 'DerefScalar',
+]);
+
+// the whole-argument names of a line that are passed to a pointer-transparent shim: the
+// argument must BE the name (a `[]any{x}` or `Add(x, 1)` chunk carries/consumes it deeper
+// and is not itself a shim boundary), and a `this.`/`x.` method of the same name is not
+// the free function.
+function goShimDirectArgumentNames (line: string): string[] {
+    const names: string[] = [];
+    const callPattern = /(?<![\w.])(?:ccxt\.)?([A-Za-z_]\w*)\s*\(/g;
+    let match;
+    while ((match = callPattern.exec (line)) !== null) {
+        if (!GO_POINTER_TRANSPARENT_SHIMS.has (match[1])) {
+            continue;
+        }
+        let depth = 1;
+        let i = match.index + match[0].length;
+        while (i < line.length && depth > 0) {
+            if (line[i] === '(') {
+                depth++;
+            } else if (line[i] === ')') {
+                depth--;
+            }
+            i++;
+        }
+        const args = line.substring (match.index + match[0].length, i - 1);
+        let level = 0;
+        let chunk = '';
+        const chunks: string[] = [];
+        for (const char of args) {
+            if (char === '(') {
+                level++;
+            } else if (char === ')') {
+                level--;
+            }
+            if (char === ',' && level === 0) {
+                chunks.push (chunk);
+                chunk = '';
+                continue;
+            }
+            chunk += char;
+        }
+        chunks.push (chunk);
+        for (const candidate of chunks) {
+            const trimmed = candidate.trim ();
+            if (/^[A-Za-z_]\w*$/.test (trimmed)) {
+                names.push (trimmed);
+            }
+        }
+    }
+    return names;
+}
+
+// the line with the DerefScalar() wrapper (the name and its closing paren only) and the
+// declaration/assignment target removed: the wrapped call's own arguments still read the
+// local (`x = DerefScalar(this.SafeString(m, "k", x))`), so they must be scanned, not
+// hidden behind the wrap.
+function goDerefWrapReadText (line: string): string {
+    let text = line;
+    let index = text.indexOf ('DerefScalar(');
+    while (index >= 0) {
+        const open = index + 'DerefScalar'.length;
+        let depth = 0;
+        let close = -1;
+        for (let i = open; i < text.length; i++) {
+            if (text[i] === '(') {
+                depth++;
+            } else if (text[i] === ')') {
+                depth--;
+                if (depth === 0) {
+                    close = i;
+                    break;
+                }
+            }
+        }
+        if (close < 0) {
+            break;
+        }
+        text = text.slice (0, index) + text.slice (open + 1, close) + text.slice (close + 1);
+        index = text.indexOf ('DerefScalar(');
+    }
+    return text.replace (/^\s*(?:var\s+\w+\s+(?:any|[\w.\[\]\*]+)\s*=|[\w.\[\]]+\s*(?::=|=)(?!=))/, '');
+}
+
+// the line's right-hand side once the write target (`var x … =`, `x =`, `x :=`, `_ = x`)
+// is removed; null when the line does not write the local. A write with a right side that
+// reads the local again (`x = this.SafeString2(p, "k", x)`) keeps that read.
+function goDerefWrapWriteRhs (line: string, name: string): string | null {
+    const text = line.trim ();
+    const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*=(?!=)').test (text)) {
+        return text.replace (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*='), '');
+    }
+    if (new RegExp ('^' + escaped + '\\s*:?=(?!=)').test (text)) {
+        return text.replace (new RegExp ('^' + escaped + '\\s*:?=(?!=)'), '');
+    }
+    if (new RegExp ('^_\\s*=\\s*' + escaped + '$').test (text)) {
+        return '';
+    }
+    return null;
+}
+
+// DerefScalar() exists so the `any` box carries the plain value: raw `x == nil`, `x != true`
+// and `switch x` on the pointer box would never match. When every READ of the local in this
+// body is a pointer-transparent shim call, nothing can observe the pointer and the wrap is
+// provably redundant (the shims deref it themselves, #30054). Any other mention — a raw
+// comparison, a dict/slice store, a return, an argument to a non-shim call, or a mention the
+// scan cannot classify — keeps the wrap.
+function goDerefWrapRedundantLocals (fn: string, wrapLines: Set<number>, names: Iterable<string>): Set<string> {
+    const commentState = { 'inBlockComment': false };
+    const lines = fn.split ('\n').map ((line) => stripGoLiterals (line, commentState));
+    const redundant = new Set<string> ();
+    for (const name of names) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const mention = new RegExp ('(?<![\\w.])' + escaped + '(?![\\w])', 'g');
+        let safe = true;
+        for (let index = 0; index < lines.length; index++) {
+            const wrapped = wrapLines.has (index);
+            let text = wrapped ? goDerefWrapReadText (lines[index]) : lines[index];
+            if (!wrapped) {
+                const rhs = goDerefWrapWriteRhs (text, name);
+                if (rhs !== null) {
+                    text = rhs;
+                }
+            }
+            const occurrences = (text.match (mention) || []).length;
+            if (!occurrences) {
+                continue;
+            }
+            const shimArgs = goShimDirectArgumentNames (text).filter ((candidate) => candidate === name).length;
+            if (shimArgs === occurrences) {
+                continue;
+            }
+            safe = false;
+            break;
+        }
+        if (safe) {
+            redundant.add (name);
+        }
+    }
+    return redundant;
+}
+
+// the declaration form of the wrap the createGoExchange pass above adds is removed again for
+// the locals the proof above accepts; the reassignment form is never added in the first place.
+function goUnwrapDerefWraps (fn: string, names: Iterable<string>, safeCall: string): string {
+    for (const name of names) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        fn = fn.replace (new RegExp ('(var ' + escaped + ' any = )(?:ccxt\\.)?DerefScalar\\(' + '(' + safeCall + ')' + '\\)', 'g'), '$1$2');
+    }
+    return fn;
+}
+
+// The printer prints `x === undefined` as a native `x == nil` when the operand's TypeScript
+// type proves the box holds a scalar (goIsAnyBoxExpression). That proof is local to the
+// function: a bare `any` PARAMETER (`func (this *X) F(code any, …)`) keeps whatever the
+// caller boxed, and a caller holding a typed local (`var code *string = this.SafeString(…)`)
+// boxes the pointer itself — `(*string)(nil) == nil` is false in Go, while IsEqual(x, nil)
+// derefs both sides and answers true. The callee then takes the wrong branch: SafeCurrency()
+// dropped the caller's currency for a response without a `currency` id and Currency() panicked
+// on the empty code (binance fetchDepositAddress, STATIC_RESPONSE). GetArg-bound optionals are
+// safe (GetArg runs derefScalar and folds a typed nil pointer into the default) and locals are
+// proven by the printer's own write analysis, so only the bare parameters keep the helper.
+function goParamNilCompareText (fn: string, isEqualFn: string): string {
+    const sigEnd = fn.indexOf ('{');
+    if (sigEnd < 0) {
+        return fn;
+    }
+    const body = fn.slice (sigEnd);
+    const paramMatches = fn.slice (0, sigEnd).match (/(\w+) any\b/g) || [];
+    for (let i = 0; i < paramMatches.length; i++) {
+        const name = paramMatches[i].split (/\s+/)[0];
+        if ((name === 'this') || (name === 'optionalArgs') || (name === 'chan')) {
+            continue;
+        }
+        // a variadic optional is bound by `x := GetArg(optionalArgs, i, default)`, which derefs
+        if (new RegExp ('(^|[\\s(])' + name + ' := GetArg\\(').test (body)) {
+            continue;
+        }
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form of goParamNilCompareText (same function blocks the DerefScalar pass walks)
+export function goParamNativeNilCompares (content: string, isEqualFn: string): string {
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goParamNilCompareText (fn, isEqualFn)) as any);
+}
+
+// One level out from the caller-fed parameter above: a local `any` boxed from a method THIS FILE
+// declares with a pointer result. The printer types a `Str` return as `*string`, so
+// `var timeInForce any = this.ParseOrderTimeInForce(…)` (mexc.go) boxes the pointer itself, and
+// the printer's own local proof (goAnyLocalHoldsPointer) only knows its helper-return table —
+// it prints a native `timeInForce == nil`, false for `(*string)(nil)`, so the guard never runs
+// and the parsed order loses its timeInForce (mexc createOrder, STATIC_RESPONSE: `[timeInForce]
+// computed: <empty> stored: IOC/FOK`). The method's Go result type is read off the text being
+// written (the only place that spells it) and IsEqual() derefs the box, which is the comparison
+// master emitted. Resolved per function body: the same name can be a proven local elsewhere.
+function goPointerReturnMethods (content: string): Set<string> {
+    const methods = new Set<string> ();
+    const signature = /\nfunc \(this \*[\w.]+\) (\w+)\([^)\n]*\) \*[\w.[\]]+ \{/g;
+    let match: RegExpExecArray | null;
+    while ((match = signature.exec (content)) !== null) {
+        methods.add (match[1]);
+    }
+    return methods;
+}
+
+function goPointerLocalNilCompareText (fn: string, methods: Set<string>, isEqualFn: string): string {
+    if (!methods.size) {
+        return fn;
+    }
+    const sigEnd = fn.indexOf ('{');
+    if (sigEnd < 0) {
+        return fn;
+    }
+    const body = fn.slice (sigEnd);
+    const callee = 'this\\.(?:Exchange\\.|BaseExchange\\.)?(?:' + Array.from (methods).join ('|') + ')\\(';
+    const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((decl: string) => decl.split (' ')[1]));
+    const names = new Set<string> ();
+    // the declaration and the reassignment form, the two shapes the printer's local proof reads
+    const decl = new RegExp ('var (\\w+) any = ' + callee, 'g');
+    const assign = new RegExp ('(?<![.\\w*"])(\\w+) = ' + callee, 'g');
+    let match: RegExpExecArray | null;
+    while ((match = decl.exec (body)) !== null) {
+        if (anyLocals.has (match[1])) {
+            names.add (match[1]);
+        }
+    }
+    while ((match = assign.exec (body)) !== null) {
+        if (anyLocals.has (match[1])) {
+            names.add (match[1]);
+        }
+    }
+    for (const name of names) {
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form of goPointerLocalNilCompareText; the method table comes from the same text the
+// pass rewrites, so every caller (base methods, prediction base, each exchange) is complete on
+// its own file.
+export function goPointerLocalNativeNilCompares (content: string, isEqualFn: string): string {
+    const methods = goPointerReturnMethods (content);
+    if (!methods.size) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goPointerLocalNilCompareText (fn, methods, isEqualFn)) as any);
+}
+
+// Self-test for the caller-fed `any` parameter rule: the bare parameter keeps the deref-aware
+// helper, the GetArg-bound optional and the typed local keep the printer's native comparison,
+// and a second application is a no-op.
+function goParamNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goParamNativeNilCompares (text, 'IsEqual(');
+    const param = pass ('\nfunc (this *X) f(currencyId any, optionalArgs ...any) any {\n\tif (currencyId == nil) {\n\t\treturn nil\n\t}\n\t_ = currencyId\n}\n');
+    ok (param.indexOf ('if (IsEqual(currencyId, nil)) {') >= 0, 'a bare any parameter must keep the helper');
+    ok (param.indexOf ('currencyId == nil') < 0, 'the native comparison must be gone');
+    const negated = pass ('\nfunc (this *X) f(response any) any {\n\tif (response != nil) && (currency != nil) {\n\t\treturn response\n\t}\n}\n');
+    ok (negated.indexOf ('!IsEqual(response, nil)') >= 0, 'the negated form must keep its operator');
+    ok (negated.indexOf ('(currency != nil)') >= 0, 'a GetArg-bound optional keeps the native comparison');
+    const typed = pass ('\nfunc (this *X) f(response any) any {\n\tvar code *string = this.SafeString(response, "code")\n\tif code != nil {\n\t\treturn code\n\t}\n\treturn nil\n}\n');
+    ok (typed.indexOf ('if code != nil {') >= 0, 'a typed local keeps the native comparison');
+    const twice = pass (pass ('\nfunc (this *X) f(response any) any {\n\tif (response == nil) || (response == nil) {\n\t\treturn nil\n\t}\n}\n'));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('(IsEqual(response, nil)) || (IsEqual(response, nil))') >= 0, 'both operands of a duplicated check must be wrapped once');
+    return problems;
+}
+
+// The same hazard reaches an `any` LOCAL, not only a bare parameter: the printer's proof
+// (goAnyLocalHoldsPointer) recognises only a call to a `*T`-returning helper, so a local fed
+// by a pointer-typed name is misread as a plain scalar and printed as the native
+// `x == nil` -- false for the boxed (*string)(nil), so the guard never fires and the local
+// keeps the pointer. `var currency any = requested` (requested: `var requested *string =
+// this.SafeStringN(...)`) stored a nil info.currency instead of the 'USDT' default (mudrex
+// fetchBalance, STATIC_RESPONSE; master's older pin printed IsEqual here and passed). IsEqual
+// derefs both operands, so every local a pointer can reach keeps the helper.
+const GO_POINTER_NAME_PATTERN = '\\*[\\w\\[\\].]+';
+
+// the top-level `\nfunc ` blocks, each with the brace that closes it. The brace count skips
+// string literals and line comments so a body carrying a func literal -- the
+// `func (this *X) (ret any) {` shims -- cannot end its block early.
+function goFuncBlockRanges (content: string): { start: number; end: number }[] {
+    const ranges: { start: number; end: number }[] = [];
+    let cursor = 0;
+    while (true) {
+        const start = content.indexOf ('\nfunc ', cursor);
+        if (start < 0) {
+            return ranges;
+        }
+        let depth = 0;
+        let index = start;
+        let end = content.length;
+        while (index < content.length) {
+            const char = content[index];
+            if (char === '"') {
+                index++;
+                while (index < content.length) {
+                    if (content[index] === '\\') { index++; } else if (content[index] === '"') { break; }
+                    index++;
+                }
+            } else if (char === '`') {
+                index++;
+                while ((index < content.length) && (content[index] !== '`')) { index++; }
+            } else if ((char === '/') && (content[index + 1] === '/')) {
+                while ((index < content.length) && (content[index] !== '\n')) { index++; }
+            } else if (char === '{') {
+                depth++;
+            } else if (char === '}') {
+                depth--;
+                if (depth === 0) { end = index + 1; break; }
+            }
+            index++;
+        }
+        ranges.push ({ start, end });
+        cursor = end;
+    }
+}
+
+// the names a pointer can reach inside one function block: the pointer-typed locals the
+// local-typing families emit (`var x *string = ...`), the native `*T` parameters of the
+// signature, and every `any` local declared or assigned from one of those, transitively.
+function goBoxedPointerNames (fn: string): Set<string> {
+    const pointerNames = new Set<string> ();
+    let match: RegExpExecArray | null;
+    const localRe = new RegExp ('var (\\w+) ' + GO_POINTER_NAME_PATTERN + ' = ', 'g');
+    while ((match = localRe.exec (fn)) !== null) {
+        pointerNames.add (match[1]);
+    }
+    const braceAt = fn.indexOf ('{');
+    const signature = (braceAt < 0) ? fn : fn.slice (0, braceAt);
+    const paramRe = new RegExp ('(\\w+) ' + GO_POINTER_NAME_PATTERN + '(?=[,)])', 'g');
+    while ((match = paramRe.exec (signature)) !== null) {
+        if (match[1] !== 'this') {
+            pointerNames.add (match[1]);
+        }
+    }
+    // every `any` box fed by one of those names: `var currency any = requested`, `x = code`.
+    // Only the names declared `any` in this block (own declarations, `x := GetArg(...)` and the
+    // bare `any` parameters of the signature) can hold the box: a name declared with a pointer
+    // type is compared natively by the printer and needs no rewrite.
+    const anyNames = new Set<string> ();
+    const anyDeclRe = /var (\w+) any\b/g;
+    while ((match = anyDeclRe.exec (fn)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const getArgRe = /(\w+) := GetArg\(/g;
+    while ((match = getArgRe.exec (fn)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const bareParamRe = /(\w+) any\b/g;
+    while ((match = bareParamRe.exec (signature)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const feeds: string[][] = [];
+    const declRe = /var (\w+) any = (\w+)\b/g;
+    while ((match = declRe.exec (fn)) !== null) {
+        feeds.push ([ match[1], match[2] ]);
+    }
+    const assignRe = /(?:^|[\s;])(\w+) = (\w+)\b/g;
+    while ((match = assignRe.exec (fn)) !== null) {
+        feeds.push ([ match[1], match[2] ]);
+    }
+    const boxed = new Set<string> ();
+    let grew = true;
+    while (grew) {
+        grew = false;
+        for (let i = 0; i < feeds.length; i++) {
+            const target = feeds[i][0];
+            const source = feeds[i][1];
+            if (boxed.has (target) || !anyNames.has (target)) {
+                continue;
+            }
+            if (pointerNames.has (source) || boxed.has (source)) {
+                boxed.add (target);
+                grew = true;
+            }
+        }
+    }
+    return boxed;
+}
+
+// the boxed-pointer locals of one block keep the deref-aware comparison
+function goBoxedPointerNilCompareText (fn: string, isEqualFn: string): string {
+    const boxed = goBoxedPointerNames (fn);
+    for (const name of boxed) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + escaped + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form: each block's rewrite is spliced back at its own offset, so a block whose
+// text occurs twice cannot be rewritten in the wrong place.
+export function goBoxedPointerNilCompares (content: string, isEqualFn: string): string {
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const start = ranges[i].start;
+        const end = ranges[i].end;
+        const block = content.slice (start, end);
+        const rewritten = goBoxedPointerNilCompareText (block, isEqualFn);
+        if (rewritten !== block) {
+            content = content.slice (0, start) + rewritten + content.slice (end);
+        }
+    }
+    return content;
+}
+
+// Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the
+// helper, a box fed by a container keeps the native comparison, another block's rewrite
+// cannot leak in, and a second application is a no-op.
+function goBoxedPointerSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goBoxedPointerNilCompares (text, 'IsEqual(');
+    const fed = pass ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar requested *string = this.SafeStringN(optionalArgs, "currency")\n\tvar currency any = requested\n\tif currency == nil {\n\t\tcurrency = "USDT"\n\t}\n\treturn currency\n}\n');
+    ok (fed.indexOf ('if IsEqual(currency, nil) {') >= 0, 'a local fed by a pointer-typed local must keep the helper');
+    ok (fed.indexOf ('var requested *string = this.SafeStringN') >= 0, 'the pointer-typed local itself must stay native');
+    const param = pass ('\nfunc (this *X) f(code *string) any {\n\tvar local any = code\n\tif local != nil {\n\t\treturn local\n\t}\n\treturn nil\n}\n');
+    ok (param.indexOf ('if !IsEqual(local, nil) {') >= 0, 'a local fed by a native `*T` parameter must keep the helper');
+    const plain = pass ('\nfunc (this *X) f(response any) any {\n\tvar data any = nil\n\tdata = this.SafeDict(response, "data", map[string]any{})\n\tif data == nil {\n\t\treturn nil\n\t}\n\treturn data\n}\n');
+    ok (plain.indexOf ('if data == nil {') >= 0, 'a box fed by a container keeps the native comparison');
+    const twice = pass (pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar currency any = requested\n\tif currency == nil {\n\t\treturn nil\n\t}\n\treturn currency\n}\n'));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('if IsEqual(currency, nil) {') >= 0, 'the wrapped form must survive the second pass');
+    const scoped = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\treturn nil\n}\n\nfunc (this *X) g() any {\n\tvar currency any = this.SafeString("x", "y")\n\tif currency == nil {\n\t\treturn nil\n\t}\n\treturn currency\n}\n');
+    ok (scoped.indexOf ('if currency == nil {') >= 0, 'a block with no pointer feed must stay untouched');
+    const literal = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar identity any = requested\n\tvar myidentity any = identity\n\tif myidentity == nil {\n\t\treturn nil\n\t}\n\treturn myidentity\n}\n');
+    ok (literal.indexOf ('if IsEqual(myidentity, nil) {') >= 0, 'a name must not be rewritten inside a longer identifier');
+    return problems;
+}
+
+// Self-test for the same-file pointer-returning method rule: the boxed local keeps the
+// deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
+// comparison, the reassignment form is caught too and a second application is a no-op.
+function goPointerLocalNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goPointerLocalNativeNilCompares (text, 'IsEqual(');
+    const pointer = '\nfunc (this *X) ParseOrderTimeInForce(status *string) *string {\n\treturn status\n}\n\nfunc (this *X) ParseOrder(order any) any {\n\tvar timeInForce any = this.ParseOrderTimeInForce(this.SafeString(order, "timeInForce"))\n\tvar typeRaw *string = this.SafeString(order, "type")\n\tif timeInForce == nil {\n\t\ttimeInForce = this.GetTifFromRawOrderType(typeRaw)\n\t}\n\tif typeRaw != nil {\n\t\treturn timeInForce\n\t}\n\treturn nil\n}\n';
+    const rewritten = pass (pointer);
+    ok (rewritten.indexOf ('if IsEqual(timeInForce, nil) {') >= 0, 'a local boxed from a same-file pointer method must keep the helper');
+    ok (rewritten.indexOf ('if typeRaw != nil {') >= 0, 'a typed local must keep the native comparison');
+    ok (rewritten.indexOf ('timeInForce == nil') < 0, 'the native comparison on the boxed local must be gone');
+    const reassigned = pass ('\nfunc (this *X) M(a any) *string {\n\treturn nil\n}\n\nfunc (this *X) N(order any) any {\n\tvar code any = nil\n\tcode = this.M(order)\n\tif code != nil {\n\t\treturn code\n\t}\n\treturn nil\n}\n');
+    ok (reassigned.indexOf ('if !IsEqual(code, nil) {') >= 0, 'a local reassigned from a pointer method must keep the helper');
+    const scalar = pass ('\nfunc (this *X) M(a any) string {\n\treturn ""\n}\n\nfunc (this *X) N(order any) any {\n\tvar code any = this.M(order)\n\tif code == nil {\n\t\treturn nil\n\t}\n\treturn code\n}\n');
+    ok (scalar.indexOf ('if code == nil {') >= 0, 'a scalar-returning method keeps the native comparison');
+    const unknown = pass ('\nfunc (this *X) N(order any) any {\n\tvar code any = this.SomeOtherFileMethod(order)\n\tif code == nil {\n\t\treturn nil\n\t}\n\treturn code\n}\n');
+    ok (unknown.indexOf ('if code == nil {') >= 0, 'a method this file does not declare keeps the native comparison');
+    const twice = pass (pass (pointer));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('if IsEqual(timeInForce, nil) {') >= 0, 'the rewritten comparison must survive a second application');
+    return problems;
+}
+
+// Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
+// every other read shape keeps it.
+function goDerefWrapSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
+    const redundant = (body: string, name: string): boolean => {
+        const text = '\nfunc (this *X) f() any {\n' + body + '}\n';
+        const wrapLines = new Set<number> ();
+        text.split ('\n').forEach ((line, index) => { if (line.indexOf ('DerefScalar(') >= 0) { wrapLines.add (index); } });
+        return goDerefWrapRedundantLocals (text, wrapLines, [ name ]).has (name);
+    };
+    ok (redundant ('\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\tif IsEqual(flag, true) {\n\t\treturn nil\n\t}\n', 'flag'), 'shim-only declaration must drop the wrap');
+    ok (redundant ('\tvar amount any = nil\n\tamount = DerefScalar(this.SafeNumber(order, "amount"))\n\tif EvalTruthy(amount) {\n\t\treturn nil\n\t}\n\t_ = amount\n', 'amount'), 'shim-only reassignment must drop the wrap');
+    ok (redundant ('\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\t// flag is read through the shim below\n\tif !EvalTruthy(flag) {\n\t\treturn nil\n\t}\n', 'flag'), 'a comment mention must not veto');
+    ok (redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tquantity = Add(id, "x")\n', 'id'), 'a shim call inside a write must keep the local redundant');
+    ok (!redundant ('\tvar code any = DerefScalar(this.SafeString(entry, "code"))\n\tif code == nil {\n\t\treturn nil\n\t}\n', 'code'), 'a raw nil comparison must keep the wrap');
+    ok (!redundant ('\tvar side any = DerefScalar(this.SafeString(trade, "side"))\n\tswitch side {\n\tcase "buy":\n\t\treturn nil\n\t}\n', 'side'), 'a switch must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\treturn id\n', 'id'), 'a return must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tresult["id"] = id\n', 'id'), 'a dict store must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tthis.ParseOrderId(id, market)\n', 'id'), 'an argument to a non-shim call must keep the wrap');
+    ok (!redundant ('\tvar qty any = DerefScalar(this.SafeNumber(o, "qty"))\n\tresult := map[string]any{"qty": qty}\n', 'qty'), 'a dict literal value must keep the wrap');
+    ok (!redundant ('\tvar x any = nil\n\tx = this.SafeString2(params, "x", "y", x)\n\tif IsEqual(x, nil) {\n\t\treturn nil\n\t}\n', 'x'), 'a read inside the wrapped call arguments must keep the wrap');
+    ok (!redundant ('\tvar x any = nil\n\tx = this.SafeString2(params, "x", "y", x)\n\tif IsEqual(x, nil) {\n\t\treturn nil\n\t}\n', 'x'), 'the same read keeps the wrap inside the wrapped form too');
+    const both = '\nfunc (this *X) f() any {\n\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\t_ = flag\n}\n\nfunc (this *X) g() any {\n\tvar flag any = ccxt.DerefScalar(this.SafeBool(market, "flag", false))\n\tif flag != nil && *flag {\n\t\treturn nil\n\t}\n}\n';
+    const lines = new Set<number> ();
+    both.split ('\n').forEach ((line, index) => { if (line.indexOf ('DerefScalar(') >= 0) { lines.add (index); } });
+    ok (goDerefWrapRedundantLocals (both, lines, [ 'flag' ]).size === 0, 'a second function with a raw comparison must veto the name');
+    const unwrapped = goUnwrapDerefWraps ('func f() {\n\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\tvar row any = ccxt.DerefScalar(this.SafeString(data, "row"))\n}\n', [ 'flag', 'row' ], safeCall);
+    ok (unwrapped.indexOf ('DerefScalar(') < 0, 'both wrap forms must be removed');
+    ok (unwrapped.indexOf ('var flag any = this.SafeBool(market, "flag", false)') >= 0 && unwrapped.indexOf ('var row any = this.SafeString(data, "row")') >= 0, 'the drop must keep the wrapped call');
+    return problems;
 }
 
 // One entry per line of a core body: how deeply it sits inside func literals, and
@@ -408,13 +913,696 @@ function resolveGofmt (): string | null {
 }
 
 // Semantic post-passes over the printer text: a leaked body goroutine and a missing type
-// assertion are fixed here; layout is the printer's job and is already gofmt-clean.
+// assertion are fixed here; layout is the printer's job and is gofmt-clean except where an
+// emitter splices operand text into a call it prints (see goGofmtSplicedText).
 function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
     content = guardMultiSendCores (content);
-    return assertTypedElementAccess (content);
+    content = assertTypedElementAccess (content);
+    return goGofmtSplicedText (content);
+}
+
+// ------------------------------------------------------------------------------------
+// gofmt spacing of the arithmetic an emitter splices into a call or an index
+// ------------------------------------------------------------------------------------
+// go/printer (src/go/printer/nodes.go) prints a level-4/5 operator (`+ - * / % << >>
+// & &^ | ^`) with a blank on each side only when cutoff() asks for it: 6 for the
+// operator tree on top of a statement, 5 when that tree mixes level 4 and level 5, and
+// 4 - both blanks dropped - one level down. The level is 1 at the start of every
+// statement, one deeper for the argument list of a call with more than one argument and
+// for an index or slice expression, one shallower inside parentheses (never below 1),
+// and 1 again inside a composite literal.
+//
+// The printer prints the operand text of the helper call it emits - the key of
+// `AddElementToObject(container, key, value)`, the index of `GetValue(list, index)`, a
+// string slice's bounds, the terms of `Add`/`Subtract` - at the level of the TS
+// expression it was read from, not at the level of the Go text it lands in: the TS
+// `trades[length - 1] = lastTrade` comes out as `AddElementToObject(trades, length - 1,
+// lastTrade)`, while gofmt prints that call as `AddElementToObject(trades, length-1,
+// lastTrade)`, because the argument list of a three-argument call is level 2. Text the
+// printer has already produced cannot be re-printed, so normalise it once, here:
+//   * every level-4/5 operator at level >= 2 loses both blanks, except where dropping
+//     them would glue two tokens into a different one (`/*`, `//`, `++`, `--`, `&&`,
+//     `&^`): walkBinary() raises the cutoff for exactly those pairs, so their blanks stay;
+//   * a string slice's `:` takes the blanks go/printer's SliceExpr block gives it;
+//   * `if (cond) {` / `for (cond) {` / `switch (cond) {` lose the redundant parens
+//     controlClause() strips off a control expression.
+function goGofmtSplicedText (content: string): string {
+    if (content.indexOf ('(') < 0) {
+        return content;
+    }
+    return goGofmtTightenSplicedArithmetic (goGofmtLevelOneChains (goGofmtSliceColons (content)));
+}
+
+// the characters a Go operand can end with, i.e. the left neighbour of a binary operator
+const GO_OPERAND_ENDER = /[A-Za-z0-9_)\]}"'`]/;
+
+// go/printer's walkBinary() raises the cutoff - and so keeps both blanks - for exactly the
+// operand pairs that would otherwise glue into another token: `/*`, `//`, `&&`, `&^`,
+// `++`, `--`. Every other pair (`+ *p`, `x & y`, ...) is compacted normally.
+function goOperatorGluesTokens (operator: string, right: string): boolean {
+    const pair = operator + right;
+    return (pair === '/*') || (pair === '//') || (pair === '&&') || (pair === '&^') ||
+        (pair === '++') || (pair === '--');
+}
+
+// index of the last byte of the Go literal that starts at `index`
+function goSkipLiteralText (content: string, index: number): number {
+    const quote = content[index];
+    for (let i = index + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '\\' && quote !== '`') {
+            i += 1;
+        } else if (char === quote) {
+            return i;
+        } else if (char === '\n' && quote !== '`') {
+            return i - 1;                 // unterminated: stop at the line end
+        }
+    }
+    return content.length - 1;
+}
+
+// index of the last byte of the comment that starts at `index`
+function goSkipCommentText (content: string, index: number): number {
+    if (content[index + 1] === '/') {
+        const end = content.indexOf ('\n', index);
+        return end < 0 ? content.length - 1 : end;
+    }
+    const end = content.indexOf ('*/', index + 2);
+    return end < 0 ? content.length - 1 : end + 1;
+}
+
+// number of comma separated entries between the bracket at `opener` and its matching
+// closer (strings and comments ignored); 0 when unbalanced
+function goCountFrameArgsText (content: string, opener: number): number {
+    let depth = 0;
+    let entries = 0;
+    let seen = false;
+    for (let i = opener + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i);
+            seen = true;
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            if (depth === 0) {
+                return seen || entries > 0 ? entries + 1 : 0;
+            }
+            depth -= 1;
+            seen = true;
+        } else if (char === ',' && depth === 0) {
+            entries += 1;
+        } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
+            seen = true;
+        }
+    }
+    return 0;
+}
+
+// a `(` opens a call's (or a conversion's, or a func literal's) argument list when an
+// operand or a selector ends right in front of it; every other `(` only groups, and
+// go/printer prints a grouped expression one level shallower
+function goIsCallParenText (content: string, open: number): boolean {
+    let i = open - 1;
+    while ((i >= 0) && ((content[i] === ' ') || (content[i] === '\t'))) {
+        i -= 1;
+    }
+    return (i >= 0) && GO_OPERAND_ENDER.test (content[i]);
+}
+
+// a `(` that opens the parameter list of a function declaration, a method or a func type
+// rather than a call: the names and types in there are declarations, so a `*` in there is a
+// pointer, never a multiplication - nothing inside a signature is a level-4/5 expression
+function goIsSignatureParenText (content: string, open: number): boolean {
+    const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
+    const keyword = head.lastIndexOf ('func');
+    return (keyword >= 0) && (head.indexOf ('{', keyword) < 0);
+}
+
+// the level-4/5 operator token at `index`, or null when the text there is none: level 6
+// is unary, `++`/`--` and the `//`/`/*` openers are not operators, `*=` & co assign, and
+// level 3 and below (`<`, `<-`, comparisons) always keep their blanks
+function goLevel45OperatorText (content: string, index: number): string | null {
+    const char = content[index];
+    const next = content[index + 1];
+    if ((char === '+') || (char === '-') || (char === '*') || (char === '/') ||
+            (char === '%') || (char === '|') || (char === '^')) {
+        return ((next === '=') || (next === '>') || (next === char) || (next === '-')) ? null : char;
+    }
+    if (char === '&') {
+        if ((next === '&') || (next === '=')) {
+            return null;
+        }
+        return (next === '^') ? '&^' : '&';
+    }
+    if ((char === '<') || (char === '>')) {
+        if (next !== char) {
+            return null;                  // a comparison, or the `<-` receive operator
+        }
+        return (content[index + 2] === '=') ? null : char + char;
+    }
+    return null;
+}
+
+// the `)` of a `if (cond) {` style control clause, i.e. of exactly the parens that wrap a
+// whole control expression on one line: -1 when this `(` is anything else (a composite
+// literal in the condition, a condition spanning lines, or no control keyword in front)
+function goControlClauseClose (content: string, open: number): number {
+    const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
+    if (!/^[ \t]*(?:\} else )?(?:if|for|switch)[ \t]+$/.test (head)) {
+        return -1;
+    }
+    let depth = 0;
+    for (let i = open; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i);
+        } else if (char === '(') {
+            depth += 1;
+        } else if (char === ')') {
+            depth -= 1;
+            if (depth === 0) {
+                const lineEnd = content.indexOf ('\n', i);
+                const tail = content.slice (i + 1, lineEnd < 0 ? content.length : lineEnd);
+                return /^[ \t]*\{[ \t]*$/.test (tail) ? i : -1;
+            }
+        } else if ((char === '{') || (char === '}') || (char === '\n')) {
+            return -1;                    // not the whole condition: gofmt keeps the parens
+        }
+    }
+    return -1;
+}
+
+// go/printer's SliceExpr case prints a slice's bounds one level deeper than the slice, so
+// their level-4/5 operators lose the blanks, and pads the `:` on both sides when the
+// slice itself sits at level <= 1, has both bounds and at least one bound is a binary
+// expression: `s[0:len(s) - 3]` is emitted by the printer, gofmt prints `s[0 : len(s)-3]`
+function goGofmtSliceColons (content: string): string {
+    const fixes: { 'start': number, 'end': number, 'text': string }[] = [];
+    const stack: { 'open': number, 'level': number }[] = [];
+    let level = 1;
+    let i = 0;
+    while (i < content.length) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i) + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i) + 1;
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'open': i + 1, 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                if (char === ']') {
+                    const fix = goSliceColonFix (content, frame.open, i, frame.level);
+                    if (fix !== null) {
+                        fixes.push (fix);
+                    }
+                }
+                level = frame.level;
+            }
+            i += 1;
+            continue;
+        }
+        i += 1;
+    }
+    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
+    for (let f = 0; f < fixes.length; f++) {
+        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
+    }
+    return content;
+}
+
+// the `colon : high` text of the slice whose bounds are `content[open : close]`, or null
+// when the brackets hold anything but one `low:high` pair
+function goSliceColonFix (content: string, open: number, close: number, level: number) {
+    const bounds = content.slice (open, close);
+    let depth = 0;
+    let colon = -1;
+    for (let i = 0; i < bounds.length; i++) {
+        const char = bounds[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (bounds, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+        } else if (char === ':' && depth === 0) {
+            if (colon >= 0) {
+                return null;              // `low:high:max` and anything else: leave it alone
+            }
+            colon = i;
+        }
+    }
+    if (colon < 0) {
+        return null;
+    }
+    const low = bounds.slice (0, colon).replace (/[ \t]+$/, '');
+    const high = bounds.slice (colon + 1).replace (/^[ \t]+/, '');
+    const needsBlanks = (level <= 1) && (low.trim () !== '') && (high.trim () !== '') &&
+        (goBoundIsBinary (low) || goBoundIsBinary (high));
+    const blank = needsBlanks ? ' ' : '';
+    return { 'start': open, 'end': close, 'text': low + blank + ':' + blank + high };
+}
+
+// true when the slice bound `text` is a binary expression for go/printer's isBinary(),
+// i.e. when it has a binary operator of its own - one nested in a call or a bracket does
+// not count, and neither does a unary sign
+function goBoundIsBinary (text: string): boolean {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (text, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+        } else if ((depth === 0) && ('+-*/%&|^<>=!'.indexOf (char) >= 0)) {
+            let before = i - 1;
+            while ((before >= 0) && ((text[before] === ' ') || (text[before] === '\t'))) {
+                before -= 1;
+            }
+            if ((before >= 0) && GO_OPERAND_ENDER.test (text[before])) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// the same level rule for the operators the printer printed, with the control-clause
+// parens dropped on the way through
+function goGofmtTightenSplicedArithmetic (content: string): string {
+    const out: string[] = [];
+    const stack: { 'kind': string, 'level': number }[] = [];
+    const strippedClosers = new Set<number> ();
+    let level = 1;
+    let lastChar = '';
+    let i = 0;
+    while (i < content.length) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literal = content.slice (i, goSkipLiteralText (content, i) + 1);
+            out.push (literal);
+            lastChar = literal[literal.length - 1];
+            i += literal.length;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            const comment = content.slice (i, goSkipCommentText (content, i) + 1);
+            out.push (comment);                                 // a line comment keeps its newline
+            i += comment.length;
+            continue;
+        }
+        if (strippedClosers.has (i)) {
+            i += 1;
+            continue;
+        }
+        if ((char === '(') && (level > 0)) {
+            const close = goControlClauseClose (content, i);
+            if (close > 0) {
+                strippedClosers.add (close);                    // stripParens(cond)
+                i += 1;
+                continue;
+            }
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'kind': char, 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsSignatureParenText (content, i)) {
+                level = 0;                                      // declarations: no operators in there
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            out.push (char);
+            lastChar = char;
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                level = frame.level;
+            }
+            out.push (char);
+            lastChar = char;
+            i += 1;
+            continue;
+        }
+        const operator = goLevel45OperatorText (content, i);
+        if ((operator !== null) && (level > 1) && GO_OPERAND_ENDER.test (lastChar)) {
+            const tightened = goTightenedOperatorText (content, i, operator);
+            if (tightened !== null) {
+                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
+                    out.pop ();
+                }
+                out.push (operator);
+                i = tightened.end;
+                lastChar = '';
+                continue;
+            }
+        }
+        out.push (char);
+        if ((char !== ' ') && (char !== '\t')) {
+            lastChar = char;
+        }
+        i += 1;
+    }
+    return out.join ('');
+}
+
+// the blanks an operator printed at level >= 2 may not keep: the span to replace with the
+// bare operator, or null when a blank has to stay there (a line break on either side, or a
+// right operand that would glue with the operator into another token)
+function goTightenedOperatorText (content: string, index: number, operator: string) {
+    let start = index;
+    while ((start > 0) && ((content[start - 1] === ' ') || (content[start - 1] === '\t'))) {
+        start -= 1;
+    }
+    if ((start === 0) || (content[start - 1] === '\n')) {
+        return null;                      // the operator starts a line: go/printer's linebreak
+    }
+    let end = index + operator.length;
+    while ((end < content.length) && ((content[end] === ' ') || (content[end] === '\t'))) {
+        end += 1;
+    }
+    const right = content[end] ?? '';
+    if ((right === '') || (right === '\n') || goOperatorGluesTokens (operator, right)) {
+        return null;
+    }
+    return { 'start': start, 'end': end };
+}
+
+// drop the blanks around every level-4/5 operator of `text` (level >= 2 throughout: the
+// cutoff is 4, so no level-4/5 operator keeps a blank), strings and comments untouched
+function goSqueezeLevel45Text (text: string): string {
+    const out: string[] = [];
+    let lastChar = '';
+    let i = 0;
+    while (i < text.length) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literal = text.slice (i, goSkipLiteralText (text, i) + 1);
+            out.push (literal);
+            lastChar = literal[literal.length - 1];
+            i += literal.length;
+            continue;
+        }
+        if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
+            const comment = text.slice (i, goSkipCommentText (text, i) + 1);
+            out.push (comment);
+            i += comment.length;
+            continue;
+        }
+        const operator = goLevel45OperatorText (text, i);
+        if ((operator !== null) && GO_OPERAND_ENDER.test (lastChar)) {
+            const tightened = goTightenedOperatorText (text, i, operator);
+            if (tightened !== null) {
+                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
+                    out.pop ();
+                }
+                out.push (operator);
+                i = tightened.end;
+                lastChar = '';
+                continue;
+            }
+        }
+        out.push (char);
+        if ((char !== ' ') && (char !== '\t')) {
+            lastChar = char;
+        }
+        i += 1;
+    }
+    return out.join ('');
+}
+
+// go/printer threads the level it prints an expression at through the operator tree: the
+// operands of a comparison or a logical operator print (at least) one level deeper, and in a
+// chain that mixes level 4 and level 5 every level-5 operator sits one level deeper than the
+// level-4 operator it hangs under (diffPrec()) - its grouped operand lands at level 2 with
+// it (reduceDepth()). The frame walk above only counts brackets, so the level-1 chains are
+// the one place left where the printer's own level bookkeeping shows: the composite literal
+// element `(90 * 86400) * 1000 - 1` is gofmt's `(90*86400)*1000 - 1`, while the same chain
+// without its level-4 operator keeps every blank (`(90 * 86400) * 1000`).
+function goGofmtLevelOneChains (content: string): string {
+    const fixes: { 'start': number, 'end': number, 'text': string }[] = [];
+    const stack: { 'level': number }[] = [];
+    let level = 1;
+    let lineStart = 0;
+    let i = 0;
+    while (i <= content.length) {
+        const char = content[i];
+        if ((i === content.length) || (char === '\n')) {
+            if (level === 1) {
+                goCollectLevelOneChainFixes (content, lineStart, i, fixes);
+            }
+            lineStart = i + 1;
+            i += 1;
+            continue;
+        }
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i) + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i);              // a line comment stops at its newline
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsSignatureParenText (content, i)) {
+                level = 0;
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                level = frame.level;
+            }
+            i += 1;
+            continue;
+        }
+        i += 1;
+    }
+    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
+    for (let f = 0; f < fixes.length; f++) {
+        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
+    }
+    return content;
+}
+
+// every Go operator token with go/token's precedence (0 for the ones that only delimit an
+// expression: `=` & co assign, `<-` receives), or null when the text is not an operator
+function goGoOperatorText (content: string, index: number) {
+    const char = content[index];
+    const next = content[index + 1];
+    if (char === '<') {
+        if (next === '<') { return (content[index + 2] === '=') ? null : { 'token': '<<', 'precedence': 5 }; }
+        if (next === '-') { return { 'token': '<-', 'precedence': 0 }; }
+        if (next === '=') { return { 'token': '<=', 'precedence': 3 }; }
+        return { 'token': '<', 'precedence': 3 };
+    }
+    if (char === '>') {
+        if (next === '>') { return (content[index + 2] === '=') ? null : { 'token': '>>', 'precedence': 5 }; }
+        if (next === '=') { return { 'token': '>=', 'precedence': 3 }; }
+        return { 'token': '>', 'precedence': 3 };
+    }
+    if (char === '&') {
+        if (next === '&') { return { 'token': '&&', 'precedence': 2 }; }
+        if (next === '^') { return (content[index + 2] === '=') ? null : { 'token': '&^', 'precedence': 5 }; }
+        if (next === '=') { return null; }
+        return { 'token': '&', 'precedence': 5 };
+    }
+    if (char === '|') {
+        if (next === '|') { return { 'token': '||', 'precedence': 1 }; }
+        if (next === '=') { return null; }
+        return { 'token': '|', 'precedence': 4 };
+    }
+    if ((char === '+') || (char === '-')) {
+        if ((next === char) || (next === '=') || (next === '>')) { return null; }   // `++`/`--`, `+=`, `->`
+        return { 'token': char, 'precedence': 4 };
+    }
+    if ((char === '*') || (char === '/') || (char === '%') || (char === '^')) {
+        if (next === '=') { return null; }
+        return { 'token': char, 'precedence': (char === '^') ? 4 : 5 };
+    }
+    if (char === '=') {
+        if (next === '=') { return { 'token': '==', 'precedence': 3 }; }
+        return null;                      // a plain assignment is a separator
+    }
+    if (char === '!') {
+        if (next === '=') { return { 'token': '!=', 'precedence': 3 }; }
+        return null;                      // unary not
+    }
+    return null;
+}
+
+// the keywords that can stand in front of an expression: an operator right after one of
+// them is unary, not binary
+const GO_EXPRESSION_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'continue', 'default',
+    'defer', 'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface',
+    'map', 'package', 'range', 'return', 'select', 'struct', 'switch', 'type', 'var' ]);
+
+// the level-1 chain of the line [start, end): a mix of level 4 and level 5 makes the level-5
+// operators print at level 2 - and with them the grouped operand they own
+function goCollectLevelOneChainFixes (content: string, start: number, end: number, fixes: { 'start': number, 'end': number, 'text': string }[]) {
+    const tokens: { 'operator': string | null, 'start': number, 'end': number, 'keyword': boolean }[] = [];
+    let has4 = false;
+    let has5 = false;
+    let i = start;
+    while (i < end) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literalEnd = goSkipLiteralText (content, i);
+            tokens.push ({ 'operator': null, 'start': i, 'end': literalEnd + 1, 'keyword': false });
+            i = literalEnd + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i) + 1;
+            continue;
+        }
+        const value = goGoOperatorText (content, i);
+        if (value !== null) {
+            const previous = tokens[tokens.length - 1];
+            const binary = (previous !== undefined) && (previous.operator === null) && !previous.keyword;
+            const precedence = (binary ? value.precedence : 0);
+            if (precedence === 4) {
+                has4 = true;
+            } else if (precedence === 5) {
+                has5 = true;
+            }
+            tokens.push ({ 'operator': (value.precedence >= 4) ? value.token : null, 'start': i, 'end': i + value.token.length, 'keyword': binary && (value.precedence < 4) });
+            i += value.token.length;
+            continue;
+        }
+        // an operand: everything up to the next operator, blank or separator of this level
+        const operandStart = i;
+        let depth = 0;
+        while (i < end) {
+            const operandChar = content[i];
+            if (operandChar === '"' || operandChar === '\'' || operandChar === '`') {
+                i = goSkipLiteralText (content, i) + 1;
+                continue;
+            }
+            if (operandChar === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+                i = goSkipCommentText (content, i) + 1;
+                continue;
+            }
+            if (operandChar === '(' || operandChar === '[' || operandChar === '{') {
+                depth += 1;
+            } else if (operandChar === ')' || operandChar === ']' || operandChar === '}') {
+                if (depth === 0) {
+                    break;
+                }
+                depth -= 1;
+            } else if (depth === 0) {
+                if (' \t:,='.indexOf (operandChar) >= 0) {
+                    break;
+                }
+                if (goGoOperatorText (content, i) !== null) {
+                    break;
+                }
+            }
+            i += 1;
+        }
+        if (i > operandStart) {
+            const operand = content.slice (operandStart, i);
+            tokens.push ({ 'operator': null, 'start': operandStart, 'end': i, 'keyword': GO_EXPRESSION_KEYWORDS.has (operand) });
+        } else {
+            if (':,;='.indexOf (content[i]) >= 0) {
+                // a separator ends the operand before it: what follows starts a new expression
+                tokens.push ({ 'operator': null, 'start': i, 'end': i + 1, 'keyword': true });
+            }
+            i += 1;                       // a blank or a bracket: nothing to tokenize here
+        }
+    }
+    if (!(has4 && has5)) {
+        return;
+    }
+    for (let t = 0; t < tokens.length; t++) {
+        const token = tokens[t];
+        if (goOperatorPrecedenceText (token.operator as string) !== 5) {
+            continue;
+        }
+        const previous = tokens[t - 1];
+        if ((previous === undefined) || (previous.operator !== null) || previous.keyword) {
+            continue;                     // a unary `*` owns no blanks and never mixes a chain
+        }
+        const tightened = goTightenedOperatorText (content, token.start, token.operator as string);
+        if (tightened !== null) {
+            fixes.push ({ 'start': tightened.start, 'end': tightened.end, 'text': token.operator as string });
+        }
+        // the operand of this level-5 operator prints one level deeper too: a grouped one
+        // lands at level 2 with it, so every operator inside it loses its blanks
+        const neighbours = [ t - 1, t + 1 ];
+        for (let n = 0; n < neighbours.length; n++) {
+            const neighbour = tokens[neighbours[n]];
+            if ((neighbour !== undefined) && (neighbour.operator === null)) {
+                const text = content.slice (neighbour.start, neighbour.end);
+                if ((text[0] === '(') && (text[text.length - 1] === ')')) {
+                    const squeezed = goSqueezeLevel45Text (text.slice (1, text.length - 1));
+                    if (squeezed !== text.slice (1, text.length - 1)) {
+                        fixes.push ({ 'start': neighbour.start + 1, 'end': neighbour.end - 1, 'text': squeezed });
+                    }
+                }
+            }
+        }
+    }
+}
+
+// go/token precedence of the operators the Go printer can print
+function goOperatorPrecedenceText (operator: string): number {
+    switch (operator) {
+    case '*': case '/': case '%': case '<<': case '>>': case '&': case '&^':
+        return 5;
+    case '+': case '-': case '|': case '^':
+        return 4;
+    }
+    return 0;
 }
 
 // gofmt's printer starts the file at the package clause, writes exactly one blank line
@@ -665,6 +1853,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
     // runs last so its match sees the canonical spacing.
     content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
+    // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
+    // parens of that form are exactly the ones gofmt's stripParens() takes off a control
+    // expression - so the spacing pass runs once more over its output
+    content = goGofmtSplicedText (content);
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -1507,9 +2699,10 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
-        // build/go-worker.js installs the same hook for the Piscina path
+        // build/go-worker.ts installs the same hooks for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler);
         installCacheRemoveCall (this.transpiler, 'go');
+        installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
@@ -2759,7 +3952,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES);
+            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -2863,7 +4056,8 @@ ${constStatements.join('\n')}
                 '',
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
-            const file = fileHeader + '\n' + structDef + methods + shims;
+            // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
+            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -3706,58 +4900,18 @@ ${caseStatements.join('\n')}
 
     // index of the last byte of the Go literal that starts at `index`
     goSkipGoLiteral (content: string, index: number): number {
-        const quote = content[index];
-        for (let i = index + 1; i < content.length; i++) {
-            const char = content[i];
-            if (char === '\\' && quote !== '`') {
-                i += 1;
-            } else if (char === quote) {
-                return i;
-            } else if (char === '\n' && quote !== '`') {
-                return i - 1;                 // unterminated: stop at the line end
-            }
-        }
-        return content.length - 1;
+        return goSkipLiteralText (content, index);
     }
 
     // index of the last byte of the comment that starts at `index`
     goSkipGoComment (content: string, index: number): number {
-        if (content[index + 1] === '/') {
-            const end = content.indexOf ('\n', index);
-            return end < 0 ? content.length - 1 : end;
-        }
-        const end = content.indexOf ('*/', index + 2);
-        return end < 0 ? content.length - 1 : end + 1;
+        return goSkipCommentText (content, index);
     }
 
     // number of comma separated entries between the bracket at `opener` and its
     // matching closer (strings and comments ignored); 0 when unbalanced
     goCountFrameArgs (content: string, opener: number): number {
-        let depth = 0;
-        let entries = 0;
-        let seen = false;
-        for (let i = opener + 1; i < content.length; i++) {
-            const char = content[i];
-            if (char === '"' || char === '\'' || char === '`') {
-                i = this.goSkipGoLiteral (content, i);
-                seen = true;
-            } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-                i = this.goSkipGoComment (content, i);
-            } else if (char === '(' || char === '[' || char === '{') {
-                depth += 1;
-            } else if (char === ')' || char === ']' || char === '}') {
-                if (depth === 0) {
-                    return seen || entries > 0 ? entries + 1 : 0;
-                }
-                depth -= 1;
-                seen = true;
-            } else if (char === ',' && depth === 0) {
-                entries += 1;
-            } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
-                seen = true;
-            }
-        }
-        return 0;
+        return goCountFrameArgsText (content, opener);
     }
 
     // the two-literal concatenation a `"\0"` string literal is rewritten into,
@@ -3838,7 +4992,19 @@ ${caseStatements.join('\n')}
             if (!anyLocals.size) {
                 return fn;
             }
-            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // DerefScalar() is only load-bearing for the reads that can see the pointer (raw
+            // comparisons, stores, non-shim calls). Where every read of the local is a call to
+            // a shim that derefs its own arguments, drop the wrapper the pass above added and
+            // keep the pointer in the box — the shim reads the same value either way.
+            const wrapLines = new Set<number> ();
+            fn.split ('\n').forEach ((line, index) => {
+                if (line.indexOf ('DerefScalar(') >= 0) {
+                    wrapLines.add (index);
+                }
+            });
+            const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
+            fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // An `any` name can still receive a typed pointer from its caller (an `any` parameter
             // fed a *string by another exchange method), so `name == "literal"` compares an
             // interface against an untyped constant and is always false. Route those via IsEqual.
@@ -3874,6 +5040,21 @@ ${caseStatements.join('\n')}
             }) as any);
             return fn;
         }) as any);
+
+        // A bare `any` parameter keeps whatever the CALLER boxed: the printer's `x == nil` proof
+        // is local to the function, so a typed `*T` local handed over by another method needs the
+        // deref-aware helper (goParamNativeNilCompares). GetArg-bound optionals and the proven
+        // locals keep the native comparison.
+        content = goParamNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // ... and the same for the `any` LOCALS a pointer reaches: the printer's local proof
+        // only knows a `*T`-returning helper call, not a typed local or a native `*T` parameter.
+        // A prediction exchange lives in package ccxtprediction, which reaches the helper as
+        // `ccxt.IsEqual` too (its generated file uses no bare form).
+        content = goBoxedPointerNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // ... and the same for a local boxed from a method this file types with a pointer result
+        // (`var timeInForce any = this.ParseOrderTimeInForce(…)`): the printer cannot see that
+        // signature, so its native `timeInForce == nil` never fires on the boxed (*string)(nil).
+        content = goPointerLocalNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -5142,6 +6323,15 @@ async function runMain () {
     }
     if (process.argv.includes ('--check-gofmt')) {
         runGofmtGate ();
+        return;
+    }
+    if (process.argv.includes ('--self-test')) {
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ());
+        if (problems.length) {
+            console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
+            process.exit (3);
+        }
+        console.log ('SELF-TEST PASSED');
         return;
     }
     const ws = process.argv.includes ('--ws');

@@ -294,7 +294,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currency(self, code: str, params={}):
+    def fetch_currency(self, code: str, params: dict = {}) -> dict:
         # this method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         if self.markets is None:
@@ -302,7 +302,7 @@ class upbit(Exchange, ImplicitAPI):
         currency = self.currency(code)
         return self.fetch_currency_by_id(currency['id'], params)
 
-    def fetch_currency_by_id(self, id: str, params={}):
+    def fetch_currency_by_id(self, id: str, params: dict = {}) -> dict:
         # this method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         request = {
@@ -347,13 +347,13 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        memberInfo = self.safe_value(response, 'member_level', {})
-        currencyInfo = self.safe_value(response, 'currency', {})
-        withdrawLimits = self.safe_value(response, 'withdraw_limit', {})
-        canWithdraw = self.safe_value(withdrawLimits, 'can_withdraw')
+        memberInfo = self.safe_dict(response, 'member_level', {})
+        currencyInfo = self.safe_dict(response, 'currency', {})
+        withdrawLimits = self.safe_dict(response, 'withdraw_limit', {})
+        canWithdraw = self.safe_bool(withdrawLimits, 'can_withdraw')
         walletState = self.safe_string(currencyInfo, 'wallet_state')
-        walletLocked = self.safe_value(memberInfo, 'wallet_locked')
-        locked = self.safe_value(memberInfo, 'locked')
+        walletLocked = self.safe_bool(memberInfo, 'wallet_locked')
+        locked = self.safe_bool(memberInfo, 'locked')
         active = True
         if (canWithdraw is not None) and (canWithdraw is not True):
             active = False
@@ -389,7 +389,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_market(self, symbol: str, params={}):
+    def fetch_market(self, symbol: str, params: dict = {}) -> Market:
         # this method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         if self.markets is None:
@@ -397,7 +397,7 @@ class upbit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.fetch_market_by_id(market['id'], params)
 
-    def fetch_market_by_id(self, id: Str, params={}):
+    def fetch_market_by_id(self, id: Str, params: dict = {}) -> Market:
         # this method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         request = {
@@ -436,9 +436,9 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        marketInfo = self.safe_value(response, 'market')
-        bid = self.safe_value(marketInfo, 'bid')
-        ask = self.safe_value(marketInfo, 'ask')
+        marketInfo = self.safe_dict(response, 'market')
+        bid = self.safe_dict(marketInfo, 'bid')
+        ask = self.safe_dict(marketInfo, 'ask')
         marketId = self.safe_string(marketInfo, 'id')
         baseId = self.safe_string(ask, 'currency')
         quoteId = self.safe_string(bid, 'currency')
@@ -499,7 +499,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
 
         https://docs.upbit.com/kr/reference/list-trading-pairs
@@ -598,7 +598,7 @@ class upbit(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
 
         https://docs.upbit.com/kr/reference/get-balance
@@ -625,7 +625,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params: dict = {}) -> OrderBooks:
         """
 
         https://docs.upbit.com/kr/reference/list-orderbooks
@@ -699,7 +699,7 @@ class upbit(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://docs.upbit.com/kr/reference/list-orderbooks
@@ -771,7 +771,7 @@ class upbit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://docs.upbit.com/kr/reference/list-tickers
@@ -864,7 +864,7 @@ class upbit(Exchange, ImplicitAPI):
             queries.append(idsString)
         return queries
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://docs.upbit.com/kr/reference/list-tickers
@@ -946,7 +946,7 @@ class upbit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://docs.upbit.com/kr/reference/list-pair-trades
@@ -993,7 +993,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
 
         https://docs.upbit.com/kr/reference/available-order-information
@@ -1060,7 +1060,7 @@ class upbit(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1108,7 +1108,7 @@ class upbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.upbit.com/kr/reference/list-candles-minutes
@@ -1179,7 +1179,7 @@ class upbit(Exchange, ImplicitAPI):
 
     def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
         quoteAmount = None
-        createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
+        createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')
         if cost is not None:
             quoteAmount = self.cost_to_precision(symbol, cost)
@@ -1198,7 +1198,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' calcOrderPrice() could not determine quote amount')
         return quoteAmount
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1310,7 +1310,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.upbit.com/kr/reference/cancel-order
@@ -1349,7 +1349,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
 
         https://docs.upbit.com/kr/reference/cancel-and-new-order
@@ -1460,7 +1460,7 @@ class upbit(Exchange, ImplicitAPI):
         result['market'] = self.safe_string(response, 'market')
         return self.parse_order(result)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.upbit.com/kr/reference/list-deposits
@@ -1544,7 +1544,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
 
         https://docs.upbit.com/kr/reference/list-withdrawals
@@ -1832,7 +1832,7 @@ class upbit(Exchange, ImplicitAPI):
                 trade = trades[i]
                 cost = Precise.string_add(cost, self.safe_string(trade, 'cost'))
                 if getFeesFromTrades:
-                    tradeFee = self.safe_value(trades[i], 'fee', {})
+                    tradeFee = self.safe_dict(trades[i], 'fee', {})
                     tradeFeeCost = self.safe_string(tradeFee, 'cost')
                     if tradeFeeCost is not None:
                         feeCost = Precise.string_add(feeCost, tradeFeeCost)
@@ -1866,7 +1866,7 @@ class upbit(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1914,7 +1914,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1968,7 +1968,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -2022,7 +2022,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://docs.upbit.com/kr/reference/get-order
@@ -2085,7 +2085,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
 
         https://docs.upbit.com/kr/reference/list-deposit-addresses
@@ -2143,7 +2143,7 @@ class upbit(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
 
         https://docs.upbit.com/kr/reference/get-deposit-address
@@ -2176,7 +2176,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
 
         https://docs.upbit.com/kr/reference/create-deposit-address
@@ -2215,7 +2215,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
 
         https://docs.upbit.com/kr/reference/withdraw
@@ -2269,10 +2269,10 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
@@ -2318,7 +2318,7 @@ class upbit(Exchange, ImplicitAPI):
         #   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         #   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         #
-        error = self.safe_value(response, 'error')
+        error = self.safe_dict(response, 'error')
         if error is not None:
             message = self.safe_string(error, 'message')
             name = self.safe_string(error, 'name')

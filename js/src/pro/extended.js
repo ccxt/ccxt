@@ -791,7 +791,7 @@ export default class extended extends extendedRest {
         const candleType = this.safeString(subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString(subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], cacheKey);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -828,7 +828,7 @@ export default class extended extends extendedRest {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeDict(message, 'error');
         if (error === undefined) {
             return false;
         }
