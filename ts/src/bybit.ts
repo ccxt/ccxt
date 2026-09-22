@@ -23,7 +23,7 @@ export default class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v5',
             'userAgent': undefined,
-            'rateLimit': 20 * 1.05, // give a slight buffer https://github.com/ccxt/ccxt/pull/30573
+            'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,
@@ -226,7 +226,7 @@ export default class bybit extends Exchange {
                         'v5/system/status': { 'cost': 5 } as Endpoint<Dict>,
                         // market
                         'v5/market/time': { 'cost': 5 } as Endpoint<Dict>,
-                        'v5/market/kline': { 'cost': 5 } as Endpoint<Dict>,
+                        'v5/market/kline': { 'cost': 5 * 1.05} as Endpoint<Dict>, // give around 5% buffer to avoid RL issues https://github.com/ccxt/ccxt/pull/30573
                         'v5/market/mark-price-kline': { 'cost': 5 } as Endpoint<Dict>,
                         'v5/market/index-price-kline': { 'cost': 5 } as Endpoint<Dict>,
                         'v5/market/premium-index-price-kline': { 'cost': 5 } as Endpoint<Dict>,
