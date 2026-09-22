@@ -148,7 +148,6 @@ type ICoreExchange interface {
 	SetWsProxy(wsProxy any)
 	GetAlias() any
 	GetTimeframes() map[string]any
-	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
 	GetCache() *sync.Map
 	GetRequiredCredentials() map[string]any
