@@ -1775,7 +1775,7 @@ class mexc extends Exchange {
                     'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
                 );
-                $isTaker = ($this->safe_bool($trade, 'taker') === true);
+                $isTaker = ($this->safe_bool_2($trade, 'isTaker', 'taker') === true);
                 $takerOrMaker = $isTaker ? 'taker' : 'maker';
             } else {
                 $timestamp = $this->safe_integer_2($trade, 'time', 'T');
