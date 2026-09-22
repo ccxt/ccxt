@@ -123,6 +123,7 @@ pub(crate) use ccxt::prediction::{
     myriad::MyriadCore,
     opinion::OpinionCore,
     polymarket::PolymarketCore,
+    predictfun::PredictfunCore,
 };
 
 pub(crate) use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
@@ -309,6 +310,7 @@ macro_rules! for_each_core {
         $cb!(phemex, PhemexCore);
         $cb!(poloniex, PoloniexCore);
         $cb!(polymarket, PolymarketCore);
+        $cb!(predictfun, PredictfunCore);
         $cb!(revolutx, RevolutxCore);
         $cb!(tokocrypto, TokocryptoCore);
         $cb!(toobit, ToobitCore);

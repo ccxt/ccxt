@@ -1084,7 +1084,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        const topic = this.safeValue(message, 'channel');
+        const topic = this.safeString(message, 'channel');
         const messageHash = topic + '::balance';
         let info = undefined;
         let rawBalances = [];

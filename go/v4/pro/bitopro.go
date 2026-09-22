@@ -93,21 +93,21 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		if (!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 500)) && (!ccxt.IsEqual(limit, 1000)) {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")))
+			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000"))
 		}
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes7312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes7312)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(ccxt.Add("ORDER_BOOK", ":"), symbol)
+	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
 	var endPart any = nil
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		endPart = ccxt.GetValue(market, "id")
 	} else {
 		endPart = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), ":"), this.NumberToString(limit))
@@ -119,7 +119,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Bitopro) HandleOrderBook(client any, message any) {
+func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "ORDER_BOOK",
@@ -142,8 +142,8 @@ func (this *Bitopro) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market any = this.SafeMarket(marketId, nil, "_")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var symbol any = market["symbol"]
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -181,25 +181,25 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes13812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13812)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(ccxt.Add("TRADE", ":"), symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var messageHash any = ccxt.Add("TRADE"+":", symbol)
 
-	trades := (<-this.WatchPublicAsync("trades", messageHash, ccxt.GetValue(market, "id")))
+	trades := (<-this.WatchPublicAsync("trades", messageHash, market["id"]))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bitopro) HandleTrade(client any, message any) {
+func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "TRADE",
@@ -224,14 +224,14 @@ func (this *Bitopro) HandleTrade(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
-	var rawData any = this.SafeValue(message, "data", []any{})
+	var rawData any = this.SafeList(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
 	}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
+	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		tradesCache.(ccxt.Appender).Append(ccxt.GetValue(trades, i))
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
@@ -266,29 +266,29 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes20312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes20312)
 	}
 	var messageHash any = "USER_TRADE"
-	if !ccxt.IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
+	if symbol != nil {
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
 	this.Authenticate(url)
 
 	trades := (<-this.Watch(url, messageHash, nil, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bitopro) HandleMyTrade(client any, message any) {
+func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "USER_TRADE",
@@ -312,7 +312,7 @@ func (this *Bitopro) HandleMyTrade(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -380,10 +380,10 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"rate":     nil,
 		}
 	}
-	var isMaker any = this.SafeValue(trade, "isMaker")
+	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
-	if !ccxt.IsEqual(isMaker, nil) {
-		if ccxt.IsEqual(isMaker, true) {
+	if isMaker != nil {
+		if isMaker != nil && *isMaker == true {
 			takerOrMaker = "maker"
 		} else {
 			takerOrMaker = "taker"
@@ -425,21 +425,21 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes34712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes34712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(ccxt.Add("TICKER", ":"), symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
+	var messageHash any = ccxt.Add("TICKER"+":", symbol)
 
-	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, ccxt.GetValue(market, "id")))
+	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, market["id"]))
 	ccxt.PanicOnError(retRes35215)
 	ch <- retRes35215
 	return nil
 }
-func (this *Bitopro) HandleTicker(client any, message any) {
+func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "TICKER",
@@ -528,7 +528,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes43712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes43712)
@@ -542,7 +542,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes44215
 	return nil
 }
-func (this *Bitopro) HandleBalance(client any, message any) {
+func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "ACCOUNT_BALANCE",
@@ -560,7 +560,7 @@ func (this *Bitopro) HandleBalance(client any, message any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
 	var currencies []string = ccxt.ObjectKeys(data)
@@ -569,9 +569,9 @@ func (this *Bitopro) HandleBalance(client any, message any) {
 		"timestamp": timestamp,
 		"datetime":  datetime,
 	}
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(currencies)); i++ {
+	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
-		var balance any = this.SafeValue(data, currency)
+		var balance any = this.SafeDict(data, currency, map[string]any{})
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

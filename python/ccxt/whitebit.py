@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -480,7 +480,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for whitebit
 
@@ -524,8 +524,8 @@ class whitebit(Exchange, ImplicitAPI):
         quoteId = 'USDT' if (quoteId == 'PERP') else quoteId
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        active = self.safe_value(market, 'tradesEnabled')
-        isCollateral = self.safe_value(market, 'isCollateral')
+        active = self.safe_bool(market, 'tradesEnabled')
+        isCollateral = self.safe_bool(market, 'isCollateral')
         typeId = self.safe_string(market, 'type')
         type: MarketType
         settle = None
@@ -604,7 +604,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -748,7 +748,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_transaction_fees(self, codes: Strings = None, params={}):
+    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
         """
  @deprecated
         please use fetchDepositWithdrawFees instead
@@ -794,10 +794,10 @@ class whitebit(Exchange, ImplicitAPI):
             currency = currenciesIds[i]
             data = self.safe_dict(response, currency, {})
             code = self.safe_currency_code(currency)
-            withdraw = self.safe_value(data, 'withdraw', {})
+            withdraw = self.safe_dict(data, 'withdraw', {})
             if code is not None:
                 withdrawFees[code] = self.safe_string(withdraw, 'fixed')
-            deposit = self.safe_value(data, 'deposit', {})
+            deposit = self.safe_dict(data, 'deposit', {})
             if code is not None:
                 depositFees[code] = self.safe_string(deposit, 'fixed')
         return {
@@ -806,7 +806,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -863,7 +863,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fees(self, response: object, codes: Strings = None, currencyIdKey: Str = None):
+    def parse_deposit_withdraw_fees(self, response: object, codes: Strings = None, currencyIdKey: Str = None) -> object:
         #
         #    {
         #        "1INCH": {
@@ -916,13 +916,13 @@ class whitebit(Exchange, ImplicitAPI):
             feeInfo = response[entry]
             code = self.safe_currency_code(currencyId)
             if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
-                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
                 depositWithdrawFees[code]['info'][entry] = feeInfo
                 networkId = self.safe_string(splitEntry, 1)
-                withdraw = self.safe_value(feeInfo, 'withdraw')
-                deposit = self.safe_value(feeInfo, 'deposit')
+                withdraw = self.safe_dict(feeInfo, 'withdraw')
+                deposit = self.safe_dict(feeInfo, 'deposit')
                 withdrawFee = self.safe_number(withdraw, 'fixed')
                 depositFee = self.safe_number(deposit, 'fixed')
                 withdrawResult = {
@@ -952,7 +952,7 @@ class whitebit(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -986,7 +986,7 @@ class whitebit(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            fee = self.safe_value(response, market['baseId'], {})
+            fee = self.safe_dict(response, market['baseId'], {})
             makerFee = self.safe_string(fee, 'maker_fee')
             takerFee = self.safe_string(fee, 'taker_fee')
             makerFee = Precise.string_div(makerFee, '100')
@@ -1001,7 +1001,7 @@ class whitebit(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_trading_limits(self, symbols: Strings = None, params={}) -> dict:
+    def fetch_trading_limits(self, symbols: Strings = None, params: dict = {}) -> dict:
         """
         fetch the trading limits for a market
 
@@ -1108,7 +1108,7 @@ class whitebit(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_funding_limits(self, codes: Strings = None, params={}):
+    def fetch_funding_limits(self, codes: Strings = None, params: dict = {}) -> dict:
         """
         fetch the deposit and withdrawal limits for a currency
 
@@ -1249,7 +1249,7 @@ class whitebit(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1401,7 +1401,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order by the id
 
@@ -1465,7 +1465,7 @@ class whitebit(Exchange, ImplicitAPI):
         # If both checks failed or were disabled, throw OrderNotFound
         raise OrderNotFound(self.id + ' fetchOrder() order not found: ' + id)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1570,7 +1570,7 @@ class whitebit(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1612,7 +1612,7 @@ class whitebit(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1645,7 +1645,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1710,7 +1710,7 @@ class whitebit(Exchange, ImplicitAPI):
             for i in range(0, len(keys)):
                 marketId = keys[i]
                 marketNew = self.safe_market(marketId, None, '_')
-                rawTrades = self.safe_value(response, marketId, [])
+                rawTrades = self.safe_list(response, marketId, [])
                 parsed = self.parse_trades(rawTrades, marketNew, since, limit)
                 results = self.array_concat(results, parsed)
             results = self.sort_by_2(results, 'timestamp', 'id')
@@ -1796,7 +1796,7 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1861,7 +1861,7 @@ class whitebit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1885,7 +1885,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1902,7 +1902,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.safe_integer_product(response, 'time', 1000)
 
-    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
         create a market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1917,7 +1917,7 @@ class whitebit(Exchange, ImplicitAPI):
         # only buy side is supported
         return self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
-    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1927,7 +1927,7 @@ class whitebit(Exchange, ImplicitAPI):
         """
         return self.create_market_order_with_cost(symbol, 'buy', cost, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -2029,7 +2029,7 @@ class whitebit(Exchange, ImplicitAPI):
                         response = self.v4PrivatePostOrderStockMarket(self.extend(request, params))
         return self.parse_order(response)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -2087,7 +2087,7 @@ class whitebit(Exchange, ImplicitAPI):
         response = self.v4PrivatePostOrderModify(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -2129,7 +2129,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -2169,7 +2169,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user(combines open and closed orders)
 
@@ -2197,7 +2197,7 @@ class whitebit(Exchange, ImplicitAPI):
             return sortedOrders[0:limit]
         return sortedOrders
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -2258,7 +2258,7 @@ class whitebit(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2276,7 +2276,7 @@ class whitebit(Exchange, ImplicitAPI):
         if marketType == 'swap':
             response = self.v4PrivatePostCollateralAccountBalance(params)
         else:
-            options = self.safe_value(self.options, 'fetchBalance', {})
+            options = self.safe_dict(self.options, 'fetchBalance', {})
             defaultAccount = self.safe_string(options, 'account')
             account = self.safe_string_2(params, 'account', 'type', defaultAccount)
             params = self.omit(params, ['account', 'type'])
@@ -2308,7 +2308,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2352,7 +2352,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit, {'status': 'open'})
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2526,7 +2526,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(statuses, status, status)
 
-    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2573,7 +2573,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'records', [])
         return self.parse_trades(data, market)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2622,7 +2622,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(self.safe_list(response, 'records', []), currency, since, limit)
 
-    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2680,7 +2680,7 @@ class whitebit(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -2740,7 +2740,7 @@ class whitebit(Exchange, ImplicitAPI):
         #     }
         #
         url = self.safe_string(response, 'url')
-        account = self.safe_value(response, 'account', {})
+        account = self.safe_dict(response, 'account', {})
         address = self.safe_string(account, 'address', url)
         tag = self.safe_string(account, 'memo')
         self.check_address(address)
@@ -2752,7 +2752,7 @@ class whitebit(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -2807,7 +2807,7 @@ class whitebit(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2852,7 +2852,7 @@ class whitebit(Exchange, ImplicitAPI):
             })
         return accounts
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2877,7 +2877,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "leverage": 5
         #     }
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
 
@@ -2893,7 +2893,7 @@ class whitebit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType')
+        accountsByType = self.safe_dict(self.options, 'accountsByType')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
         amountString = self.currency_to_precision(code, amount)
@@ -2925,7 +2925,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3051,7 +3051,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -3112,11 +3112,11 @@ class whitebit(Exchange, ImplicitAPI):
         #         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         #     }
         #
-        records = self.safe_value(response, 'records', [])
+        records = self.safe_list(response, 'records', [])
         first = self.safe_dict(records, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -3185,7 +3185,7 @@ class whitebit(Exchange, ImplicitAPI):
             recordsList = records
         return self.parse_transactions(recordsList, currency, since, limit)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -3265,7 +3265,7 @@ class whitebit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -3281,7 +3281,7 @@ class whitebit(Exchange, ImplicitAPI):
         response = self.fetch_funding_rates([symbol], params)
         return self.safe_value(response, symbol)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
 
@@ -3402,7 +3402,7 @@ class whitebit(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -3481,7 +3481,7 @@ class whitebit(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -3555,7 +3555,7 @@ class whitebit(Exchange, ImplicitAPI):
             recordsList = records
         return self.parse_transactions(recordsList, currency, since, limit)
 
-    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
 
@@ -3591,7 +3591,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_conversion(response, fromCurrency, toCurrency)
 
-    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+    def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params: dict = {}) -> Conversion:
         """
         convert from one currency to another
 
@@ -3620,7 +3620,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_conversion(response, fromCurrency, toCurrency)
 
-    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
+    def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -3734,7 +3734,7 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         fetches historical positions
 
@@ -3785,7 +3785,7 @@ class whitebit(Exchange, ImplicitAPI):
         positions = self.parse_positions(response)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3822,7 +3822,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_positions(response, symbols)
 
-    def fetch_position(self, symbol: str, params={}) -> Position:
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -3943,10 +3943,10 @@ class whitebit(Exchange, ImplicitAPI):
         })
 
     def is_fiat(self, currency: str) -> bool:
-        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
+        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
 
-    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3991,7 +3991,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None):
+    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
         marketId = self.safe_string(info, 'market')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(info, 'fundingTime')
@@ -4003,10 +4003,10 @@ class whitebit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
         accessibility = self.safe_value(api, 1)
@@ -4044,7 +4044,7 @@ class whitebit(Exchange, ImplicitAPI):
             # For cases where we have a meaningful status
             # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             status = self.safe_string(response, 'status')
-            errors = self.safe_value(response, 'errors')
+            errors = self.safe_dict(response, 'errors')
             # {"code":10,"message":"Unauthorized request."}
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key

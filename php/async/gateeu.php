@@ -54,6 +54,9 @@ class gateeu extends gate {
                 'fetchMarkets' => array(
                     'types' => array( 'spot' ),
                 ),
+                'fetchOrderBook' => array(
+                    'maxSpotLimit' => 100, // this venue returns an empty book above 100
+                ),
                 'mica' => true,
             ),
         ));

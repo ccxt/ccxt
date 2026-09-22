@@ -3,7 +3,6 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-
 function testIo () {
 
     const exchange = new ccxt.Exchange ({

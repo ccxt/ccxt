@@ -527,8 +527,8 @@ class whitebit extends Exchange {
         $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $active = $this->safe_value($market, 'tradesEnabled');
-        $isCollateral = $this->safe_value($market, 'isCollateral');
+        $active = $this->safe_bool($market, 'tradesEnabled');
+        $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
         $settle = null;
         $settleId = null;
@@ -811,11 +811,11 @@ class whitebit extends Exchange {
             $currency = $currenciesIds[$i];
             $data = $this->safe_dict($response, $currency, array());
             $code = $this->safe_currency_code($currency);
-            $withdraw = $this->safe_value($data, 'withdraw', array());
+            $withdraw = $this->safe_dict($data, 'withdraw', array());
             if ($code !== null) {
                 $withdrawFees[$code] = $this->safe_string($withdraw, 'fixed');
             }
-            $deposit = $this->safe_value($data, 'deposit', array());
+            $deposit = $this->safe_dict($data, 'deposit', array());
             if ($code !== null) {
                 $depositFees[$code] = $this->safe_string($deposit, 'fixed');
             }
@@ -890,7 +890,7 @@ class whitebit extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null): mixed {
         //
         //    {
         //        "1INCH": {
@@ -943,14 +943,14 @@ class whitebit extends Exchange {
             $feeInfo = $response[$entry];
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
-                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
                 $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
                 $networkId = $this->safe_string($splitEntry, 1);
-                $withdraw = $this->safe_value($feeInfo, 'withdraw');
-                $deposit = $this->safe_value($feeInfo, 'deposit');
+                $withdraw = $this->safe_dict($feeInfo, 'withdraw');
+                $deposit = $this->safe_dict($feeInfo, 'deposit');
                 $withdrawFee = $this->safe_number($withdraw, 'fixed');
                 $depositFee = $this->safe_number($deposit, 'fixed');
                 $withdrawResult = array(
@@ -1025,7 +1025,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_value($response, $market['baseId'], array());
+            $fee = $this->safe_dict($response, $market['baseId'], array());
             $makerFee = $this->safe_string($fee, 'maker_fee');
             $takerFee = $this->safe_string($fee, 'taker_fee');
             $makerFee = Precise::string_div($makerFee, '100');
@@ -1163,7 +1163,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_limits(?array $codes = null, $params = array()) {
+    public function fetch_funding_limits(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_limits(...))($codes, $params);
     }
 
@@ -1768,7 +1768,7 @@ class whitebit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1839,7 +1839,7 @@ class whitebit extends Exchange {
             for ($i = 0; $i < count($keys); $i++) {
                 $marketId = $keys[$i];
                 $marketNew = $this->safe_market($marketId, null, '_');
-                $rawTrades = $this->safe_value($response, $marketId, array());
+                $rawTrades = $this->safe_list($response, $marketId, array());
                 $parsed = $this->parse_trades($rawTrades, $marketNew, $since, $limit);
                 $results = $this->array_concat($results, $parsed);
             }
@@ -2057,7 +2057,7 @@ class whitebit extends Exchange {
         return $this->safe_integer_product($response, 'time', 1000);
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_order_with_cost(...))($symbol, $side, $cost, $params);
     }
 
@@ -2092,7 +2092,7 @@ class whitebit extends Exchange {
         return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2216,7 +2216,7 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2286,7 +2286,7 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2335,7 +2335,7 @@ class whitebit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2516,7 +2516,7 @@ class whitebit extends Exchange {
         if ($marketType === 'swap') {
             $response = Async\await($this->v4PrivatePostCollateralAccountBalance($params));
         } else {
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
+            $options = $this->safe_dict($this->options, 'fetchBalance', array());
             $defaultAccount = $this->safe_string($options, 'account');
             $account = $this->safe_string_2($params, 'account', 'type', $defaultAccount);
             $params = $this->omit($params, array( 'account', 'type' ));
@@ -2795,7 +2795,7 @@ class whitebit extends Exchange {
         return $this->safe_string_lower($statuses, $status, $status);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -3045,7 +3045,7 @@ class whitebit extends Exchange {
         //     }
         //
         $url = $this->safe_string($response, 'url');
-        $account = $this->safe_value($response, 'account', array());
+        $account = $this->safe_dict($response, 'account', array());
         $address = $this->safe_string($account, 'address', $url);
         $tag = $this->safe_string($account, 'memo');
         $this->check_address($address);
@@ -3226,7 +3226,7 @@ class whitebit extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType');
         $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $amountString = $this->currency_to_precision($code, $amount);
@@ -3465,7 +3465,7 @@ class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        $records = $this->safe_value($response, 'records', array());
+        $records = $this->safe_list($response, 'records', array());
         $first = $this->safe_dict($records, 0, array());
         return $this->parse_transaction($first, $currency);
     }
@@ -4391,11 +4391,11 @@ class whitebit extends Exchange {
     }
 
     public function is_fiat(string $currency): bool {
-        $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -4450,7 +4450,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'market');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($info, 'fundingTime');
@@ -4463,11 +4463,11 @@ class whitebit extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
         $accessibility = $this->safe_value($api, 1);
@@ -4512,7 +4512,7 @@ class whitebit extends Exchange {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             $status = $this->safe_string($response, 'status');
-            $errors = $this->safe_value($response, 'errors');
+            $errors = $this->safe_dict($response, 'errors');
             // {"code":10,"message":"Unauthorized request."}
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic code variable error key

@@ -293,7 +293,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function fetch_currency(string $code, $params = array()) {
+    public function fetch_currency(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_currency(...))($code, $params);
     }
 
@@ -307,7 +307,7 @@ class upbit extends Exchange {
         return Async\await($this->fetch_currency_by_id($currency['id'], $params));
     }
 
-    public function fetch_currency_by_id(string $id, $params = array()) {
+    public function fetch_currency_by_id(string $id, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_currency_by_id(...))($id, $params);
     }
 
@@ -356,13 +356,13 @@ class upbit extends Exchange {
         //         }
         //     }
         //
-        $memberInfo = $this->safe_value($response, 'member_level', array());
-        $currencyInfo = $this->safe_value($response, 'currency', array());
-        $withdrawLimits = $this->safe_value($response, 'withdraw_limit', array());
-        $canWithdraw = $this->safe_value($withdrawLimits, 'can_withdraw');
+        $memberInfo = $this->safe_dict($response, 'member_level', array());
+        $currencyInfo = $this->safe_dict($response, 'currency', array());
+        $withdrawLimits = $this->safe_dict($response, 'withdraw_limit', array());
+        $canWithdraw = $this->safe_bool($withdrawLimits, 'can_withdraw');
         $walletState = $this->safe_string($currencyInfo, 'wallet_state');
-        $walletLocked = $this->safe_value($memberInfo, 'wallet_locked');
-        $locked = $this->safe_value($memberInfo, 'locked');
+        $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
+        $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
         if (($canWithdraw !== null) && ($canWithdraw !== true)) {
             $active = false;
@@ -401,7 +401,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function fetch_market(string $symbol, $params = array()) {
+    public function fetch_market(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_market(...))($symbol, $params);
     }
 
@@ -415,7 +415,7 @@ class upbit extends Exchange {
         return Async\await($this->fetch_market_by_id($market['id'], $params));
     }
 
-    public function fetch_market_by_id(?string $id, $params = array()) {
+    public function fetch_market_by_id(?string $id, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_market_by_id(...))($id, $params);
     }
 
@@ -458,9 +458,9 @@ class upbit extends Exchange {
         //         }
         //     }
         //
-        $marketInfo = $this->safe_value($response, 'market');
-        $bid = $this->safe_value($marketInfo, 'bid');
-        $ask = $this->safe_value($marketInfo, 'ask');
+        $marketInfo = $this->safe_dict($response, 'market');
+        $bid = $this->safe_dict($marketInfo, 'bid');
+        $ask = $this->safe_dict($marketInfo, 'ask');
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
@@ -1291,7 +1291,7 @@ class upbit extends Exchange {
 
     public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
-        $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
+        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
@@ -1315,7 +1315,7 @@ class upbit extends Exchange {
         return $quoteAmount;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1448,7 +1448,7 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2035,7 +2035,7 @@ class upbit extends Exchange {
                 $trade = $trades[$i];
                 $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
-                    $tradeFee = $this->safe_value($trades[$i], 'fee', array());
+                    $tradeFee = $this->safe_dict($trades[$i], 'fee', array());
                     $tradeFeeCost = $this->safe_string($tradeFee, 'cost');
                     if ($tradeFeeCost !== null) {
                         $feeCost = Precise::string_add($feeCost, $tradeFeeCost);
@@ -2194,7 +2194,7 @@ class upbit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -2257,7 +2257,7 @@ class upbit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2539,11 +2539,11 @@ class upbit extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
@@ -2597,7 +2597,7 @@ class upbit extends Exchange {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_dict($response, 'error');
         if ($error !== null) {
             $message = $this->safe_string($error, 'message');
             $name = $this->safe_string($error, 'name');

@@ -17,6 +17,7 @@ import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFeeInterface;
+import java.util.stream.Collectors;
 
 // ----------------------------------------------------------------------------
 // Exchange is the thin concrete tier over BaseExchange (which holds all shared
@@ -105,9 +106,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object side = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " closePosition() is not supported yet")) ;
+            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " closePosition() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -117,9 +118,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " closeAllPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " closeAllPositions() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -128,9 +129,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " editOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " editOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -139,12 +140,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchCanceledAndClosedOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -163,18 +164,18 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} params extra parameters specific to the exchange api endpoint
             * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
             */
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsHistory"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsHistory"), false))))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsHistory"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsHistory"), false))
             {
                 Object positions = (this.fetchPositionsHistory((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return positions;
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchPositionHistory () is not supported yet")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -183,12 +184,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositionsHistory () is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositionsHistory () is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -197,10 +198,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositionsRisk() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositionsRisk() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -209,9 +210,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -220,9 +221,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -231,9 +232,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchPosition() is not supported yet")) ;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchPosition() is not supported yet")) ;
         }).thenApply(Position::new);
 
     }
@@ -243,11 +244,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchMyTradesForSymbols() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -256,11 +257,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchTradesForSymbols() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -269,9 +270,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchBidsAsks() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -281,24 +282,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkPrices"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkPrices"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkPrices"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkPrices"), false))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = Helpers.GetValue(market, "symbol");
+                symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchMarkPrices((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
-                if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
+                if (java.util.Objects.equals(ticker, null))
                 {
-                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(((this.id + " fetchMarkPrices() could not find a ticker for ") + symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchMarkPrices() is not supported yet")) ;
             }
         }).thenApply(Ticker::new);
 
@@ -309,9 +310,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchMarkPrices() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -321,9 +322,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchBidsAsks() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchBidsAsks() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -333,8 +334,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchMarkPrice () is not supported yet")) ;
         }).thenApply(Ticker::new);
 
     }
@@ -344,9 +345,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchMarkPrices () is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchMarkPrices () is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -356,9 +357,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new BadRequest(Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new BadRequest((this.id + " fetchL3OrderBook() is not supported yet")) ;
         }).thenApply(OrderBook::new);
 
     }
@@ -368,9 +369,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchOrderBookForSymbols() is not supported yet")) ;
         }).thenApply(OrderBook::new);
 
     }
@@ -380,11 +381,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchOrdersForSymbols() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -393,10 +394,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelAllOrdersWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -405,9 +406,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -417,10 +418,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelOrdersWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -429,7 +430,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -440,7 +441,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -451,7 +452,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -462,7 +463,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -483,12 +484,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCostWs"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCostWs"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCostWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCostWs"), false))))))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCostWs"), false))))
             {
                 return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createMarketOrderWithCostWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -498,8 +499,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -510,7 +511,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -543,16 +544,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object takeProfit = Helpers.getArg(optionalArgs, 1, null);
-            Object stopLoss = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object takeProfit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object stopLoss = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLossWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLossWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLossWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -562,9 +563,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " createOrderWs() is not supported yet")) ;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " createOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -574,9 +575,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " createOrdersWs () is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " createOrdersWs () is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -585,11 +586,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrderWs"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrderWs"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " createPostOnlyOrderWs() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "postOnly", true );
@@ -604,11 +605,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrderWs"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrderWs"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " createReduceOnlyOrderWs() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "reduceOnly", true );
@@ -623,10 +624,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrderWs"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrderWs"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopLimitOrderWs() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -654,22 +655,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object stopLossPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object stopLossPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(stopLossPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
             }
             final Object finalStopLossPrice = stopLossPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopLossPrice", finalStopLossPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrderWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createStopLossOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -679,10 +680,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrderWs"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrderWs"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopMarketOrderWs() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -697,16 +698,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrderWs"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrderWs"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object triggerPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrderWs"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrderWs"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopOrderWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopOrderWs() is not supported yet")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+            if (java.util.Objects.equals(triggerPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createStopOrderWs() requires a stopPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
@@ -735,22 +736,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object takeProfitPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object takeProfitPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(takeProfitPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
             }
             final Object finalTakeProfitPrice = takeProfitPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "takeProfitPrice", finalTakeProfitPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrderWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTakeProfitOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -774,24 +775,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object trailingAmount = Helpers.getArg(optionalArgs, 1, null);
-            Object trailingTriggerPrice = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(trailingAmount, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object trailingAmount = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object trailingTriggerPrice = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(trailingAmount, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
+                throw new ArgumentsRequired((this.id + " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
             }
-            Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
-            if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+            ((Map<String, Object>)parameters).put("trailingAmount", trailingAmount);
+            if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
+                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrderWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTrailingAmountOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -815,24 +816,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object trailingPercent = Helpers.getArg(optionalArgs, 1, null);
-            Object trailingTriggerPrice = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object trailingPercent = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object trailingTriggerPrice = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(trailingPercent, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
+                throw new ArgumentsRequired((this.id + " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
             }
-            Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
-            if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
+            if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
+                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrderWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTrailingPercentOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -855,22 +856,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object triggerPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(triggerPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "triggerPrice", finalTriggerPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrderWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrderWs"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTriggerOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -880,9 +881,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.cancelOrderWs(id, (Object)(symbol))).join();
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
@@ -894,17 +895,17 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), false))))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), false))
             {
                 Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "closed");
             }
-            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            throw new NotSupported((this.id + " fetchClosedOrdersWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -913,12 +914,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchMyTradesWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchMyTradesWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -927,17 +928,17 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrdersWs"), false))))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrdersWs"), false))
             {
                 Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "open");
             }
-            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            throw new NotSupported((this.id + " fetchOpenOrdersWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -946,9 +947,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrderBookWs() is not supported yet")) ;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrderBookWs() is not supported yet")) ;
         }).thenApply(OrderBook::new);
 
     }
@@ -958,9 +959,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrderWs() is not supported yet")) ;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrderWs() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -970,12 +971,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrdersWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -984,9 +985,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositionWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositionWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -995,10 +996,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositions() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1007,24 +1008,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTickersWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTickersWs"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickersWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickersWs"), false))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = Helpers.GetValue(market, "symbol");
+                symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchTickersWs((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
-                if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
+                if (java.util.Objects.equals(ticker, null))
                 {
-                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(((this.id + " fetchTickerWs() could not find a ticker for ") + symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchTickerWs() is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchTickerWs() is not supported yet")) ;
             }
         }).thenApply(Ticker::new);
 
@@ -1035,9 +1036,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchTickersWs() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchTickersWs() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -1047,11 +1048,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchTradesWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchTradesWs() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1061,11 +1062,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchTrades() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1074,11 +1075,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchTrades() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1087,9 +1088,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrderBook() is not supported yet")) ;
         }).thenApply(OrderBook::new);
 
     }
@@ -1099,8 +1100,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
             for (var i = 0; Helpers.isLessThan(i, fetchSnapshotMaxRetries); i++)
             {
@@ -1110,7 +1111,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                     return orderBook;
                 } catch(Exception e)
                 {
-                    if (Helpers.isTrue(Helpers.isEqual((Helpers.add(i, 1)), fetchSnapshotMaxRetries)))
+                    if (Helpers.isEqual(((((long) i) + 1L)), fetchSnapshotMaxRetries))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1126,9 +1127,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchOrderBook() is not supported yet")) ;
         }).thenApply(OrderBook::new);
 
     }
@@ -1138,14 +1139,14 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenInterests"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenInterests"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenInterests"), false))
             {
                 Object openInterests = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
                 return this.safeDict(openInterests, symbol);
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchOpenInterest() is not supported yet")) ;
             }
         }).thenApply(OpenInterest::new);
 
@@ -1156,12 +1157,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object orderbook = (this.fetchOrderBook((Object)(symbol), (Object)(limit), (Object)(parameters))).join();
             return this.extend(orderbook, new HashMap<String, Object>() {{
-                put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "asks")), 0) );
-                put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "bids")), 0, true) );
+                put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("asks")), 0) );
+                put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("bids")), 0, true) );
             }});
         }).thenApply(OrderBook::new);
 
@@ -1172,8 +1173,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.editLimitOrder(id, symbol, (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1184,8 +1185,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.editLimitOrder(id, symbol, (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1196,8 +1197,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.editOrder(id, symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1208,9 +1209,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
@@ -1222,9 +1223,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
@@ -1238,8 +1239,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPosition() is not supported yet")) ;
         }).thenApply(Position::new);
 
     }
@@ -1249,12 +1250,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchPositions() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1263,12 +1264,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.watchPositions((Object)(symbols), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1277,10 +1278,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchPositions() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1289,24 +1290,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTickers"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTickers"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickers"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTickers"), false))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = Helpers.GetValue(market, "symbol");
+                symbol = ((Map<String, Object>)market).get("symbol");
                 Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                Object ticker = this.safeDict(tickers, symbol);
-                if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol);
+                if (java.util.Objects.equals(ticker, null))
                 {
-                    throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+                    throw new NullResponse(((this.id + " fetchTickers() could not find a ticker for ") + symbol)) ;
                 } else
                 {
                     return ticker;
                 }
             } else
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchTicker() is not supported yet")) ;
             }
         }).thenApply(Ticker::new);
 
@@ -1317,8 +1318,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchTicker() is not supported yet")) ;
         }).thenApply(Ticker::new);
 
     }
@@ -1328,9 +1329,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchTickers() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -1340,9 +1341,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchTickers() is not supported yet")) ;
         }).thenApply(Tickers::new);
 
     }
@@ -1352,9 +1353,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1373,8 +1374,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
@@ -1390,10 +1391,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             // TODO: TypeScript: change method signature by replacing
             // Promise<string> with Promise<Order['status']>.
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object order = (this.fetchOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
-            return Helpers.GetValue(order, "status");
+            return ((Map<String, Object>)order).get("status");
         }).thenApply(res -> (String) res);
 
     }
@@ -1403,7 +1404,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.fetchOrder((Object)(this.safeString(order, "id")), (Object)(this.safeString(order, "symbol")), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1414,9 +1415,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " createOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1440,24 +1441,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object trailingAmount = Helpers.getArg(optionalArgs, 1, null);
-            Object trailingTriggerPrice = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(trailingAmount, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object trailingAmount = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object trailingTriggerPrice = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(trailingAmount, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
+                throw new ArgumentsRequired((this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
             }
-            Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
-            if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+            ((Map<String, Object>)parameters).put("trailingAmount", trailingAmount);
+            if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
+                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingAmountOrder"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingAmountOrder"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTrailingAmountOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1481,24 +1482,24 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object trailingPercent = Helpers.getArg(optionalArgs, 1, null);
-            Object trailingTriggerPrice = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(trailingPercent, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object trailingPercent = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object trailingTriggerPrice = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(trailingPercent, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+                throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
             }
-            Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
-            if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
+            if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
+                ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTrailingPercentOrder"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTrailingPercentOrder"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTrailingPercentOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1518,12 +1519,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketOrderWithCost"), false)))) || Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false))))
             {
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
+            throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1542,12 +1543,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "createMarketBuyOrderRequiresPrice"), true))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketBuyOrderWithCost"), false))))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketBuyOrderWithCost"), false)))
             {
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
+            throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1566,12 +1567,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "createMarketSellOrderRequiresPrice"), true))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createMarketSellOrderWithCost"), false))))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if ((java.util.Objects.equals(((Map<String, Object>)this.options).get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createMarketSellOrderWithCost"), false)))
             {
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
+            throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1594,22 +1595,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object triggerPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(triggerPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "triggerPrice", finalTriggerPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTriggerOrder"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTriggerOrder"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTriggerOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1632,22 +1633,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object stopLossPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object stopLossPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(stopLossPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
             }
             final Object finalStopLossPrice = stopLossPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopLossPrice", finalStopLossPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createStopLossOrder"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLossOrder"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
+            throw new NotSupported((this.id + " createStopLossOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1670,22 +1671,22 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object takeProfitPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object takeProfitPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(takeProfitPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
             }
             final Object finalTakeProfitPrice = takeProfitPrice;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "takeProfitPrice", finalTakeProfitPrice );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrder"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createTakeProfitOrder"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createTakeProfitOrder"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
+            throw new NotSupported((this.id + " createTakeProfitOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1717,16 +1718,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             */
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object takeProfit = Helpers.getArg(optionalArgs, 1, null);
-            Object stopLoss = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object takeProfit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object stopLoss = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLoss"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "createOrderWithTakeProfitAndStopLoss"), false))))
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("createOrderWithTakeProfitAndStopLoss"), false))
             {
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
-            throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
+            throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1736,9 +1737,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " createOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1747,9 +1748,9 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelOrder() is not supported yet")) ;
         }).thenApply(Order::new);
 
     }
@@ -1768,8 +1769,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "clientOrderId", clientOrderId );
             }});
@@ -1783,10 +1784,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1804,13 +1805,13 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "clientOrderIds", clientOrderIds );
             }});
             return (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList())), (Object)(symbol), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1819,10 +1820,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " cancelAllOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1831,7 +1832,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
         }).thenApply(Order::new);
 
@@ -1842,16 +1843,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOpenOrders"), false)))) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchClosedOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchClosedOrders"), false))))))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if ((!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOpenOrders"), false)) && (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchClosedOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchClosedOrders"), false)))
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
+                throw new NotSupported((this.id + " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
             }
-            throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            throw new NotSupported((this.id + " fetchOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1860,12 +1861,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchOrderTrades() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1874,12 +1875,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1888,17 +1889,17 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), false))))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), false))
             {
                 Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "open");
             }
-            throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            throw new NotSupported((this.id + " fetchOpenOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1907,17 +1908,17 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchOrders"), false))))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchOrders"), false))
             {
                 Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                 return this.filterBy(orders, "status", "closed");
             }
-            throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            throw new NotSupported((this.id + " fetchClosedOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1926,12 +1927,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchCanceledOrders() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1940,12 +1941,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " fetchMyTrades() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1954,12 +1955,12 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            throw new NotSupported((this.id + " watchMyTrades() is not supported yet")) ;
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1968,7 +1969,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1979,8 +1980,8 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -1991,7 +1992,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -2002,7 +2003,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -2013,7 +2014,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -2024,7 +2025,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
         }).thenApply(Order::new);
 
@@ -2035,11 +2036,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createPostOnlyOrder"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createPostOnlyOrder"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createPostOnlyOrder() is not supported yet")) ;
+                throw new NotSupported((this.id + " createPostOnlyOrder() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "postOnly", true );
@@ -2054,11 +2055,11 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createReduceOnlyOrder"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createReduceOnlyOrder"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
+                throw new NotSupported((this.id + " createReduceOnlyOrder() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "reduceOnly", true );
@@ -2073,16 +2074,16 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object triggerPrice = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopOrder"), false))))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object triggerPrice = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopOrder"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopOrder() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopOrder() is not supported yet")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
+            if (java.util.Objects.equals(triggerPrice, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " create_stop_order() requires a stopPrice argument")) ;
+                throw new ArgumentsRequired((this.id + " create_stop_order() requires a stopPrice argument")) ;
             }
             final Object finalTriggerPrice = triggerPrice;
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
@@ -2098,10 +2099,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopLimitOrder"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopLimitOrder"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopLimitOrder() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopLimitOrder() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -2116,10 +2117,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrder"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "createStopMarketOrder"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrder"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("createStopMarketOrder"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " createStopMarketOrder() is not supported yet")) ;
+                throw new NotSupported((this.id + " createStopMarketOrder() is not supported yet")) ;
             }
             Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "stopPrice", triggerPrice );
@@ -2134,10 +2135,10 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingFees"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingFees"), false))))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingFees"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingFees"), false))
             {
-                throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
+                throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
             }
             Object fees = (this.fetchTradingFees((Object)(parameters))).join();
             return this.safeDict(fees, symbol);

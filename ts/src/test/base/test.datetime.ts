@@ -1,6 +1,5 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
@@ -106,7 +105,6 @@ function testParse8601 () {
 
     // ----------------------------------------------------------------------------
 }
-
 
 function testParseDate () {
     const exchange = new ccxt.Exchange ({

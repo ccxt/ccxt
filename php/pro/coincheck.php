@@ -77,7 +77,7 @@ class coincheck extends \ccxt\async\coincheck {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     [
         //         "btc_jpy",
@@ -99,7 +99,7 @@ class coincheck extends \ccxt\async\coincheck {
         //     ]
         //
         $symbol = $this->symbol($this->safe_string($message, 0));
-        $data = $this->safe_value($message, 1, array());
+        $data = $this->safe_dict($message, 1, array());
         $timestamp = $this->safe_timestamp($data, 'last_update_at');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -149,7 +149,7 @@ class coincheck extends \ccxt\async\coincheck {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     [
         //         [
@@ -164,7 +164,7 @@ class coincheck extends \ccxt\async\coincheck {
         //         ]
         //     ]
         //
-        $first = $this->safe_value($message, 0, array());
+        $first = $this->safe_list($message, 0, array());
         $symbol = $this->symbol($this->safe_string($first, 2));
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -216,7 +216,7 @@ class coincheck extends \ccxt\async\coincheck {
         ), $market);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $data = $this->safe_value($message, 0);
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $this->handle_order_book($client, $message);

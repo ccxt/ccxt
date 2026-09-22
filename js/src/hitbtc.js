@@ -1044,7 +1044,7 @@ export default class hitbtc extends Exchange {
         };
         const network = this.safeStringUpper(params, 'network');
         if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue(this.options, 'networks');
+            const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
                 request['currency'] = parsedNetwork;
@@ -1083,7 +1083,7 @@ export default class hitbtc extends Exchange {
         };
         const network = this.safeStringUpper(params, 'network');
         if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue(this.options, 'networks');
+            const networks = this.safeDict(this.options, 'networks');
             const parsedNetwork = this.safeString(networks, network);
             if (parsedNetwork !== undefined) {
                 request['currency'] = parsedNetwork;
@@ -1094,7 +1094,7 @@ export default class hitbtc extends Exchange {
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        const firstAddress = this.safeValue(response, 0);
+        const firstAddress = this.safeDict(response, 0);
         const address = this.safeString(firstAddress, 'address');
         const currencyId = this.safeString(firstAddress, 'currency');
         const tag = this.safeString(firstAddress, 'payment_id');
@@ -1447,7 +1447,7 @@ export default class hitbtc extends Exchange {
         const symbol = market['symbol'];
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
-        const taker = this.safeValue(trade, 'taker');
+        const taker = this.safeBool(trade, 'taker');
         let takerOrMaker;
         if (taker !== undefined) {
             takerOrMaker = (taker === true) ? 'taker' : 'maker';
@@ -1456,7 +1456,7 @@ export default class hitbtc extends Exchange {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString !== undefined) {
-            const info = this.safeValue(market, 'info', {});
+            const info = this.safeDict(market, 'info', {});
             const feeCurrency = this.safeString(info, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
             fee = {
@@ -1591,7 +1591,7 @@ export default class hitbtc extends Exchange {
         const updated = this.parse8601(this.safeString(transaction, 'updated_at'));
         const type = this.parseTransactionType(this.safeString(transaction, 'type'));
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
-        const native = this.safeValue(transaction, 'native', {});
+        const native = this.safeDict(transaction, 'native', {});
         const currencyId = this.safeString(native, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const txhash = this.safeString(native, 'hash');
@@ -2477,7 +2477,7 @@ export default class hitbtc extends Exchange {
     }
     createOrderRequest(market, marketType, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const isLimit = (type === 'limit');
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        const reduceOnly = this.safeBool(params, 'reduceOnly');
         const timeInForce = this.safeString(params, 'timeInForce');
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const isPostOnly = this.isPostOnly(type === 'market', undefined, params);
@@ -2773,7 +2773,7 @@ export default class hitbtc extends Exchange {
         }
         const currency = this.currency(code);
         const requestAmount = this.currencyToPrecision(code, amount);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         fromAccount = fromAccount.toLowerCase();
         toAccount = toAccount.toLowerCase();
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2815,7 +2815,7 @@ export default class hitbtc extends Exchange {
             'info': transfer,
         };
     }
-    async convertCurrencyNetwork(code, amount, fromNetwork, toNetwork, params) {
+    async convertCurrencyNetwork(code, amount, fromNetwork, toNetwork, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2872,7 +2872,7 @@ export default class hitbtc extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         const network = this.safeStringUpper(params, 'network');
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString(networks, network);
@@ -2881,7 +2881,7 @@ export default class hitbtc extends Exchange {
             }
             params = this.omit(params, 'network');
         }
-        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
         if (includeFee === true) {
             request['include_fee'] = true;
@@ -3550,8 +3550,8 @@ export default class hitbtc extends Exchange {
         //         "positions": null
         //     }
         //
-        const currencies = this.safeValue(data, 'currencies', []);
-        const currencyInfo = this.safeValue(currencies, 0);
+        const currencies = this.safeList(data, 'currencies', []);
+        const currencyInfo = this.safeDict(currencies, 0);
         const datetime = this.safeString(data, 'updated_at');
         return {
             'info': data,
@@ -3796,7 +3796,7 @@ export default class hitbtc extends Exchange {
             let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
-            const isDefault = this.safeValue(networkEntry, 'default');
+            const isDefault = this.safeBool(networkEntry, 'default');
             const withdrawResult = {
                 'fee': withdrawFee,
                 'percentage': (withdrawFee !== undefined) ? false : undefined,
@@ -3893,7 +3893,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     }
         //
-        const error = this.safeValue(response, 'error');
+        const error = this.safeDict(response, 'error');
         const errorCode = this.safeString(error, 'code');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;

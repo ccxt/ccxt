@@ -311,7 +311,7 @@ class bit2c(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -367,7 +367,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -437,7 +437,7 @@ class bit2c(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -456,7 +456,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -501,7 +501,7 @@ class bit2c(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -535,7 +535,7 @@ class bit2c(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             marketId = keys[i]
             symbol = self.safe_symbol(marketId)
-            fee = self.safe_value(fees, marketId)
+            fee = self.safe_dict(fees, marketId)
             makerString = self.safe_string(fee, 'FeeMaker')
             takerString = self.safe_string(fee, 'FeeTaker')
             maker = self.parse_number(Precise.string_div(makerString, '100'))
@@ -550,7 +550,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -586,7 +586,7 @@ class bit2c(Exchange, ImplicitAPI):
             response = self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -603,7 +603,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.privatePostOrderCancelOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -624,12 +624,12 @@ class bit2c(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privateGetOrderMyOrders(self.extend(request, params))
-        orders = self.safe_value(response, market['id'], {})
-        asks = self.safe_value(orders, 'ask', [])
+        orders = self.safe_dict(response, market['id'], {})
+        asks = self.safe_list(orders, 'ask', [])
         bids = self.safe_list(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -769,7 +769,7 @@ class bit2c(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -897,7 +897,7 @@ class bit2c(Exchange, ImplicitAPI):
             marketId = self.safe_string(trade, 'pair')
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
-            isMaker = self.safe_value(trade, 'isMaker')
+            isMaker = self.safe_bool(trade, 'isMaker')
             makerOrTaker = 'maker' if (isMaker is True) else 'taker'
             orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
             action = self.safe_integer(trade, 'action')
@@ -939,10 +939,10 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code: object) -> bool:
+    def is_fiat(self, code: Str) -> bool:
         return code == 'NIS'
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -987,10 +987,10 @@ class bit2c(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'

@@ -22,12 +22,13 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.81'
+__version__ = '4.5.82'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
 from ccxt.base.precise import Precise                       # noqa: F401
+from ccxt.base.order_router import OrderRouter              # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401

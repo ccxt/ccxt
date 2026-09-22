@@ -435,7 +435,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function sign_in($params = array()) {
+    public function sign_in($params = array()): PromiseInterface {
         return Async\async(self::do_sign_in(...))($params);
     }
 
@@ -644,7 +644,7 @@ class ndax extends Exchange {
         $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
         $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
-        $isDisable = $this->safe_value($market, 'IsDisable');
+        $isDisable = $this->safe_bool($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -1626,7 +1626,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1710,7 +1710,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1783,7 +1783,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1878,7 +1878,7 @@ class ndax extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1924,7 +1924,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2159,7 +2159,7 @@ class ndax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2243,7 +2243,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2600,7 +2600,7 @@ class ndax extends Exchange {
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
-        $statuses = ($type === null) ? array() : $this->safe_value($statusesByType, $type, array());
+        $statuses = ($type === null) ? array() : $this->safe_dict($statusesByType, $type, array());
         if ($status === null) {
             return null;
         }
@@ -2757,8 +2757,8 @@ class ndax extends Exchange {
         //         ]
         //     }
         //
-        $templateTypes = $this->safe_value($withdrawTemplateTypesResponse, 'TemplateTypes', array());
-        $firstTemplateType = $this->safe_value($templateTypes, 0);
+        $templateTypes = $this->safe_list($withdrawTemplateTypesResponse, 'TemplateTypes', array());
+        $firstTemplateType = $this->safe_dict($templateTypes, 0);
         if ($firstTemplateType === null) {
             throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template type for ' . $currency['code']);
         }
@@ -2806,11 +2806,11 @@ class ndax extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

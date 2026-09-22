@@ -43,7 +43,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrdersWs(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelAllOrdersWs
@@ -55,7 +55,7 @@ export default class gate extends gateRest {
      * @param {string} [params.channel] the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelOrderWs
@@ -68,7 +68,7 @@ export default class gate extends gateRest {
      * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gate#editOrderWs
@@ -84,7 +84,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gate#fetchOrderWs
@@ -100,7 +100,7 @@ export default class gate extends gateRest {
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name gate#fetchOpenOrdersWs
@@ -112,7 +112,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#fetchClosedOrdersWs
@@ -124,7 +124,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#fetchOrdersWs
@@ -139,7 +139,7 @@ export default class gate extends gateRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#watchOrderBook
@@ -155,7 +155,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name gate#unWatchOrderBook
@@ -165,11 +165,11 @@ export default class gate extends gateRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleNewSpotOrderBook(client: Client, message: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    getCacheIndex(orderBook: any, cache: any): any;
-    handleBidAsks(bookSide: any, bidAsks: any): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
+    handleNewSpotOrderBook(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    getCacheIndex(orderBook: any, cache: any): number;
+    handleBidAsks(bookSide: any, bidAsks: any[]): void;
     handleDelta(orderbook: any, delta: any): void;
     /**
      * @method
@@ -194,8 +194,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchBidsAsks
@@ -207,10 +207,10 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    subscribeWatchTickersAndBidsAsks(symbols?: Strings, callerMethodName?: Str, params?: {}): Promise<Tickers>;
-    handleTickerAndBidAsk(objectName: string, client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleBidAsk(client: Client, message: Dict): void;
+    subscribeWatchTickersAndBidsAsks(symbols?: Strings, callerMethodName?: Str, params?: Dict): Promise<Tickers>;
+    handleTickerAndBidAsk(objectName: string, client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchTrades
@@ -225,7 +225,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name gate#watchTradesForSymbols
@@ -240,7 +240,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name gate#unWatchTradesForSymbols
@@ -259,7 +259,7 @@ export default class gate extends gateRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchOHLCV
@@ -274,8 +274,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchMyTrades
@@ -290,8 +290,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchBalance
@@ -303,8 +303,8 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchPositions
@@ -318,10 +318,10 @@ export default class gate extends gateRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
-    handlePositions(client: any, message: any): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: any): Promise<void>;
+    handlePositions(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchOrders
@@ -340,8 +340,8 @@ export default class gate extends gateRest {
      * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name gate#watchMyLiquidations
@@ -355,7 +355,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
     /**
      * @method
      * @name gate#watchMyLiquidationsForSymbols
@@ -369,24 +369,24 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleBalanceSubscription(client: Client, message: any, subscription?: Dict | undefined): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
-    handleUnSubscribe(client: Client, message: any): void;
+    watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: Dict): void;
+    parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleBalanceSubscription(client: Client, message: Dict, subscription?: Dict | undefined): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleUnSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
     getUrlByMarket(market: any): any;
     getTypeByMarket(market: Market): "futures" | "options" | "spot" | undefined;
-    getUrlByMarketType(type: Str, isInverse?: boolean): any;
+    getUrlByMarketType(type: Str, isInverse?: Bool): Str;
     getMarketTypeByUrl(url: string): any;
     requestId(): any;
-    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
-    subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
-    unSubscribePublicMultiple(url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
-    authenticate(url: any, messageType: any): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: any): void;
-    requestPrivate(url: any, reqParams: any, channel: any, requestId?: Str): Promise<any>;
-    subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
+    subscribePublic(url: Str, messageHash: string, payload: any[], channel: Str, params?: Dict, subscription?: Dict | undefined): Promise<any>;
+    subscribePublicMultiple(url: Str, messageHashes: string[], payload: any[], channel: Str, params?: Dict): Promise<any>;
+    unSubscribePublicMultiple(url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params?: Dict): Promise<any>;
+    authenticate(url: Str, messageType: Str): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
+    requestPrivate(url: Str, reqParams: Dict, channel: Str, requestId?: Str): Promise<any>;
+    subscribePrivate(url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid?: Bool): Promise<any>;
 }

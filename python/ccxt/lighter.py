@@ -396,7 +396,7 @@ class lighter(Exchange, ImplicitAPI):
             },
         })
 
-    def load_account(self, chainId: object, privateKey: object, apiKeyIndex: str, accountIndex: str, params={}):
+    def load_account(self, chainId: object, privateKey: object, apiKeyIndex: str, accountIndex: str, params: dict = {}):
         self.init_auth_object(accountIndex, apiKeyIndex)
         cachedAuths = self.safe_dict(self.options['auths'][accountIndex], apiKeyIndex)
         signer = self.safe_value(cachedAuths, 'signer')
@@ -446,7 +446,7 @@ class lighter(Exchange, ImplicitAPI):
             return None
         return self.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey']
 
-    def pre_load_lighter_library(self, params={}):
+    def pre_load_lighter_library(self, params: dict = {}) -> bool:
         """
         if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -521,7 +521,7 @@ class lighter(Exchange, ImplicitAPI):
                 self.options['accountIndex'] = accountIndex
         return [self.parse_to_int(accountIndex), params]
 
-    def create_sub_account(self, name: str, params={}):
+    def create_sub_account(self, name: str, params: dict = {}) -> dict:
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'createSubAccount', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -542,7 +542,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.publicPostSendTx(request)
 
-    def create_auth(self, params={}):
+    def create_auth(self, params: dict = {}) -> Str:
         # don't omit [accountIndex, apiKeyIndex], request may need them
         apiKeyIndex = self.safe_string_2(params, 'apiKeyIndex', 'api_key_index')
         if apiKeyIndex is None:
@@ -624,7 +624,7 @@ class lighter(Exchange, ImplicitAPI):
             self.options['builderFee'] = False
         return True
 
-    def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: object = {}):
+    def approve_builder_fee(self, builder: float, takerFeeRate: float, makerFeeRate: float, accountIndex: float, apiKeyIndex: float, params: dict = {}) -> dict:
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params)
@@ -648,7 +648,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return response
 
-    def change_api_key(self, params: object = {}):
+    def change_api_key(self, params: dict = {}):
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_api_key_index(params, 'changeApiKey', 'apiKeyIndex', 'api_key_index')
         accountIndex = None
@@ -683,7 +683,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> list[object]:
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -727,8 +727,8 @@ class lighter(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        stopLoss = self.safe_value(params, 'stopLoss')
-        takeProfit = self.safe_value(params, 'takeProfit')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
         isConditional = ((stopLossPrice is not None) or (takeProfitPrice is not None))
@@ -828,7 +828,7 @@ class lighter(Exchange, ImplicitAPI):
                 orders.append(orderObj)
         return orders
 
-    def fetch_nonce(self, accountIndex: object, apiKeyIndex: object, params={}):
+    def fetch_nonce(self, accountIndex: object, apiKeyIndex: object, params: dict = {}) -> Int:
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
@@ -885,7 +885,7 @@ class lighter(Exchange, ImplicitAPI):
             txType, txInfo = self.lighter_sign_create_grouped_orders(signer, signingPayload)
         return [txType, txInfo, order, market]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -920,7 +920,7 @@ class lighter(Exchange, ImplicitAPI):
         #
         return self.parse_order(self.deep_extend(response, order), market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         cancels an order and places a new order
         :param str id: order id
@@ -980,7 +980,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return self.parse_order(response, market)
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1006,7 +1006,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}) -> Int:
+    def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1025,7 +1025,7 @@ class lighter(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'timestamp')
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for lighter
 
@@ -1193,7 +1193,7 @@ class lighter(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -1260,7 +1260,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1412,7 +1412,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -1481,7 +1481,7 @@ class lighter(Exchange, ImplicitAPI):
         first = self.safe_dict(tickers, 0, {})
         return self.parse_ticker(first, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -1526,7 +1526,7 @@ class lighter(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1630,7 +1630,7 @@ class lighter(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetch the current funding rate for multiple symbols
 
@@ -1664,7 +1664,7 @@ class lighter(Exchange, ImplicitAPI):
                 result.append(data[i])
         return self.parse_funding_rates(result, symbols)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1757,7 +1757,7 @@ class lighter(Exchange, ImplicitAPI):
                 result['USDC'] = perpBalance
         return self.safe_balance(result)
 
-    def fetch_position(self, symbol: str, params={}):
+    def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on an open position
 
@@ -1772,7 +1772,7 @@ class lighter(Exchange, ImplicitAPI):
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1851,7 +1851,7 @@ class lighter(Exchange, ImplicitAPI):
                 allPositions.append(positions[j])
         return self.parse_positions(allPositions, symbols)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "market_id": 0,
@@ -1913,7 +1913,7 @@ class lighter(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def fetch_accounts(self, params={}) -> list[Account]:
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -1967,7 +1967,7 @@ class lighter(Exchange, ImplicitAPI):
         accounts = self.safe_list(response, 'accounts', [])
         return self.parse_accounts(accounts, params)
 
-    def parse_account(self, account: object):
+    def parse_account(self, account: dict) -> Account:
         #
         #     {
         #         "code": "0",
@@ -2001,7 +2001,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2076,7 +2076,7 @@ class lighter(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'orders', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently closed orders
 
@@ -2324,7 +2324,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, str(tifInteger))
 
-    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2381,7 +2381,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return self.parse_transfer(response)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2480,7 +2480,7 @@ class lighter(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2544,7 +2544,7 @@ class lighter(Exchange, ImplicitAPI):
             data[0]['cursor'] = cursor
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2664,7 +2664,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2712,7 +2712,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return self.parse_transaction(response)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2859,7 +2859,7 @@ class lighter(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> dict:
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2878,7 +2878,7 @@ class lighter(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires an marginMode parameter')
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)
 
-    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}) -> dict:
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -2897,7 +2897,7 @@ class lighter(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires an leverage parameter')
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)
 
-    def modify_leverage_and_margin_mode(self, leverage: int, marginMode: str, symbol: Str = None, params={}):
+    def modify_leverage_and_margin_mode(self, leverage: int, marginMode: str, symbol: Str = None, params: dict = {}) -> dict:
         if self.markets is None:
             self.load_markets()
         if (marginMode != 'cross') and (marginMode != 'isolated'):
@@ -2959,7 +2959,7 @@ class lighter(Exchange, ImplicitAPI):
         txType, txInfo = self.lighter_sign_cancel_order(signer, self.extend(signRaw, params))
         return [txType, txInfo, market]
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
         :param str id: order id
@@ -2998,7 +2998,7 @@ class lighter(Exchange, ImplicitAPI):
         txType, txInfo = self.lighter_sign_cancel_all_orders(signer, self.extend(signRaw, params))
         return [txType, txInfo]
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -3015,7 +3015,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return self.parse_orders([response])
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params: dict = {}) -> dict:
         """
         dead man's switch, cancel all orders after the given timeout
         :param number timeout: time in milliseconds, 0 represents cancel the timer
@@ -3049,7 +3049,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return response
 
-    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin
         :param str symbol: unified market symbol
@@ -3062,7 +3062,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -3075,7 +3075,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
-    def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    def set_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :param str symbol: unified market symbol of the market to set margin in

@@ -64,7 +64,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'passphrase': self.password,
         }
 
-    async def subscribe(self, name: str, symbol: Str = None, messageHashStart: Str = None, params={}):
+    async def subscribe(self, name: str, symbol: Str = None, messageHashStart: Str = None, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -88,7 +88,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_multiple(self, name: object, symbols: list[str] = [], messageHashStart: Str = None, params={}):
+    async def subscribe_multiple(self, name: str, symbols: list[str] = [], messageHashStart: Str = None, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -114,7 +114,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         request = self.extend(subscribe, params)
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -124,7 +124,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
@@ -148,7 +148,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -166,7 +166,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -184,12 +184,12 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         name = 'matches'
         trades = await self.subscribe_multiple(name, symbols, name, params)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -211,7 +211,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -228,12 +228,12 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         authentication = self.authenticate()
         trades = await self.subscribe_multiple(name, symbols, messageHash, self.extend(params, authentication))
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
         :param str[] symbols: unified symbol of the market to fetch orders for
@@ -250,12 +250,12 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         authentication = self.authenticate()
         orders = await self.subscribe_multiple(name, symbols, messageHash, self.extend(params, authentication))
         if self.newUpdates:
-            first = self.safe_value(orders, 0)
+            first = self.safe_dict(orders, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = orders.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -277,7 +277,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -316,7 +316,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, authentication), messageHashes, subscription)
         return orderbook.limit()
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -351,7 +351,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_trade(self, client: Client, message: object):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "type": "match",
@@ -385,7 +385,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def handle_my_trade(self, client: Client, message: object):
+    def handle_my_trade(self, client: Client, message: dict) -> dict:
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
             trade = self.parse_ws_trade(message)
@@ -400,7 +400,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # private trades
         # {
@@ -483,14 +483,14 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         }
         return parsed
 
-    def parse_ws_order_status(self, status: object):
+    def parse_ws_order_status(self, status: Str) -> Str:
         statuses = {
             'filled': 'closed',
             'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, 'open')
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         # Order is created
         #
@@ -585,8 +585,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             orders = self.orders
             if orders is None:
                 return
-            previousOrders = self.safe_value(orders.hashmap, symbol, {})
-            previousOrder = self.safe_value(previousOrders, orderId)
+            previousOrders = self.safe_dict(orders.hashmap, symbol, {})
+            previousOrder = self.safe_dict(previousOrders, orderId)
             if previousOrder is None:
                 previousOrder = self.safe_value_2(previousOrders, makerOrderId, takerOrderId)
             if previousOrder is None:
@@ -597,7 +597,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                 sequence = self.safe_integer(message, 'sequence')
                 if sequence is None:
                     return
-                previousInfo = self.safe_value(previousOrder, 'info', {})
+                previousInfo = self.safe_dict(previousOrder, 'info', {})
                 previousSequence = self.safe_integer(previousInfo, 'sequence')
                 if (previousSequence is None) or (sequence > previousSequence):
                     if type == 'match':
@@ -649,7 +649,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
@@ -696,7 +696,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'trades': None,
         })
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "type": "ticker",
@@ -728,7 +728,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(ticker, idMessageHash)
         return message
 
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",
@@ -789,7 +789,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # first message (snapshot)
         #
@@ -821,13 +821,13 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbol = market['symbol']
         name = 'level2'
         messageHash = name + ':' + marketId
-        subscription = self.safe_value(client.subscriptions, messageHash, {})
+        subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
         if type == 'snapshot':
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'asks', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
+            self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
+            self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
             orderbook['timestamp'] = None
             orderbook['datetime'] = None
             orderbook['symbol'] = symbol
@@ -852,7 +852,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "type": "subscriptions",
@@ -866,7 +866,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "type": "error",
@@ -893,7 +893,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         type = self.safe_string(message, 'type')
         methods = {
             'snapshot': self.handle_order_book,

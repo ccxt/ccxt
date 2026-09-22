@@ -132,7 +132,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             #
         return await future
 
-    async def subscribe_public(self, name: str, messageHashPrefix: str, symbols: Strings = None, params={}):
+    async def subscribe_public(self, name: str, messageHashPrefix: str, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         :param str name: websocket endpoint name
@@ -159,7 +159,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         request = self.extend(subscribe, params)
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    async def subscribe_private(self, name: str, symbol: Str = None, params={}):
+    async def subscribe_private(self, name: str, symbol: Str = None, params: dict = {}):
         """
  @ignore
         :param str name: websocket endpoint name
@@ -181,7 +181,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def trade_request(self, name: str, params={}):
+    async def trade_request(self, name: str, params: dict = {}):
         """
  @ignore
         :param str name: websocket endpoint name
@@ -199,7 +199,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -217,7 +217,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [params.speed]: 100(default), 500, or 1000
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        options = self.safe_value(self.options, 'watchOrderBook')
+        options = self.safe_dict(self.options, 'watchOrderBook')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/full')
         name = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
         depth = self.safe_string(params, 'depth', '20')
@@ -235,7 +235,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         orderbook = await self.subscribe_public(name, 'orderbooks', [symbol], self.deep_extend(request, params))
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #    {
         #        "ch": "orderbook/full",                 // Channel
@@ -300,7 +300,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -318,7 +318,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         ticker = await self.watch_tickers([symbol], params)
         return self.safe_value(ticker, symbol)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str[] [symbols]:
@@ -330,7 +330,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'watchTicker')
+        options = self.safe_dict(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker/{speed}/batch')
         method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
         speed = self.safe_string(params, 'speed', '1s')
@@ -357,7 +357,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #    {
         #        "ch": "ticker/1s",
@@ -466,7 +466,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'info': ticker,
         }, market)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -481,7 +481,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        options = self.safe_value(self.options, 'watchBidsAsks')
+        options = self.safe_dict(self.options, 'watchBidsAsks')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/top/{speed}/batch')
         method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
         speed = self.safe_string(params, 'speed', '100ms')
@@ -501,7 +501,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: object):
+    def handle_bid_ask(self, client: Client, message: dict):
         #
         #     {
         #         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -531,7 +531,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(ticker, 't')
         bidAskSymbol = market['symbol'] if (market is not None) else None
         return self.safe_ticker({
@@ -545,7 +545,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -573,7 +573,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "result": {
@@ -631,7 +631,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ws_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -641,7 +641,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
         #        "t": 1626861123552,       // Timestamp in milliseconds
@@ -668,7 +668,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -696,7 +696,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "ch": "candles/M1",                     // Channel
@@ -742,7 +742,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -776,7 +776,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -808,7 +808,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp')
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "jsonrpc": "2.0",
@@ -882,7 +882,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.handle_order_helper(client, message, data)
         return message
 
-    def handle_order_helper(self, client: Client, message: object, order: object):
+    def handle_order_helper(self, client: Client, message: dict, order: dict):
         orders = self.orders
         if orders is None:
             return
@@ -896,7 +896,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         client.resolve(orders, messageHash)
         client.resolve(orders, messageHash + '::' + symbol)
 
-    def parse_ws_order_trade(self, trade: dict, market: Market = None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #    {
         #        "id": 584244931496,
@@ -945,7 +945,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             },
         }, market)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "id": 584244931496,
@@ -1011,7 +1011,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watches balance updates, cannot subscribe to margin account balances
 
@@ -1041,7 +1041,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1079,7 +1079,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_new_order', request)
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
 
         https://api.hitbtc.com/#cancel-spot-order-2
@@ -1113,7 +1113,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_order', request)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
 
         https://api.hitbtc.com/#cancel-spot-orders
@@ -1142,7 +1142,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_orders', params)
 
-    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
         https://api.hitbtc.com/#get-active-futures-orders-2
@@ -1176,7 +1176,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_get_orders', request)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #    {
         #        "jsonrpc": "2.0",
@@ -1198,13 +1198,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         self.balance = self.deep_extend(self.balance, balance)
         client.resolve(self.balance, messageHash)
 
-    def handle_notification(self, client: Client, message: object):
+    def handle_notification(self, client: Client, message: dict) -> dict:
         #
         #     { jsonrpc: "2.0", result: true, id: null }
         #
         return message
 
-    def handle_order_request(self, client: Client, message: object):
+    def handle_order_request(self, client: Client, message: dict) -> dict:
         #
         # createOrderWs, cancelOrderWs
         #
@@ -1245,7 +1245,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(parsedOrder, messageHash)
         return message
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error(client, message):
             return
         channel = self.safe_string_2(message, 'ch', 'method')
@@ -1288,14 +1288,14 @@ class hitbtc(ccxt.async_support.hitbtc):
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
 
-    def handle_authenticate(self, client: Client, message: object):
+    def handle_authenticate(self, client: Client, message: dict) -> dict:
         #
         #    {
         #        "jsonrpc": "2.0",
         #        "result": true
         #    }
         #
-        success = self.safe_value(message, 'result')
+        success = self.safe_bool(message, 'result')
         messageHash = 'authenticated'
         if success is True:
             future = self.safe_value(client.futures, messageHash)
@@ -1307,7 +1307,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 del client.subscriptions[messageHash]
         return message
 
-    def handle_error(self, client: Client, message: object) -> bool:
+    def handle_error(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        jsonrpc: '2.0',
@@ -1319,7 +1319,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        id: 1700228604325
         #    }
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_dict(message, 'error')
         if error is not None:
             try:
                 code = self.safe_value(error, 'code')

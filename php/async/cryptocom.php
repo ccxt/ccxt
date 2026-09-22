@@ -1254,7 +1254,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
-        $orderBook = $this->safe_value($data, 0);
+        $orderBook = $this->safe_dict($data, 0);
         $timestamp = $this->safe_integer($orderBook, 't');
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
     }
@@ -1341,7 +1341,7 @@ class cryptocom extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1404,7 +1404,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1508,7 +1508,7 @@ class cryptocom extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1552,7 +1552,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1638,7 +1638,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result);
     }
 
-    public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1758,7 +1758,7 @@ class cryptocom extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1787,7 +1787,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function edit_order_request(string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()): array {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
@@ -1808,7 +1808,7 @@ class cryptocom extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1835,7 +1835,7 @@ class cryptocom extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1877,7 +1877,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1917,7 +1917,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result, $market, null, null, $params);
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_for_symbols(...))($orders, $params);
     }
 
@@ -2023,7 +2023,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2622,7 +2622,7 @@ class cryptocom extends Exchange {
         $created = $this->safe_integer($order, 'create_time');
         $marketId = $this->safe_string($order, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $execInst = $this->safe_value($order, 'exec_inst');
+        $execInst = $this->safe_list($order, 'exec_inst');
         $postOnly = null;
         if ($execInst !== null) {
             $postOnly = false;
@@ -2662,7 +2662,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_deposit_status(mixed $status) {
+    public function parse_deposit_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2672,7 +2672,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_withdrawal_status(mixed $status) {
+    public function parse_withdrawal_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'pending',
@@ -2797,7 +2797,7 @@ class cryptocom extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -2867,7 +2867,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks($params));
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_dict($response, 'result');
         $currencyMap = $this->safe_list($data, 'currency_map');
         return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');
     }
@@ -2998,7 +2998,7 @@ class cryptocom extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'TRADING' => 'trade',
             'TRADE_FEE' => 'fee',
@@ -3080,7 +3080,7 @@ class cryptocom extends Exchange {
         return $this->parse_accounts($accounts, $params);
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         //     {
         //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -3172,7 +3172,7 @@ class cryptocom extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3192,7 +3192,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, ?array $market = null): array {
         //
         //     [
         //         {
@@ -3293,7 +3293,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3377,7 +3377,7 @@ class cryptocom extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -3495,7 +3495,7 @@ class cryptocom extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', null, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
@@ -3543,11 +3543,11 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function params_to_string(mixed $object, mixed $level) {
+    public function params_to_string(mixed $object, float $level): string {
         $maxLevel = 3;
         if ($level >= $maxLevel) {
             return (string) $object;
@@ -3708,7 +3708,7 @@ class cryptocom extends Exchange {
         return $this->parse_trading_fees($result);
     }
 
-    public function parse_trading_fees(mixed $response) {
+    public function parse_trading_fees(array $response): array {
         //
         // {
         //         "spot_tier": "3",
@@ -3760,7 +3760,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;

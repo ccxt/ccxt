@@ -3,8 +3,8 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 export default class woofipro extends woofiproRest {
     describe(): any;
-    requestId(url: any): any;
-    watchPublic(messageHash: any, message: any): Promise<any>;
+    requestId(url: string): number;
+    watchPublic(messageHash: string, message: Dict): Promise<any>;
     /**
      * @method
      * @name woofipro#watchOrderBook
@@ -15,8 +15,8 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name woofipro#watchTicker
@@ -26,9 +26,9 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
-    handleTicker(client: Client, message: any): any;
+    handleTicker(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name woofipro#watchTickers
@@ -38,8 +38,8 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTickers(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTickers(client: Client, message: Dict): void;
     /**
      * @method
      * @name woofipro#watchBidsAsks
@@ -49,9 +49,9 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name woofipro#watchOHLCV
@@ -64,8 +64,8 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name woofipro#watchTrades
@@ -77,13 +77,13 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    handleAuth(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
-    watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
-    watchPrivateMultiple(messageHashes: any, message: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrade(client: Client, message: Dict): void;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    handleAuth(client: Client, message: Dict): void;
+    authenticate(params?: Dict): Promise<any>;
+    watchPrivate(messageHash: string, message: Dict, params?: Dict): Promise<any>;
+    watchPrivateMultiple(messageHashes: string[], message: Dict, params?: Dict): Promise<any>;
     /**
      * @method
      * @name woofipro#watchOrders
@@ -97,7 +97,7 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name woofipro#watchMyTrades
@@ -111,11 +111,11 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsOrder(order: any, market?: Market): Order;
-    handleOrderUpdate(client: Client, message: any): void;
-    handleOrder(client: Client, message: any, topic: any): void;
-    handleMyTrade(client: Client, message: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    handleOrderUpdate(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict, topic: any): void;
+    handleMyTrade(client: Client, message: Dict): void;
     /**
      * @method
      * @name woofipro#watchPositions
@@ -127,11 +127,11 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
-    handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
+    handlePositions(client: Client, message: Dict): void;
+    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name woofipro#watchBalance
@@ -140,15 +140,13 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: any, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
-    ping(client: Client): {
-        event: string;
-    };
-    pong(client: Client, message: any): Promise<void>;
-    handlePing(client: Client, message: any): void;
-    handlePong(client: Client, message: any): any;
-    handleSubscribe(client: Client, message: any): any;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    pong(client: Client, message: Dict): Promise<void>;
+    handlePing(client: Client, message: Dict): void;
+    handlePong(client: Client, message: Dict): Dict;
+    handleSubscribe(client: Client, message: Dict): Dict;
 }
