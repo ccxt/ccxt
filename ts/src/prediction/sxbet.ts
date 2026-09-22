@@ -6,6 +6,7 @@ import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
+import type Client from '../base/ws/Client.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -2153,7 +2154,7 @@ export default class sxbet extends Exchange {
         return await client.future ('centrifugoConnected');
     }
 
-    async pong (client: any, message: any = undefined) {
+    async pong (client: Client, message: any = undefined) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send ('{}');
     }
@@ -2168,7 +2169,7 @@ export default class sxbet extends Exchange {
         return await this.watch (url, messageHash, subscribeMsg, channel);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: any) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
         if (typeof message === 'string') {
@@ -2186,7 +2187,7 @@ export default class sxbet extends Exchange {
         this.handleCentrifugoFrame (client, message);
     }
 
-    handleCentrifugoFrame (client: any, msg: any) {
+    handleCentrifugoFrame (client: Client, msg: any) {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
@@ -2372,7 +2373,7 @@ export default class sxbet extends Exchange {
         return refreshed;
     }
 
-    handleOrderBook (client: any, rows: any[]) {
+    handleOrderBook (client: Client, rows: any[]) {
         //
         //     {
         //         "marketHash": "0x...",
@@ -2438,7 +2439,7 @@ export default class sxbet extends Exchange {
         return tickerResult as PredictionTicker;
     }
 
-    handleTicker (client: any, rows: any[]) {
+    handleTicker (client: Client, rows: any[]) {
         //
         //     {
         //         "marketHash": "0xbf06...16a2eb",
@@ -2538,7 +2539,7 @@ export default class sxbet extends Exchange {
         });
     }
 
-    handleTrades (client: any, rows: any[]) {
+    handleTrades (client: Client, rows: any[]) {
         //
         //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
@@ -2593,7 +2594,7 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: any, rows: any[]) {
+    handleMyTrade (client: Client, rows: any[]) {
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
@@ -2643,7 +2644,7 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    handleOrder (client: any, rows: any[]) {
+    handleOrder (client: Client, rows: any[]) {
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
