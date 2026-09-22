@@ -1973,7 +1973,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
             },
-            "loadMarkets.go": "go-only: the typed Market materializes precision base/quote/cost as present null keys and the precision loop asserts them > 0 (ts sets only amount/price, the js/py/php/cs lanes pass the same live data); recheck 2026-12-01",
             "fetchCurrencies": {
                 "limits": "max above min",
                 "precision": "is undefined"
