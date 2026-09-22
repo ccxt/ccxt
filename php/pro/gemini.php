@@ -114,7 +114,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // regular v2 trade
         //
@@ -171,7 +171,7 @@ class gemini extends \ccxt\async\gemini {
         ), $market);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
         //         "type": "trade",
@@ -198,7 +198,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "type": "l2_updates",
@@ -238,7 +238,7 @@ class gemini extends \ccxt\async\gemini {
         //
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $trades = $this->safe_value($message, 'trades');
+        $trades = $this->safe_list($message, 'trades');
         if ($trades !== null) {
             $symbol = $market['symbol'];
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -256,7 +256,7 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function handle_trades_for_multidata(Client $client, mixed $trades, ?int $timestamp) {
+    public function handle_trades_for_multidata(Client $client, array $trades, ?int $timestamp) {
         if ($trades !== null) {
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $storesForSymbols = array();
@@ -327,7 +327,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         //     {
         //         "type": "candles_15m_updates",
@@ -362,11 +362,11 @@ class gemini extends \ccxt\async\gemini {
         $symbol = $this->safe_symbol($marketId, $market);
         $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
-        $ohlcvsBySymbol = $this->safe_value($this->ohlcvs, $symbol);
+        $ohlcvsBySymbol = $this->safe_dict($this->ohlcvs, $symbol);
         if ($ohlcvsBySymbol === null) {
             $this->ohlcvs[$symbol] = array();
         }
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -427,7 +427,7 @@ class gemini extends \ccxt\async\gemini {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         $isInitial = (is_array($message) && array_key_exists('auction_events' ?? '', $message)) && (is_array($message) && array_key_exists('trades' ?? '', $message)) && (is_array($message) && array_key_exists('changes' ?? '', $message));
         $changes = $this->safe_list($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
@@ -491,7 +491,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params);
     }
 
-    public function handle_bids_asks_for_multidata(Client $client, mixed $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
+    public function handle_bids_asks_for_multidata(Client $client, array $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
         //
         // {
         //     eventId: '1683002916916153',
@@ -592,7 +592,7 @@ class gemini extends \ccxt\async\gemini {
         return Async\await($this->watch_multiple($url, $messageHashes, null));
     }
 
-    public function handle_order_book_for_multidata(Client $client, mixed $rawOrderBookChanges, ?int $timestamp, ?int $nonce) {
+    public function handle_order_book_for_multidata(Client $client, array $rawOrderBookChanges, ?int $timestamp, ?int $nonce) {
         //
         // rawOrderBookChanges
         //
@@ -640,7 +640,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_l2_updates(Client $client, mixed $message) {
+    public function handle_l2_updates(Client $client, array $message) {
         //
         //     {
         //         "type": "l2_updates",
@@ -718,7 +718,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_heartbeat(Client $client, mixed $message) {
+    public function handle_heartbeat(Client $client, array $message): array {
         //
         //     {
         //         "type": "heartbeat",
@@ -732,7 +732,7 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function handle_subscription(Client $client, mixed $message) {
+    public function handle_subscription(Client $client, array $message): array {
         //
         //     {
         //         "type": "subscription_ack",
@@ -746,7 +746,7 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     [
         //         {
@@ -783,7 +783,7 @@ class gemini extends \ccxt\async\gemini {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "type": "accepted",
@@ -845,7 +845,7 @@ class gemini extends \ccxt\async\gemini {
         ), $market);
     }
 
-    public function parse_ws_order_status(mixed $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             'accepted' => 'open',
             'booked' => 'open',
@@ -857,7 +857,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_type(mixed $type) {
+    public function parse_ws_order_type(?string $type): ?string {
         $types = array(
             'exchange limit' => 'limit',
             'market buy' => 'market',
@@ -866,7 +866,7 @@ class gemini extends \ccxt\async\gemini {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function handle_error(Client $client, mixed $message) {
+    public function handle_error(Client $client, array $message) {
         //
         //     {
         //         "reason": "NoValidTradingPairs",

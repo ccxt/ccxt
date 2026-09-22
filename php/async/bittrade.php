@@ -445,7 +445,7 @@ class bittrade extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_trading_limits(?array $symbols = null, $params = array()) {
+    public function fetch_trading_limits(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trading_limits(...))($symbols, $params);
     }
 
@@ -495,10 +495,10 @@ class bittrade extends Exchange {
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
+        return $this->parse_trading_limits($this->safe_dict($response, 'data', array()));
     }
 
-    public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(array $limits, ?string $symbol = null, $params = array()) {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -525,7 +525,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function cost_to_precision(?string $symbol, mixed $cost) {
+    public function cost_to_precision(?string $symbol, mixed $cost): ?string {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
     }
 
@@ -790,7 +790,7 @@ class bittrade extends Exchange {
             if (($response['tick'] === null) || ($response['tick'] === null)) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
-            $tick = $this->safe_value($response, 'tick');
+            $tick = $this->safe_dict($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
             $result = $this->parse_order_book($tick, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
@@ -960,7 +960,7 @@ class bittrade extends Exchange {
         ));
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -985,7 +985,7 @@ class bittrade extends Exchange {
         return $this->parse_trades($data, null, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1216,16 +1216,16 @@ class bittrade extends Exchange {
         //         ]
         //     }
         //
-        $currencies = $this->safe_value($response, 'data', array());
+        $currencies = $this->safe_list($response, 'data', array());
         return $this->parse_currencies($currencies);
     }
 
     public function parse_currency(array $currency): array {
-        $id = $this->safe_value($currency, 'name');
+        $id = $this->safe_string($currency, 'name');
         $code = $this->safe_currency_code($id);
-        $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
-        $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
-        $countryDisabled = $this->safe_value($currency, 'country-disabled');
+        $depositEnabled = $this->safe_bool($currency, 'deposit-enabled');
+        $withdrawEnabled = $this->safe_bool($currency, 'withdraw-enabled');
+        $countryDisabled = $this->safe_bool($currency, 'country-disabled');
         $visible = $this->safe_bool($currency, 'visible', false);
         $state = $this->safe_string($currency, 'state');
         $active = ($visible === true) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
@@ -1322,11 +1322,11 @@ class bittrade extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_states(string $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_states(...))($states, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_states(string $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1365,7 +1365,7 @@ class bittrade extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1424,7 +1424,7 @@ class bittrade extends Exchange {
         return Async\await($this->fetch_open_orders_v1($symbol, $since, $limit, $params));
     }
 
-    public function fetch_open_orders_v1(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_v1(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_orders_v1(...))($symbol, $since, $limit, $params);
     }
 
@@ -1605,7 +1605,7 @@ class bittrade extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -1628,7 +1628,7 @@ class bittrade extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1655,7 +1655,7 @@ class bittrade extends Exchange {
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker', array());
+            $broker = $this->safe_dict($this->options, 'broker', array());
             $brokerId = $this->safe_string($broker, 'id');
             $request['client-order-id'] = $brokerId . $this->uuid();
         } else {
@@ -1749,7 +1749,7 @@ class bittrade extends Exchange {
         ));
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1808,7 +1808,7 @@ class bittrade extends Exchange {
         return $this->parse_cancel_orders($response);
     }
 
-    public function parse_cancel_orders(mixed $orders) {
+    public function parse_cancel_orders(array $orders): array {
         //
         //    {
         //        "success": [
@@ -1866,7 +1866,7 @@ class bittrade extends Exchange {
         return $result;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1911,7 +1911,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "currency": "usdt",
@@ -1926,7 +1926,7 @@ class bittrade extends Exchange {
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $this->safe_currency_code($currencyId, $currency);
         $networkId = $this->safe_string($depositAddress, 'chain');
-        $networks = $this->safe_value($currency, 'networks', array());
+        $networks = $this->safe_dict($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
         $network = $this->safe_string($networkValue, 'network');
@@ -2151,7 +2151,7 @@ class bittrade extends Exchange {
         if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
         }
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
         if ($network !== null) {
@@ -2173,7 +2173,7 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;

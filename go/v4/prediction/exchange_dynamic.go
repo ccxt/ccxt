@@ -28,6 +28,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "polymarket":
 		polymarketItf := NewPolymarket(exchangeArgs)
 		return polymarketItf, true
+	case "predictfun":
+		predictfunItf := NewPredictfun(exchangeArgs)
+		return predictfunItf, true
 	default:
 		return nil, false
 	}

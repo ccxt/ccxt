@@ -317,10 +317,10 @@ class indodax(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -338,7 +338,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for indodax
 
@@ -440,9 +440,9 @@ class indodax(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'return', {})
+        balances = self.safe_dict(response, 'return', {})
         free = self.safe_dict(balances, 'balance', {})
-        used = self.safe_value(balances, 'balance_hold', {})
+        used = self.safe_dict(balances, 'balance_hold', {})
         timestamp = self.safe_timestamp(balances, 'server_time')
         result = {
             'info': response,
@@ -460,7 +460,7 @@ class indodax(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -504,7 +504,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -565,7 +565,7 @@ class indodax(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -599,7 +599,7 @@ class indodax(Exchange, ImplicitAPI):
         ticker = self.safe_dict(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -658,7 +658,7 @@ class indodax(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -699,7 +699,7 @@ class indodax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'Volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -847,7 +847,7 @@ class indodax(Exchange, ImplicitAPI):
             'trades': None,
         })
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -873,7 +873,7 @@ class indodax(Exchange, ImplicitAPI):
         order['info'] = response
         return order
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -912,7 +912,7 @@ class indodax(Exchange, ImplicitAPI):
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -938,7 +938,7 @@ class indodax(Exchange, ImplicitAPI):
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -991,14 +991,14 @@ class indodax(Exchange, ImplicitAPI):
         if quantityIsRequired:
             request[market['baseId']] = self.amount_to_precision(symbol, amount)
         result = await self.privatePostTrade(self.extend(request, params))
-        data = self.safe_value(result, 'return', {})
+        data = self.safe_dict(result, 'return', {})
         id = self.safe_string(data, 'order_id')
         return self.safe_order({
             'info': result,
             'id': id,
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1045,7 +1045,7 @@ class indodax(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return')
         return self.parse_order(data)
 
-    async def fetch_transaction_fee(self, code: str, params={}):
+    async def fetch_transaction_fee(self, code: str, params: dict = {}):
         """
         fetch the fee for a transaction
 
@@ -1072,7 +1072,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'return', {})
+        data = self.safe_dict(response, 'return', {})
         currencyId = self.safe_string(data, 'currency')
         return {
             'info': response,
@@ -1080,7 +1080,7 @@ class indodax(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
+    async def fetch_deposit_withdraw_fee(self, code: str, params: dict = {}) -> DepositWithdrawFee:
         """
         fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
 
@@ -1114,7 +1114,7 @@ class indodax(Exchange, ImplicitAPI):
         result['deposit']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -1191,7 +1191,7 @@ class indodax(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'return', {})
+        data = self.safe_dict(response, 'return', {})
         withdraw = self.safe_dict(data, 'withdraw', {})
         deposit = self.safe_dict(data, 'deposit', {})
         transactions = []
@@ -1207,12 +1207,12 @@ class indodax(Exchange, ImplicitAPI):
                 transactions = self.array_concat(transactions, deposit[key])
         else:
             currency = self.currency(code)
-            withdraws = self.safe_value(withdraw, currency['id'], [])
-            deposits = self.safe_value(deposit, currency['id'], [])
+            withdraws = self.safe_list(withdraw, currency['id'], [])
+            deposits = self.safe_list(deposit, currency['id'], [])
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1345,7 +1345,7 @@ class indodax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1435,7 +1435,7 @@ class indodax(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api]
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
@@ -1466,7 +1466,7 @@ class indodax(Exchange, ImplicitAPI):
         # {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
-        error = self.safe_value(response, 'error', '')
+        error = self.safe_string(response, 'error', '')
         if not ('success' in response) and error == '':
             return None  # no 'success' property on public responses
         status = self.safe_string(response, 'success')

@@ -2842,6 +2842,11 @@ impl GateCore {
         m.insert("expiration".to_string(), Value::Int(86400));
     m
 }));
+        m.insert("fetchOrderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maxSpotLimit".to_string(), Value::Int(1000));
+    m
+}));
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5114,7 +5119,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut query: Value = get_value(&requestqueryVariable, &Value::Int(1));
         if !is_equal(&limit, &Value::Null) {
             if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
-                limit = crate::runtime::Math::min(&limit, &Value::Int(1000));
+                // gateeu returns an empty book for a spot limit above 100
+                let mut maxSpotLimit: Value = self.handle_option(Value::Str("fetchOrderBook".to_string()), Value::Str("maxSpotLimit".to_string()), &[Value::Int(1000)]);
+                limit = crate::runtime::Math::min(&limit, &maxSpotLimit);
             }  else {
                 limit = crate::runtime::Math::min(&limit, &Value::Int(300));
             }
@@ -9588,8 +9595,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) || is_true(&requiresURLEncoding) || is_true(&(is_equal(&method, &Value::Str("PATCH".to_string())))) {
                 if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = self.rawencode(query.clone(), &[]);
-                    queryString = self.urlencode(query.clone(), &[]);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = self.rawencode(query.clone(), &[Value::Bool(true)]);
+                    queryString = self.urlencode(query.clone(), &[Value::Bool(true)]);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("currencies=".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("%2C".to_string())), &Value::Int(0)) {
                         queryString = replace_all_str(&queryString, &Value::Str("%2C".to_string()), &Value::Str(",".to_string()));

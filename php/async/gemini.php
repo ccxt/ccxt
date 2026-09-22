@@ -489,7 +489,7 @@ class gemini extends Exchange {
         //    }
         //
         $this->options['tradingPairs'] = $this->safe_list($data, 'tradingPairs');
-        $currenciesArray = $this->safe_value($data, 'currencies', array());
+        $currenciesArray = $this->safe_list($data, 'currencies', array());
         return $this->parse_currencies($currenciesArray);
     }
 
@@ -566,7 +566,7 @@ class gemini extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $method = $this->safe_value($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        $method = $this->safe_string($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if ($method === 'fetch_markets_from_web') {
             $promises = array();
             $promises[] = $this->fetch_markets_from_web($params); // get usd markets
@@ -679,7 +679,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market_active(mixed $status): ?bool {
+    public function parse_market_active(?string $status): ?bool {
         $statuses = array(
             'open' => true,
             'closed' => false,
@@ -791,7 +791,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market(mixed $response): array {
+    public function parse_market(array $response): array {
         //
         // response might be:
         //
@@ -979,7 +979,7 @@ class gemini extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker_v1(string $symbol, $params = array()) {
+    public function fetch_ticker_v1(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_v1(...))($symbol, $params);
     }
 
@@ -1007,7 +1007,7 @@ class gemini extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_v2(string $symbol, $params = array()) {
+    public function fetch_ticker_v2(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_v2(...))($symbol, $params);
     }
 
@@ -1036,7 +1036,7 @@ class gemini extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_v1_and_v2(string $symbol, $params = array()) {
+    public function fetch_ticker_v1_and_v2(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_v1_and_v2(...))($symbol, $params);
     }
 
@@ -1071,7 +1071,7 @@ class gemini extends Exchange {
          * @param {array} [$params->fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'fetchTickerV1');
         if ($method === 'fetchTickerV1') {
             return Async\await($this->fetch_ticker_v1($symbol, $params));
         }
@@ -1118,7 +1118,7 @@ class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        $volume = $this->safe_value($ticker, 'volume', array());
+        $volume = $this->safe_dict($ticker, 'volume', array());
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
         $marketId = $this->safe_string_lower($ticker, 'pair');
@@ -1551,7 +1551,7 @@ class gemini extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        $optionsArray = $this->safe_value($order, 'options', array());
+        $optionsArray = $this->safe_list($order, 'options', array());
         $option = $this->safe_string($optionsArray, 0);
         $timeInForce = 'GTC';
         $postOnly = false;
@@ -1590,7 +1590,7 @@ class gemini extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1690,7 +1690,7 @@ class gemini extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1792,7 +1792,7 @@ class gemini extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1841,7 +1841,7 @@ class gemini extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1936,7 +1936,7 @@ class gemini extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
         if ($nonceMethod === 'milliseconds') {
             return $this->milliseconds();
@@ -2040,7 +2040,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2119,7 +2119,7 @@ class gemini extends Exchange {
         return $this->index_by($results, 'network');
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -2257,7 +2257,7 @@ class gemini extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -2291,7 +2291,7 @@ class gemini extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

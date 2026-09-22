@@ -85,7 +85,7 @@ class extended extends \ccxt\async\extended {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -237,7 +237,7 @@ class extended extends \ccxt\async\extended {
         return Async\await($this->watch_private('balance', $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "type": "BALANCE",
@@ -332,7 +332,7 @@ class extended extends \ccxt\async\extended {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "type": "TRADE",
@@ -426,7 +426,7 @@ class extended extends \ccxt\async\extended {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "type": "POSITION",
@@ -485,7 +485,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
         //         "type": "ORDER",
@@ -580,7 +580,7 @@ class extended extends \ccxt\async\extended {
         )));
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -600,7 +600,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate(mixed $fundingRate, ?array $market = null, mixed $message = null): array {
+    public function parse_ws_funding_rate(array $fundingRate, ?array $market = null, ?array $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -659,7 +659,7 @@ class extended extends \ccxt\async\extended {
         )));
     }
 
-    public function handle_mark_price(Client $client, mixed $message) {
+    public function handle_mark_price(Client $client, array $message) {
         //
         //     {
         //         "type": "MP",
@@ -729,7 +729,7 @@ class extended extends \ccxt\async\extended {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -831,7 +831,7 @@ class extended extends \ccxt\async\extended {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "ts": 1695738675123,
@@ -857,7 +857,7 @@ class extended extends \ccxt\async\extended {
         $candleType = $this->safe_string($subscription, 'candleType');
         $cacheKey = ($candleType === 'trades') ? $timeframe : $timeframe . ':' . $candleType;
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $cacheKey);
         if ($stored === null) {
             $defaultLimit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -892,11 +892,11 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return false;
         }
@@ -908,7 +908,7 @@ class extended extends \ccxt\async\extended {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

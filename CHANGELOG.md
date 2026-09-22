@@ -1,3 +1,68 @@
+<a id="4.0.3"></a>
+# [4.0.3](https://github.com/ccxt/ccxt/releases/tag/4.0.3) - 2023-07-01
+
+We are happy to announce the release of CCXT version 4!
+
+During the last months we have been working hard on a few major improvements to the library adding important upgrades, including:
+
+* the merge of CCXT Pro Websocket APIs with the master repository of CCXT
+* the ESM and TypeScript migration for type-safety and portability
+* AST-based transpilation to support popular programming languages like C#
+* unification of perpetual swaps and futures markets among the leading exchanges like Binance and BitMEX
+* adding Bybit v3 and v5 APIs support
+* cryptocom v1 upgrades
+* per-exchange class method specifications: https://docs.ccxt.com/#/spec
+* unified proxy support
+* and many many more fixes and unifications
+
+
+We highly recommend downloading and installing the most recent release of CCXT version 4.0.3+ in order to get a much smoother experience for your trading operations.
+
+[Changes][4.0.3]
+
+
+<a id="v4.5.82"></a>
+# [v4.5.82](https://github.com/ccxt/ccxt/releases/tag/v4.5.82) - 2026-09-21
+
+## What's Changed
+* chore: tmp comment out most release commands by [@carlosmiei](https://github.com/carlosmiei) in [#30546](https://github.com/ccxt/ccxt/pull/30546)
+* chore: revert pre-transpile by [@carlosmiei](https://github.com/carlosmiei) in [#30547](https://github.com/ccxt/ccxt/pull/30547)
+* chore: make post-release triggerable by [@carlosmiei](https://github.com/carlosmiei) in [#30548](https://github.com/ccxt/ccxt/pull/30548)
+* chore: update gitattributes by [@carlosmiei](https://github.com/carlosmiei) in [#30549](https://github.com/ccxt/ccxt/pull/30549)
+* fix(cs): retire ws clients by reference using the existing error marker by [@carlotestor](https://github.com/carlotestor) in [#30545](https://github.com/ccxt/ccxt/pull/30545)
+* fix(go): emit gofmt-clean granular build files by [@AresArtemius](https://github.com/AresArtemius) in [#30541](https://github.com/ccxt/ccxt/pull/30541)
+* Batch 9 PRs: [#30535](https://github.com/ccxt/ccxt/issues/30535), [#30531](https://github.com/ccxt/ccxt/issues/30531), [#30529](https://github.com/ccxt/ccxt/issues/30529), [#30526](https://github.com/ccxt/ccxt/issues/30526) by [@carlotestor](https://github.com/carlotestor) in [#30543](https://github.com/ccxt/ccxt/pull/30543)
+* feat(bybitid): add Bybit Indonesia by [@bennert](https://github.com/bennert) in [#30501](https://github.com/ccxt/ccxt/pull/30501)
+* fix(base): reject pending ws futures on client.reset in rust by [@yzh-pelle](https://github.com/yzh-pelle) in [#30499](https://github.com/ccxt/ccxt/pull/30499)
+* fix(lighter): go bFee fix by [@ttodua](https://github.com/ttodua) in [#30495](https://github.com/ccxt/ccxt/pull/30495)
+* feat(krakenfutures): add fetchPositionsHistory by [@rayBastard](https://github.com/rayBastard) in [#30503](https://github.com/ccxt/ccxt/pull/30503)
+* fix(timestamp): local timestamps removed by [@yzh-pelle](https://github.com/yzh-pelle) in [#30487](https://github.com/ccxt/ccxt/pull/30487)
+* fix(bingx): preserve public swap trade fill IDs by [@AresArtemius](https://github.com/AresArtemius) in [#30554](https://github.com/ccxt/ccxt/pull/30554)
+* fix(modetrade): read the real asset-history fields in transactions an… by [@rayBastard](https://github.com/rayBastard) in [#30537](https://github.com/ccxt/ccxt/pull/30537)
+* feat(bitget): UTA (v3) ledger endpoints for fetchLedger by [@rayBastard](https://github.com/rayBastard) in [#30414](https://github.com/ccxt/ccxt/pull/30414)
+* fix(bingx): disable unsupported fetchPositionsHistory capability by [@AresArtemius](https://github.com/AresArtemius) in [#30407](https://github.com/ccxt/ccxt/pull/30407)
+* feat(Exchange): add incrementingNonce helper for duplicate-nonce venues by [@yzh-pelle](https://github.com/yzh-pelle) in [#30423](https://github.com/ccxt/ccxt/pull/30423)
+* perf(tests): cut offline test-suite runtime across all six ports (-40% to -79%) by [@carlotestor](https://github.com/carlotestor) in [#30553](https://github.com/ccxt/ccxt/pull/30553)
+* fix(gate): sort the signed query string so it matches the url order in Go by [@joe-alphafox](https://github.com/joe-alphafox) in [#30562](https://github.com/ccxt/ccxt/pull/30562)
+* fix(go): dereference typed pointer locals in order book delta rows by [@yzh-pelle](https://github.com/yzh-pelle) in [#30557](https://github.com/ccxt/ccxt/pull/30557)
+* fix(npm): remove map file by [@carlosmiei](https://github.com/carlosmiei) in [#30565](https://github.com/ccxt/ccxt/pull/30565)
+* PredictFun exchange integration by [@yzh-pelle](https://github.com/yzh-pelle) in [#30135](https://github.com/ccxt/ccxt/pull/30135)
+* fix(gateeu): cap order book REST limit at 100 for Gate EU by [@carlotestor](https://github.com/carlotestor) in [#30566](https://github.com/ccxt/ccxt/pull/30566)
+* fix(poloniex): ignore ws order book updates that arrive before a snapshot by [@carlotestor](https://github.com/carlotestor) in [#30568](https://github.com/ccxt/ccxt/pull/30568)
+* client side order router by [@pcriadoperez](https://github.com/pcriadoperez) in [#30560](https://github.com/ccxt/ccxt/pull/30560)
+* fix(pacifica): classify errors by error_id and read the code as a string by [@rayBastard](https://github.com/rayBastard) in [#30551](https://github.com/ccxt/ccxt/pull/30551)
+* fix(upbit): prevent concurrent subscription enumeration failures by [@lorenzozanee](https://github.com/lorenzozanee) in [#30514](https://github.com/ccxt/ccxt/pull/30514)
+
+## New Contributors
+* [@bennert](https://github.com/bennert) made their first contribution in [#30501](https://github.com/ccxt/ccxt/pull/30501)
+* [@joe-alphafox](https://github.com/joe-alphafox) made their first contribution in [#30562](https://github.com/ccxt/ccxt/pull/30562)
+* [@lorenzozanee](https://github.com/lorenzozanee) made their first contribution in [#30514](https://github.com/ccxt/ccxt/pull/30514)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
+
+[Changes][v4.5.82]
+
+
 <a id="v4.5.81"></a>
 # [v4.5.81](https://github.com/ccxt/ccxt/releases/tag/v4.5.81) - 2026-09-19
 
@@ -14310,29 +14375,8 @@
 [Changes][4.3.22]
 
 
-<a id="4.0.3"></a>
-# [4.0.3](https://github.com/ccxt/ccxt/releases/tag/4.0.3) - 2023-07-01
-
-We are happy to announce the release of CCXT version 4!
-
-During the last months we have been working hard on a few major improvements to the library adding important upgrades, including:
-
-* the merge of CCXT Pro Websocket APIs with the master repository of CCXT
-* the ESM and TypeScript migration for type-safety and portability
-* AST-based transpilation to support popular programming languages like C#
-* unification of perpetual swaps and futures markets among the leading exchanges like Binance and BitMEX
-* adding Bybit v3 and v5 APIs support
-* cryptocom v1 upgrades
-* per-exchange class method specifications: https://docs.ccxt.com/#/spec
-* unified proxy support
-* and many many more fixes and unifications
-
-
-We highly recommend downloading and installing the most recent release of CCXT version 4.0.3+ in order to get a much smoother experience for your trading operations.
-
-[Changes][4.0.3]
-
-
+[4.0.3]: https://github.com/ccxt/ccxt/compare/v4.5.82...4.0.3
+[v4.5.82]: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
 [v4.5.81]: https://github.com/ccxt/ccxt/compare/v4.5.80...v4.5.81
 [v4.5.80]: https://github.com/ccxt/ccxt/compare/v4.5.78...v4.5.80
 [v4.5.78]: https://github.com/ccxt/ccxt/compare/v4.5.77...v4.5.78
@@ -14577,7 +14621,6 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [4.3.25]: https://github.com/ccxt/ccxt/compare/4.3.24...4.3.25
 [4.3.24]: https://github.com/ccxt/ccxt/compare/4.3.23...4.3.24
 [4.3.23]: https://github.com/ccxt/ccxt/compare/4.3.22...4.3.23
-[4.3.22]: https://github.com/ccxt/ccxt/compare/4.0.3...4.3.22
-[4.0.3]: https://github.com/ccxt/ccxt/tree/4.0.3
+[4.3.22]: https://github.com/ccxt/ccxt/tree/4.3.22
 
 <!-- Generated by https://github.com/rhysd/changelog-from-release v3.9.1 -->

@@ -20,6 +20,7 @@ import {
     PREDICTION_EXCHANGE_METHODS, PREDICTION_BASE_TS, isWsApi,
 } from './generateJavaWrappers.js';
 import type { MethodInfo } from './generateJavaWrappers.js';
+import { nativeTypedList } from './javaUtilImports.js';
 
 export type JavaTier = 'rest' | 'ws' | 'prediction';
 
@@ -112,7 +113,7 @@ export function qualifyJavaType(javaType: string): string {
 
 /** Lambda / constructor reference converting the raw supplyAsync result into the typed value. */
 export function coreConverter(m: MethodInfo): string {
-    if (m.isArray && m.elementType) return `res -> Helpers.toTypedList(res, io.github.ccxt.types.${m.elementType}::new)`;
+    if (m.isArray && m.elementType) return `res -> ${nativeTypedList('io.github.ccxt.types.' + m.elementType)}`;
     if (m.javaReturnType === 'Long') return 'res -> (res instanceof Number n) ? n.longValue() : null';
     if (m.javaReturnType === 'Double') return 'res -> (res instanceof Number n) ? n.doubleValue() : null';
     if (m.javaReturnType === 'String') return 'res -> (String) res';

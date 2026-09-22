@@ -1380,7 +1380,7 @@ class aster extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -1690,7 +1690,7 @@ class aster extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_last_prices(?array $symbols = null, $params = array()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array()): array {
         /**
          * fetches the last price for multiple markets
          *
@@ -1742,7 +1742,7 @@ class aster extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null) {
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
         //
         // spot & swap
         //
@@ -1763,7 +1763,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1961,7 +1961,7 @@ class aster extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -2003,7 +2003,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate_histories($response, $market);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -2330,7 +2330,7 @@ class aster extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2600,7 +2600,7 @@ class aster extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2664,7 +2664,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -2735,7 +2735,7 @@ class aster extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -2897,7 +2897,7 @@ class aster extends Exchange {
         return $this->extend($request, $requestParams);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2936,7 +2936,7 @@ class aster extends Exchange {
         );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2971,7 +2971,7 @@ class aster extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -3316,7 +3316,7 @@ class aster extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, float $addOrReduce, $params = array()): array {
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
         $amount = $this->amount_to_precision($symbol, $amount);
@@ -3366,7 +3366,7 @@ class aster extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -3393,7 +3393,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -3473,7 +3473,7 @@ class aster extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'TRANSFER' => 'transfer',
             'WELCOME_BONUS' => 'cashback',
@@ -3534,7 +3534,7 @@ class aster extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_position_risk(mixed $position, ?array $market = null) {
+    public function parse_position_risk(array $position, ?array $market = null): array {
         //
         //     {
         //         "entryPrice": "6563.66500",
@@ -3588,7 +3588,7 @@ class aster extends Exchange {
         }
         $entryPriceString = $this->safe_string($position, 'entryPrice');
         $entryPrice = $this->parse_number($entryPriceString);
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // as oppose to notionalValue
         $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
@@ -3704,7 +3704,7 @@ class aster extends Exchange {
         ));
     }
 
-    public function fetch_positions_risk(?array $symbols = null, $params = array()) {
+    public function fetch_positions_risk(?array $symbols = null, $params = array()): array {
         /**
          * fetch positions risk
          *
@@ -3785,7 +3785,7 @@ class aster extends Exchange {
         }
     }
 
-    public function parse_account_positions(mixed $account, $filterClosed = false) {
+    public function parse_account_positions(array $account, bool $filterClosed = false): array {
         $positions = $this->safe_list($account, 'positions', array());
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
@@ -3825,7 +3825,7 @@ class aster extends Exchange {
         return $result;
     }
 
-    public function parse_account_position(mixed $position, ?array $market = null) {
+    public function parse_account_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
@@ -3902,7 +3902,7 @@ class aster extends Exchange {
         $percentage = null;
         $liquidationPriceStringRaw = null;
         $liquidationPrice = null;
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         if (Precise::string_equals($notionalString, '0')) {
             $entryPrice = null;
@@ -4020,7 +4020,7 @@ class aster extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function load_leverage_brackets($reload = false, $params = array()) {
+    public function load_leverage_brackets($reload = false, $params = array()): array {
         $this->load_markets_and_sign_in();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
@@ -4074,7 +4074,7 @@ class aster extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->keccak_message($message), mb_substr($privateKey, -64));
     }
 
@@ -4169,7 +4169,7 @@ class aster extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'withdrawId'),
@@ -4270,7 +4270,7 @@ class aster extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -4279,7 +4279,7 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if (count($params) > 0) {
@@ -4408,7 +4408,7 @@ class aster extends Exchange {
         return true;
     }
 
-    public function initialize_client($params = array()) {
+    public function initialize_client($params = array()): ?bool {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
         if ($builderFee !== true) {
             return false; // skip if builder fee is not enabled

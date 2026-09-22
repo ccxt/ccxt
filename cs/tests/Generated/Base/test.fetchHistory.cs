@@ -23,7 +23,7 @@ public partial class BaseTest
             {
                 Assert(trueAssertion); // just skip
             }
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 1), "fetchHistoryCache should be an array with 1 element");
+            Assert((getArrayLength((exchange.getFetchCache())) == 1), "fetchHistoryCache should be an array with 1 element");
             try
             {
                 await exchange.fetch2("sample2");
@@ -31,7 +31,7 @@ public partial class BaseTest
             {
                 Assert(trueAssertion); // just skip
             }
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements");
+            Assert((getArrayLength((exchange.getFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements");
             try
             {
                 await exchange.fetch2("sample3");
@@ -39,7 +39,7 @@ public partial class BaseTest
             {
                 Assert(trueAssertion); // just skip
             }
-            Assert(isEqual(getArrayLength((exchange.getFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements");
+            Assert((getArrayLength((exchange.getFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements");
             Assert(isLessThan(add(1, 1), 3), "sample Assertion");
         }
         // async function testFetchHistoryDerived () {

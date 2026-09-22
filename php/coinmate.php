@@ -449,7 +449,7 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_value($balances, $currencyId);
+            $balance = $this->safe_dict($balances, $currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'reserved');
@@ -766,7 +766,7 @@ class coinmate extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $methods = $this->safe_dict($withdrawOptions, 'methods', array());
         $method = $this->safe_string($methods, $code);
         if ($method === null) {
@@ -812,7 +812,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_transaction($data, $currency);
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
@@ -826,7 +826,7 @@ class coinmate extends Exchange {
         return $transaction;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -989,7 +989,7 @@ class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $makerString = $this->safe_string($data, 'maker');
         $takerString = $this->safe_string($data, 'taker');
         $maker = $this->parse_number(Precise::string_div($makerString, '100'));
@@ -1158,7 +1158,7 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1215,7 +1215,7 @@ class coinmate extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1242,7 +1242,7 @@ class coinmate extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1270,11 +1270,11 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {

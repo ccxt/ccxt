@@ -224,10 +224,10 @@ func (this *Bitopro) Describe() any {
 				},
 				"post": map[string]any{
 					"orders/{pair}": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"orders/batch": map[string]any{
-						"cost": Divide(20, 3),
+						"cost": 20 / 3,
 					},
 					"wallet/withdraw/{currency}": map[string]any{
 						"cost": 10,
@@ -240,7 +240,7 @@ func (this *Bitopro) Describe() any {
 				},
 				"delete": map[string]any{
 					"orders/{pair}/{id}": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"orders/all": map[string]any{
 						"cost": 5,
@@ -424,10 +424,15 @@ func (this *Bitopro) ParseCurrency(rawCurrency any) any {
 	var withdraw *bool = this.SafeBool(rawCurrency, "withdraw")
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":        currencyId,
-		"code":      code,
-		"info":      rawCurrency,
-		"type":      Ternary(isFiat, "fiat", "crypto"),
+		"id":   currencyId,
+		"code": code,
+		"info": rawCurrency,
+		"type": func() string {
+			if isFiat {
+				return "fiat"
+			}
+			return "crypto"
+		}(),
 		"name":      nil,
 		"active":    ((deposit != nil && *deposit == true) && (withdraw != nil && *withdraw == true)),
 		"deposit":   deposit,
@@ -498,7 +503,7 @@ func (this *Bitopro) ParseMarket(market any) any {
 	var active bool = (!IsEqual(this.SafeBool(market, "maintain"), true))
 	var id *string = this.SafeString(market, "pair")
 	if id == nil {
-		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
+		panic(ExchangeError(this.Id + " parseMarket() missing id"))
 	}
 	var uppercaseId string = ToUpper(id)
 	var baseId *string = this.SafeString(market, "base")
@@ -618,14 +623,14 @@ func (this *Bitopro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes55812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes55812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTickersPair(this.Extend(request, params)))
@@ -670,7 +675,7 @@ func (this *Bitopro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes59312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes59312)
@@ -721,17 +726,17 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes62712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 
 	response := (<-this.PublicGetOrderBookPair(this.Extend(request, params)))
@@ -757,7 +762,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "amount")
+	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
 }
 func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
@@ -874,14 +879,14 @@ func (this *Bitopro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes76012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes76012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
@@ -922,7 +927,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes79312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79312)
@@ -930,8 +935,8 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PublicGetProvisioningLimitationsAndFees(params))
 	PanicOnError(response)
-	var tradingFeeRate any = this.SafeDict(response, "tradingFeeRate", map[string]any{})
-	var first any = this.SafeValue(tradingFeeRate, 0)
+	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
+	var first any = this.SafeDict(tradingFeeRate, 0)
 	//
 	//     {
 	//         "tradingFeeRate":[
@@ -997,7 +1002,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var maker *float64 = this.SafeNumber(first, "makerFee")
 	var taker *float64 = this.SafeNumber(first, "takerFee")
 	var symbols any = this.Symbols
-	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       first,
@@ -1046,33 +1051,33 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes90212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
-		"pair":       GetValue(market, "id"),
+		"pair":       market["id"],
 		"resolution": resolution,
 	}
 	// we need to have a limit argument because "to" and "from" are required
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 500
 	} else {
 		limit = mathMin(limit, 75000) // supports slightly more than 75k candles atm, but limit here to avoid errors
 	}
 	var timeframeInSeconds any = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
-	if IsEqual(since, nil) {
-		AddElementToObject(request, "to", this.Seconds())
-		AddElementToObject(request, "from", Subtract(GetValue(request, "to"), (Multiply(limit, timeframeInSeconds))))
+	if since == nil {
+		request["to"] = this.Seconds()
+		request["from"] = Subtract(request["to"], (Multiply(limit, timeframeInSeconds)))
 	} else {
 		var timeframeInMilliseconds any = Multiply(timeframeInSeconds, 1000)
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
-		AddElementToObject(request, "from", MathFloor(Divide(since, 1000)))
-		AddElementToObject(request, "to", this.Sum(GetValue(request, "from"), Multiply(limit, timeframeInSeconds)))
+		request["from"] = MathFloor(Divide(since, 1000))
+		request["to"] = this.Sum(request["from"], Multiply(limit, timeframeInSeconds))
 	}
 
 	response := (<-this.PublicGetTradingHistoryPair(this.Extend(request, params)))
@@ -1104,7 +1109,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	if IsEqual(length, 0) {
 		return candles
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var copyFrom any = GetValue(candles, 0)
 	var timestamp any = nil
 	if IsEqual(since, nil) {
@@ -1118,21 +1123,41 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	for (IsLessThan(resultLength, limit)) && (IsLessThan(i, candleLength)) {
 		var candle any = GetValue(candles, i)
 		if IsEqual(GetValue(candle, 0), timestamp) {
-			AppendToArray(&result, candle)
+			result = append(result, candle)
 			i = this.Sum(i, 1)
 		} else {
 			var copy []any = this.ArrayConcat([]any{}, copyFrom)
 			AddElementToObject(copy, 0, timestamp)
 			// set open, high, low to close
-			AddElementToObject(copy, 1, GetValue(copy, 4))
-			AddElementToObject(copy, 2, GetValue(copy, 4))
-			AddElementToObject(copy, 3, GetValue(copy, 4))
+			AddElementToObject(copy, 1, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
+			AddElementToObject(copy, 2, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
+			AddElementToObject(copy, 3, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
 			AddElementToObject(copy, 5, this.ParseNumber("0"))
-			AppendToArray(&result, copy)
+			result = append(result, copy)
 		}
 		timestamp = this.Sum(timestamp, Multiply(distance, 1000))
-		resultLength = GetArrayLength(result)
-		copyFrom = GetValue(result, Subtract(resultLength, 1))
+		resultLength = len(result)
+		copyFrom = func() any {
+			if resultLength-1 >= 0 && resultLength-1 < len(result) {
+				return DerefScalar(result[resultLength-1])
+			}
+			return nil
+		}()
 	}
 	return result
 }
@@ -1149,7 +1174,7 @@ func (this *Bitopro) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1184,7 +1209,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes102712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102712)
@@ -1210,7 +1235,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(balances)
 	return nil
 }
-func (this *Bitopro) ParseOrderStatus(status any) any {
+func (this *Bitopro) ParseOrderStatus(status *string) any {
 	var statuses map[string]any = map[string]any{
 		"-1": "open",
 		"0":  "open",
@@ -1220,7 +1245,12 @@ func (this *Bitopro) ParseOrderStatus(status any) any {
 		"4":  "canceled",
 		"6":  "canceled",
 	}
-	return Ternary((IsEqual(status, nil)), nil, this.SafeString(statuses, status))
+	return func() any {
+		if status == nil {
+			return nil
+		}
+		return this.SafeString(statuses, status)
+	}()
 }
 func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1263,7 +1293,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "timestamp", "createdTimestamp")
 	var side any = DerefScalar(this.SafeString(order, "action"))
 	if IsEqual(side, nil) {
-		panic(ExchangeError(Add(this.Id, " parseOrder() returned no side")))
+		panic(ExchangeError(this.Id + " parseOrder() returned no side"))
 	}
 	side = ToLower(side)
 	var amount *string = this.SafeString2(order, "amount", "originalAmount")
@@ -1342,42 +1372,42 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes116812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116812)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"type":      typeVar,
-		"pair":      GetValue(market, "id"),
+		"pair":      market["id"],
 		"action":    side,
 		"amount":    this.AmountToPrecision(symbol, amount),
 		"timestamp": this.Milliseconds(),
 	}
 	var orderType string = ToUpper(typeVar)
 	if orderType == "LIMIT" {
-		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if orderType == "STOP_LIMIT" {
-		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-		var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
+		request["price"] = this.PriceToPrecision(symbol, price)
+		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 		params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
-		if IsEqual(triggerPrice, nil) {
-			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")))
+		if triggerPrice == nil {
+			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice parameter for " + orderType + " orders"))
 		} else {
-			AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
+			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
 		var condition *string = this.SafeString(params, "condition")
 		if condition == nil {
-			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a condition parameter for "), orderType), " orders")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a condition parameter for " + orderType + " orders"))
 		} else {
-			AddElementToObject(request, "condition", condition)
+			request["condition"] = condition
 		}
 	}
 	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, params)
 	if postOnly {
-		AddElementToObject(request, "timeInForce", "POST_ONLY")
+		request["timeInForce"] = "POST_ONLY"
 	}
 
 	response := (<-this.PrivatePostOrdersPair(this.Extend(request, params)))
@@ -1419,18 +1449,18 @@ func (this *Bitopro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes123112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes123112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"id":   id,
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateDeleteOrdersPairId(this.Extend(request, params)))
@@ -1450,12 +1480,12 @@ func (this *Bitopro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 }
 func (this *Bitopro) ParseCancelOrders(data any) any {
 	var dataKeys []string = ObjectKeys(data)
-	var orders any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(dataKeys)); i++ {
+	var orders []any = []any{}
+	for i := 0; i < len(dataKeys); i++ {
 		var marketId string = GetValue(dataKeys, i).(string)
 		var orderIds any = GetValue(data, marketId)
-		for j := 0; IsLessThan(j, GetArrayLength(orderIds)); j++ {
-			AppendToArray(&orders, this.SafeOrder(map[string]any{
+		for j := 0; j < GetArrayLength(orderIds); j++ {
+			orders = append(orders, this.SafeOrder(map[string]any{
 				"info":   GetValue(orderIds, j),
 				"id":     GetValue(orderIds, j),
 				"symbol": this.SafeSymbol(marketId),
@@ -1487,18 +1517,18 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes128312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes128312)
 	}
-	var market any = this.Market(symbol)
-	var id any = GetValue(market, "uppercaseId")
+	var market map[string]any = MapTyped(this.Market(symbol))
+	var id any = market["uppercaseId"]
 	var request map[string]any = map[string]any{}
-	if !IsEqual(id, nil) {
+	if id != nil {
 		AddElementToObject(request, id, ids)
 	}
 
@@ -1541,16 +1571,16 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes131712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes131712)
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if !IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		AddElementToObject(request, "pair", GetValue(market, "id"))
+	if symbol != nil {
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["pair"] = market["id"]
 
 		response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1597,18 +1627,18 @@ func (this *Bitopro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes135912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes135912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"orderId": id,
-		"pair":    GetValue(market, "id"),
+		"pair":    market["id"],
 	}
 
 	response := (<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params)))
@@ -1668,23 +1698,23 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes140912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes140912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTimestamp", since)
+	if since != nil {
+		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 
 	response := (<-this.PrivateGetOrdersAllPair(this.Extend(request, params)))
@@ -1751,16 +1781,16 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes147212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes147212)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "pair", GetValue(market, "id"))
+		request["pair"] = GetValue(market, "id")
 	}
 
 	response := (<-this.PrivateGetOrdersOpen(this.Extend(request, params)))
@@ -1833,17 +1863,17 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes151912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes151912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": GetValue(market, "id"),
+		"pair": market["id"],
 	}
 
 	response := (<-this.PrivateGetOrdersTradesPair(this.Extend(request, params)))
@@ -1872,7 +1902,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
 }
-func (this *Bitopro) ParseTransactionStatus(status any) *string {
+func (this *Bitopro) ParseTransactionStatus(status *string) *string {
 	var states map[string]any = map[string]any{
 		"COMPLETE":           "ok",
 		"INVALID":            "failed",
@@ -1998,23 +2028,23 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(code, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires the code argument")))
+	if code == nil {
+		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires the code argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes166312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166312)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTimestamp", since)
+	if since != nil {
+		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 
 	response := (<-this.PrivateGetWalletDepositHistoryCurrency(this.Extend(request, params)))
@@ -2073,23 +2103,23 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(code, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchWithdrawals() requires the code argument")))
+	if code == nil {
+		panic(ArgumentsRequired(this.Id + " fetchWithdrawals() requires the code argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes171812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171812)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "startTimestamp", since)
+	if since != nil {
+		request["startTimestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 
 	response := (<-this.PrivateGetWalletWithdrawHistoryCurrency(this.Extend(request, params)))
@@ -2142,18 +2172,18 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	_ = code
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(code, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchWithdrawal() requires the code argument")))
+	if code == nil {
+		panic(ArgumentsRequired(this.Id + " fetchWithdrawal() requires the code argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes177112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes177112)
 	}
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"serial":   id,
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetWalletWithdrawCurrencySerial(this.Extend(request, params)))
@@ -2207,30 +2237,35 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes181412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes181412)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}
 	if InOp(params, "network") {
-		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var requestedNetwork *string = this.SafeStringUpper(params, "network")
 		params = this.Omit(params, []any{"network"})
-		var networkId any = Ternary((requestedNetwork == nil), nil, this.SafeString(networks, requestedNetwork))
-		if IsEqual(networkId, nil) {
-			panic(ExchangeError(Add(Add(this.Id, " invalid network "), requestedNetwork)))
+		var networkId any = func() any {
+			if requestedNetwork == nil {
+				return nil
+			}
+			return this.SafeString(networks, requestedNetwork)
+		}()
+		if networkId == nil {
+			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
 		}
-		AddElementToObject(request, "protocol", networkId)
+		request["protocol"] = networkId
 	}
-	if !IsEqual(tag, nil) {
-		AddElementToObject(request, "message", tag)
+	if tag != nil {
+		request["message"] = tag
 	}
 
 	response := (<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, params)))
@@ -2301,7 +2336,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes189012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes189012)
@@ -2343,7 +2378,7 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(headers, nil) {
+	if headers == nil {
 		headers = map[string]any{}
 	}
 	AddElementToObject(headers, "X-BITOPRO-API", "ccxt")
@@ -2357,8 +2392,8 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		} else if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
-			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
-				url = Add(url, Add("?", this.Urlencode(query)))
+			if len(ObjectKeys(query)) > 0 {
+				url = Add(url, "?"+this.Urlencode(query))
 			}
 			var nonce int64 = this.Milliseconds()
 			var rawData map[string]any = map[string]any{
@@ -2371,9 +2406,9 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		}
-	} else if IsEqual(api, "public") && (IsEqual(method, "GET")) {
-		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
-			url = Add(url, Add("?", this.Urlencode(query)))
+	} else if (IsEqual(api, "public")) && (IsEqual(method, "GET")) {
+		if len(ObjectKeys(query)) > 0 {
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
 	url = Add(GetValue(GetValue(this.Urls, "api"), "rest"), url)
@@ -2391,10 +2426,10 @@ func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, hea
 	if IsGreaterThanOrEqual(code, 200) && IsLessThan(code, 300) {
 		return nil
 	}
-	var feedback any = Add(Add(this.Id, " "), body)
+	var feedback any = Add(this.Id+" ", body)
 	var error *string = this.SafeString(response, "error")
-	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-	this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 	panic(ExchangeError(feedback))
 }
 

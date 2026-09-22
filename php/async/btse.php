@@ -755,9 +755,9 @@ class btse extends Exchange {
                 $type = 'swap';
             }
         }
-        $fees = $this->safe_value($this->fees, 'contract');
+        $fees = $this->safe_dict($this->fees, 'contract', array());
         if ($isSpot) {
-            $fees = $this->safe_value($this->fees, 'spot');
+            $fees = $this->safe_dict($this->fees, 'spot', array());
         }
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -812,11 +812,11 @@ class btse extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1038,7 +1038,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "timestamp": 1786003200911,
@@ -1428,7 +1428,7 @@ class btse extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -1459,7 +1459,7 @@ class btse extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -1488,7 +1488,7 @@ class btse extends Exchange {
         return $this->parse_open_interests($rows, $symbols);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
@@ -2478,7 +2478,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2555,7 +2555,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -3433,7 +3433,7 @@ class btse extends Exchange {
         return Async\await($this->fetch_positions(array( $symbol ), $params));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "marginType": 91,
@@ -4005,7 +4005,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 }
