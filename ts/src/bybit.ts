@@ -1170,7 +1170,6 @@ export default class bybit extends Exchange {
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
                     'openapi sign params error!': AuthenticationError, // {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
-                    'block access from your country': PermissionDenied, // The Amazon CloudFront distribution is configured to block access from your country
                 },
             },
             'precisionMode': TICK_SIZE,
