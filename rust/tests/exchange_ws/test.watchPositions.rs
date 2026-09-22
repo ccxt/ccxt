@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchPositions".to_string());
+    let mut method: Value = Value::Str("watchPositions".into());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = add(&now, &Value::Int(15000));
-    while is_less_than(&now, &ends) {
+    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::List(vec![symbol.clone()])]).await;
-            if is_equal(&response, &Value::Null) {
-                panic!("{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" watch returned undefined response".to_string())));
+            response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
+            if (response == Value::Null) {
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -30,16 +30,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if is_equal(&success, &Value::Bool(true)) {
-            if is_equal(&response, &Value::Null) {
-                panic!("{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" watch returned undefined response".to_string())));
+        if (success.as_bool() == Some(true)) {
+            if (response == Value::Null) {
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1523: bool = true;
-                while { if !__for_first_1523 { i = add(&i, &Value::Int(1)); } __for_first_1523 = false; is_less_than(&i, &get_array_length(&response)) } {
+                while { if !__for_first_1523 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1523 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), Value::Null, now.clone());
             }
             }
@@ -51,7 +51,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut positionsForSymbols: Value = Value::Null;
         let mut success2: Value = Value::Bool(true);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            positionsForSymbols = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::List(vec![symbol.clone()])]).await;
+            positionsForSymbols = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
@@ -61,16 +61,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success2 = Value::Bool(false);
         }
-        if is_equal(&success2, &Value::Bool(true)) {
-            assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&positionsForSymbols)))));
+        if (success2.as_bool() == Some(true)) {
+            assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-            assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&get_array_length(&positionsForSymbols), &Value::Int(4))))));
+            assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1524: bool = true;
-                while { if !__for_first_1524 { i = add(&i, &Value::Int(1)); } __for_first_1524 = false; is_less_than(&i, &get_array_length(&positionsForSymbols)) } {
-                testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positionsForSymbols, &i), symbol.clone(), now.clone());
+                while { if !__for_first_1524 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1524 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }
             crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), positionsForSymbols.clone()]);
