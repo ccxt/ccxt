@@ -946,19 +946,19 @@ public partial class hibachi : Exchange
         string? feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
         string nonce16 = this.intToBase16(nonce);
-        object noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedNonce = this.base16ToBinary(noncePadded);
         string numericId = this.intToBase16(this.safeInteger(market, "numericId"));
-        object numericIdPadded = (numericId as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
+        string numericIdPadded = (numericId as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
         byte[] encodedMarketId = this.base16ToBinary(numericIdPadded);
         string quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        object quantityPadded = (quantity16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string quantityPadded = (quantity16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedQuantity = this.base16ToBinary(quantityPadded);
         string sideInternal16 = this.intToBase16(sideInternal);
-        object sidePadded = (sideInternal16 as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
+        string sidePadded = (sideInternal16 as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
         byte[] encodedSide = this.base16ToBinary(sidePadded);
         string feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
-        object feeRatePadded = (feeRateInternal16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string feeRatePadded = (feeRateInternal16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedFeeRate = this.base16ToBinary(feeRatePadded);
         byte[] encodedPrice = this.binaryConcat();
         if (isEqual(type, "limit"))
@@ -966,7 +966,7 @@ public partial class hibachi : Exchange
             string? priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             string? priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             string price16 = this.intToBase16(this.parseToInt(priceInternal));
-            object pricePadded = (price16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+            string pricePadded = (price16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
@@ -1243,7 +1243,7 @@ public partial class hibachi : Exchange
     {
         object bigid = this.convertToBigInt(id);
         string idbase16 = this.intToBase16(bigid);
-        object idPadded = (idbase16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string idPadded = (idbase16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] message = this.base16ToBinary(idPadded);
         string signature = this.signMessage(message, this.privateKey);
         return new Dictionary<string, object>() {
@@ -1335,7 +1335,7 @@ public partial class hibachi : Exchange
         }
         Int64 nonce = this.nonce();
         string nonce16 = this.intToBase16(nonce);
-        object noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] message = this.base16ToBinary(noncePadded);
         string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1371,13 +1371,13 @@ public partial class hibachi : Exchange
         string? maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
         string usdtAsset16 = this.intToBase16(USDTAssetId);
-        object usdtAssetPadded = (usdtAsset16 as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
+        string usdtAssetPadded = (usdtAsset16 as String).PadLeft(Convert.ToInt32(8), Convert.ToChar("0"));
         byte[] encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         string quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        object quantityPadded = (quantity16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string quantityPadded = (quantity16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedQuantity = this.base16ToBinary(quantityPadded);
         string maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
-        object maxFeesPadded = (maxFees16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
+        string maxFeesPadded = (maxFees16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         byte[] encodedAddress = this.base16ToBinary(address);
         byte[] message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);

@@ -2547,9 +2547,9 @@ public partial class limitless : PredictionExchange
         string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
         string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
-        object rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        object sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        string result = ((("0x" + (rPadded)) + (sPadded)) + v);
+        string rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        string sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        string result = ((("0x" + rPadded) + sPadded) + v);
         return result.ToLower();
     }
 

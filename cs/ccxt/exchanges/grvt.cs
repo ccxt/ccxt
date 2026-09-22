@@ -3736,13 +3736,13 @@ public partial class grvt : Exchange
 
     public virtual string? formatSignatureRS(object value)
     {
-        object padded = (value as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
-        if (((string)padded).StartsWith("0x"))
+        string padded = (value as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
+        if (padded.StartsWith("0x"))
         {
-            return ((string?)((object)(padded)));
+            return padded;
         } else
         {
-            return ("0x" + (padded));
+            return ("0x" + padded);
         }
     }
 
