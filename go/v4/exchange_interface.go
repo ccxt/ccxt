@@ -187,7 +187,7 @@ type ICoreExchange interface {
 	Sum(args ...any) any
 	NumberToString(num any) *string
 	ParseToNumeric(value any) any
-	IsRoundNumber(value any) any
+	IsRoundNumber(value any) bool
 	LoadMarkets(params ...any) <-chan any
 	LoadMarketsAsync(params ...any) <-chan any
 	SetMarkets(markets any, optionalArgs ...any) any
