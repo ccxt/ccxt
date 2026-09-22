@@ -5439,7 +5439,7 @@ export class BaseExchange {
             // average
             if (average === undefined && close !== undefined) {
                 let precision = 18;
-                if (market !== undefined && this.isTickPrecision ()) {
+                if (market !== undefined && !this.isSignificantPrecision ()) {
                     const marketPrecision = this.safeDict (market, 'precision');
                     const precisionPrice = this.safeString (marketPrecision, 'price');
                     if (precisionPrice !== undefined) {
@@ -7471,14 +7471,6 @@ export class BaseExchange {
             return this.numberToString (value);
         }
         return value;
-    }
-
-    isTickPrecision (): boolean {
-        return this.precisionMode === TICK_SIZE;
-    }
-
-    isDecimalPrecision (): boolean {
-        return this.precisionMode === DECIMAL_PLACES;
     }
 
     isSignificantPrecision (): boolean {
