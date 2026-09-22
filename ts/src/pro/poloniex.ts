@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market, List } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -1150,7 +1150,7 @@ export default class poloniex extends poloniexRest {
             const asks = this.safeList (item, 'asks');
             const bids = this.safeList (item, 'bids');
             if (snapshot || update) {
-                if (snapshot) {
+                if (snapshot && !(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
                 if (!(symbol in this.orderbooks)) {
@@ -1158,6 +1158,13 @@ export default class poloniex extends poloniexRest {
                     continue;
                 }
                 const orderbook = this.orderbooks[symbol];
+                if (snapshot) {
+                    // reset the existing orderbook in place instead of
+                    // replacing it: a consumer awakened earlier keeps a
+                    // reference to the old object and would be orphaned
+                    // from later updates on a resync/reconnect otherwise
+                    orderbook.reset ({});
+                }
                 if (bids !== undefined) {
                     for (let j = 0; j < bids.length; j++) {
                         const bid = this.safeList (bids, j);
@@ -1204,48 +1211,36 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
+        // the balances channel only sends per-event deltas for the currencies
+        // that changed, so merge them into the existing balance object instead
+        // of rebuilding it from the current message: a rebuilt object would
+        // drop every other currency, and a consumer awakened by an earlier
+        // message keeps a reference to the old object while Client.resolve is
+        // a no-op with no waiter, so updates landing in that window would
+        // never reach that consumer (same class as kraken issue #26773)
         const data = this.safeList (message, 'data', []);
         const messageHash = 'balances';
-        this.balance = this.parseWsBalance (data);
-        client.resolve (this.balance, messageHash);
-    }
-
-    parseWsBalance (response: List): Balances {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        const firstBalance = this.safeDict (response, 0, {});
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        const firstBalance = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
-        const result: Dict = {
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < data.length; i++) {
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const newAccount = this.account ();
             newAccount['free'] = this.safeString (balance, 'available');
             newAccount['used'] = this.safeString (balance, 'hold');
             if (code !== undefined) {
-                result[code] = newAccount;
+                this.balance[code] = newAccount;
             }
         }
-        return this.safeBalance (result);
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, messageHash);
     }
 
     handleMyTrades (client: Client, parsedTrade: Trade) {

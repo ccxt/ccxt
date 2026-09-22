@@ -3,6 +3,167 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBalance": [
+            {
+                "description": "balance deltas for different currencies arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as kraken issue 26773; frames captured live 2026-10-10)",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://ws.poloniex.com/ws/private",
+                "messages": [
+                    {
+                        "channel": "auth",
+                        "data": {
+                            "success": true,
+                            "ts": 1791631266138
+                        }
+                    },
+                    {
+                        "event": "subscribe",
+                        "channel": "balances"
+                    },
+                    {
+                        "channel": "balances",
+                        "data": [
+                            {
+                                "id": "631934307434274817",
+                                "accountId": "1234",
+                                "available": "96.266002",
+                                "accountType": "SPOT",
+                                "hold": "20",
+                                "changeTime": 1791631279664,
+                                "userId": 12345,
+                                "currency": "DOGE",
+                                "eventType": "PLACE_ORDER",
+                                "version": 4,
+                                "ts": 1791631279720
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "balances",
+                        "data": [
+                            {
+                                "id": "631934317584510978",
+                                "accountId": "1234",
+                                "available": "18.925075337",
+                                "accountType": "SPOT",
+                                "hold": "1.075",
+                                "changeTime": 1791631282084,
+                                "userId": 12345,
+                                "currency": "USDT",
+                                "eventType": "PLACE_ORDER",
+                                "version": 6,
+                                "ts": 1791631282153
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "balances",
+                        "data": [
+                            {
+                                "id": "631934365076602880",
+                                "accountId": "1234",
+                                "available": "116.266002",
+                                "accountType": "SPOT",
+                                "hold": "0",
+                                "changeTime": 1791631293407,
+                                "userId": 12345,
+                                "currency": "DOGE",
+                                "eventType": "CANCELED_ORDER",
+                                "version": 5,
+                                "ts": 1791631293449
+                            }
+                        ]
+                    },
+                    {
+                        "channel": "balances",
+                        "data": [
+                            {
+                                "id": "631934375042269184",
+                                "accountId": "1234",
+                                "available": "20.000075337",
+                                "accountType": "SPOT",
+                                "hold": "0",
+                                "changeTime": 1791631295783,
+                                "userId": 12345,
+                                "currency": "USDT",
+                                "eventType": "CANCELED_ORDER",
+                                "version": 7,
+                                "ts": 1791631295878
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "auth"
+                        ],
+                        "params": {
+                            "key": "key",
+                            "signTimestamp": "1791631265000",
+                            "signature": "signature",
+                            "signatureMethod": "HmacSHA256",
+                            "signatureVersion": "2"
+                        }
+                    },
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "balances"
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "signTimestamp",
+                    "signature"
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "id": "631934375042269184",
+                            "accountId": "1234",
+                            "available": "20.000075337",
+                            "accountType": "SPOT",
+                            "hold": "0",
+                            "changeTime": 1791631295783,
+                            "userId": 12345,
+                            "currency": "USDT",
+                            "eventType": "CANCELED_ORDER",
+                            "version": 7,
+                            "ts": 1791631295878
+                        }
+                    ],
+                    "timestamp": 1791631295878,
+                    "datetime": "2026-10-10T11:21:35.878Z",
+                    "DOGE": {
+                        "free": 116.266002,
+                        "used": 0,
+                        "total": 116.266002
+                    },
+                    "free": {
+                        "DOGE": 116.266002,
+                        "USDT": 20.000075337
+                    },
+                    "used": {
+                        "DOGE": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "DOGE": 116.266002,
+                        "USDT": 20.000075337
+                    },
+                    "USDT": {
+                        "free": 20.000075337,
+                        "used": 0,
+                        "total": 20.000075337
+                    }
+                }
+            }
+        ],
         "watchOrderBook": [
             {
                 "description": "spot orderbook",
@@ -159,6 +320,581 @@
                         "symbol": "BTC/USDT"
                     }
                 ]
+            },
+            {
+                "description": "resync snapshot arriving while no consumer is awaiting must reset the orderbook in place - the object handed to the consumer keeps receiving updates (frames captured live 2026-10-10)",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.poloniex.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "book_lv2",
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    },
+                    {
+                        "channel": "book_lv2",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "createTime": 1791630110686,
+                                "asks": [
+                                    [
+                                        "82909.96",
+                                        "0.090501"
+                                    ],
+                                    [
+                                        "82909.97",
+                                        "0.015652"
+                                    ],
+                                    [
+                                        "82914.11",
+                                        "0.029064"
+                                    ],
+                                    [
+                                        "82918.25",
+                                        "0.053977"
+                                    ],
+                                    [
+                                        "82918.5",
+                                        "0.045831"
+                                    ],
+                                    [
+                                        "82922.39",
+                                        "1.571608"
+                                    ],
+                                    [
+                                        "82925.1",
+                                        "0.023477"
+                                    ],
+                                    [
+                                        "82926.78",
+                                        "0.04583"
+                                    ],
+                                    [
+                                        "82929.24",
+                                        "0.043595"
+                                    ],
+                                    [
+                                        "82930.92",
+                                        "0.021453"
+                                    ],
+                                    [
+                                        "82933.38",
+                                        "0.080962"
+                                    ],
+                                    [
+                                        "82935.7",
+                                        "0.083742"
+                                    ],
+                                    [
+                                        "82937.52",
+                                        "6.034564"
+                                    ],
+                                    [
+                                        "82943.67",
+                                        "0.023475"
+                                    ],
+                                    [
+                                        "82943.99",
+                                        "0.102353"
+                                    ],
+                                    [
+                                        "82944.49",
+                                        "0.162835"
+                                    ],
+                                    [
+                                        "82945.34",
+                                        "0.297175"
+                                    ],
+                                    [
+                                        "82947.81",
+                                        "0.043595"
+                                    ],
+                                    [
+                                        "82948.13",
+                                        "0.125098"
+                                    ],
+                                    [
+                                        "82948.63",
+                                        "0.162836"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "82819.28",
+                                        "0.014398"
+                                    ],
+                                    [
+                                        "82819.27",
+                                        "0.429757"
+                                    ],
+                                    [
+                                        "82807.23",
+                                        "0.022913"
+                                    ],
+                                    [
+                                        "82806.85",
+                                        "1.289255"
+                                    ],
+                                    [
+                                        "82799.8",
+                                        "0.011451"
+                                    ],
+                                    [
+                                        "82794.43",
+                                        "1.933881"
+                                    ],
+                                    [
+                                        "82790.29",
+                                        "2.685925"
+                                    ],
+                                    [
+                                        "82786.52",
+                                        "0.022919"
+                                    ],
+                                    [
+                                        "82783.63",
+                                        "0.322315"
+                                    ],
+                                    [
+                                        "82783",
+                                        "0.138195"
+                                    ],
+                                    [
+                                        "82782.38",
+                                        "0.022918"
+                                    ],
+                                    [
+                                        "82779.1",
+                                        "0.011451"
+                                    ],
+                                    [
+                                        "82778.86",
+                                        "0.162382"
+                                    ],
+                                    [
+                                        "82774.71",
+                                        "0.447736"
+                                    ],
+                                    [
+                                        "82771.21",
+                                        "0.966946"
+                                    ],
+                                    [
+                                        "82770.82",
+                                        "0.011454"
+                                    ],
+                                    [
+                                        "82767.07",
+                                        "2.224137"
+                                    ],
+                                    [
+                                        "82762.93",
+                                        "1.790628"
+                                    ],
+                                    [
+                                        "82757.57",
+                                        "0.000513"
+                                    ],
+                                    [
+                                        "82754",
+                                        "1.150854"
+                                    ]
+                                ],
+                                "lastId": 9136159763,
+                                "id": 9136159768,
+                                "ts": 1791630110723
+                            }
+                        ],
+                        "action": "snapshot"
+                    },
+                    {
+                        "channel": "book_lv2",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "createTime": 1791630133737,
+                                "asks": [
+                                    [
+                                        "82874.14",
+                                        "0.033139"
+                                    ],
+                                    [
+                                        "82874.15",
+                                        "0.090501"
+                                    ],
+                                    [
+                                        "82925.1",
+                                        "0.023481"
+                                    ],
+                                    [
+                                        "82929.24",
+                                        "0.043611"
+                                    ],
+                                    [
+                                        "82933.38",
+                                        "0.080988"
+                                    ],
+                                    [
+                                        "82937.52",
+                                        "6.033813"
+                                    ],
+                                    [
+                                        "82943.67",
+                                        "0.023484"
+                                    ],
+                                    [
+                                        "82947.81",
+                                        "0.043609"
+                                    ],
+                                    [
+                                        "82948.42",
+                                        "0.162884"
+                                    ],
+                                    [
+                                        "82951.95",
+                                        "0.08099"
+                                    ],
+                                    [
+                                        "82952.59",
+                                        "0.162886"
+                                    ],
+                                    [
+                                        "82956.09",
+                                        "5.616978"
+                                    ],
+                                    [
+                                        "82956.7",
+                                        "0.199079"
+                                    ],
+                                    [
+                                        "82960.84",
+                                        "0.243319"
+                                    ],
+                                    [
+                                        "82960.87",
+                                        "0.19908"
+                                    ],
+                                    [
+                                        "82964.98",
+                                        "4.827585"
+                                    ],
+                                    [
+                                        "82965.01",
+                                        "0.243322"
+                                    ],
+                                    [
+                                        "82967.26",
+                                        "0.000013"
+                                    ],
+                                    [
+                                        "82968.3",
+                                        "0.000112"
+                                    ],
+                                    [
+                                        "82969.15",
+                                        "4.826845"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "82846.6",
+                                        "0.00003"
+                                    ],
+                                    [
+                                        "82845.97",
+                                        "0.00003"
+                                    ],
+                                    [
+                                        "82841",
+                                        "0.014396"
+                                    ],
+                                    [
+                                        "82819.27",
+                                        "0.322414"
+                                    ],
+                                    [
+                                        "82806.85",
+                                        "0.644825"
+                                    ],
+                                    [
+                                        "82794.43",
+                                        "2.901710"
+                                    ],
+                                    [
+                                        "82790.29",
+                                        "2.686756"
+                                    ],
+                                    [
+                                        "82787.9",
+                                        "0.107474"
+                                    ],
+                                    [
+                                        "82787.87",
+                                        "0.107473"
+                                    ],
+                                    [
+                                        "82783",
+                                        "0.181031"
+                                    ],
+                                    [
+                                        "82775.48",
+                                        "0.322414"
+                                    ],
+                                    [
+                                        "82775.45",
+                                        "0.322413"
+                                    ],
+                                    [
+                                        "82774.71",
+                                        "0.603729"
+                                    ],
+                                    [
+                                        "82771.34",
+                                        "0.967246"
+                                    ],
+                                    [
+                                        "82771.31",
+                                        "0.96724"
+                                    ],
+                                    [
+                                        "82767.2",
+                                        "0.895589"
+                                    ],
+                                    [
+                                        "82767.17",
+                                        "0.895589"
+                                    ],
+                                    [
+                                        "82757.57",
+                                        "0.000513"
+                                    ],
+                                    [
+                                        "82754",
+                                        "2.415176"
+                                    ],
+                                    [
+                                        "82746.49",
+                                        "0.162884"
+                                    ]
+                                ],
+                                "lastId": 9136163773,
+                                "id": 9136163774,
+                                "ts": 1791630133782
+                            }
+                        ],
+                        "action": "snapshot"
+                    },
+                    {
+                        "channel": "book_lv2",
+                        "data": [
+                            {
+                                "symbol": "BTC_USDT",
+                                "createTime": 1791630133804,
+                                "asks": [
+                                    [
+                                        "82966.05",
+                                        "1.296841"
+                                    ],
+                                    [
+                                        "82969.15",
+                                        "0"
+                                    ]
+                                ],
+                                "bids": [],
+                                "lastId": 9136163774,
+                                "id": 9136163778,
+                                "ts": 1791630133820
+                            }
+                        ],
+                        "action": "update"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": [
+                            "book_lv2"
+                        ],
+                        "symbols": [
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            82846.6,
+                            3e-05
+                        ],
+                        [
+                            82845.97,
+                            3e-05
+                        ],
+                        [
+                            82841,
+                            0.014396
+                        ],
+                        [
+                            82819.27,
+                            0.322414
+                        ],
+                        [
+                            82806.85,
+                            0.644825
+                        ],
+                        [
+                            82794.43,
+                            2.90171
+                        ],
+                        [
+                            82790.29,
+                            2.686756
+                        ],
+                        [
+                            82787.9,
+                            0.107474
+                        ],
+                        [
+                            82787.87,
+                            0.107473
+                        ],
+                        [
+                            82783,
+                            0.181031
+                        ],
+                        [
+                            82775.48,
+                            0.322414
+                        ],
+                        [
+                            82775.45,
+                            0.322413
+                        ],
+                        [
+                            82774.71,
+                            0.603729
+                        ],
+                        [
+                            82771.34,
+                            0.967246
+                        ],
+                        [
+                            82771.31,
+                            0.96724
+                        ],
+                        [
+                            82767.2,
+                            0.895589
+                        ],
+                        [
+                            82767.17,
+                            0.895589
+                        ],
+                        [
+                            82757.57,
+                            0.000513
+                        ],
+                        [
+                            82754,
+                            2.415176
+                        ],
+                        [
+                            82746.49,
+                            0.162884
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            82874.14,
+                            0.033139
+                        ],
+                        [
+                            82874.15,
+                            0.090501
+                        ],
+                        [
+                            82925.1,
+                            0.023481
+                        ],
+                        [
+                            82929.24,
+                            0.043611
+                        ],
+                        [
+                            82933.38,
+                            0.080988
+                        ],
+                        [
+                            82937.52,
+                            6.033813
+                        ],
+                        [
+                            82943.67,
+                            0.023484
+                        ],
+                        [
+                            82947.81,
+                            0.043609
+                        ],
+                        [
+                            82948.42,
+                            0.162884
+                        ],
+                        [
+                            82951.95,
+                            0.08099
+                        ],
+                        [
+                            82952.59,
+                            0.162886
+                        ],
+                        [
+                            82956.09,
+                            5.616978
+                        ],
+                        [
+                            82956.7,
+                            0.199079
+                        ],
+                        [
+                            82960.84,
+                            0.243319
+                        ],
+                        [
+                            82960.87,
+                            0.19908
+                        ],
+                        [
+                            82964.98,
+                            4.827585
+                        ],
+                        [
+                            82965.01,
+                            0.243322
+                        ],
+                        [
+                            82966.05,
+                            1.296841
+                        ],
+                        [
+                            82967.26,
+                            1.3e-05
+                        ],
+                        [
+                            82968.3,
+                            0.000112
+                        ]
+                    ],
+                    "timestamp": 1791630133820,
+                    "datetime": "2026-10-10T11:02:13.820Z",
+                    "nonce": null,
+                    "symbol": "BTC/USDT"
+                }
             }
         ],
         "watchTrades": [
