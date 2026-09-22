@@ -2303,7 +2303,7 @@
         "maker": 0.0005,
         "contractSize": 0.01,
         "expiry": 1714143600000,
-        "expiryDatetime": "2024-04-26T15:00:00Z",
+        "expiryDatetime": "2024-04-26T15:00:00.000Z",
         "precision": {
             "amount": 1,
             "price": 5
