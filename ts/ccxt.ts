@@ -32,6 +32,7 @@ SOFTWARE.
 import { Exchange, BaseExchange }  from './src/base/Exchange.js'
 import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
+import { OrderRouter } from './src/base/OrderRouter.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
 import type { Int, int, Str, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
@@ -41,7 +42,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.77';
+const version = '4.5.82';
 
 //-----------------------------------------------------------------------------
 
@@ -80,6 +81,7 @@ import btse from  './src/btse.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
+import bybitid from  './src/bybitid.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -176,6 +178,7 @@ import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import bybiteuPro from  './src/pro/bybiteu.js'
+import bybitidPro from  './src/pro/bybitid.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -236,6 +239,7 @@ import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
 import opinionPrediction from  './src/prediction/opinion.js'
 import polymarketPrediction from  './src/prediction/polymarket.js'
+import predictfunPrediction from  './src/prediction/predictfun.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -273,6 +277,7 @@ const exchanges = {
     'bullish':                bullish,
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
+    'bybitid':                bybitid,
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -369,6 +374,7 @@ const pro = {
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
     'bybiteu':                bybiteuPro,
+    'bybitid':                bybitidPro,
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -435,6 +441,7 @@ const prediction = {
     'myriad':                 myriadPrediction,
     'opinion':                opinionPrediction,
     'polymarket':             polymarketPrediction,
+    'predictfun':             predictfunPrediction,
 };
 
 (prediction as any).exchanges = Object.keys (prediction);
@@ -443,7 +450,7 @@ const prediction = {
 (prediction as Dict)['Exchange'] = PredictionExchange
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, OrderRouter, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
@@ -454,6 +461,7 @@ export {
     pro,
     prediction,
     Precise,
+    OrderRouter,
     functions,
     errors,
     BaseError,
@@ -638,6 +646,7 @@ export {
     bullish,
     bybit,
     bybiteu,
+    bybitid,
     bydfi,
     cex,
     coinbase,

@@ -12,6 +12,7 @@ interface Exchange {
     binanceGetTickerPrice(params?: {}): Promise<Dict>;
     binanceGetTickerBookTicker(params?: {}): Promise<List>;
     binanceGetExchangeInfo(params?: {}): Promise<Dict>;
+    binanceGetExecutionRules(params?: {}): Promise<Dict>;
     binancePutUserDataStream(params?: {}): Promise<Dict>;
     binancePostUserDataStream(params?: {}): Promise<Dict>;
     binanceDeleteUserDataStream(params?: {}): Promise<Dict>;
@@ -34,6 +35,7 @@ interface Exchange {
     privatePostOpenV1OrdersOco(params?: {}): Promise<Dict>;
     privatePostOpenV1Withdraws(params?: {}): Promise<Dict>;
     privatePostOpenV1UserDataStream(params?: {}): Promise<Dict>;
+    privatePostOpenV1UserListenToken(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

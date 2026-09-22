@@ -231,6 +231,29 @@
                     "trigger": true
                   }
                 ]
+            },
+            {
+                "description": "limit above the plain-order cap is clamped to 500",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?size=500&symbol=PERP_LTC_USDC",
+                "input": [
+                  "LTC/USDC:USDC",
+                  null,
+                  1000
+                ]
+            },
+            {
+                "description": "limit above the trigger-order cap is clamped to 100",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/algo/orders?algo_type=STOP&size=100&symbol=PERP_XRP_USDC",
+                "input": [
+                  "XRP/USDC:USDC",
+                  null,
+                  1000,
+                  {
+                    "trigger": true
+                  }
+                ]
             }
         ],
         "fetchMyTrades": [
@@ -305,11 +328,31 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch ledger",
+                "description": "fetch ledger filtered by code",
                 "method": "fetchLedger",
-                "url": "https://api-evm.orderly.org/v1/asset/history?balance_token=USDC",
+                "url": "https://api-evm.orderly.org/v1/asset/history?token=USDC",
                 "input": [
                     "USDC"
+                ]
+            },
+            {
+                "description": "fetch ledger with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30",
+                "input": [
+                    null,
+                    null,
+                    30
+                ]
+            },
+            {
+                "description": "fetch ledger filtered by code with a limit",
+                "method": "fetchLedger",
+                "url": "https://api-evm.orderly.org/v1/asset/history?size=30&token=USDC",
+                "input": [
+                    "USDC",
+                    null,
+                    30
                 ]
             }
         ],

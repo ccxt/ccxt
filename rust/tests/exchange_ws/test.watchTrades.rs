@@ -10,13 +10,13 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchTrades(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchTrades".to_string());
+    let mut method: Value = Value::Str("watchTrades".into());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = add(&now, &Value::Int(15000));
+    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
-        let mut response: Value = Value::List(vec![]);
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
+        let mut response: Value = Value::from(vec![]);
         let mut success: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -29,16 +29,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if is_equal(&success, &Value::Bool(true)) {
+        if (success.as_bool() == Some(true)) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1480: bool = true;
-                while { if !__for_first_1480 { i = add(&i, &Value::Int(1)); } __for_first_1480 = false; is_less_than(&i, &get_array_length(&response)) } {
-                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
+                let mut __for_first_1526: bool = true;
+                while { if !__for_first_1526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1526 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(true));
             }
             }
-            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+            if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
                 idle = Value::Bool(true);
             }
         }

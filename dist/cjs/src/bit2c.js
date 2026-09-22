@@ -132,6 +132,7 @@ class bit2c extends bit2c$1["default"] {
                     'get': {
                         'Exchanges/{pair}/Ticker': { 'cost': 1 },
                         'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook-top': { 'cost': 1 },
                         'Exchanges/{pair}/trades': { 'cost': 1 },
                         'Exchanges/{pair}/lasttrades': { 'cost': 1 },
                     },
@@ -140,6 +141,7 @@ class bit2c extends bit2c$1["default"] {
                     'post': {
                         'Merchant/CreateCheckout': { 'cost': 1 },
                         'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Funds/WithdrawCoin': { 'cost': 1 },
                         'Order/AddFund': { 'cost': 1 },
                         'Order/AddOrder': { 'cost': 1 },
                         'Order/GetById': { 'cost': 1 },
@@ -159,6 +161,7 @@ class bit2c extends bit2c$1["default"] {
                         'Order/GetById': { 'cost': 1 },
                         'Order/AccountHistory': { 'cost': 1 },
                         'Order/OrderHistory': { 'cost': 1 },
+                        'Order/HistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -538,13 +541,13 @@ class bit2c extends bit2c$1["default"] {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'Fees', {});
+        const fees = this.safeDict(response, 'Fees', {});
         const keys = Object.keys(fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const symbol = this.safeSymbol(marketId);
-            const fee = this.safeValue(fees, marketId);
+            const fee = this.safeDict(fees, marketId);
             const makerString = this.safeString(fee, 'FeeMaker');
             const takerString = this.safeString(fee, 'FeeTaker');
             const maker = this.parseNumber(Precise["default"].stringDiv(makerString, '100'));
@@ -641,8 +644,8 @@ class bit2c extends bit2c$1["default"] {
             'pair': market['id'],
         };
         const response = await this.privateGetOrderMyOrders(this.extend(request, params));
-        const orders = this.safeValue(response, market['id'], {});
-        const asks = this.safeValue(orders, 'ask', []);
+        const orders = this.safeDict(response, market['id'], {});
+        const asks = this.safeList(orders, 'ask', []);
         const bids = this.safeList(orders, 'bid', []);
         return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
     }
@@ -935,7 +938,7 @@ class bit2c extends bit2c$1["default"] {
             const marketId = this.safeString(trade, 'pair');
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(reference_parts[0], market);
-            const isMaker = this.safeValue(trade, 'isMaker');
+            const isMaker = this.safeBool(trade, 'isMaker');
             makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
             orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger(trade, 'action');

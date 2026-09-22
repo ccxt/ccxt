@@ -11,8 +11,8 @@ public partial class testMainClass : BaseTest
     async static public Task testWatchBalance(Exchange exchange, object skippedProperties, object code)
     {
         string method = "watchBalance";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        Int64 now = exchange.milliseconds();
+        object ends = (now + 15000);
         while (isLessThan(now, ends))
         {
             object response = new Dictionary<string, object>() {};
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, false)))
+            if ((success == false))
             {
                 continue;
             }

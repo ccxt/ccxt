@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -226,6 +226,12 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/open_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/plan_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/account/balance': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/assets_margin': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -248,6 +254,13 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/margin_type': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/agent/internal_withdrawal': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -404,7 +417,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetV1FapiMarketExchangeInfo (params);
         //
         //     {
@@ -569,7 +582,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -608,8 +621,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        const orderBook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        const orderBook = this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
         orderBook['nonce'] = this.safeInteger (data, 'lastUpdateId');
         return orderBook;
     }
@@ -641,7 +653,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.fromId] retrieve from which trade ID to start. Default to retrieve the most recent trade records
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -689,7 +701,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -834,7 +846,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -931,7 +943,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -967,7 +979,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1106,7 +1118,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1148,7 +1160,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -1193,7 +1205,7 @@ export default class bydfi extends Exchange {
      * @param {bool} [params.closePosition] true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1237,7 +1249,7 @@ export default class bydfi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1366,7 +1378,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1413,7 +1425,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1436,7 +1448,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+    override async editOrders (orders: OrderRequest[], params: Dict = {}) : Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1467,7 +1479,7 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data);
     }
 
-    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {};
         if ((id === undefined) && (clientOrderId === undefined)) {
@@ -1499,7 +1511,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1564,7 +1576,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1636,7 +1648,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -1684,7 +1696,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1760,7 +1772,7 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
+    handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
@@ -1954,7 +1966,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1984,7 +1996,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
         }
@@ -2037,7 +2049,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] the settlement currency (USDT or USDC or USD)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2084,7 +2096,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2100,7 +2112,7 @@ export default class bydfi extends Exchange {
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // fetchPositions, fetchPositionsForSymbol
         //     {
@@ -2227,7 +2239,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2264,7 +2276,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2336,7 +2348,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2388,7 +2400,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -2426,7 +2438,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
@@ -2468,7 +2480,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+    override async fetchPositionMode (symbol: Str = undefined, params: Dict = {}): Promise<PositionModeInfo> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2526,7 +2538,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.asset] currency id for the balance to fetch
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2594,11 +2606,10 @@ export default class bydfi extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -2626,7 +2637,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2652,9 +2663,6 @@ export default class bydfi extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {
-            const timestamp = this.milliseconds ();
-            transfer['timestamp'] = timestamp;
-            transfer['datetime'] = this.iso8601 (timestamp);
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2675,7 +2683,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
@@ -2793,7 +2801,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
     }
 
@@ -2808,7 +2816,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
@@ -2959,7 +2967,7 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api];
         let endpoint = '/' + path;
         let query = '';

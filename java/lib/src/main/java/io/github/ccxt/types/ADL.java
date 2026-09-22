@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class ADL {
+public final class ADL extends TypedMap {
     public String symbol;
     public Long rank;
     public String rating;
@@ -16,6 +16,7 @@ public final class ADL {
 
     @SuppressWarnings("unchecked")
     public ADL(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.rank = TypeHelper.safeInteger(data, "rank");

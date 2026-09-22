@@ -232,8 +232,8 @@ class kalshi extends Exchange {
         $queriesLength = count($queries);
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
-        // hangs). Resolve the query against the $events endpoint instead — it is bounded by
-        // maxPages, scoped server-side, supports multiple topics, and returns each event's $parsed
+        // hangs). Resolve the query against the events endpoint instead — it is bounded by
+        // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
         // markets — then flatten those markets.
         if ($queriesLength > 0) {
             $eventParams = $this->omit($params, array( 'limit' ));
@@ -250,18 +250,18 @@ class kalshi extends Exchange {
             return $queryMarkets;
         }
         $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
-        // no query => page the markets listing directly. Cap the total collected so an unscoped
-        // loadMarkets cannot run away through every kalshi market via the $cursor->
+        // no query: page the markets listing directly. Cap the total collected so an unscoped
+        // loadMarkets cannot run away through every kalshi market via the cursor.
         $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'maxFetchMarketsLimit', 1000));
         $flatMarkets = array();
         $eventsDict = array();
         $cursor = null;
-        // don't $request a full 1000-market page (3+ MB) when the caller wants fewer
+        // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 1000);
         $limit = min($maxMarkets, $pageLimit);
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
-        // an unfiltered $cursor pages through those, so loadMarkets would otherwise return mostly
-        // closed markets. Pass $params->status(e.g. 'closed', 'settled', 'unopened') to override
+        // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
+        // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
         $status = $this->safe_string($rest, 'status', 'open');
         while (true) {
             $request = array( 'limit' => $limit, 'status' => $status );
@@ -293,7 +293,7 @@ class kalshi extends Exchange {
                         $eventEntry = $eventsDict[$eventKey];
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
-                        // direct push on $eventEntry['markets'] loses the element in go
+                        // direct push on eventEntry['markets'] loses the element in go
                         $entryMarkets = $eventEntry['markets'];
                         $entryMarkets[] = $m;
                         $eventEntry['markets'] = $entryMarkets;
@@ -333,13 +333,13 @@ class kalshi extends Exchange {
          * @return {array} the resolved outcome object
          */
         // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
-        // sending a unified handle (EVENT_MARKET:LABEL) ticker is a guaranteed 404.
+        // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
         if (mb_strpos($outcomeSymbol, ':') === false) {
-            // parseToInt-wrapped .length => the bare `$n = count(str);` statement is the php
-            // transpiler's ARRAY hint (count()), and strlen(`)` inline inside slice() args breaks
+            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
+            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
             // the python transpiler — this form emits strlen()/len() correctly in both
             $symbolLength = $this->parse_to_int(strlen($outcomeSymbol));
             $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
@@ -350,7 +350,7 @@ class kalshi extends Exchange {
                 $response = Async\await($this->kalshiPublicGetMarketsTicker(array( 'ticker' => $baseTicker )));
             } catch (Exception $e) {
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
-                // fall through to the search-driven base resolution; $network failures propagate
+                // fall through to the search-driven base resolution; let network failures propagate
                 if (!($e instanceof BadSymbol)) {
                     throw $e;
                 }
@@ -372,7 +372,7 @@ class kalshi extends Exchange {
                 return $this->outcome($outcomeSymbol);
             }
         } else {
-            // handle-form => handles are shortenSlug(event_ticker) . '_' . <market slug> and kalshi
+            // handle-form: handles are shortenSlug(event_ticker) + '_' + <market slug> and kalshi
             // series tickers are single alphanumeric segments, so the handle's first '_' token is
             // its series ticker — fetch that series' open events (server-side filter, one page in
             // the common case) and re-check the cache for the exact handle
@@ -385,7 +385,7 @@ class kalshi extends Exchange {
                     Async\await($this->fetch_events(array( 'series_ticker' => $seriesTicker )));
                 } catch (Exception $e) {
                     // an unknown series is a plain miss — the free-text fallback below still runs;
-                    // $network failures propagate
+                    // let network failures propagate
                     if (!($e instanceof BadSymbol)) {
                         throw $e;
                     }
@@ -395,7 +395,7 @@ class kalshi extends Exchange {
                 }
             }
         }
-        // free-text fallback => the base derives a search query from the handle's words, resolves it
+        // free-text fallback: the base derives a search query from the handle's words, resolves it
         // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
         // on a genuine miss
         return Async\await(parent::fetch_outcome($outcomeSymbol));
@@ -471,9 +471,9 @@ class kalshi extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        // kalshi returns array( "error" => array( "code" => "...", ... ) ) with a 4xx; map known codes to ccxt
-        // errors (e.g. not_found -> '\\ccxt\\BadSymbol') so callers can distinguish them from a transport
-        // outage (the base otherwise maps a bare 404 to the exchange-not-available $error). unmapped codes fall
+        // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
+        // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
+        // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
         if (($response === null) || ($response === null)) {
             return null;
@@ -486,7 +486,7 @@ class kalshi extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable $error
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if ($code === 400) {
             $feedback = $this->id . ' ' . $body;
             throw new BadRequest($feedback);
@@ -495,8 +495,8 @@ class kalshi extends Exchange {
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array()) {
-        // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * $price * (1 - $price), which
-        // peaks at $price 0.5 and vanishes near 0 or 1. the describe() `taker => 0.07` is only the
+        // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
+        // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
         // coefficient; compute the real per-contract formula here so fee estimates are accurate
         $priceStr = $this->number_to_string($price);
         $amountStr = $this->number_to_string($amount);
@@ -537,13 +537,13 @@ class kalshi extends Exchange {
         //    "previous_yes_ask_dollars":"0.0000",
         //    "previous_yes_bid_dollars":"0.0000",
         //    "price_level_structure":"linear_cent",
-        //    "price_ranges":array(
+        //    "price_ranges":[
         //        {
         //            "end":"1.0000",
         //            "start":"0.0000",
         //            "step":"0.0100"
         //        }
-        //    ),
+        //    ],
         //    "response_price_units":"usd_cent",
         //    "result":"",
         //    "rules_primary":"If there is not a budget deficit for any of fiscal years 2025, 2026, 2027, or 2028, then the market resolves to Yes.",
@@ -566,17 +566,17 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($raw, 'ticker');
         $eventTicker = $this->safe_string($raw, 'event_ticker');
         $subtitle = $this->safe_string($raw, 'subtitle', $this->safe_string($raw, 'title'));
-        // markets use $status 'active' while events use 'open'
+        // markets use status 'active' while events use 'open'
         $status = $this->safe_string($raw, 'status');
         $active = ($status === 'active') || ($status === 'open');
-        // resolution => kalshi sets `$result` to 'yes'/'no' once the market settles (empty while trading)
+        // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         $result = $this->safe_string_lower($raw, 'result');
         $resolved = ($status === 'settled') || (($result !== null) && ($result !== ''));
         $endDate = $this->safe_string($raw, 'expiration_time');
         $volume = $this->safe_number_2($raw, 'volume_fp', 'volume');
         $liquidity = $this->safe_number_2($raw, 'liquidity_dollars', 'liquidity');
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
-        // Derive series $ticker => drop last hyphen-segment from event_ticker
+        // Derive series ticker: drop last hyphen-segment from event_ticker
         $eventParts = array();
         if (($eventTicker !== null) && ($eventTicker !== '')) {
             $eventParts = explode('-', $eventTicker);
@@ -590,7 +590,7 @@ class kalshi extends Exchange {
         // market symbol (no outcome suffix)
         $subtitleOrTicker = ($subtitle !== null) ? $subtitle : $ticker;
         $marketSymbol = $this->slug_to_market_symbol($eventTicker, $subtitleOrTicker);
-        // kalshi exposes the per-market price tick via price_rangesarray().step (a dollar value,
+        // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
         $priceRanges = $this->safe_list($raw, 'price_ranges', array());
@@ -604,7 +604,7 @@ class kalshi extends Exchange {
             'amount' => 1,
             'price' => $pricePrecision,
         );
-        // Build $outcomes
+        // Build outcomes
         $outcomeLabels = array( 'YES', 'NO' );
         $outcomeIds = array( $ticker, $ticker . '-NO' );
         $outcomes = array();
@@ -647,7 +647,7 @@ class kalshi extends Exchange {
                 ),
             );
         }
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
+        // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $ticker,
@@ -727,56 +727,56 @@ class kalshi extends Exchange {
         $response = Async\await($this->kalshiPublicGetMarketsTicker($this->extend($request, $params)));
         //
         //     {
-        //         "market" => {
-        //             "can_close_early" => true,
-        //             "close_time" => "2029-06-30T03:59:00Z",
-        //             "created_time" => "2025-06-05T17:55:43.779104Z",
-        //             "early_close_condition" => "This market will close and expire early if the event occurs.",
-        //             "event_ticker" => "KXGDPSHAREMANU-29",
-        //             "expected_expiration_time" => "2029-06-30T14:00:00Z",
-        //             "expiration_time" => "2029-07-07T14:00:00Z",
-        //             "expiration_value" => "",
-        //             "floor_strike" => "13.1",
-        //             "fractional_trading_enabled" => true,
-        //             "last_price_dollars" => "0.1980",
-        //             "latest_expiration_time" => "2029-07-07T14:00:00Z",
-        //             "liquidity_dollars" => "0.0000",
-        //             "market_type" => "binary",
-        //             "no_ask_dollars" => "0.8890",
-        //             "no_bid_dollars" => "0.8030",
-        //             "no_sub_title" => "Before 2029",
-        //             "notional_value_dollars" => "1.0000",
-        //             "open_interest_fp" => "11077.21",
-        //             "open_time" => "2025-06-05T18:00:00Z",
-        //             "previous_price_dollars" => "0.1980",
-        //             "previous_yes_ask_dollars" => "0.1970",
-        //             "previous_yes_bid_dollars" => "0.1110",
-        //             "price_level_structure" => "deci_cent",
-        //             "price_ranges" => array(
+        //         "market": {
+        //             "can_close_early": true,
+        //             "close_time": "2029-06-30T03:59:00Z",
+        //             "created_time": "2025-06-05T17:55:43.779104Z",
+        //             "early_close_condition": "This market will close and expire early if the event occurs.",
+        //             "event_ticker": "KXGDPSHAREMANU-29",
+        //             "expected_expiration_time": "2029-06-30T14:00:00Z",
+        //             "expiration_time": "2029-07-07T14:00:00Z",
+        //             "expiration_value": "",
+        //             "floor_strike": "13.1",
+        //             "fractional_trading_enabled": true,
+        //             "last_price_dollars": "0.1980",
+        //             "latest_expiration_time": "2029-07-07T14:00:00Z",
+        //             "liquidity_dollars": "0.0000",
+        //             "market_type": "binary",
+        //             "no_ask_dollars": "0.8890",
+        //             "no_bid_dollars": "0.8030",
+        //             "no_sub_title": "Before 2029",
+        //             "notional_value_dollars": "1.0000",
+        //             "open_interest_fp": "11077.21",
+        //             "open_time": "2025-06-05T18:00:00Z",
+        //             "previous_price_dollars": "0.1980",
+        //             "previous_yes_ask_dollars": "0.1970",
+        //             "previous_yes_bid_dollars": "0.1110",
+        //             "price_level_structure": "deci_cent",
+        //             "price_ranges": [
         //                 {
-        //                     "start" => "0.55",
-        //                     "end" => "0.56",
-        //                     "step" => "0.01"
+        //                     "start": "0.55",
+        //                     "end": "0.56",
+        //                     "step": "0.01"
         //                 }
-        //             ),
-        //             "response_price_units" => "usd_cent",
-        //             "result" => "",
-        //             "rules_primary" => "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the market resolves to Yes.",
-        //             "rules_secondary" => "",
-        //             "settlement_timer_seconds" => "1800",
-        //             "status" => "active",
-        //             "strike_type" => "greater_or_equal",
-        //             "tick_size" => "1",
-        //             "ticker" => "KXGDPSHAREMANU-29",
-        //             "title" => "Will Trump bring back manufacturing?",
-        //             "updated_time" => "2026-04-09T10:32:47.890506Z",
-        //             "volume_24h_fp" => "0.00",
-        //             "volume_fp" => "19617.68",
-        //             "yes_ask_dollars" => "0.1970",
-        //             "yes_ask_size_fp" => "2750.00",
-        //             "yes_bid_dollars" => "0.1110",
-        //             "yes_bid_size_fp" => "2505.61",
-        //             "yes_sub_title" => "Before 2029"
+        //             ],
+        //             "response_price_units": "usd_cent",
+        //             "result": "",
+        //             "rules_primary": "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the market resolves to Yes.",
+        //             "rules_secondary": "",
+        //             "settlement_timer_seconds": "1800",
+        //             "status": "active",
+        //             "strike_type": "greater_or_equal",
+        //             "tick_size": "1",
+        //             "ticker": "KXGDPSHAREMANU-29",
+        //             "title": "Will Trump bring back manufacturing?",
+        //             "updated_time": "2026-04-09T10:32:47.890506Z",
+        //             "volume_24h_fp": "0.00",
+        //             "volume_fp": "19617.68",
+        //             "yes_ask_dollars": "0.1970",
+        //             "yes_ask_size_fp": "2750.00",
+        //             "yes_bid_dollars": "0.1110",
+        //             "yes_bid_size_fp": "2505.61",
+        //             "yes_sub_title": "Before 2029"
         //         }
         //     }
         //
@@ -799,7 +799,7 @@ class kalshi extends Exchange {
          */
         $response = Async\await($this->kalshiPublicGetExchangeStatus($params));
         //
-        //     array( "exchange_active" => true, "trading_active" => true )
+        //     { "exchange_active": true, "trading_active": true }
         //
         $tradingActive = $this->safe_bool($response, 'trading_active', false);
         return array(
@@ -836,9 +836,9 @@ class kalshi extends Exchange {
 
     public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
-        //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->parse8601($this->safe_string($interest, 'updated_time'));
         $openInterest = $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => $this->safe_number_2($interest, 'open_interest_fp', 'open_interest'),
@@ -865,56 +865,56 @@ class kalshi extends Exchange {
          */
         //
         //     {
-        //         "market" => {
-        //             "can_close_early" => true,
-        //             "close_time" => "2029-06-30T03:59:00Z",
-        //             "created_time" => "2025-06-05T17:55:43.779104Z",
-        //             "early_close_condition" => "This $market will $close and expire early if the event occurs.",
-        //             "event_ticker" => "KXGDPSHAREMANU-29",
-        //             "expected_expiration_time" => "2029-06-30T14:00:00Z",
-        //             "expiration_time" => "2029-07-07T14:00:00Z",
-        //             "expiration_value" => "",
-        //             "floor_strike" => "13.1",
-        //             "fractional_trading_enabled" => true,
-        //             "last_price_dollars" => "0.1980",
-        //             "latest_expiration_time" => "2029-07-07T14:00:00Z",
-        //             "liquidity_dollars" => "0.0000",
-        //             "market_type" => "binary",
-        //             "no_ask_dollars" => "0.8890",
-        //             "no_bid_dollars" => "0.8030",
-        //             "no_sub_title" => "Before 2029",
-        //             "notional_value_dollars" => "1.0000",
-        //             "open_interest_fp" => "11077.21",
-        //             "open_time" => "2025-06-05T18:00:00Z",
-        //             "previous_price_dollars" => "0.1980",
-        //             "previous_yes_ask_dollars" => "0.1970",
-        //             "previous_yes_bid_dollars" => "0.1110",
-        //             "price_level_structure" => "deci_cent",
-        //             "price_ranges" => array(
+        //         "market": {
+        //             "can_close_early": true,
+        //             "close_time": "2029-06-30T03:59:00Z",
+        //             "created_time": "2025-06-05T17:55:43.779104Z",
+        //             "early_close_condition": "This market will close and expire early if the event occurs.",
+        //             "event_ticker": "KXGDPSHAREMANU-29",
+        //             "expected_expiration_time": "2029-06-30T14:00:00Z",
+        //             "expiration_time": "2029-07-07T14:00:00Z",
+        //             "expiration_value": "",
+        //             "floor_strike": "13.1",
+        //             "fractional_trading_enabled": true,
+        //             "last_price_dollars": "0.1980",
+        //             "latest_expiration_time": "2029-07-07T14:00:00Z",
+        //             "liquidity_dollars": "0.0000",
+        //             "market_type": "binary",
+        //             "no_ask_dollars": "0.8890",
+        //             "no_bid_dollars": "0.8030",
+        //             "no_sub_title": "Before 2029",
+        //             "notional_value_dollars": "1.0000",
+        //             "open_interest_fp": "11077.21",
+        //             "open_time": "2025-06-05T18:00:00Z",
+        //             "previous_price_dollars": "0.1980",
+        //             "previous_yes_ask_dollars": "0.1970",
+        //             "previous_yes_bid_dollars": "0.1110",
+        //             "price_level_structure": "deci_cent",
+        //             "price_ranges": [
         //                 {
-        //                     "start" => "0.55",
-        //                     "end" => "0.56",
-        //                     "step" => "0.01"
+        //                     "start": "0.55",
+        //                     "end": "0.56",
+        //                     "step": "0.01"
         //                 }
-        //             ),
-        //             "response_price_units" => "usd_cent",
-        //             "result" => "",
-        //             "rules_primary" => "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the $market resolves to Yes.",
-        //             "rules_secondary" => "",
-        //             "settlement_timer_seconds" => "1800",
-        //             "status" => "active",
-        //             "strike_type" => "greater_or_equal",
-        //             "tick_size" => "1",
-        //             "ticker" => "KXGDPSHAREMANU-29",
-        //             "title" => "Will Trump bring back manufacturing?",
-        //             "updated_time" => "2026-04-09T10:32:47.890506Z",
-        //             "volume_24h_fp" => "0.00",
-        //             "volume_fp" => "19617.68",
-        //             "yes_ask_dollars" => "0.1970",
-        //             "yes_ask_size_fp" => "2750.00",
-        //             "yes_bid_dollars" => "0.1110",
-        //             "yes_bid_size_fp" => "2505.61",
-        //             "yes_sub_title" => "Before 2029"
+        //             ],
+        //             "response_price_units": "usd_cent",
+        //             "result": "",
+        //             "rules_primary": "If the value added by Manufacturing to GDP in Q4 2028 is at least 13.1% (the value it was in Q1 2005), then the market resolves to Yes.",
+        //             "rules_secondary": "",
+        //             "settlement_timer_seconds": "1800",
+        //             "status": "active",
+        //             "strike_type": "greater_or_equal",
+        //             "tick_size": "1",
+        //             "ticker": "KXGDPSHAREMANU-29",
+        //             "title": "Will Trump bring back manufacturing?",
+        //             "updated_time": "2026-04-09T10:32:47.890506Z",
+        //             "volume_24h_fp": "0.00",
+        //             "volume_fp": "19617.68",
+        //             "yes_ask_dollars": "0.1970",
+        //             "yes_ask_size_fp": "2750.00",
+        //             "yes_bid_dollars": "0.1110",
+        //             "yes_bid_size_fp": "2505.61",
+        //             "yes_sub_title": "Before 2029"
         //         }
         //     }
         //
@@ -922,7 +922,7 @@ class kalshi extends Exchange {
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = strtoupper($outcomeLabel) === 'NO';
-        $now = $this->milliseconds();
+        $timestamp = $this->parse8601($this->safe_string($raw, 'updated_time'));
         $outcome = $this->safe_string($outcomeObj, 'outcome');
         $yesAsk = $this->safe_number($raw, 'yes_ask_dollars');
         $yesBid = $this->safe_number($raw, 'yes_bid_dollars');
@@ -960,8 +960,8 @@ class kalshi extends Exchange {
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string_2($outcomeObj, 'market', 'outcome'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $bid,
@@ -999,13 +999,13 @@ class kalshi extends Exchange {
         if ($outcomes === null) {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-$tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
-        // batch-resolve the uncached $outcomes (one markets $request per 100 $tickers)
+        // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         Async\await($this->load_outcomes($outcomes));
         $targets = array();
         for ($i = 0; $i < count($outcomes); $i++) {
             $targets[] = $outcomes[$i];
         }
-        // group requested $outcomes by their market $ticker, yes and no $outcomes share one market
+        // group requested outcomes by their market ticker, yes and no outcomes share one market
         $outcomesByTicker = array();
         $tickers = array();
         for ($i = 0; $i < count($targets); $i++) {
@@ -1087,26 +1087,25 @@ class kalshi extends Exchange {
         $response = Async\await($this->kalshiPublicGetMarketsTickerOrderbook($this->extend($request, $params)));
         //
         //     {
-        //         "orderbook_fp" => {
-        //             "no_dollars" => array(
-        //                 array( "0.1500", "100.00" ), array( "0.1600", "101.00" )
-        //             ),
-        //             "yes_dollars" => array(
-        //                 array( "0.1500", "100.00" ), array( "0.1600", "101.00" )
-        //             )
+        //         "orderbook_fp": {
+        //             "no_dollars": [
+        //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
+        //             ],
+        //             "yes_dollars": [
+        //                 [ "0.1500", "100.00" ], [ "0.1600", "101.00" ]
+        //             ]
         //         }
         //     }
         //
         $book = $this->safe_value($response, 'orderbook_fp', $response);
-        $timestamp = $this->milliseconds();
-        // Kalshi uses YES-side perspective => `yes` = $bids, `no` = $asks (inverted)
+        // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         $rawYes = $this->safe_list($book, 'yes_dollars', array());
         $rawNo = $this->safe_list($book, 'no_dollars', array());
-        // Convert [price_cents, size] → [$price, size]
+        // Convert [price_cents, size] → [price, size]
         $bids = array();
         $asks = array();
         if ($isNo) {
-            // NO perspective => NO $bids come from $rawNo, NO $asks invert $rawYes (NO ask = 1 - YES bid)
+            // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
             for ($bi = 0; $bi < count($rawNo); $bi++) {
                 $price = $this->safe_number($rawNo[$bi], 0);
                 $bids[] = array( $price, $this->safe_number($rawNo[$bi], 1) );
@@ -1117,7 +1116,7 @@ class kalshi extends Exchange {
                 $asks[] = array( $price, $this->safe_number($rawYes[$ai], 1) );
             }
         } else {
-            // YES perspective => YES $bids from $rawYes, YES $asks invert $rawNo (YES ask = 1 - NO bid)
+            // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
             for ($bi = 0; $bi < count($rawYes); $bi++) {
                 $price = $this->safe_number($rawYes[$bi], 0);
                 $bids[] = array( $price, $this->safe_number($rawYes[$bi], 1) );
@@ -1128,7 +1127,7 @@ class kalshi extends Exchange {
                 $asks[] = array( $price, $this->safe_number($rawNo[$ai], 1) );
             }
         }
-        return $this->safe_prediction_order_book($this->sorted_orders($this->safe_string($outcomeObj, 'outcome', $outcome), $timestamp, $bids, $asks), $outcomeObj);
+        return $this->safe_prediction_order_book($this->sorted_orders($this->safe_string($outcomeObj, 'outcome', $outcome), null, $bids, $asks), $outcomeObj);
     }
 
     public function sorted_orders(?string $outcome, ?int $timestamp, array $bids, array $asks): array {
@@ -1141,7 +1140,7 @@ class kalshi extends Exchange {
          * @param {array[]} $asks array of [price, size] ask levels
          * @return {array} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
          */
-        // Sort $bids descending, $asks ascending, match CCXT OrderBook shape
+        // Sort bids descending, asks ascending, match CCXT OrderBook shape
         $bids = $this->sort_by($bids, 0, true);
         $asks = $this->sort_by($asks, 0);
         return array(
@@ -1169,7 +1168,7 @@ class kalshi extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
          * @param {int} [$limit] the maximum number of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1177,8 +1176,8 @@ class kalshi extends Exchange {
         $seriesTicker = $this->safe_string($outcomeObj['info'], 'seriesTicker', $ticker);
         $periodMin = $this->safe_integer($this->timeframes, $timeframe);
         if ($periodMin === null) {
-            // reject an unsupported $timeframe locally instead of silently returning 1-minute $candles->
-            // hoist implode(..., is_array(...)) ? implode(..., array_keys(...)) : array() to a local — inline in a throw mangles in PHP
+            // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
+            // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             $tfKeys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             $supported = implode(', ', $tfKeys);
             throw new BadRequest($this->id . ' fetchOHLCV() does not support the ' . $timeframe . ' $timeframe ($supported => ' . $supported . ')');
@@ -1197,7 +1196,7 @@ class kalshi extends Exchange {
                 $end = $this->sum($sinceS, $limit * $tf);
                 $request['end_ts'] = ($end < $now) ? $end : $now;
             } else {
-                // the candlesticks endpoint requires end_ts - default to $now
+                // the candlesticks endpoint requires end_ts - default to now
                 $request['end_ts'] = $now;
             }
         } else {
@@ -1211,36 +1210,36 @@ class kalshi extends Exchange {
         ));
         //
         //     {
-        //         "candlesticks" => array(
+        //         "candlesticks": [
         //             {
-        //                 "end_period_ts" => 1776109260,
-        //                 "open_interest_fp" => "10869.00",
-        //                 "price" => array(
-        //                     "open_dollars" => "0.5600",
-        //                     "low_dollars" => "0.5600",
-        //                     "high_dollars" => "0.5600",
-        //                     "close_dollars" => "0.5600",
-        //                     "mean_dollars" => "0.5600",
-        //                     "previous_dollars" => "0.5600",
-        //                     "min_dollars" => "0.5600",
-        //                     "max_dollars" => "0.5600"
-        //                 ),
-        //                 "volume_fp" => "0.00",
-        //                 "yes_ask" => array(
-        //                     "close_dollars" => "0.1630",
-        //                     "high_dollars" => "0.1630",
-        //                     "low_dollars" => "0.1500",
-        //                     "open_dollars" => "0.1630"
-        //                 ),
-        //                 "yes_bid" => array(
-        //                     "close_dollars" => "0.0800",
-        //                     "high_dollars" => "0.0800",
-        //                     "low_dollars" => "0.0700",
-        //                     "open_dollars" => "0.0800"
+        //                 "end_period_ts": 1776109260,
+        //                 "open_interest_fp": "10869.00",
+        //                 "price": {
+        //                     "open_dollars": "0.5600",
+        //                     "low_dollars": "0.5600",
+        //                     "high_dollars": "0.5600",
+        //                     "close_dollars": "0.5600",
+        //                     "mean_dollars": "0.5600",
+        //                     "previous_dollars": "0.5600",
+        //                     "min_dollars": "0.5600",
+        //                     "max_dollars": "0.5600"
+        //                 },
+        //                 "volume_fp": "0.00",
+        //                 "yes_ask": {
+        //                     "close_dollars": "0.1630",
+        //                     "high_dollars": "0.1630",
+        //                     "low_dollars": "0.1500",
+        //                     "open_dollars": "0.1630"
+        //                 },
+        //                 "yes_bid": {
+        //                     "close_dollars": "0.0800",
+        //                     "high_dollars": "0.0800",
+        //                     "low_dollars": "0.0700",
+        //                     "open_dollars": "0.0800"
         //                 }
-        //             ),
-        //         ),
-        //         "ticker" => "KXGDPSHAREMANU-29"
+        //             },
+        //         ],
+        //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
         $candles = $this->safe_list($response, 'candlesticks', array());
@@ -1254,8 +1253,8 @@ class kalshi extends Exchange {
                 $usableCandles[] = $candle;
             }
         }
-        // kalshi $candles carry only the period-END timestamp; thread the $candle duration through so
-        // parseOHLCV can stamp each $candle at its OPEN (the CCXT convention)
+        // kalshi candles carry only the period-END timestamp; thread the candle duration through so
+        // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         $this->options['ohlcvCandleDurationSeconds'] = $tf;
         return $this->parse_ohlcvs($usableCandles, $outcomeObj, $timeframe, $since, $limit);
     }
@@ -1266,39 +1265,39 @@ class kalshi extends Exchange {
          * parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
          * @param {array} $ohlcv the raw candlestick object
          * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, open, high, low, close, volume
+         * @return {int[]} a candle ordered as $timestamp, open, high, low, close, volume
          */
         //
         //     {
-        //         "end_period_ts" => 1776109260,
-        //         "open_interest_fp" => "10869.00",
-        //         "price" => array(
-        //             "open_dollars" => "0.5600",
-        //             "low_dollars" => "0.5600",
-        //             "high_dollars" => "0.5600",
-        //             "close_dollars" => "0.5600",
-        //             "mean_dollars" => "0.5600",
-        //             "previous_dollars" => "0.5600",
-        //             "min_dollars" => "0.5600",
-        //             "max_dollars" => "0.5600"
-        //         ),
-        //         "volume_fp" => "0.00",
-        //         "yes_ask" => array(
-        //             "close_dollars" => "0.1630",
-        //             "high_dollars" => "0.1630",
-        //             "low_dollars" => "0.1500",
-        //             "open_dollars" => "0.1630"
-        //         ),
-        //         "yes_bid" => {
-        //             "close_dollars" => "0.0800",
-        //             "high_dollars" => "0.0800",
-        //             "low_dollars" => "0.0700",
-        //             "open_dollars" => "0.0800"
+        //         "end_period_ts": 1776109260,
+        //         "open_interest_fp": "10869.00",
+        //         "price": {
+        //             "open_dollars": "0.5600",
+        //             "low_dollars": "0.5600",
+        //             "high_dollars": "0.5600",
+        //             "close_dollars": "0.5600",
+        //             "mean_dollars": "0.5600",
+        //             "previous_dollars": "0.5600",
+        //             "min_dollars": "0.5600",
+        //             "max_dollars": "0.5600"
+        //         },
+        //         "volume_fp": "0.00",
+        //         "yes_ask": {
+        //             "close_dollars": "0.1630",
+        //             "high_dollars": "0.1630",
+        //             "low_dollars": "0.1500",
+        //             "open_dollars": "0.1630"
+        //         },
+        //         "yes_bid": {
+        //             "close_dollars": "0.0800",
+        //             "high_dollars": "0.0800",
+        //             "low_dollars": "0.0700",
+        //             "open_dollars": "0.0800"
         //         }
         //     }
         //
         $price = $this->safe_dict($ohlcv, 'price', array());
-        // no-trade periods carry only previous_dollars (last trade $price) → flat candle
+        // no-trade periods carry only previous_dollars (last trade price) → flat candle
         $previous = $this->safe_number($price, 'previous_dollars');
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
@@ -1339,7 +1338,7 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
         $request = array( 'ticker' => $ticker );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1000);
         }
         $response = Async\await($this->kalshiPublicGetMarketsTrades($this->extend($request, $params)));
         $trades = $this->safe_list($response, 'trades', array());
@@ -1436,7 +1435,7 @@ class kalshi extends Exchange {
         $outcomeObj = null;
         if ($outcome !== null) {
             // the ticker filter narrows to the market; a market has both legs, so the
-            // wanted-leg filter below still drops the opposite-leg $fills
+            // wanted-leg filter below still drops the opposite-leg fills
             $outcomeObj = $this->outcome($outcome);
             if ($outcomeObj === null) {
                 throw new ArgumentsRequired($this->id . ' requires a valid outcome');
@@ -1478,7 +1477,7 @@ class kalshi extends Exchange {
         $id = $this->safe_string_2($fill, 'fill_id', 'trade_id');
         $orderId = $this->safe_string($fill, 'order_id');
         $ticker = $this->safe_string_2($fill, 'ticker', 'market_ticker');
-        // the leg the $fill executed on ('yes' | 'no'); NO is addressed as <$ticker>-NO
+        // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
         $sideLeg = $this->safe_string_lower($fill, 'side');
         $outcomeKey = $ticker;
         if (($sideLeg === 'no') && ($ticker !== null)) {
@@ -1486,10 +1485,10 @@ class kalshi extends Exchange {
         }
         $mkt = $this->safe_outcome($outcomeKey, $market);
         $ts = $this->parse8601($this->safe_string($fill, 'created_time'));
-        // $action is the order $side (buy/sell) of the held leg
+        // action is the order side (buy/sell) of the held leg
         $action = $this->safe_string_lower($fill, 'action');
         $side = ($action === 'sell') ? 'sell' : 'buy';
-        // $price is the $price of the leg held; kalshi reports dollars in V2, cents otherwise
+        // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         $price = null;
         if ($sideLeg === 'no') {
             $price = $this->safe_number($fill, 'no_price_dollars');
@@ -1599,11 +1598,11 @@ class kalshi extends Exchange {
         if ($outcomesLength > 0) {
             Async\await($this->load_outcomes($outcomes));
         }
-        // no bulk warm-up on the unfiltered path => the portfolio request is self-contained and
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
         $response = Async\await($this->kalshiPrivateGetPortfolioPositions($params));
         $positions = $this->safe_list($response, 'market_positions', array());
-        // filter by the requested outcomes' market tickers — a kalshi $position is per market
+        // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         $parsed = $this->parse_prediction_positions($positions);
         if ($outcomesLength === 0) {
@@ -1686,7 +1685,7 @@ class kalshi extends Exchange {
          * @return {array} a prediction $settlement structure
          */
         $ticker = $this->safe_string($settlement, 'ticker');
-        // the leg the user actually held (kalshi reports separate yes/no counts . costs)
+        // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         $yesCount = $this->safe_number_2($settlement, 'yes_count_fp', 'yes_count', 0);
         $noCount = $this->safe_number_2($settlement, 'no_count_fp', 'no_count', 0);
         $heldYes = ($yesCount >= $noCount);
@@ -1695,10 +1694,10 @@ class kalshi extends Exchange {
         $useHeldYesTicker = ($heldYes || $tickerMissing);
         $heldTicker = ($useHeldYesTicker) ? $ticker : ($ticker . '-NO');
         $mkt = $this->safe_outcome($heldTicker, $market);
-        // which leg $won; market_result is yes or no
+        // which leg won; market_result is yes or no
         $marketResult = $this->safe_string_upper($settlement, 'market_result');
         $won = ($marketResult === $heldLabel);
-        // kalshi reports money keys on V2, else cents
+        // kalshi reports money as dollar keys on V2, else cents
         $payout = $this->safe_number($settlement, 'revenue_dollars');
         if ($payout === null) {
             $revenueCents = $this->safe_number($settlement, 'revenue');
@@ -1840,7 +1839,7 @@ class kalshi extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
         }
-        // no status filter — the endpoint returns every order; pass $params->status to narrow
+        // no status filter — the endpoint returns every order; pass params.status to narrow
         $request = array();
         $outcomeObj = null;
         if ($outcome !== null) {
@@ -1871,8 +1870,8 @@ class kalshi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of [prediction $order structures](https://docs.ccxt.com/#/?id=prediction-$order-structure)
          */
-        // kalshi's $status filter takes a single value (resting|executed|canceled); "closed" spans
-        // both executed and canceled, so fetch every $order and keep the non-open ones client-side
+        // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
+        // both executed and canceled, so fetch every order and keep the non-open ones client-side
         $orders = Async\await($this->fetch_orders($outcome, null, null, $params));
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -1900,7 +1899,7 @@ class kalshi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
-        // $outcome is only a labelling hint here — the request needs just the $id, and
+        // outcome is only a labelling hint here — the request needs just the id, and
         // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
@@ -1919,8 +1918,8 @@ class kalshi extends Exchange {
          */
         $id = $this->safe_string($order, 'order_id');
         $ticker = $this->safe_string($order, 'ticker');
-        // a kalshi $order is leg-specific => the raw `$side` field says which leg ('yes'|'no');
-        // the bare $ticker is the YES outcome's $id, the NO leg is addressed as `<$ticker>-NO`
+        // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
+        // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
         $sideLeg = $this->safe_string_lower($order, 'side');
         $outcomeKey = $ticker;
         if (($sideLeg === 'no') && ($ticker !== null)) {
@@ -1928,8 +1927,8 @@ class kalshi extends Exchange {
         }
         $mkt = $this->safe_outcome($outcomeKey, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        // never invent a $side => a minimal response (e.g. a DELETE/cancel body) omits `$action`,
-        // and defaulting to 'sell' misreports a canceled buy. leave it null when absent.
+        // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
+        // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         $action = $this->safe_string_lower($order, 'action');
         $side = null;
         if ($action === 'buy') {
@@ -1937,7 +1936,7 @@ class kalshi extends Exchange {
         } elseif ($action === 'sell') {
             $side = 'sell';
         }
-        // $price in the outcome's own leg => V2 returns *_price_dollars (already dollars),
+        // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         $labelIsNo = ($this->safe_string_upper($mkt, 'label') === 'NO');
         $dollarsKey = ($labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
@@ -2020,7 +2019,7 @@ class kalshi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a [prediction $order structure](https://docs.ccxt.com/#/?id=prediction-$order-structure)
          */
-        // kalshi has no market orders — every $order is a limit $order and the $price is required
+        // kalshi has no market orders — every order is a limit order and the price is required
         if ($price === null) {
             throw new ArgumentsRequired($this->id . " createOrder() requires a $price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive $price with $params array( 'time_in_force' => 'immediate_or_cancel' )");
         }
@@ -2029,9 +2028,9 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
         $isNo = ($outcomeObj['label'] === 'NO');
         $isBuy = ($side === 'buy');
-        // kalshi V2 (/portfolio/events/orders) quotes the YES leg only => $side 'bid' = buy YES,
-        // 'ask' = sell YES, $price in dollars. a NO $order maps to the complementary YES $order
-        // buy NO @ q == sell YES @ 1-q - flip the book $side and the $price
+        // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
+        // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
+        // buy NO @ q == sell YES @ 1-q - flip the book side and the price
         $bookSide = ($isBuy) ? 'bid' : 'ask';
         $yesPrice = $price;
         if ($isNo) {
@@ -2041,7 +2040,7 @@ class kalshi extends Exchange {
             }
         }
         $isMarket = ($type === 'market');
-        // accept the unified `$timeInForce` and map it onto kalshi's vocabulary; the native
+        // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         $unifiedTif = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, 'timeInForce');
@@ -2070,15 +2069,15 @@ class kalshi extends Exchange {
             $request['price'] = $this->number_to_string($yesPrice);
         }
         $response = Async\await($this->kalshiPrivatePostPortfolioEventsOrders($this->extend($request, $params)));
-        // the V2 create $response is minimal (order_id, fill_count, remaining_count), so backfill
-        // the known $order details and resolve the status from the remaining count
+        // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
+        // the known order details and resolve the status from the remaining count
         $order = $this->parse_prediction_order($response, $outcomeObj);
         $order['side'] = $side;
         $order['amount'] = $amount;
         $order['price'] = $price;
-        // the minimal create $response reports fills/remaining_count (not the *_fp keys
+        // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
         // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
-        // otherwise a fully-filled $order would return status 'closed' with filled 0
+        // otherwise a fully-filled order would return status 'closed' with filled 0
         $remainingCount = $this->safe_number($response, 'remaining_count');
         $filledCount = $this->safe_number($response, 'fill_count');
         if ($filledCount !== null) {
@@ -2121,7 +2120,7 @@ class kalshi extends Exchange {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
         // so edit = cancel the resting order then place a fresh one with the new terms. validate the
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
-        // order cancelled and nothing to replace it (kalshi is limit-only, so $price . $amount are required)
+        // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $price - kalshi has only limit orders');
         }
@@ -2152,11 +2151,11 @@ class kalshi extends Exchange {
         if ($outcome !== null) {
             $outcomeObj = Async\await($this->load_outcome($outcome));
         }
-        // v2 cancel => DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{$id}
+        // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         $response = Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
-        // the delete $response is minimal (no ticker/action/id/status) => pass the resolved $outcome so
-        // the parser can fill outcome/outcomeId/market/label, then backfill the $id and canceled status
+        // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
+        // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         $order = $this->parse_prediction_order($this->safe_dict($response, 'order', $response), $outcomeObj);
         if ($order['id'] === null) {
             $order['id'] = $id;
@@ -2244,7 +2243,7 @@ class kalshi extends Exchange {
         if ($userLimit !== null) {
             $fetchCap = $userLimit;
         }
-        // map the unified $status onto the kalshi event $status pushed server-side. 'settled'/'resolved'
+        // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
         $requestedStatus = $this->safe_string($params, 'status', $this->safe_string($this->options, 'defaultEventStatus', 'open'));
@@ -2264,7 +2263,7 @@ class kalshi extends Exchange {
         $eventId = $this->safe_string_2($params, 'eventId', 'slug');
         $rawEvents = array();
         if ($queriesLength > 0) {
-            // free-text search => ranked events from the search endpoint, top `$fetchCap` fetched canonically
+            // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
             $rawEvents = Async\await($this->fetch_events_by_query($queries, $fetchCap, $rest));
         } elseif ($eventId !== null) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
@@ -2295,7 +2294,7 @@ class kalshi extends Exchange {
         }
         $this->populate_outcomes();
         // scoping already happened server-side, so strip the resolved scopes before the client-side
-        // pass => applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
+        // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
         $postParams = $this->omit($params, array( 'tags', 'category', 'series_ticker' ));
         return $this->apply_event_fetch_params($result, $postParams, array());
@@ -2393,7 +2392,7 @@ class kalshi extends Exchange {
          * @return {string[]} deduplicated series tickers
          */
         $collected = array();
-        // $tags / $category -> documented /series listing
+        // tags / category -> documented /series listing
         $tags = $this->safe_list($params, 'tags', array());
         $tagsLength = count($tags);
         for ($ti = 0; $ti < $tagsLength; $ti++) {
@@ -2534,74 +2533,74 @@ class kalshi extends Exchange {
          * @return {array} an event structure
          */
         // {
-        //         "available_on_brokers" => true,
-        //         "category" => "Politics",
-        //         "collateral_return_type" => "",
-        //         "event_ticker" => "KXBALANCE-29",
-        //         "last_updated_ts" => "0001-01-01T00:00:00Z",
-        //         "markets" => array(
+        //         "available_on_brokers": true,
+        //         "category": "Politics",
+        //         "collateral_return_type": "",
+        //         "event_ticker": "KXBALANCE-29",
+        //         "last_updated_ts": "0001-01-01T00:00:00Z",
+        //         "markets": [
         //             {
-        //                 "can_close_early" => true,
-        //                 "close_time" => "2029-07-01T14:00:00Z",
-        //                 "created_time" => "0001-01-01T00:00:00Z",
-        //                 "early_close_condition" => "This market will close and expire early if the event occurs.",
-        //                 "event_ticker" => "KXBALANCE-29",
-        //                 "expected_expiration_time" => "2029-07-01T14:00:00Z",
-        //                 "expiration_time" => "2029-07-01T14:00:00Z",
-        //                 "expiration_value" => "",
-        //                 "fractional_trading_enabled" => false,
-        //                 "last_price_dollars" => "0.1000",
-        //                 "latest_expiration_time" => "2029-07-01T14:00:00Z",
-        //                 "liquidity_dollars" => "0.0000",
-        //                 "market_type" => "binary",
-        //                 "no_ask_dollars" => "0.9000",
-        //                 "no_bid_dollars" => "0.8900",
-        //                 "no_sub_title" => "During Trump's term",
-        //                 "notional_value_dollars" => "1.0000",
-        //                 "open_interest_fp" => "16268.00",
-        //                 "open_time" => "2025-01-03T15:00:00Z",
-        //                 "previous_price_dollars" => "0.0000",
-        //                 "previous_yes_ask_dollars" => "0.0000",
-        //                 "previous_yes_bid_dollars" => "0.0000",
-        //                 "price_level_structure" => "linear_cent",
-        //                 "price_ranges" => array(
+        //                 "can_close_early": true,
+        //                 "close_time": "2029-07-01T14:00:00Z",
+        //                 "created_time": "0001-01-01T00:00:00Z",
+        //                 "early_close_condition": "This market will close and expire early if the event occurs.",
+        //                 "event_ticker": "KXBALANCE-29",
+        //                 "expected_expiration_time": "2029-07-01T14:00:00Z",
+        //                 "expiration_time": "2029-07-01T14:00:00Z",
+        //                 "expiration_value": "",
+        //                 "fractional_trading_enabled": false,
+        //                 "last_price_dollars": "0.1000",
+        //                 "latest_expiration_time": "2029-07-01T14:00:00Z",
+        //                 "liquidity_dollars": "0.0000",
+        //                 "market_type": "binary",
+        //                 "no_ask_dollars": "0.9000",
+        //                 "no_bid_dollars": "0.8900",
+        //                 "no_sub_title": "During Trump's term",
+        //                 "notional_value_dollars": "1.0000",
+        //                 "open_interest_fp": "16268.00",
+        //                 "open_time": "2025-01-03T15:00:00Z",
+        //                 "previous_price_dollars": "0.0000",
+        //                 "previous_yes_ask_dollars": "0.0000",
+        //                 "previous_yes_bid_dollars": "0.0000",
+        //                 "price_level_structure": "linear_cent",
+        //                 "price_ranges": [
         //                     {
-        //                         "end" => "1.0000",
-        //                         "start" => "0.0000",
-        //                         "step" => "0.0100"
+        //                         "end": "1.0000",
+        //                         "start": "0.0000",
+        //                         "step": "0.0100"
         //                     }
-        //                 ),
-        //                 "response_price_units" => "usd_cent",
-        //                 "result" => "",
-        //                 "rules_primary" => "If there is not a budget deficit for any of fiscal years 2025, 2026, 2027, or 2028, then the market resolves to Yes.",
-        //                 "rules_secondary" => "",
-        //                 "settlement_timer_seconds" => "1800",
-        //                 "status" => "active",
-        //                 "subtitle" => "",
-        //                 "tick_size" => "1",
-        //                 "ticker" => "KXBALANCE-29",
-        //                 "title" => "Will Trump balance the budget?",
-        //                 "updated_time" => "0001-01-01T00:00:00Z",
-        //                 "volume_24h_fp" => "28.00",
-        //                 "volume_fp" => "40111.00",
-        //                 "yes_ask_dollars" => "0.1100",
-        //                 "yes_ask_size_fp" => "",
-        //                 "yes_bid_dollars" => "0.1000",
-        //                 "yes_bid_size_fp" => "",
-        //                 "yes_sub_title" => "During Trump's term"
+        //                 ],
+        //                 "response_price_units": "usd_cent",
+        //                 "result": "",
+        //                 "rules_primary": "If there is not a budget deficit for any of fiscal years 2025, 2026, 2027, or 2028, then the market resolves to Yes.",
+        //                 "rules_secondary": "",
+        //                 "settlement_timer_seconds": "1800",
+        //                 "status": "active",
+        //                 "subtitle": "",
+        //                 "tick_size": "1",
+        //                 "ticker": "KXBALANCE-29",
+        //                 "title": "Will Trump balance the budget?",
+        //                 "updated_time": "0001-01-01T00:00:00Z",
+        //                 "volume_24h_fp": "28.00",
+        //                 "volume_fp": "40111.00",
+        //                 "yes_ask_dollars": "0.1100",
+        //                 "yes_ask_size_fp": "",
+        //                 "yes_bid_dollars": "0.1000",
+        //                 "yes_bid_size_fp": "",
+        //                 "yes_sub_title": "During Trump's term"
         //             }
-        //         ),
-        //         "mutually_exclusive" => false,
-        //         "series_ticker" => "KXBALANCE",
-        //         "strike_period" => "",
-        //         "sub_title" => "During Trump's term",
-        //         "title" => "Will Trump balance the budget?"
+        //         ],
+        //         "mutually_exclusive": false,
+        //         "series_ticker": "KXBALANCE",
+        //         "strike_period": "",
+        //         "sub_title": "During Trump's term",
+        //         "title": "Will Trump balance the budget?"
         // }
         $rawMarkets = $this->safe_list($rawEvent, 'markets', array());
         $marketsList = array();
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
-        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so $active,
-        // $resolved and the resolution deadline are aggregated from the child markets too
+        // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
+        // resolved and the resolution deadline are aggregated from the child markets too
         $totalVolume = 0;
         $totalLiquidity = 0;
         $earliestCreated = null;
@@ -2709,14 +2708,14 @@ class kalshi extends Exchange {
         if ($access === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            // Signing $payload => {$timestamp}{METHOD}{$path}, where $path is the full request $path
-            // INCLUDING the /trade-api/v2 prefix and any $path $params substituted in, but NOT
-            // the $query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
+            // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
+            // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
+            // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             $tradeApiIndex = mb_strpos($baseUrl, '/trade-api');
             $versionPrefix = mb_substr($baseUrl, $tradeApiIndex);
             $pathForSigning = $versionPrefix . '/' . $implodedPath;
             $payload = $timestamp . $method . $pathForSigning;
-            // RSA-PSS SHA-256 $signature with the private key PEM
+            // RSA-PSS SHA-256 signature with the private key PEM
             $keyParts = explode('\\n', $this->privateKey);
             $cleanPrivateKey = implode('\n', $keyParts);
             $signature = $this->rsa($payload, $cleanPrivateKey, 'sha256', 'pss');
@@ -2726,7 +2725,7 @@ class kalshi extends Exchange {
                 'KALSHI-ACCESS-TIMESTAMP' => $timestamp,
             ));
             if ($method !== 'GET' && ($querystring !== '')) {
-                // kalshi expects a JSON $body; the $signature covers only $timestamp+$method+$path
+                // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 $body = $this->json($query);
             }
         }

@@ -43,7 +43,7 @@ fn both_ints(a: &Value, b: &Value) -> bool {
 pub fn add(a: &Value, b: &Value) -> Value {
     // String concatenation if either side is a string (JS-style)
     if let (Value::Str(sa), Value::Str(sb)) = (a, b) {
-        return Value::Str(format!("{sa}{sb}"));
+        return Value::Str(format!("{sa}{sb}").into());
     }
     if let Value::Str(_) = a { if let Some(_) = as_f64(b) {} return string_concat(a, b); }
     if let Value::Str(_) = b { return string_concat(a, b); }
@@ -59,14 +59,14 @@ pub fn add(a: &Value, b: &Value) -> Value {
 fn string_concat(a: &Value, b: &Value) -> Value {
     let sa = stringify_simple(a);
     let sb = stringify_simple(b);
-    Value::Str(format!("{sa}{sb}"))
+    Value::Str(format!("{sa}{sb}").into())
 }
 
 pub fn stringify_param(v: &Value) -> String { stringify_simple(v) }
 
 fn stringify_simple(v: &Value) -> String {
     match v {
-        Value::Str(s)   => s.clone(),
+        Value::Str(s)   => s.to_string(),
         Value::Int(n)   => n.to_string(),
         Value::Float(f) => f.to_string(),
         Value::Bool(b)  => b.to_string(),
@@ -83,7 +83,7 @@ fn stringify_simple(v: &Value) -> String {
 fn precise_to_string(m: &indexmap::IndexMap<String, Value>) -> String {
     let decimals: i64 = match m.get("decimals") { Some(Value::Int(n)) => *n, _ => 0 };
     let integer: String = match m.get("integer") {
-        Some(Value::Str(s)) => s.clone(),
+        Some(Value::Str(s)) => s.to_string(),
         _ => return "0".to_string(),
     };
     let (sign, mut digits) = if let Some(rest) = integer.strip_prefix('-') {
@@ -208,10 +208,8 @@ pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
 
 pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Arr(_)) }
 pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
-pub fn is_string(v: &Value)   -> bool { matches!(v, Value::Str(_)) }
 pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float(_)) }
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
-pub fn is_integer(v: &Value)  -> bool { matches!(v, Value::Int(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
 
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
@@ -224,7 +222,7 @@ pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
     let msg = payload.downcast_ref::<String>().cloned()
         .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
         .unwrap_or_else(|| "panic".to_string());
-    Value::Str(msg)
+    Value::Str(msg.into())
 }
 
 /// Parse a transpiled error payload (`"[Kind] message"`) into a typed
@@ -307,7 +305,7 @@ pub fn is_instance(value: &Value, class: &Value) -> bool {
     if let Some(actual) = extract_error_kind(msg) {
         let mut cur = error_parent(actual);
         while let Some(c) = cur {
-            if c == cls.as_str() {
+            if c == cls.as_ref() {
                 return true;
             }
             cur = error_parent(c);
@@ -400,7 +398,7 @@ pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
 
 pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.clone()).or_insert(Value::Null),
+        (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.to_string()).or_insert(Value::Null),
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
             let a = Arc::make_mut(a);
@@ -423,7 +421,7 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
             // = order`) must reach the shared CACHE_STORE, not just this local
             // COW clone — mirrors the JS reference write.
             crate::value::try_cache_hashmap_write(m, k, &val);
-            Arc::make_mut(m).insert(k.clone(), val);
+            Arc::make_mut(m).insert(k.to_string(), val);
         }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
         (Value::Arr(a), Value::Int(i)) => {
@@ -440,7 +438,7 @@ pub fn remove(obj: &mut Value, key: &Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k);
+            Arc::make_mut(m).shift_remove(k.as_ref());
         }
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
@@ -465,7 +463,7 @@ pub fn shift(mut arr: Value) -> Value {
 
 pub fn in_op(obj: &Value, key: &Value) -> bool {
     match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => m.contains_key(k),
+        (Value::Dict(m), Value::Str(k)) => m.contains_key(k.as_ref()),
         (Value::Arr(a), v) => a.iter().any(|x| is_equal(x, v)),
         _ => false,
     }
@@ -483,7 +481,7 @@ pub fn object_keys(v: &Value) -> Value {
     match v {
         Value::Dict(m) => Value::Array(
             m.keys().filter(|k| !is_ws_internal_tag(k))
-                .map(|k| Value::Str(k.clone())).collect()),
+                .map(|k| Value::Str(k.clone().into())).collect()),
         _ => Value::Array(vec![]),
     }
 }
@@ -526,7 +524,7 @@ pub fn get_index_of(haystack: &Value, needle: &Value) -> Value {
         }
         Value::Str(s) => {
             if let Value::Str(n) = needle {
-                match s.find(n.as_str()) {
+                match s.find(n.as_ref()) {
                     Some(i) => Value::Int(i as i64),
                     None    => Value::Int(-1),
                 }
@@ -589,7 +587,7 @@ pub fn quote_json_numbers(s: &str) -> String {
 }
 
 pub fn json_stringify(v: &Value) -> Value {
-    Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default())
+    Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default().into())
 }
 
 // ── math ────────────────────────────────────────────────────────────────────
@@ -605,10 +603,6 @@ pub fn math_ceil(v: &Value) -> Value {
 }
 
 // ── misc ────────────────────────────────────────────────────────────────────
-
-pub fn ternary(cond: bool, when_true: Value, when_false: Value) -> Value {
-    if cond { when_true } else { when_false }
-}
 
 pub fn println_val(v: &Value) {
     println!("{v}");
@@ -664,7 +658,7 @@ pub fn append_to_object_array(obj: &mut Value, key: &Value, v: Value) {
     }
     // Plain array field: mutate through the dict (get_value would COW-clone).
     if let (Value::Dict(m), Value::Str(k)) = (obj, key) {
-        let entry = Arc::make_mut(m).entry(k.clone())
+        let entry = Arc::make_mut(m).entry(k.to_string())
             .or_insert_with(|| Value::Array(Vec::new()));
         if let Value::Arr(a) = entry {
             Arc::make_mut(a).push(v);
@@ -717,14 +711,23 @@ pub use crate::precise::Precise;
 #[allow(non_snake_case)]
 pub mod Math {
     use super::Value;
-    use super::as_f64;
+    use super::{as_f64, as_i64, both_ints};
+    // integer inputs to min/max/abs must stay integers (same contract as add/sub/mul above):
+    // a Float result serializes as `10.0` in request JSON bodies, which servers
+    // with strict integer fields reject (e.g. nado archive `limit: u32` -> HTTP 422),
+    // which matches how the other language ports treat these three helpers
     pub fn min(a: &Value, b: &Value) -> Value {
+        if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().min(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.min(y)), _ => Value::Null }
     }
     pub fn max(a: &Value, b: &Value) -> Value {
+        if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().max(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
     pub fn abs(a: &Value) -> Value {
+        // checked_abs so i64::MIN falls through to the float branch instead of
+        // panicking on overflow, keeping the module's lenient no-panic contract
+        if let Value::Int(n) = a { if let Some(v) = n.checked_abs() { return Value::Int(v); } }
         match as_f64(a) { Some(x) => Value::Float(x.abs()), None => Value::Null }
     }
     pub fn pow(a: &Value, b: &Value) -> Value {
@@ -757,7 +760,7 @@ pub fn slice(v: &Value, start: &Value, end: &Value) -> Value {
                 None => chars.len(),
                 Some(n) => if n < 0 { (len + n).max(0) as usize } else { (n as usize).min(chars.len()) },
             };
-            if si <= ei { Value::Str(chars[si..ei].iter().collect()) } else { Value::Str(String::new()) }
+            if si <= ei { Value::Str(chars[si..ei].iter().collect::<String>().into()) } else { Value::Str(String::new().into()) }
         }
         Value::Arr(a) => {
             let len = a.len() as i64;
@@ -777,13 +780,13 @@ pub fn join(arr: &Value, sep: &Value) -> Value {
     let s = stringify_simple(sep);
     if let Value::Arr(a) = arr {
         let parts: Vec<String> = a.iter().map(stringify_simple).collect();
-        Value::Str(parts.join(&s))
-    } else { Value::Str(String::new()) }
+        Value::Str(parts.join(&s).into())
+    } else { Value::Str(String::new().into()) }
 }
 
 /// Generic `.toString()` for Value.
 pub fn to_string_val(v: &Value) -> Value {
-    Value::Str(stringify_simple(v))
+    Value::Str(stringify_simple(v).into())
 }
 
 /// `parse_int(value)` — best-effort to integer.
@@ -806,13 +809,10 @@ pub fn parse_float(v: &Value) -> Value {
     }
 }
 
-/// `length(value)` — array / string / map length as i64 Value.
-pub fn length(v: &Value) -> Value { get_array_length(v) }
-
 /// `starts_with(haystack, prefix)` — true if Value haystack starts with prefix.
 pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
     match (haystack, prefix) {
-        (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_str()),
+        (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_ref()),
         _ => false,
     }
 }
@@ -820,27 +820,22 @@ pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
 /// `ends_with(haystack, suffix)` — true if Value haystack ends with suffix.
 pub fn ends_with(haystack: &Value, suffix: &Value) -> bool {
     match (haystack, suffix) {
-        (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_str()),
+        (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_ref()),
         _ => false,
     }
 }
 
 /// `to_lower(s)` / `to_upper(s)` — string-case conversion (returns Value).
 pub fn to_lower(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_lowercase()), _ => Value::Null }
+    match v { Value::Str(s) => Value::Str(s.to_lowercase().into()), _ => Value::Null }
 }
 pub fn to_upper(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_uppercase()), _ => Value::Null }
+    match v { Value::Str(s) => Value::Str(s.to_uppercase().into()), _ => Value::Null }
 }
 
 /// `trim(s)` — string trim.
 pub fn trim(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.trim().to_string()), _ => Value::Null }
-}
-
-/// `index_of(haystack, needle)` — alias for `get_index_of`.
-pub fn index_of(haystack: &Value, needle: &Value) -> Value {
-    get_index_of(haystack, needle)
+    match v { Value::Str(s) => Value::Str(s.trim().to_string().into()), _ => Value::Null }
 }
 
 /// `contains(haystack, needle)` — substring check for `Value::Str`,
@@ -849,7 +844,7 @@ pub fn index_of(haystack: &Value, needle: &Value) -> Value {
 /// transpiler rewrites both into this free function).
 pub fn contains(haystack: &Value, needle: &Value) -> bool {
     match (haystack, needle) {
-        (Value::Str(h), Value::Str(n))   => h.contains(n.as_str()),
+        (Value::Str(h), Value::Str(n))   => h.contains(n.as_ref()),
         (Value::Arr(a), n)             => a.iter().any(|el| is_equal(el, n)),
         _ => false,
     }
@@ -870,7 +865,7 @@ pub const PAD_WITH_ZERO:        i64 = 6;
 /// `string_replace(s, old, new)` — string replacement.
 pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
     match (s, old, new_val) {
-        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_str(), n)),
+        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
         _ => s.clone(),
     }
 }
@@ -879,25 +874,16 @@ pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
 pub fn split(s: &Value, delim: &Value) -> Value {
     match (s, delim) {
         (Value::Str(s), Value::Str(d)) => {
-            Value::Array(s.split(d.as_str()).map(|p| Value::Str(p.to_string())).collect())
+            Value::Array(s.split(d.as_ref()).map(|p| Value::Str(p.to_string().into())).collect())
         }
         _ => Value::Array(vec![]),
-    }
-}
-
-/// `concat(a, b)` — generic concat: array+array or string+string.
-pub fn concat(a: &Value, b: &Value) -> Value {
-    match (a, b) {
-        (Value::Arr(_), Value::Arr(_)) => concat_arrays(a, b),
-        (Value::Str(x), Value::Str(y)) => Value::Str(format!("{x}{y}")),
-        _ => Value::Null,
     }
 }
 
 /// `repeat(s, n)` — repeat string n times.
 pub fn repeat(s: &Value, n: &Value) -> Value {
     let count = match as_i64(n) { Some(v) => v as usize, None => 0 };
-    match s { Value::Str(s) => Value::Str(s.repeat(count)), _ => Value::Null }
+    match s { Value::Str(s) => Value::Str(s.repeat(count).into()), _ => Value::Null }
 }
 
 /// RFC 4648 base32 decode (upper-case A–Z 2–7, `=` padding ignored). Unknown
@@ -951,7 +937,7 @@ pub fn totp(secret: Value) -> Value {
         | ((digest[offset + 1] as u32) << 16)
         | ((digest[offset + 2] as u32) << 8)
         | (digest[offset + 3] as u32);
-    Value::Str(format!("{:06}", code % 1_000_000))
+    Value::Str(format!("{:06}", code % 1_000_000).into())
 }
 
 /// `encode(s)` — UTF-8 bytes of a string as a byte-array Value.
@@ -967,13 +953,13 @@ pub fn encode(s: Value) -> Value {
 /// code that imports `hash` from `base/functions/crypto.js`.
 pub fn hash(data: Value, algo: Value, digest: Value) -> Value {
     let dbytes = crate::exchange::value_to_bytes(&data);
-    let a = match &algo { Value::Str(s) => s.as_str(), _ => "sha256" };
-    let dg = match &digest { Value::Str(s) => s.as_str(), _ => "hex" };
+    let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
+    let dg = match &digest { Value::Str(s) => s.as_ref(), _ => "hex" };
     let raw = crate::exchange::hash_raw(&dbytes, a);
     match dg {
         "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-        "base64" => Value::Str(b64_encode(&raw)),
-        _        => Value::Str(hex::encode(&raw)),
+        "base64" => Value::Str(b64_encode(&raw).into()),
+        _        => Value::Str(hex::encode(&raw).into()),
     }
 }
 
@@ -983,7 +969,7 @@ pub fn hmac(data: Value, secret: Value, algo: Value, digest: Value) -> Value {
     let dbytes = crate::exchange::value_to_bytes(&data);
     let sbytes = crate::exchange::value_to_bytes(&secret);
     let a = match &algo { Value::Str(s) => s.to_ascii_lowercase(), _ => "sha256".to_string() };
-    let dg = match &digest { Value::Str(s) => s.as_str(), _ => "hex" };
+    let dg = match &digest { Value::Str(s) => s.as_ref(), _ => "hex" };
     let raw: Vec<u8> = match a.as_str() {
         "sha256" => { let mut m = Hmac::<sha2::Sha256>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
         "sha512" => { let mut m = Hmac::<sha2::Sha512>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
@@ -994,8 +980,8 @@ pub fn hmac(data: Value, secret: Value, algo: Value, digest: Value) -> Value {
     };
     match dg {
         "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-        "base64" => Value::Str(b64_encode(&raw)),
-        _        => Value::Str(hex::encode(&raw)),
+        "base64" => Value::Str(b64_encode(&raw).into()),
+        _        => Value::Str(hex::encode(&raw).into()),
     }
 }
 
@@ -1078,7 +1064,7 @@ impl<'a> PbReader<'a> {
 }
 
 fn pb_string(b: &[u8]) -> Value {
-    Value::Str(String::from_utf8_lossy(b).into_owned())
+    Value::Str(String::from_utf8_lossy(b).into_owned().into())
 }
 
 /// Decode a `Public*DepthV3ApiItem` — a `{ price, quantity }` pair.
@@ -1263,11 +1249,11 @@ pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
     let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&key)).into_owned();
     let pk = match RsaPrivateKey::from_pkcs1_pem(pem.trim()) {
         Ok(k) => k,
-        Err(_) => return Value::Str(String::new()),
+        Err(_) => return Value::Str(String::new().into()),
     };
     let signing_key = SigningKey::<sha2::Sha256>::new(pk);
     let sig = signing_key.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()))
+    Value::Str(b64_encode(&sig.to_bytes()).into())
 }
 
 /// `ecdsa(message, secret, curve, preHash)` — secp256k1 ECDSA signature
@@ -1293,8 +1279,8 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     };
     let bytes = sig.to_bytes(); // 64 bytes: r || s, low-S normalized
     let mut m = indexmap::IndexMap::new();
-    m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32])));
-    m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64])));
+    m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32]).into()));
+    m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64]).into()));
     m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));
     Value::Map(m)
 }
@@ -1321,7 +1307,7 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
     use ed25519_dalek::{Signer, SigningKey};
     let bad = |why: &str| -> ! {
         panic!("{}", crate::exchange_errors::not_supported(
-            Value::Str(format!("eddsa: {why}"))));
+            Value::Str(format!("eddsa: {why}").into())));
     };
     let msg: Vec<u8> = match &request {
         Value::Arr(_) => crate::exchange::value_to_bytes(&request),
@@ -1356,7 +1342,7 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
     };
     let sk = SigningKey::from_bytes(&seed);
     let sig = sk.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()))
+    Value::Str(b64_encode(&sig.to_bytes()).into())
 }
 
 /// Standard base64.
@@ -1389,20 +1375,20 @@ pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts
         b64url_encode(payload.as_bytes()));
     // Signature: standard base64 from rsa()/hmac(), then made URL-safe.
     let sig_std: String = if rsa_mode {
-        match rsa(Value::Str(token.clone()), secret, algorithm) {
-            Value::Str(s) => s,
+        match rsa(Value::Str(token.clone().into()), secret, algorithm) {
+            Value::Str(s) => s.to_string(),
             _ => String::new(),
         }
     } else {
-        match hmac(encode(Value::Str(token.clone())), secret, algorithm,
-                   Value::Str("base64".to_string())) {
-            Value::Str(s) => s,
+        match hmac(encode(Value::Str(token.clone().into())), secret, algorithm,
+                   Value::Str("base64".into())) {
+            Value::Str(s) => s.to_string(),
             _ => String::new(),
         }
     };
     let sig_url = sig_std.replace('+', "-").replace('/', "_")
         .trim_end_matches('=').to_string();
-    Value::Str(format!("{token}.{sig_url}"))
+    Value::Str(format!("{token}.{sig_url}").into())
 }
 
 /// `replace_str(s, old, new)` — string replacement, alias for string_replace.
@@ -1415,7 +1401,7 @@ pub fn replace_all_str(s: &Value, old: &Value, new_val: &Value) -> Value {
     let (Value::Str(sv), Value::Str(ov), Value::Str(nv)) = (s, old, new_val) else {
         return s.clone();
     };
-    Value::Str(sv.replace(ov, nv))
+    Value::Str(sv.replace(ov.as_ref(), nv.as_ref()).into())
 }
 
 /// `Date.now()` — current Unix time in milliseconds.
@@ -1430,13 +1416,13 @@ pub fn date_now() -> Value {
 /// `pad_start(s, len, pad)` / `pad_end` — left/right pad strings.
 pub fn pad_start(s: &Value, len: &Value, pad: &Value) -> Value {
     let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string() };
+    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
     match s {
         Value::Str(sv) => {
             if sv.chars().count() >= target { Value::Str(sv.clone()) }
             else {
                 let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", p.repeat((need / p.chars().count().max(1)).max(1)), sv))
+                Value::Str(format!("{}{}", p.repeat((need / p.chars().count().max(1)).max(1)), sv).into())
             }
         }
         _ => Value::Null,
@@ -1445,13 +1431,13 @@ pub fn pad_start(s: &Value, len: &Value, pad: &Value) -> Value {
 
 pub fn pad_end(s: &Value, len: &Value, pad: &Value) -> Value {
     let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string() };
+    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
     match s {
         Value::Str(sv) => {
             if sv.chars().count() >= target { Value::Str(sv.clone()) }
             else {
                 let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", sv, p.repeat((need / p.chars().count().max(1)).max(1))))
+                Value::Str(format!("{}{}", sv, p.repeat((need / p.chars().count().max(1)).max(1))).into())
             }
         }
         _ => Value::Null,
@@ -1468,12 +1454,7 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
         Value::Str(s) => s.trim().parse::<f64>().unwrap_or(0.0),
         _ => 0.0,
     };
-    Value::Str(format!("{:.*}", d, n))
+    Value::Str(format!("{:.*}", d, n).into())
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────
-
-/// Helper for transpiler-emitted code that builds `Value::Map`s — kept here
-/// so the `use crate::runtime::*` glob doesn't need to import std collections.
-pub fn empty_map() -> Value { Value::Map(HashMap::new()) }
-pub fn empty_array() -> Value { Value::Array(vec![]) }

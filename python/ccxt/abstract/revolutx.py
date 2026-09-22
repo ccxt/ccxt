@@ -16,6 +16,7 @@ class ImplicitAPI:
     private_get_1_0_orders_venue_order_id = privateGet10OrdersVenueOrderId = Entry[_Dict | _List]('1.0/orders/{venue_order_id}', 'private', 'GET', {'cost': 1})
     private_get_1_0_orders_fills_venue_order_id = privateGet10OrdersFillsVenueOrderId = Entry[_Dict | _List]('1.0/orders/fills/{venue_order_id}', 'private', 'GET', {'cost': 1})
     private_get_1_0_trades_private_symbol = privateGet10TradesPrivateSymbol = Entry[_Dict | _List]('1.0/trades/private/{symbol}', 'private', 'GET', {'cost': 1})
+    private_get_1_0_transactions = privateGet10Transactions = Entry[_Dict | _List]('1.0/transactions', 'private', 'GET', {'cost': 1})
     private_post_1_0_orders = privatePost10Orders = Entry[_Dict | _List]('1.0/orders', 'private', 'POST', {'cost': 1})
     private_put_1_0_orders_venue_order_id = privatePut10OrdersVenueOrderId = Entry[_Dict | _List]('1.0/orders/{venue_order_id}', 'private', 'PUT', {'cost': 1})
     private_delete_1_0_orders = privateDelete10Orders = Entry[_Dict | _List]('1.0/orders', 'private', 'DELETE', {'cost': 1})

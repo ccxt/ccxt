@@ -32,7 +32,7 @@ class p2b extends \ccxt\async\p2b {
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => false,
-                // 'watchStatus' => true,
+                // 'watchStatus': true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -66,11 +66,11 @@ class p2b extends \ccxt\async\p2b {
         ));
     }
 
-    public function subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
+    public function subscribe(string $name, string $messageHash, array $request, $params = array()) {
         return Async\async(self::do_subscribe(...))($name, $messageHash, $request, $params);
     }
 
-    private function do_subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
+    private function do_subscribe(string $name, string $messageHash, array $request, $params = array()) {
         /**
          * @ignore
          * connects to a websocket channel
@@ -105,12 +105,12 @@ class p2b extends \ccxt\async\p2b {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $timeframes = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $channel = $this->safe_integer($timeframes, $timeframe);
         if ($channel === null) {
             throw new BadRequest($this->id . ' watchOHLCV cannot take a $timeframe of ' . $timeframe);
@@ -250,7 +250,7 @@ class p2b extends \ccxt\async\p2b {
         $query = $this->extend($subscribe, $params);
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $query, $messageHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -292,12 +292,12 @@ class p2b extends \ccxt\async\p2b {
         return $orderbook->limit();
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         //    {
-        //        "method" => "kline.update",
-        //        "params" => array(
-        //            array(
+        //        "method": "kline.update",
+        //        "params": [
+        //            [
         //                1657648800,             // Kline start time
         //                "0.054146",             // Kline open price
         //                "0.053938",             // Kline close price (current price)
@@ -306,9 +306,9 @@ class p2b extends \ccxt\async\p2b {
         //                "596.4674",             // Volume for stock currency
         //                "32.2298758767",        // Volume for money currency
         //                "ETH_BTC"               // Market
-        //            )
-        //        ),
-        //        "id" => null
+        //            ]
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params');
@@ -337,24 +337,24 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //    {
-        //        "method" => "deals.update",
-        //        "params" => array(
+        //        "method": "deals.update",
+        //        "params": [
         //            "ETH_BTC",
-        //            array(
-        //                array(
-        //                    "id" => 4503032979,               // Order_id
-        //                    "amount" => "0.103",
-        //                    "type" => "sell",                 // Side
-        //                    "time" => 1657661950.8487639,     // Creation time
-        //                    "price" => "0.05361"
-        //                ),
+        //            [
+        //                {
+        //                    "id": 4503032979,               // Order_id
+        //                    "amount": "0.103",
+        //                    "type": "sell",                 // Side
+        //                    "time": 1657661950.8487639,     // Creation time
+        //                    "price": "0.05361"
+        //                },
         //                ...
-        //            )
-        //        ),
-        //        "id" => null
+        //            ]
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params', array());
@@ -378,37 +378,37 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // state
         //
         //    {
-        //        "method" => "state.update",
-        //        "params" => array(
+        //        "method": "state.update",
+        //        "params": [
         //            "ETH_BTC",
         //            {
-        //                "high" => "0.055774",         // High price for the last 24h
-        //                "close" => "0.053679",        // Close price for the last 24h
-        //                "low" => "0.053462",          // Low price for the last 24h
-        //                "period" => 86400,            // Period 24h
-        //                "last" => "0.053679",         // Last price for the last 24h
-        //                "volume" => "38463.6132",     // Stock volume for the last 24h
-        //                "open" => "0.055682",         // Open price for the last 24h
-        //                "deal" => "2091.0038055314"   // Money volume for the last 24h
+        //                "high": "0.055774",         // High price for the last 24h
+        //                "close": "0.053679",        // Close price for the last 24h
+        //                "low": "0.053462",          // Low price for the last 24h
+        //                "period": 86400,            // Period 24h
+        //                "last": "0.053679",         // Last price for the last 24h
+        //                "volume": "38463.6132",     // Stock volume for the last 24h
+        //                "open": "0.055682",         // Open price for the last 24h
+        //                "deal": "2091.0038055314"   // Money volume for the last 24h
         //            }
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         // price
         //
         //    {
-        //        "method" => "price.update",
-        //        "params" => array(
-        //            "ETH_BTC",      // $market
+        //        "method": "price.update",
+        //        "params": [
+        //            "ETH_BTC",      // market
         //            "0.053836"      // last price
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params', array());
@@ -435,23 +435,23 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
-        //        "method" => "depth.update",
-        //        "params" => array(
+        //        "method": "depth.update",
+        //        "params": [
         //            false,                          // true - all records, false - new records
-        //            array(
-        //                "asks" => array(                   // side
-        //                    array(
-        //                        "19509.81",         // $price
-        //                        "0.277"             // $amount
-        //                    )
-        //                )
-        //            ),
+        //            {
+        //                "asks": [                   // side
+        //                    [
+        //                        "19509.81",         // price
+        //                        "0.277"             // amount
+        //                    ]
+        //                ]
+        //            },
         //            "BTC_USDT"
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         $params = $this->safe_list($message, 'params', array());
@@ -463,7 +463,7 @@ class p2b extends \ccxt\async\p2b {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $market['symbol'];
-        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -471,7 +471,7 @@ class p2b extends \ccxt\async\p2b {
             $orderbook = $this->orderbooks[$symbol];
         }
         if ($isFullUpdate === true) {
-            // the first parameter signals whether the $message carries all
+            // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
             // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
@@ -479,7 +479,7 @@ class p2b extends \ccxt\async\p2b {
         }
         if ($bids !== null) {
             for ($i = 0; $i < count($bids); $i++) {
-                $bid = $this->safe_value($bids, $i);
+                $bid = $this->safe_list($bids, $i);
                 $price = $this->safe_number($bid, 0);
                 $amount = $this->safe_number($bid, 1);
                 $bookSide = $orderbook['bids'];
@@ -488,7 +488,7 @@ class p2b extends \ccxt\async\p2b {
         }
         if ($asks !== null) {
             for ($i = 0; $i < count($asks); $i++) {
-                $ask = $this->safe_value($asks, $i);
+                $ask = $this->safe_list($asks, $i);
                 $price = $this->safe_number($ask, 0);
                 $amount = $this->safe_number($ask, 1);
                 $bookside = $orderbook['asks'];
@@ -499,7 +499,7 @@ class p2b extends \ccxt\async\p2b {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
@@ -522,7 +522,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
@@ -530,7 +530,7 @@ class p2b extends \ccxt\async\p2b {
         return false;
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param $client
@@ -542,12 +542,12 @@ class p2b extends \ccxt\async\p2b {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //    {
-        //        error => null,
-        //        result => 'pong',
-        //        id => 1706539608030
+        //        error: null,
+        //        result: 'pong',
+        //        id: 1706539608030
         //    }
         //
         $client->lastPong = $this->safe_integer($message, 'id', $this->milliseconds());

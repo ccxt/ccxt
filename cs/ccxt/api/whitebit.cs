@@ -298,6 +298,13 @@ public partial class whitebit : Exchange
         return await this.callAsync<List<object>> ("v4PrivatePostCollateralAccountPositionsOpen",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostCollateralAccountPositionsClosedPnl endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostCollateralAccountPositionsClosedPnl (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v4PrivatePostCollateralAccountPositionsClosedPnl",parameters);
+    }
+
     /// <summary>Calls the v4PrivatePostCollateralAccountSummary endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v4PrivatePostCollateralAccountSummary (object parameters = null)
@@ -389,6 +396,13 @@ public partial class whitebit : Exchange
         return await this.callAsync<List<object>> ("v4PrivatePostMainAccountWithdrawPay",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostMainAccountExpressWithdrawToken endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountExpressWithdrawToken (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountExpressWithdrawToken",parameters);
+    }
+
     /// <summary>Calls the v4PrivatePostMainAccountTransfer endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> v4PrivatePostMainAccountTransfer (object parameters = null)
@@ -438,6 +452,62 @@ public partial class whitebit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartInterestPaymentHistory",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexPlans endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostMainAccountSmartFlexPlans (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v4PrivatePostMainAccountSmartFlexPlans",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestments (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestments",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsHistory",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsInvest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsInvest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsInvest",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsClose endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsClose (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsClose",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest",parameters);
+    }
+
     /// <summary>Calls the v4PrivatePostTradeAccountBalance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v4PrivatePostTradeAccountBalance (object parameters = null)
@@ -457,6 +527,13 @@ public partial class whitebit : Exchange
     public async Task<Dictionary<string, object>> v4PrivatePostTradeAccountOrderHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostTradeAccountOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostTradeAccountOrderHistoryQuery endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostTradeAccountOrderHistoryQuery (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v4PrivatePostTradeAccountOrderHistoryQuery",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostTradeAccountOrder endpoint.</summary>
@@ -548,6 +625,13 @@ public partial class whitebit : Exchange
     public async Task<List<object>> v4PrivatePostOrderCancelAll (object parameters = null)
     {
         return await this.callAsync<List<object>> ("v4PrivatePostOrderCancelAll",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostOrderCancelBulk endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostOrderCancelBulk (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("v4PrivatePostOrderCancelBulk",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostOrderKillSwitch endpoint.</summary>
@@ -774,6 +858,76 @@ public partial class whitebit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningRewards",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostMiningHashrate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningHashrate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningHashrate",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningPayoutDestination endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningPayoutDestination (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningPayoutDestination",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningPayoutDestinationEdit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningPayoutDestinationEdit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningPayoutDestinationEdit",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningMinersInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningMinersInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningMinersInfo",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningWorkersNames endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningWorkersNames (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningWorkersNames",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningWorkersHashrate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningWorkersHashrate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningWorkersHashrate",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningWatcherLinksCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningWatcherLinksCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningWatcherLinksCreate",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningWatcherLinksList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningWatcherLinksList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningWatcherLinksList",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningAccountsCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningAccountsCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningAccountsCreate",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostMiningAccounts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMiningAccounts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMiningAccounts",parameters);
+    }
+
     /// <summary>Calls the v4PrivatePostMarketFee endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v4PrivatePostMarketFee (object parameters = null)
@@ -781,11 +935,39 @@ public partial class whitebit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMarketFee",parameters);
     }
 
+    /// <summary>Calls the v4PrivatePostMarketFeeSingle endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostMarketFeeSingle (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMarketFeeSingle",parameters);
+    }
+
     /// <summary>Calls the v4PrivatePostConditionalOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v4PrivatePostConditionalOrders (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostConditionalOrders",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostTravelRuleVasps endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostTravelRuleVasps (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostTravelRuleVasps",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostTravelRuleDepositVerification endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostTravelRuleDepositVerification (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostTravelRuleDepositVerification",parameters);
+    }
+
+    /// <summary>Calls the v4PrivatePostJwt endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostJwt (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostJwt",parameters);
     }
 
 }

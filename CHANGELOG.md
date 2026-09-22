@@ -1,3 +1,105 @@
+<a id="4.0.3"></a>
+# [4.0.3](https://github.com/ccxt/ccxt/releases/tag/4.0.3) - 2023-07-01
+
+We are happy to announce the release of CCXT version 4!
+
+During the last months we have been working hard on a few major improvements to the library adding important upgrades, including:
+
+* the merge of CCXT Pro Websocket APIs with the master repository of CCXT
+* the ESM and TypeScript migration for type-safety and portability
+* AST-based transpilation to support popular programming languages like C#
+* unification of perpetual swaps and futures markets among the leading exchanges like Binance and BitMEX
+* adding Bybit v3 and v5 APIs support
+* cryptocom v1 upgrades
+* per-exchange class method specifications: https://docs.ccxt.com/#/spec
+* unified proxy support
+* and many many more fixes and unifications
+
+
+We highly recommend downloading and installing the most recent release of CCXT version 4.0.3+ in order to get a much smoother experience for your trading operations.
+
+[Changes][4.0.3]
+
+
+<a id="v4.5.82"></a>
+# [v4.5.82](https://github.com/ccxt/ccxt/releases/tag/v4.5.82) - 2026-09-21
+
+## What's Changed
+* chore: tmp comment out most release commands by [@carlosmiei](https://github.com/carlosmiei) in [#30546](https://github.com/ccxt/ccxt/pull/30546)
+* chore: revert pre-transpile by [@carlosmiei](https://github.com/carlosmiei) in [#30547](https://github.com/ccxt/ccxt/pull/30547)
+* chore: make post-release triggerable by [@carlosmiei](https://github.com/carlosmiei) in [#30548](https://github.com/ccxt/ccxt/pull/30548)
+* chore: update gitattributes by [@carlosmiei](https://github.com/carlosmiei) in [#30549](https://github.com/ccxt/ccxt/pull/30549)
+* fix(cs): retire ws clients by reference using the existing error marker by [@carlotestor](https://github.com/carlotestor) in [#30545](https://github.com/ccxt/ccxt/pull/30545)
+* fix(go): emit gofmt-clean granular build files by [@AresArtemius](https://github.com/AresArtemius) in [#30541](https://github.com/ccxt/ccxt/pull/30541)
+* Batch 9 PRs: [#30535](https://github.com/ccxt/ccxt/issues/30535), [#30531](https://github.com/ccxt/ccxt/issues/30531), [#30529](https://github.com/ccxt/ccxt/issues/30529), [#30526](https://github.com/ccxt/ccxt/issues/30526) by [@carlotestor](https://github.com/carlotestor) in [#30543](https://github.com/ccxt/ccxt/pull/30543)
+* feat(bybitid): add Bybit Indonesia by [@bennert](https://github.com/bennert) in [#30501](https://github.com/ccxt/ccxt/pull/30501)
+* fix(base): reject pending ws futures on client.reset in rust by [@yzh-pelle](https://github.com/yzh-pelle) in [#30499](https://github.com/ccxt/ccxt/pull/30499)
+* fix(lighter): go bFee fix by [@ttodua](https://github.com/ttodua) in [#30495](https://github.com/ccxt/ccxt/pull/30495)
+* feat(krakenfutures): add fetchPositionsHistory by [@rayBastard](https://github.com/rayBastard) in [#30503](https://github.com/ccxt/ccxt/pull/30503)
+* fix(timestamp): local timestamps removed by [@yzh-pelle](https://github.com/yzh-pelle) in [#30487](https://github.com/ccxt/ccxt/pull/30487)
+* fix(bingx): preserve public swap trade fill IDs by [@AresArtemius](https://github.com/AresArtemius) in [#30554](https://github.com/ccxt/ccxt/pull/30554)
+* fix(modetrade): read the real asset-history fields in transactions an… by [@rayBastard](https://github.com/rayBastard) in [#30537](https://github.com/ccxt/ccxt/pull/30537)
+* feat(bitget): UTA (v3) ledger endpoints for fetchLedger by [@rayBastard](https://github.com/rayBastard) in [#30414](https://github.com/ccxt/ccxt/pull/30414)
+* fix(bingx): disable unsupported fetchPositionsHistory capability by [@AresArtemius](https://github.com/AresArtemius) in [#30407](https://github.com/ccxt/ccxt/pull/30407)
+* feat(Exchange): add incrementingNonce helper for duplicate-nonce venues by [@yzh-pelle](https://github.com/yzh-pelle) in [#30423](https://github.com/ccxt/ccxt/pull/30423)
+* perf(tests): cut offline test-suite runtime across all six ports (-40% to -79%) by [@carlotestor](https://github.com/carlotestor) in [#30553](https://github.com/ccxt/ccxt/pull/30553)
+* fix(gate): sort the signed query string so it matches the url order in Go by [@joe-alphafox](https://github.com/joe-alphafox) in [#30562](https://github.com/ccxt/ccxt/pull/30562)
+* fix(go): dereference typed pointer locals in order book delta rows by [@yzh-pelle](https://github.com/yzh-pelle) in [#30557](https://github.com/ccxt/ccxt/pull/30557)
+* fix(npm): remove map file by [@carlosmiei](https://github.com/carlosmiei) in [#30565](https://github.com/ccxt/ccxt/pull/30565)
+* PredictFun exchange integration by [@yzh-pelle](https://github.com/yzh-pelle) in [#30135](https://github.com/ccxt/ccxt/pull/30135)
+* fix(gateeu): cap order book REST limit at 100 for Gate EU by [@carlotestor](https://github.com/carlotestor) in [#30566](https://github.com/ccxt/ccxt/pull/30566)
+* fix(poloniex): ignore ws order book updates that arrive before a snapshot by [@carlotestor](https://github.com/carlotestor) in [#30568](https://github.com/ccxt/ccxt/pull/30568)
+* client side order router by [@pcriadoperez](https://github.com/pcriadoperez) in [#30560](https://github.com/ccxt/ccxt/pull/30560)
+* fix(pacifica): classify errors by error_id and read the code as a string by [@rayBastard](https://github.com/rayBastard) in [#30551](https://github.com/ccxt/ccxt/pull/30551)
+* fix(upbit): prevent concurrent subscription enumeration failures by [@lorenzozanee](https://github.com/lorenzozanee) in [#30514](https://github.com/ccxt/ccxt/pull/30514)
+
+## New Contributors
+* [@bennert](https://github.com/bennert) made their first contribution in [#30501](https://github.com/ccxt/ccxt/pull/30501)
+* [@joe-alphafox](https://github.com/joe-alphafox) made their first contribution in [#30562](https://github.com/ccxt/ccxt/pull/30562)
+* [@lorenzozanee](https://github.com/lorenzozanee) made their first contribution in [#30514](https://github.com/ccxt/ccxt/pull/30514)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
+
+[Changes][v4.5.82]
+
+
+<a id="v4.5.81"></a>
+# [v4.5.81](https://github.com/ccxt/ccxt/releases/tag/v4.5.81) - 2026-09-19
+
+## What's Changed
+* ci(release): publish to PyPI without Docker by [@carlotestor](https://github.com/carlotestor) in [#30542](https://github.com/ccxt/ccxt/pull/30542)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.80...v4.5.81
+
+[Changes][v4.5.81]
+
+
+<a id="v4.5.80"></a>
+# [v4.5.80](https://github.com/ccxt/ccxt/releases/tag/v4.5.80) - 2026-09-19
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.79...v4.5.80
+
+[Changes][v4.5.80]
+
+
+<a id="v4.5.78"></a>
+# [v4.5.78](https://github.com/ccxt/ccxt/releases/tag/v4.5.78) - 2026-09-07
+
+## What's Changed
+* chore: adjust release and package.json by [@carlosmiei](https://github.com/carlosmiei) in [#30298](https://github.com/ccxt/ccxt/pull/30298)
+* chore: fix go and rust build by [@carlosmiei](https://github.com/carlosmiei) in [#30301](https://github.com/ccxt/ccxt/pull/30301)
+* fix(paradex): ts error by [@carlosmiei](https://github.com/carlosmiei) in [#30303](https://github.com/ccxt/ccxt/pull/30303)
+* chore: skip examples transpilation by [@carlosmiei](https://github.com/carlosmiei) in [#30304](https://github.com/ccxt/ccxt/pull/30304)
+* chore: split force-build command by [@carlosmiei](https://github.com/carlosmiei) in [#30306](https://github.com/ccxt/ccxt/pull/30306)
+* chore: rust set build jobs to 2 in release.yml by [@carlosmiei](https://github.com/carlosmiei) in [#30307](https://github.com/ccxt/ccxt/pull/30307)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.77...v4.5.78
+
+[Changes][v4.5.78]
+
+
 <a id="v4.5.77"></a>
 # [v4.5.77](https://github.com/ccxt/ccxt/releases/tag/v4.5.77) - 2026-09-01
 
@@ -11158,259 +11260,6 @@
 [Changes][v4.4.62]
 
 
-<a id="go/v4.4.61"></a>
-# [go/v4.4.61](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.61) - 2025-02-18
-
-## What's Changed
-* test(ticker) - fix precisions PHP by [@ttodua](https://github.com/ttodua) in [#25295](https://github.com/ccxt/ccxt/pull/25295)
-* fix(gate): remove subscriptions for watch symbols by [@sc0Vu](https://github.com/sc0Vu) in [#25301](https://github.com/ccxt/ccxt/pull/25301)
-* test(currency) - leveraged tokens tests ^ by [@ttodua](https://github.com/ttodua) in [#25298](https://github.com/ccxt/ccxt/pull/25298)
-* fix(gate) - trade timestamps by [@ttodua](https://github.com/ttodua) in [#25299](https://github.com/ccxt/ccxt/pull/25299)
-* fix(go): signSecp256k1 available in all envs by [@carlosmiei](https://github.com/carlosmiei) in [#25303](https://github.com/ccxt/ccxt/pull/25303)
-* fix(go): signSecp256k1 available in all envs by [@carlosmiei](https://github.com/carlosmiei) in [#25305](https://github.com/ccxt/ccxt/pull/25305)
-* fix(phemex) - perpetual pilot by [@ttodua](https://github.com/ttodua) in [#25304](https://github.com/ccxt/ccxt/pull/25304)
-* gate - networks list unification ^ by [@ttodua](https://github.com/ttodua) in [#18487](https://github.com/ccxt/ccxt/pull/18487)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.60...go/v4.4.61
-
-[Changes][go/v4.4.61]
-
-
-<a id="go/v4.4.60"></a>
-# [go/v4.4.60](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.60) - 2025-02-17
-
-## What's Changed
-* fix(Alpaca): Fixed the date parameter types to iso8601 formatting on fetchOrders & fetchMyTrades by [@alisalama](https://github.com/alisalama) in [#25280](https://github.com/ccxt/ccxt/pull/25280)
-* chore: release automated msg skip by [@carlosmiei](https://github.com/carlosmiei) in [#25281](https://github.com/ccxt/ccxt/pull/25281)
-* test(transpilation) - afterConstruct by [@ttodua](https://github.com/ttodua) in [#25274](https://github.com/ccxt/ccxt/pull/25274)
-* fix(oxfun): python headers by [@carlosmiei](https://github.com/carlosmiei) in [#25283](https://github.com/ccxt/ccxt/pull/25283)
-* test(base) - afterConstructor by [@ttodua](https://github.com/ttodua) in [#25282](https://github.com/ccxt/ccxt/pull/25282)
-* feat(xt): ohlcv pagination by [@carlosmiei](https://github.com/carlosmiei) in [#25286](https://github.com/ccxt/ccxt/pull/25286)
-* fix(bybit): parseOpenInterest, different open interest for linear and inverse by [@Dan-krm](https://github.com/Dan-krm) in [#25287](https://github.com/ccxt/ccxt/pull/25287)
-* fix(hollaex): fetchDepositWithdrawFees - returns response by [@samgermain](https://github.com/samgermain) in [#25284](https://github.com/ccxt/ccxt/pull/25284)
-* feat(xt): add watchPositions by [@pcriadoperez](https://github.com/pcriadoperez) in [#25261](https://github.com/ccxt/ccxt/pull/25261)
-* feat(binance): add editOrders by [@sc0Vu](https://github.com/sc0Vu) in [#25290](https://github.com/ccxt/ccxt/pull/25290)
-* fix(bitget): skip sandbox header in fetchTime by [@carlosmiei](https://github.com/carlosmiei) in [#25291](https://github.com/ccxt/ccxt/pull/25291)
-
-## New Contributors
-* [@alisalama](https://github.com/alisalama) made their first contribution in [#25280](https://github.com/ccxt/ccxt/pull/25280)
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.59...go/v4.4.60
-
-[Changes][go/v4.4.60]
-
-
-<a id="go/v4.4.59"></a>
-# [go/v4.4.59](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.59) - 2025-02-14
-
-## What's Changed
-* fix(bitget): sandbox mode in python by [@carlosmiei](https://github.com/carlosmiei) in [#25264](https://github.com/ccxt/ccxt/pull/25264)
-* feat(hyperliquid): add fetchFundingHistory by [@sc0Vu](https://github.com/sc0Vu) in [#25263](https://github.com/ccxt/ccxt/pull/25263)
-* fix(coinbaseinternational) skip-test max loadmarkets by [@pcriadoperez](https://github.com/pcriadoperez) in [#25262](https://github.com/ccxt/ccxt/pull/25262)
-* hollaex: fetchDeposits, fetchWithdrawals - static tests by [@samgermain](https://github.com/samgermain) in [#25259](https://github.com/ccxt/ccxt/pull/25259)
-* feat(exchanges): add int type to fetchTime by [@Dan-krm](https://github.com/Dan-krm) in [#25265](https://github.com/ccxt/ccxt/pull/25265)
-* fix(bybit): createOrder, spot market buy amount edit by [@Dan-krm](https://github.com/Dan-krm) in [#25273](https://github.com/ccxt/ccxt/pull/25273)
-* tests(xt) - skip by [@ttodua](https://github.com/ttodua) in [#25272](https://github.com/ccxt/ccxt/pull/25272)
-* chore: disable appveyor termporarily by [@carlosmiei](https://github.com/carlosmiei) in [#25276](https://github.com/ccxt/ccxt/pull/25276)
-* reduce number of strictNullTypes errors using a llm by [@frosty00](https://github.com/frosty00) in [#25275](https://github.com/ccxt/ccxt/pull/25275)
-* delist wazirx by [@frosty00](https://github.com/frosty00) in [#25277](https://github.com/ccxt/ccxt/pull/25277)
-* test(coinlist) - skip ^ by [@ttodua](https://github.com/ttodua) in [#25279](https://github.com/ccxt/ccxt/pull/25279)
-* fix(binanceus) - api v3 ^ by [@ttodua](https://github.com/ttodua) in [#25278](https://github.com/ccxt/ccxt/pull/25278)
-* hollaex: fetchDepositAddresses, fetchMyTrades - static tests by [@samgermain](https://github.com/samgermain) in [#25270](https://github.com/ccxt/ccxt/pull/25270)
-* fix(C#) - missing default properties by [@ttodua](https://github.com/ttodua) in [#25266](https://github.com/ccxt/ccxt/pull/25266)
-* fix(bitmart): updating fetchCurrencies with networks by [@rayBastard](https://github.com/rayBastard) in [#25247](https://github.com/ccxt/ccxt/pull/25247)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.58...go/v4.4.59
-
-[Changes][go/v4.4.59]
-
-
-<a id="go/v4.4.58"></a>
-# [go/v4.4.58](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.58) - 2025-02-11
-
-## What's Changed
-* chore: release permission by [@carlosmiei](https://github.com/carlosmiei) in [#25205](https://github.com/ccxt/ccxt/pull/25205)
-* chore: disable travis by [@carlosmiei](https://github.com/carlosmiei) in [#25207](https://github.com/ccxt/ccxt/pull/25207)
-* chore: build add --noTests option by [@carlosmiei](https://github.com/carlosmiei) in [#25209](https://github.com/ccxt/ccxt/pull/25209)
-* feat(timex): fetchOHLCV - params["until"] by [@samgermain](https://github.com/samgermain) in [#25208](https://github.com/ccxt/ccxt/pull/25208)
-* test(python) - asyncio gather remove from sync by [@ttodua](https://github.com/ttodua) in [#25212](https://github.com/ccxt/ccxt/pull/25212)
-* fix(bybit): createExpiredOptionMarket quote and settle currencies by [@Dan-krm](https://github.com/Dan-krm) in [#25213](https://github.com/ccxt/ccxt/pull/25213)
-* fix(binance) - symbolrequired ^ by [@ttodua](https://github.com/ttodua) in [#25220](https://github.com/ccxt/ccxt/pull/25220)
-* chore: try windows machine run by [@carlosmiei](https://github.com/carlosmiei) in [#25215](https://github.com/ccxt/ccxt/pull/25215)
-* fix(ascendex) - features sym ^ by [@ttodua](https://github.com/ttodua) in [#25221](https://github.com/ccxt/ccxt/pull/25221)
-* fix(coinbase): parse error message by [@carlosmiei](https://github.com/carlosmiei) in [#25224](https://github.com/ccxt/ccxt/pull/25224)
-* chore: fixed workflow and twitter links by [@operagxoksana](https://github.com/operagxoksana) in [#25223](https://github.com/ccxt/ccxt/pull/25223)
-* fix(bitmart,hyperliquid): IF error mapping by [@carlosmiei](https://github.com/carlosmiei) in [#25231](https://github.com/ccxt/ccxt/pull/25231)
-* fix(ci-requirements): fix versions for ci-requirements.txt by [@pcriadoperez](https://github.com/pcriadoperez) in [#25228](https://github.com/ccxt/ccxt/pull/25228)
-* refactor(ws) - remove extra files by [@ttodua](https://github.com/ttodua) in [#25227](https://github.com/ccxt/ccxt/pull/25227)
-* fix(exchange) - last json resp by [@ttodua](https://github.com/ttodua) in [#25225](https://github.com/ccxt/ccxt/pull/25225)
-* feat(xt): IF error mapping by [@carlosmiei](https://github.com/carlosmiei) in [#25232](https://github.com/ccxt/ccxt/pull/25232)
-* fix(hyperliquid): fix php loadMarkets test by [@pcriadoperez](https://github.com/pcriadoperez) in [#25237](https://github.com/ccxt/ccxt/pull/25237)
-* fix(mexc): watchTickers on python by [@pcriadoperez](https://github.com/pcriadoperez) in [#25236](https://github.com/ccxt/ccxt/pull/25236)
-* fix(latoken): skip vwap test by [@pcriadoperez](https://github.com/pcriadoperez) in [#25234](https://github.com/ccxt/ccxt/pull/25234)
-* fix(whitebit): error handling filter by [@carlosmiei](https://github.com/carlosmiei) in [#25241](https://github.com/ccxt/ccxt/pull/25241)
-* fix(vertex) - safemarket in parse ticker by [@ttodua](https://github.com/ttodua) in [#25243](https://github.com/ccxt/ccxt/pull/25243)
-* fix(binance) - fetchCurrencies: types & network precisions by [@ttodua](https://github.com/ttodua) in [#25239](https://github.com/ccxt/ccxt/pull/25239)
-* fix(base) - safeTicker dont omit zero vwap by [@ttodua](https://github.com/ttodua) in [#25244](https://github.com/ccxt/ccxt/pull/25244)
-* bitso: fetchMyTrades - static tests by [@samgermain](https://github.com/samgermain) in [#25251](https://github.com/ccxt/ccxt/pull/25251)
-* bitmart: update fees by [@sc0Vu](https://github.com/sc0Vu) in [#25253](https://github.com/ccxt/ccxt/pull/25253)
-* chore: debug static test detection by [@carlosmiei](https://github.com/carlosmiei) in [#25047](https://github.com/ccxt/ccxt/pull/25047)
-* feat(xt): implement setMarginMode by [@carlosmiei](https://github.com/carlosmiei) in [#25254](https://github.com/ccxt/ccxt/pull/25254)
-* fix(bitget): add PAPTRADING header by [@sc0Vu](https://github.com/sc0Vu) in [#25255](https://github.com/ccxt/ccxt/pull/25255)
-* chore: php fix release by [@carlosmiei](https://github.com/carlosmiei) in [#25256](https://github.com/ccxt/ccxt/pull/25256)
-
-## New Contributors
-* [@operagxoksana](https://github.com/operagxoksana) made their first contribution in [#25223](https://github.com/ccxt/ccxt/pull/25223)
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.57...go/v4.4.58
-
-[Changes][go/v4.4.58]
-
-
-<a id="go/v4.4.57"></a>
-# [go/v4.4.57](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.57) - 2025-02-05
-
-## What's Changed
-* chore: delist lykee by [@pcriadoperez](https://github.com/pcriadoperez) in [#25177](https://github.com/ccxt/ccxt/pull/25177)
-* Fix coinbase feature - fetchOHLCV by [@xmatthias](https://github.com/xmatthias) in [#25171](https://github.com/ccxt/ccxt/pull/25171)
-* fix(coinex) - withdraw precision by [@ttodua](https://github.com/ttodua) in [#25172](https://github.com/ccxt/ccxt/pull/25172)
-* fix(bybit) - meaningful message by [@ttodua](https://github.com/ttodua) in [#25179](https://github.com/ccxt/ccxt/pull/25179)
-* build(deps): bump github.com/ethereum/go-ethereum from 1.14.12 to 1.14.13 by [@dependabot](https://github.com/dependabot) in [#25105](https://github.com/ccxt/ccxt/pull/25105)
-* chore: update go badge by [@carlosmiei](https://github.com/carlosmiei) in [#25183](https://github.com/ccxt/ccxt/pull/25183)
-* chore: go badge image by [@carlosmiei](https://github.com/carlosmiei) in [#25184](https://github.com/ccxt/ccxt/pull/25184)
-* chore: add GO LIcense by [@carlosmiei](https://github.com/carlosmiei) in [#25187](https://github.com/ccxt/ccxt/pull/25187)
-* chore: nuget badge by [@carlosmiei](https://github.com/carlosmiei) in [#25189](https://github.com/ccxt/ccxt/pull/25189)
-* fix(bingx) - skip by [@ttodua](https://github.com/ttodua) in [#25191](https://github.com/ccxt/ccxt/pull/25191)
-* fix(safeNumber) - NAN to undefined by [@ttodua](https://github.com/ttodua) in [#25190](https://github.com/ccxt/ccxt/pull/25190)
-* enhancement: add space in errors by [@sc0Vu](https://github.com/sc0Vu) in [#25197](https://github.com/ccxt/ccxt/pull/25197)
-* fix(go): skip signSecp256k1 in windows by [@carlosmiei](https://github.com/carlosmiei) in [#25198](https://github.com/ccxt/ccxt/pull/25198)
-* fix(deribit): stop requiring currency in fetchPositions by [@yzh-pelle](https://github.com/yzh-pelle) in [#25157](https://github.com/ccxt/ccxt/pull/25157)
-* fix(binance): recover editContractOrder by [@sc0Vu](https://github.com/sc0Vu) in [#25199](https://github.com/ccxt/ccxt/pull/25199)
-* chore: bump ast-transpiler by [@carlosmiei](https://github.com/carlosmiei) in [#25200](https://github.com/ccxt/ccxt/pull/25200)
-* chore: reenable release flow by [@carlosmiei](https://github.com/carlosmiei) in [#25201](https://github.com/ccxt/ccxt/pull/25201)
-* feat(go): add market override in go by [@carlosmiei](https://github.com/carlosmiei) in [#25202](https://github.com/ccxt/ccxt/pull/25202)
-* fix(bybit): watchOrderBook default option limit by [@Dan-krm](https://github.com/Dan-krm) in [#25204](https://github.com/ccxt/ccxt/pull/25204)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.56...go/v4.4.57
-
-[Changes][go/v4.4.57]
-
-
-<a id="go/v4.4.56"></a>
-# [go/v4.4.56](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.56) - 2025-02-03
-
-## What's Changed
-* go: Move to v4 by [@carlosmiei](https://github.com/carlosmiei) in [#25170](https://github.com/ccxt/ccxt/pull/25170)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.54...go/v4.4.56
-
-[Changes][go/v4.4.56]
-
-
-<a id="go/v4.4.54"></a>
-# [go/v4.4.54](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.54) - 2025-02-03
-
-## What's Changed
-* chore: restore release flow by [@carlosmiei](https://github.com/carlosmiei) in [#25166](https://github.com/ccxt/ccxt/pull/25166)
-* chore: update readme by [@carlosmiei](https://github.com/carlosmiei) in [#25167](https://github.com/ccxt/ccxt/pull/25167)
-* chore: fix hyperlink by [@carlosmiei](https://github.com/carlosmiei) in [#25168](https://github.com/ccxt/ccxt/pull/25168)
-* chore: try new release by [@carlosmiei](https://github.com/carlosmiei) in [#25169](https://github.com/ccxt/ccxt/pull/25169)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.4.53...go/v4.4.54
-
-[Changes][go/v4.4.54]
-
-
-<a id="go/v4.4.53"></a>
-# [go/v4.4.53](https://github.com/ccxt/ccxt/releases/tag/go/v4.4.53) - 2025-02-03
-
-## What's Changed
-* chore: try npm publish by [@carlosmiei](https://github.com/carlosmiei) in [#25074](https://github.com/ccxt/ccxt/pull/25074)
-* chore: try 2 by [@carlosmiei](https://github.com/carlosmiei) in [#25075](https://github.com/ccxt/ccxt/pull/25075)
-* chore: release try npm-publish by [@carlosmiei](https://github.com/carlosmiei) in [#25076](https://github.com/ccxt/ccxt/pull/25076)
-* chore: uncomment by [@carlosmiei](https://github.com/carlosmiei) in [#25077](https://github.com/ccxt/ccxt/pull/25077)
-* chore: Rl2 release by [@carlosmiei](https://github.com/carlosmiei) in [#25078](https://github.com/ccxt/ccxt/pull/25078)
-* chore: disable travis commits by [@carlosmiei](https://github.com/carlosmiei) in [#25079](https://github.com/ccxt/ccxt/pull/25079)
-* fix(bitmex) - features ^ by [@ttodua](https://github.com/ttodua) in [#25081](https://github.com/ccxt/ccxt/pull/25081)
-* docs(bitmart): fetchFundingRateHistory - docstring update by [@samgermain](https://github.com/samgermain) in [#25083](https://github.com/ccxt/ccxt/pull/25083)
-* feat(features) - add arguments by [@ttodua](https://github.com/ttodua) in [#25082](https://github.com/ccxt/ccxt/pull/25082)
-* chore: js add to wiki by [@carlosmiei](https://github.com/carlosmiei) in [#25084](https://github.com/ccxt/ccxt/pull/25084)
-* chore: remove comment js by [@carlosmiei](https://github.com/carlosmiei) in [#25085](https://github.com/ccxt/ccxt/pull/25085)
-* chore: msg to wiki by [@carlosmiei](https://github.com/carlosmiei) in [#25086](https://github.com/ccxt/ccxt/pull/25086)
-* chore: use gh_token instead by [@carlosmiei](https://github.com/carlosmiei) in [#25088](https://github.com/ccxt/ccxt/pull/25088)
-* chore: wiki commit msg by [@carlosmiei](https://github.com/carlosmiei) in [#25089](https://github.com/ccxt/ccxt/pull/25089)
-* feat(features) - symbolRequired (batch 1) by [@ttodua](https://github.com/ttodua) in [#25087](https://github.com/ccxt/ccxt/pull/25087)
-* fix(binance): remove spl from networks by [@carlosmiei](https://github.com/carlosmiei) in [#25090](https://github.com/ccxt/ccxt/pull/25090)
-* fix(binance) - SPL SOL by [@ttodua](https://github.com/ttodua) in [#25091](https://github.com/ccxt/ccxt/pull/25091)
-* test(exceptions) - exception message readable by [@ttodua](https://github.com/ttodua) in [#25096](https://github.com/ccxt/ccxt/pull/25096)
-* feat(symbolRequired) - batch 2 by [@ttodua](https://github.com/ttodua) in [#25094](https://github.com/ccxt/ccxt/pull/25094)
-* feat(lang): go Rest by [@carlosmiei](https://github.com/carlosmiei) in [#23691](https://github.com/ccxt/ccxt/pull/23691)
-* build(deps): bump golang.org/x/crypto from 0.22.0 to 0.31.0 by [@dependabot](https://github.com/dependabot) in [#25098](https://github.com/ccxt/ccxt/pull/25098)
-* chore: go pushback fix by [@carlosmiei](https://github.com/carlosmiei) in [#25099](https://github.com/ccxt/ccxt/pull/25099)
-* chore: go fix by [@carlosmiei](https://github.com/carlosmiei) in [#25100](https://github.com/ccxt/ccxt/pull/25100)
-* chore: Remove bins by [@carlosmiei](https://github.com/carlosmiei) in [#25101](https://github.com/ccxt/ccxt/pull/25101)
-* chore: update request/response commands by [@carlosmiei](https://github.com/carlosmiei) in [#25102](https://github.com/ccxt/ccxt/pull/25102)
-* chore: relesae go by [@carlosmiei](https://github.com/carlosmiei) in [#25103](https://github.com/ccxt/ccxt/pull/25103)
-* chore: release git id by [@carlosmiei](https://github.com/carlosmiei) in [#25108](https://github.com/ccxt/ccxt/pull/25108)
-* fix(okx): array slice in networks by [@carlosmiei](https://github.com/carlosmiei) in [#25110](https://github.com/ccxt/ccxt/pull/25110)
-* chore: Go specific yml by [@carlosmiei](https://github.com/carlosmiei) in [#25111](https://github.com/ccxt/ccxt/pull/25111)
-* chore: release try set origin by [@carlosmiei](https://github.com/carlosmiei) in [#25112](https://github.com/ccxt/ccxt/pull/25112)
-* revert(python) - parse frame by [@ttodua](https://github.com/ttodua) in [#25114](https://github.com/ccxt/ccxt/pull/25114)
-* chore: remove push by [@carlosmiei](https://github.com/carlosmiei) in [#25116](https://github.com/ccxt/ccxt/pull/25116)
-* chore: try simplified release by [@carlosmiei](https://github.com/carlosmiei) in [#25117](https://github.com/ccxt/ccxt/pull/25117)
-* comment out all steps by [@carlosmiei](https://github.com/carlosmiei) in [#25118](https://github.com/ccxt/ccxt/pull/25118)
-* chore: export exchanges on release by [@carlosmiei](https://github.com/carlosmiei) in [#25119](https://github.com/ccxt/ccxt/pull/25119)
-* chore: comment set-url by [@carlosmiei](https://github.com/carlosmiei) in [#25120](https://github.com/ccxt/ccxt/pull/25120)
-* chore: try gh_token by [@carlosmiei](https://github.com/carlosmiei) in [#25121](https://github.com/ccxt/ccxt/pull/25121)
-* chore: try revert file by [@carlosmiei](https://github.com/carlosmiei) in [#25122](https://github.com/ccxt/ccxt/pull/25122)
-* chore: try push head by [@carlosmiei](https://github.com/carlosmiei) in [#25123](https://github.com/ccxt/ccxt/pull/25123)
-* chore: try gh_token by [@carlosmiei](https://github.com/carlosmiei) in [#25124](https://github.com/ccxt/ccxt/pull/25124)
-* chore: try my token by [@carlosmiei](https://github.com/carlosmiei) in [#25125](https://github.com/ccxt/ccxt/pull/25125)
-* chore: try ssh-key by [@carlosmiei](https://github.com/carlosmiei) in [#25126](https://github.com/ccxt/ccxt/pull/25126)
-* chore: new try by [@carlosmiei](https://github.com/carlosmiei) in [#25127](https://github.com/ccxt/ccxt/pull/25127)
-* chore: use secret.github by [@carlosmiei](https://github.com/carlosmiei) in [#25128](https://github.com/ccxt/ccxt/pull/25128)
-* chore: try different push by [@carlosmiei](https://github.com/carlosmiei) in [#25129](https://github.com/ccxt/ccxt/pull/25129)
-* chore: missing push by [@carlosmiei](https://github.com/carlosmiei) in [#25130](https://github.com/ccxt/ccxt/pull/25130)
-* chore: try different token by [@carlosmiei](https://github.com/carlosmiei) in [#25131](https://github.com/ccxt/ccxt/pull/25131)
-* chore: restore file to previous state by [@carlosmiei](https://github.com/carlosmiei) in [#25132](https://github.com/ccxt/ccxt/pull/25132)
-* chore: export-exchanges by [@carlosmiei](https://github.com/carlosmiei) in [#25133](https://github.com/ccxt/ccxt/pull/25133)
-* go: update path version to v4 by [@carlosmiei](https://github.com/carlosmiei) in [#25134](https://github.com/ccxt/ccxt/pull/25134)
-* chore: fix go deploy by [@carlosmiei](https://github.com/carlosmiei) in [#25135](https://github.com/ccxt/ccxt/pull/25135)
-* chore: revert version by [@carlosmiei](https://github.com/carlosmiei) in [#25136](https://github.com/ccxt/ccxt/pull/25136)
-* fix(woofipro): prefix edd25519: in api key by [@sc0Vu](https://github.com/sc0Vu) in [#25140](https://github.com/ccxt/ccxt/pull/25140)
-* fix(transpile): replace tsx with npx tsx by [@sc0Vu](https://github.com/sc0Vu) in [#25141](https://github.com/ccxt/ccxt/pull/25141)
-* chore: go move module file [wip] by [@carlosmiei](https://github.com/carlosmiei) in [#25137](https://github.com/ccxt/ccxt/pull/25137)
-* chore: try removing binaries by [@carlosmiei](https://github.com/carlosmiei) in [#25143](https://github.com/ccxt/ccxt/pull/25143)
-* chore: rm binaries 2 by [@carlosmiei](https://github.com/carlosmiei) in [#25144](https://github.com/ccxt/ccxt/pull/25144)
-* fix!(bingx) - TRUMP common currency by [@ttodua](https://github.com/ttodua) in [#25146](https://github.com/ccxt/ccxt/pull/25146)
-* feat(wavesexchange): fetchOHLCV - params["until"] by [@samgermain](https://github.com/samgermain) in [#25145](https://github.com/ccxt/ccxt/pull/25145)
-* fix(bingx) - withdraw fix by [@ttodua](https://github.com/ttodua) in [#25149](https://github.com/ccxt/ccxt/pull/25149)
-* chore: try new path by [@carlosmiei](https://github.com/carlosmiei) in [#25147](https://github.com/ccxt/ccxt/pull/25147)
-* Release skip go by [@carlosmiei](https://github.com/carlosmiei) in [#25154](https://github.com/ccxt/ccxt/pull/25154)
-* chore: fix go command by [@carlosmiei](https://github.com/carlosmiei) in [#25155](https://github.com/ccxt/ccxt/pull/25155)
-* chore: remove mod tidy by [@carlosmiei](https://github.com/carlosmiei) in [#25156](https://github.com/ccxt/ccxt/pull/25156)
-* chore: Try merge by [@carlosmiei](https://github.com/carlosmiei) in [#25115](https://github.com/ccxt/ccxt/pull/25115)
-* chore: try comiting first by [@carlosmiei](https://github.com/carlosmiei) in [#25158](https://github.com/ccxt/ccxt/pull/25158)
-* chore: use git name/email by [@carlosmiei](https://github.com/carlosmiei) in [#25159](https://github.com/ccxt/ccxt/pull/25159)
-* chore: try go/ tag by [@carlosmiei](https://github.com/carlosmiei) in [#25160](https://github.com/ccxt/ccxt/pull/25160)
-* chore: tmp don't pull changes and run tests by [@carlosmiei](https://github.com/carlosmiei) in [#25161](https://github.com/ccxt/ccxt/pull/25161)
-* chore: tag and release match name by [@carlosmiei](https://github.com/carlosmiei) in [#25163](https://github.com/ccxt/ccxt/pull/25163)
-* fix(coinbase) - currency id by [@ttodua](https://github.com/ttodua) in [#25162](https://github.com/ccxt/ccxt/pull/25162)
-* fix(bitmart) - fetchDepositAddress deposit code by [@ttodua](https://github.com/ttodua) in [#25148](https://github.com/ccxt/ccxt/pull/25148)
-* chore: try new mod path by [@carlosmiei](https://github.com/carlosmiei) in [#25164](https://github.com/ccxt/ccxt/pull/25164)
-* chore: adjust npm version by [@carlosmiei](https://github.com/carlosmiei) in [#25165](https://github.com/ccxt/ccxt/pull/25165)
-
-
-**Full Changelog**: https://github.com/ccxt/ccxt/compare/4.4.52...go/v4.4.53
-
-[Changes][go/v4.4.53]
-
-
 <a id="4.4.52"></a>
 # [4.4.52](https://github.com/ccxt/ccxt/releases/tag/4.4.52) - 2025-01-28
 
@@ -14526,29 +14375,11 @@
 [Changes][4.3.22]
 
 
-<a id="4.0.3"></a>
-# [4.0.3](https://github.com/ccxt/ccxt/releases/tag/4.0.3) - 2023-07-01
-
-We are happy to announce the release of CCXT version 4!
-
-During the last months we have been working hard on a few major improvements to the library adding important upgrades, including:
-
-* the merge of CCXT Pro Websocket APIs with the master repository of CCXT
-* the ESM and TypeScript migration for type-safety and portability
-* AST-based transpilation to support popular programming languages like C#
-* unification of perpetual swaps and futures markets among the leading exchanges like Binance and BitMEX
-* adding Bybit v3 and v5 APIs support
-* cryptocom v1 upgrades
-* per-exchange class method specifications: https://docs.ccxt.com/#/spec
-* unified proxy support
-* and many many more fixes and unifications
-
-
-We highly recommend downloading and installing the most recent release of CCXT version 4.0.3+ in order to get a much smoother experience for your trading operations.
-
-[Changes][4.0.3]
-
-
+[4.0.3]: https://github.com/ccxt/ccxt/compare/v4.5.82...4.0.3
+[v4.5.82]: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
+[v4.5.81]: https://github.com/ccxt/ccxt/compare/v4.5.80...v4.5.81
+[v4.5.80]: https://github.com/ccxt/ccxt/compare/v4.5.78...v4.5.80
+[v4.5.78]: https://github.com/ccxt/ccxt/compare/v4.5.77...v4.5.78
 [v4.5.77]: https://github.com/ccxt/ccxt/compare/v4.5.76...v4.5.77
 [v4.5.76]: https://github.com/ccxt/ccxt/compare/v4.5.75...v4.5.76
 [v4.5.75]: https://github.com/ccxt/ccxt/compare/v4.5.74...v4.5.75
@@ -14662,15 +14493,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [v4.4.65]: https://github.com/ccxt/ccxt/compare/v4.4.64...v4.4.65
 [v4.4.64]: https://github.com/ccxt/ccxt/compare/v4.4.63...v4.4.64
 [v4.4.63]: https://github.com/ccxt/ccxt/compare/v4.4.62...v4.4.63
-[v4.4.62]: https://github.com/ccxt/ccxt/compare/go/v4.4.61...v4.4.62
-[go/v4.4.61]: https://github.com/ccxt/ccxt/compare/go/v4.4.60...go/v4.4.61
-[go/v4.4.60]: https://github.com/ccxt/ccxt/compare/go/v4.4.59...go/v4.4.60
-[go/v4.4.59]: https://github.com/ccxt/ccxt/compare/go/v4.4.58...go/v4.4.59
-[go/v4.4.58]: https://github.com/ccxt/ccxt/compare/go/v4.4.57...go/v4.4.58
-[go/v4.4.57]: https://github.com/ccxt/ccxt/compare/go/v4.4.56...go/v4.4.57
-[go/v4.4.56]: https://github.com/ccxt/ccxt/compare/go/v4.4.54...go/v4.4.56
-[go/v4.4.54]: https://github.com/ccxt/ccxt/compare/go/v4.4.53...go/v4.4.54
-[go/v4.4.53]: https://github.com/ccxt/ccxt/compare/4.4.52...go/v4.4.53
+[v4.4.62]: https://github.com/ccxt/ccxt/compare/4.4.52...v4.4.62
 [4.4.52]: https://github.com/ccxt/ccxt/compare/4.4.51...4.4.52
 [4.4.51]: https://github.com/ccxt/ccxt/compare/4.4.50...4.4.51
 [4.4.50]: https://github.com/ccxt/ccxt/compare/4.4.49...4.4.50
@@ -14798,7 +14621,6 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [4.3.25]: https://github.com/ccxt/ccxt/compare/4.3.24...4.3.25
 [4.3.24]: https://github.com/ccxt/ccxt/compare/4.3.23...4.3.24
 [4.3.23]: https://github.com/ccxt/ccxt/compare/4.3.22...4.3.23
-[4.3.22]: https://github.com/ccxt/ccxt/compare/4.0.3...4.3.22
-[4.0.3]: https://github.com/ccxt/ccxt/tree/4.0.3
+[4.3.22]: https://github.com/ccxt/ccxt/tree/4.3.22
 
 <!-- Generated by https://github.com/rhysd/changelog-from-release v3.9.1 -->

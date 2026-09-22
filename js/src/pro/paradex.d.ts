@@ -1,11 +1,11 @@
 import paradexRest from '../paradex.js';
-import type { Int, Str, Trade, Order, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
     requestId(): any;
-    authenticate(params?: {}): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: any): void;
+    authenticate(params?: Dict): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
     /**
      * @method
      * @name paradex#watchTrades
@@ -17,8 +17,8 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrade(client: Client, message: any): any;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleTrade(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name paradex#watchOrderBook
@@ -29,8 +29,8 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
      * @name paradex#watchTicker
@@ -40,7 +40,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name paradex#watchTickers
@@ -50,7 +50,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name paradex#watchOrders
@@ -62,9 +62,9 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any): void;
-    handleTicker(client: Client, message: any): any;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrder(client: Client, message: Dict): void;
+    handleTicker(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name paradex#watchFundingRate
@@ -74,7 +74,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name paradex#watchFundingRates
@@ -84,9 +84,9 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
-    handleFundingRate(client: Client, message: any): void;
-    parseFundingRateWs(contract: any, market?: Market): FundingRate;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
+    watchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: Dict): void;
+    parseFundingRateWs(contract: Dict, market?: Market): FundingRate;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
 }

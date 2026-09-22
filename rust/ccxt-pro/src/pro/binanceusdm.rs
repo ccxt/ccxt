@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -192,34 +196,34 @@ impl BinanceusdmCore {
         let mut restInstance = crate::exchanges::binanceusdm::BinanceusdmCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
-        return self.deep_extend(extended.clone(), &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
+        return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binanceusdm".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".to_string()));
+        m.insert("id".to_string(), Value::Str("binanceusdm".into()));
+        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://developers.binance.com/en".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg".into()));
+        m.insert("doc".to_string(), Value::Str("https://developers.binance.com/en".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("linear".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("linear".into())]));
     m
 }));
-        m.insert("defaultSubType".to_string(), Value::Str("linear".to_string()));
+        m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-5021".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5022".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5028".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-5021".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5022".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5028".to_string(), Value::Str("InvalidOrder".into()).clone());
     m
 }));
     m

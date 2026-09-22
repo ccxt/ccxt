@@ -226,6 +226,12 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade': { 'cost': 1 },
                         'v1/fapi/trade/position_history': { 'cost': 1 },
                         'v1/fapi/trade/positions': { 'cost': 1 },
+                        'v2/fapi/trade/open_order': { 'cost': 1 },
+                        'v2/fapi/trade/plan_order': { 'cost': 1 },
+                        'v2/fapi/trade/history_order': { 'cost': 1 },
+                        'v2/fapi/trade/history_trade': { 'cost': 1 },
+                        'v2/fapi/trade/position_history': { 'cost': 1 },
+                        'v2/fapi/trade/positions': { 'cost': 1 },
                         'v1/fapi/account/balance': { 'cost': 1 },
                         'v1/fapi/user_data/assets_margin': { 'cost': 1 },
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
@@ -248,6 +254,13 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order': { 'cost': 1 },
                         'v1/fapi/trade/leverage': { 'cost': 1 },
                         'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_place_order': { 'cost': 1 },
+                        'v2/fapi/trade/edit_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_edit_order': { 'cost': 1 },
+                        'v2/fapi/trade/cancel_order': { 'cost': 1 },
+                        'v2/fapi/trade/batch_cancel_order': { 'cost': 1 },
+                        'v2/fapi/trade/cancel_all_order': { 'cost': 1 },
                         'v1/fapi/user_data/margin_type': { 'cost': 1 },
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
                         'v1/agent/internal_withdrawal': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -604,8 +617,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        const timestamp = this.milliseconds();
-        const orderBook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        const orderBook = this.parseOrderBook(data, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
         orderBook['nonce'] = this.safeInteger(data, 'lastUpdateId');
         return orderBook;
     }
@@ -2563,11 +2575,10 @@ export default class bydfi extends Exchange {
         return this.parseBalance(data);
     }
     parseBalance(response) {
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -2620,9 +2631,6 @@ export default class bydfi extends Exchange {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {
-            const timestamp = this.milliseconds();
-            transfer['timestamp'] = timestamp;
-            transfer['datetime'] = this.iso8601(timestamp);
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;

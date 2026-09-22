@@ -14,117 +14,132 @@ use crate::exchange::ExchangeRuntime;
 impl Bit2cCore {
     /// Auto-generated wrapper for the `publicGetExchangesPairTicker` implicit endpoint.
     pub async fn public_get_exchanges_pair_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_ticker".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_exchanges_pair_ticker".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetExchangesPairOrderbook` implicit endpoint.
     pub async fn public_get_exchanges_pair_orderbook(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_orderbook".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_exchanges_pair_orderbook".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetExchangesPairOrderbookTop` implicit endpoint.
+    pub async fn public_get_exchanges_pair_orderbook_top(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_exchanges_pair_orderbook_top".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetExchangesPairTrades` implicit endpoint.
     pub async fn public_get_exchanges_pair_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_trades".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_exchanges_pair_trades".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetExchangesPairLasttrades` implicit endpoint.
     pub async fn public_get_exchanges_pair_lasttrades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_lasttrades".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_exchanges_pair_lasttrades".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMerchantCreateCheckout` implicit endpoint.
     pub async fn private_post_merchant_create_checkout(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_merchant_create_checkout".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_merchant_create_checkout".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFundsAddCoinFundsRequest` implicit endpoint.
     pub async fn private_post_funds_add_coin_funds_request(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_funds_add_coin_funds_request".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_funds_add_coin_funds_request".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFundsWithdrawCoin` implicit endpoint.
+    pub async fn private_post_funds_withdraw_coin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_funds_withdraw_coin".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddFund` implicit endpoint.
     pub async fn private_post_order_add_fund(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_fund".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_fund".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddOrder` implicit endpoint.
     pub async fn private_post_order_add_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderGetById` implicit endpoint.
     pub async fn private_post_order_get_by_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_get_by_id".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_get_by_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddOrderMarketPriceBuy` implicit endpoint.
     pub async fn private_post_order_add_order_market_price_buy(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_order_market_price_buy".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_order_market_price_buy".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddOrderMarketPriceSell` implicit endpoint.
     pub async fn private_post_order_add_order_market_price_sell(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_order_market_price_sell".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_order_market_price_sell".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderCancelOrder` implicit endpoint.
     pub async fn private_post_order_cancel_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_cancel_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_cancel_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddCoinFundsRequest` implicit endpoint.
     pub async fn private_post_order_add_coin_funds_request(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_coin_funds_request".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_coin_funds_request".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddStopOrder` implicit endpoint.
     pub async fn private_post_order_add_stop_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_add_stop_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_order_add_stop_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPaymentGetMyId` implicit endpoint.
     pub async fn private_post_payment_get_my_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_payment_get_my_id".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_payment_get_my_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPaymentSend` implicit endpoint.
     pub async fn private_post_payment_send(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_payment_send".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_payment_send".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPaymentPay` implicit endpoint.
     pub async fn private_post_payment_pay(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_payment_pay".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_payment_pay".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountBalance` implicit endpoint.
     pub async fn private_get_account_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_balance".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_account_balance".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountBalanceV2` implicit endpoint.
     pub async fn private_get_account_balance_v2(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_balance_v2".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_account_balance_v2".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrderMyOrders` implicit endpoint.
     pub async fn private_get_order_my_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_my_orders".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_order_my_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrderGetById` implicit endpoint.
     pub async fn private_get_order_get_by_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_get_by_id".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_order_get_by_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrderAccountHistory` implicit endpoint.
     pub async fn private_get_order_account_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_account_history".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_order_account_history".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrderOrderHistory` implicit endpoint.
     pub async fn private_get_order_order_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_order_history".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_order_order_history".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetOrderHistoryByOrderId` implicit endpoint.
+    pub async fn private_get_order_history_by_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_order_history_by_order_id".into()), optional_args).await
     }
 
 }

@@ -70,6 +70,18 @@ abstract class extended extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_public_get_interest_info_rate_curves($params = array()) {
+        return $this->request('interest/info/rate-curves', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_public_get_interest_info_latest_rate_curves($params = array()) {
+        return $this->request('interest/info/latest-rate-curves', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_user_accounts($params = array()) {
         return $this->request('user/accounts', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -226,6 +238,72 @@ abstract class extended extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_get_portfolio_charts_pnl_percentage($params = array()) {
+        return $this->request('portfolio/charts/pnl/percentage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_charts_pnl_cumulative($params = array()) {
+        return $this->request('portfolio/charts/pnl/cumulative', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_charts_pnl_cumulative_percentage($params = array()) {
+        return $this->request('portfolio/charts/pnl/cumulative/percentage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_charts_vault_equities($params = array()) {
+        return $this->request('portfolio/charts/vault-equities', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_charts_max_drawdown($params = array()) {
+        return $this->request('portfolio/charts/max-drawdown', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_charts_funding($params = array()) {
+        return $this->request('portfolio/charts/funding', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_accounts_summary($params = array()) {
+        return $this->request('portfolio/accounts/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_accounts_health($params = array()) {
+        return $this->request('portfolio/accounts/health', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_accounts_performance($params = array()) {
+        return $this->request('portfolio/accounts/performance', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_funding_stats($params = array()) {
+        return $this->request('portfolio/funding/stats', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_portfolio_funding_history($params = array()) {
+        return $this->request('portfolio/funding/history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_get_vault_public_performance($params = array()) {
         return $this->request('vault/public/performance', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -244,8 +322,38 @@ abstract class extended extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1_private_get_interest_key_metrics($params = array()) {
+        return $this->request('interest/key-metrics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_interest_daily_metrics($params = array()) {
+        return $this->request('interest/daily-metrics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_interest_payment_chart($params = array()) {
+        return $this->request('interest/payment-chart', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_get_interest_payments($params = array()) {
+        return $this->request('interest/payments', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1_private_post_user_order($params = array()) {
         return $this->request('user/order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1_private_post_user_order_rfq($params = array()) {
+        return $this->request('user/order/rfq', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -372,6 +480,18 @@ abstract class extended extends \ccxt\async\Exchange {
      */
     public function v1PublicGetInfoBuilderDashboard($params = array()) {
         return $this->request('info/builder/dashboard', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PublicGetInterestInfoRateCurves($params = array()) {
+        return $this->request('interest/info/rate-curves', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PublicGetInterestInfoLatestRateCurves($params = array()) {
+        return $this->request('interest/info/latest-rate-curves', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -532,6 +652,72 @@ abstract class extended extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivateGetPortfolioChartsPnlPercentage($params = array()) {
+        return $this->request('portfolio/charts/pnl/percentage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioChartsPnlCumulative($params = array()) {
+        return $this->request('portfolio/charts/pnl/cumulative', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioChartsPnlCumulativePercentage($params = array()) {
+        return $this->request('portfolio/charts/pnl/cumulative/percentage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioChartsVaultEquities($params = array()) {
+        return $this->request('portfolio/charts/vault-equities', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioChartsMaxDrawdown($params = array()) {
+        return $this->request('portfolio/charts/max-drawdown', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioChartsFunding($params = array()) {
+        return $this->request('portfolio/charts/funding', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioAccountsSummary($params = array()) {
+        return $this->request('portfolio/accounts/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioAccountsHealth($params = array()) {
+        return $this->request('portfolio/accounts/health', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioAccountsPerformance($params = array()) {
+        return $this->request('portfolio/accounts/performance', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioFundingStats($params = array()) {
+        return $this->request('portfolio/funding/stats', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetPortfolioFundingHistory($params = array()) {
+        return $this->request('portfolio/funding/history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivateGetVaultPublicPerformance($params = array()) {
         return $this->request('vault/public/performance', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -550,8 +736,38 @@ abstract class extended extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v1PrivateGetInterestKeyMetrics($params = array()) {
+        return $this->request('interest/key-metrics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetInterestDailyMetrics($params = array()) {
+        return $this->request('interest/daily-metrics', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetInterestPaymentChart($params = array()) {
+        return $this->request('interest/payment-chart', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivateGetInterestPayments($params = array()) {
+        return $this->request('interest/payments', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v1PrivatePostUserOrder($params = array()) {
         return $this->request('user/order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v1PrivatePostUserOrderRfq($params = array()) {
+        return $this->request('user/order/rfq', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

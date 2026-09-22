@@ -67,7 +67,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.77'; }
+    static { this.ccxtVersion = '4.5.82'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -672,17 +672,11 @@ class BaseExchange {
                 }
                 // node: prefer the undici module for tunable pooling and proxy support
                 try {
-                    // undici is the engine behind node's built-in fetch - importing it directly gives us
-                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
-                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
-                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
-                    //
-                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
-                    // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
-                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
-                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
-                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    // undici (the engine behind node's fetch) gives tunable keep-alive pooling, ProxyAgent,
+                    // and the low-level undici.request api used in undiciRequest (~2x faster than undici.fetch)
+                    // keep undici >= 7.29.1: 7.28.0-7.29.0 deferred every write on an idle kept-alive socket
+                    // behind setTimeout(0) (~1.3ms/request, p50 1.74ms vs 0.43ms), fixed upstream in
+                    // https://github.com/nodejs/undici/issues/5493 (PRs 5499 and 5707)
                     const undiciModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'undici')); });
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -729,7 +723,10 @@ class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
+            // the per-attempt timeout is deliberately not set here: node tries addresses sequentially,
+            // aborting each attempt at the timeout before advancing, so any value below a plausible wan
+            // handshake rtt makes every such origin unreachable - omitting it defers to
+            // net.getDefaultAutoSelectFamilyAttemptTimeout() (250ms, tunable per host)
         };
         if (!this.shouldValidateServerSsl()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -1239,15 +1236,9 @@ class BaseExchange {
     onJsonResponse(responseBody) {
         // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
-        //
-        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
-        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
-        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
-        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
-        //
-        // no quoteJsonNumbers guard needed here: parseJson returns early when
-        // quoteJsonNumbers is false, so this is only reached after an integer
-        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        // perf: this pass is ~43% of parseJson on 0.3-1.9MB payloads; JS scan/split/rope
+        // reimplementations all lose to the single C++ regex replace - keep the regex.
+        // no quoteJsonNumbers guard: parseJson only reaches this after finding an unsafe integer
         return responseBody.replace(QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
     async loadMarketsHelper(reload = false, params = {}) {
@@ -1461,12 +1452,13 @@ class BaseExchange {
             else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
                 finalAgent = httpProxyAgent;
             }
-            //
+            const wsThrottler = new Throttler(this.tokenBucket);
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
+                'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler(this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
@@ -1518,21 +1510,9 @@ class BaseExchange {
     }
     watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: Future.race over client.future (hash) for each messageHash, then
+        // client.connect ().then (send subscribe message once per subscribeHash);
+        // the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMultiple() requires a url argument');
@@ -1540,15 +1520,8 @@ class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         const future = Future.Future.race(messageHashes.map((messageHash) => client.future(messageHash)));
         // read and write subscription, this is done before connecting the client
@@ -1619,21 +1592,8 @@ class BaseExchange {
     }
     watch(url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: client.future (messageHash), then client.connect ().then (send subscribe
+        // message once per subscribeHash); the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watch() requires a url argument');
@@ -1644,15 +1604,8 @@ class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         if ((subscribeHash === undefined) && (messageHash !== undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
@@ -2104,11 +2057,17 @@ class BaseExchange {
     unlockId() {
         return undefined; // c# stub
     }
+    lockLastNonce() {
+        return undefined; // c# stub
+    }
+    unlockLastNonce() {
+        return undefined; // c# stub
+    }
     async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
-            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter-signer.wasm". The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be built from source using the official Lighter SDK or downloaded here https://github.com/ccxt/lighter-wasm. Please provide the path to it, the binary has to match your ccxt version.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter-signer.wasm"');
         }
         if (!isNode) {
             throw new errors.NotSupported(this.id + ' loadLighterLibrary() is only supported in node environment.');
@@ -2132,7 +2091,7 @@ class BaseExchange {
     lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex) {
         const url = this.implodeHostname(this.urls['api']['public']);
         const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterCreateClient', res, { 'api_key_index': apiKeyIndex, 'account_index': accountIndex });
         return signer;
     }
     lighterSignCreateGroupedOrders(signer, request) {
@@ -2153,91 +2112,115 @@ class BaseExchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, 1, // skip nonce
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateGroupedOrders', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCreateOrder(signer, request) {
-        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateOrder', res, request);
         return [res.txType, res.txInfo];
     }
-    checkLighterSignedError(result) {
+    checkLighterSignedError(method, result, request = undefined) {
         if ('error' in result) {
-            throw new Error('Lighter signing error: ' + result.error);
+            this.raiseLighterSignerError(method, result['error'], request);
         }
+    }
+    raiseLighterSignerError(method, error, request = undefined) {
+        const errorText = String(error);
+        let message = method + '() failed with error: ' + errorText;
+        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        // particular error means it was called with indices it has no client for. When the
+        // indices it reports are not the ones ccxt passed, the signer binary is not the one
+        // this version of ccxt binds against and the arguments are landing in the wrong slots
+        if (errorText.indexOf('client is not created for') >= 0) {
+            let passed = '';
+            if (request !== undefined) {
+                passed = ' ccxt signed this request with apiKeyIndex: ' + this.safeString(request, 'api_key_index') + ' accountIndex: ' + this.safeString(request, 'account_index') + '.';
+            }
+            message += '.' + passed + ' If those indices are not the ones reported above then the signer binary set in options["libraryPath"] is not the one this version of ccxt binds against. The signer has to match this version of ccxt: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.';
+        }
+        throw new Error(message);
     }
     lighterSignCancelOrder(signer, request) {
         const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCancelOrder', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignWithdraw(signer, request) {
         const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignWithdraw', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateSubAccount', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCancelAllOrders(signer, request) {
-        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], 1, // skip nonce
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], this.safeInteger(request, 'cancel_all_market_index', 255), // NilMarketIndex, every market
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCancelAllOrders', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignModifyOrder(signer, request) {
-        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
-        request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
+        request['nonce'], this.safeInteger(request, 'order_version', 0), // NilOrderVersion
+        request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError('lighterSignModifyOrder', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignTransfer(signer, request) {
         const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignTransfer', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignUpdateLeverage(signer, request) {
         const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignUpdateLeverage', res, request);
         return [res.txType, res.txInfo];
     }
     lighterCreateAuthToken(signer, request) {
         const res = globalThis.CreateAuthToken(request['deadline'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterCreateAuthToken', res, request);
         return res.authToken;
     }
     lighterSignUpdateMargin(signer, request) {
         const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignUpdateMargin', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignApproveIntegrator', res, request);
         return [res.txType, res.txInfo, res.messageToSign];
     }
     // eslint-disable-next-line no-unused-vars
     lighterGenerateApiKey(signer) {
         const res = globalThis.GenerateAPIKey();
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterGenerateApiKey', res, undefined);
         return [res.privateKey, res.publicKey];
     }
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignChangePubkey', res, request);
         return [res.txType, res.txInfo, res.messageToSign];
     }
     setLastRestRequestTimestamp() {
@@ -4833,7 +4816,8 @@ class BaseExchange {
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
-                close = Precise["default"].stringMul(average, '2');
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise["default"].stringSub(Precise["default"].stringMul(average, '2'), open);
             }
             // average
             if (average === undefined && close !== undefined) {
@@ -5604,6 +5588,22 @@ class BaseExchange {
     nonce() {
         return this.seconds();
     }
+    /**
+     * @method
+     * @ignore
+     * @name Exchange#incrementingNonce
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
+     */
+    incrementingNonce() {
+        const currentNonce = this.nonce();
+        this.lockLastNonce();
+        const lastNonce = this.safeInteger(this.options, 'lastNonce', 0);
+        const result = (currentNonce > lastNonce) ? currentNonce : lastNonce + 1;
+        this.options['lastNonce'] = result;
+        this.unlockLastNonce();
+        return result;
+    }
     setHeaders(headers) {
         return headers;
     }
@@ -5790,28 +5790,28 @@ class BaseExchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', retries);
         let retryDelay = 0;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', retryDelay);
-        let fetchData = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            let fetchData = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
                 this.setLastRequest(request);
                 const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['response']['body'] = response;
                     this.addFetchCache(fetchData);
                 }
                 return response;
             }
             catch (e) {
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['error'] = e;
                     this.addFetchCache(fetchData);
                 }
@@ -6116,7 +6116,11 @@ class BaseExchange {
             return mapping[key];
         }
         else {
-            throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping');
+            const keys = Object.keys(mapping);
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + keys.join(', '));
         }
     }
     async fetchCrossBorrowRate(code, params = {}) {
@@ -8090,7 +8094,9 @@ class BaseExchange {
         const year = date.slice(0, 2);
         const month = date.slice(2, 4);
         const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z';
         return reconstructedDate;
     }
     convertExpireDateToMarketIdDate(date) {

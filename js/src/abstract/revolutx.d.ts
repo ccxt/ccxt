@@ -13,6 +13,7 @@ interface Exchange {
     privateGet10OrdersVenueOrderId(params?: {}): Promise<Dict | List>;
     privateGet10OrdersFillsVenueOrderId(params?: {}): Promise<Dict | List>;
     privateGet10TradesPrivateSymbol(params?: {}): Promise<Dict | List>;
+    privateGet10Transactions(params?: {}): Promise<Dict | List>;
     privatePost10Orders(params?: {}): Promise<Dict | List>;
     privatePut10OrdersVenueOrderId(params?: {}): Promise<Dict | List>;
     privateDelete10Orders(params?: {}): Promise<Dict | List>;

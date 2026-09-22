@@ -78,6 +78,8 @@ public partial class BaseExchange
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
 
+    // digest "binary" returns Byte[] — the signature must stay object so a binary-mode
+    // call site cannot be declared/composed as a string (see build/csharp-local-types.js)
     public object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Hash(request2, algorithm2, digest2);
 
     public static object Hash(object request2, Delegate hash = null, object digest2 = null)
@@ -391,9 +393,11 @@ public partial class BaseExchange
                          .ToArray();
     }
 
-    public object ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
+    // every return path of Ecdsa is the fresh { r, s, v } row it builds (or a throw), so the
+    // declared type names the box the value already has; the wrapper forwards it unchanged
+    public Dictionary<string, object> ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
 
-    public static object Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
+    public static Dictionary<string, object> Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
     {
         var curveName = "secp256k1";
         if (curve != null)
@@ -443,9 +447,9 @@ public partial class BaseExchange
         };
     }
 
-    public object eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
+    public string eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
 
-    public static object Eddsa(object request, object secret, object alg = null)
+    public static string Eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
         byte[] msg;

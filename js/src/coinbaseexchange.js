@@ -179,11 +179,15 @@ export default class coinbaseexchange extends Exchange {
                         'time': { 'cost': 1 },
                         'products/spark-lines': { 'cost': 1 },
                         'products/volume-summary': { 'cost': 1 },
+                        'wrapped-assets': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': { 'cost': 1 },
+                        'address-book/counterparty': { 'cost': 1 },
                         'accounts': { 'cost': 1 },
                         'accounts/{id}': { 'cost': 1 },
                         'accounts/{id}/holds': { 'cost': 1 },
@@ -213,9 +217,11 @@ export default class coinbaseexchange extends Exchange {
                         'reports/{report_id}': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
                         'transfers/{transfer_id}': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
                         'users/self/exchange-limits': { 'cost': 1 },
                         'users/self/hold-balances': { 'cost': 1 },
                         'users/self/trailing-volume': { 'cost': 1 },
+                        'users/{user_id}/trading-volumes': { 'cost': 1 },
                         'withdrawals/fee-estimate': { 'cost': 1 },
                         'conversions/{conversion_id}': { 'cost': 1 },
                         'conversions': { 'cost': 1 },
@@ -231,12 +237,18 @@ export default class coinbaseexchange extends Exchange {
                         'loans/interest': { 'cost': 1 },
                         'loans/assets': { 'cost': 1 },
                         'loans': { 'cost': 1 },
+                        'loans/options': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/redeem/{redeem_id}': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': { 'cost': 1 },
                     },
                     'post': {
                         'conversions': { 'cost': 1 },
                         'deposits/coinbase-account': { 'cost': 1 },
                         'deposits/payment-method': { 'cost': 1 },
                         'coinbase-accounts/{id}/addresses': { 'cost': 1 },
+                        'address-book': { 'cost': 1 },
                         'funding/repay': { 'cost': 1 },
                         'orders': { 'cost': 1 },
                         'position/close': { 'cost': 1 },
@@ -246,8 +258,14 @@ export default class coinbaseexchange extends Exchange {
                         'reports': { 'cost': 1 },
                         'withdrawals/coinbase': { 'cost': 1 },
                         'withdrawals/coinbase-account': { 'cost': 1 },
+                        'withdrawals/counterparty': { 'cost': 1 },
                         'withdrawals/crypto': { 'cost': 1 },
                         'withdrawals/payment-method': { 'cost': 1 },
+                        'transfers/{transfer_id}/travel-rules': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
+                        'users/{user_id}/settlement-preferences': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
                         'loans/open': { 'cost': 1 },
                         'loans/repay-interest': { 'cost': 1 },
                         'loans/repay-principal': { 'cost': 1 },
@@ -256,10 +274,13 @@ export default class coinbaseexchange extends Exchange {
                         'orders': { 'cost': 1 },
                         'orders/client:{client_oid}': { 'cost': 1 },
                         'orders/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
+                        'travel-rules/{id}': { 'cost': 1 },
                     },
                     'put': {
                         'profiles/{id}/deactivate': { 'cost': 1 },
                         'profiles/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
                     },
                 },
             },
@@ -662,7 +683,7 @@ export default class coinbaseexchange extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': this.safeValue(market, 'margin_enabled'),
+                'margin': this.safeBool(market, 'margin_enabled'),
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -876,10 +897,9 @@ export default class coinbaseexchange extends Exchange {
         const symbol = (market === undefined) ? undefined : market['symbol'];
         if (Array.isArray(ticker)) {
             last = this.safeString(ticker, 4);
-            timestamp = this.milliseconds();
         }
         else {
-            timestamp = this.parse8601(this.safeValue(ticker, 'time'));
+            timestamp = this.parse8601(this.safeString(ticker, 'time'));
             bid = this.safeString(ticker, 'bid');
             ask = this.safeString(ticker, 'ask');
             high = this.safeString(ticker, 'high');
@@ -952,8 +972,8 @@ export default class coinbaseexchange extends Exchange {
         const delimiter = '-';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const entry = this.safeValue(response, marketId, []);
-            const first = this.safeValue(entry, 0, []);
+            const entry = this.safeList(response, marketId, []);
+            const first = this.safeList(entry, 0, []);
             const market = this.safeMarket(marketId, undefined, delimiter);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(first, market);
@@ -1361,7 +1381,7 @@ export default class coinbaseexchange extends Exchange {
         const type = this.safeString(order, 'type');
         const side = this.safeString(order, 'side');
         const timeInForce = this.safeString(order, 'time_in_force');
-        const postOnly = this.safeValue(order, 'post_only');
+        const postOnly = this.safeBool(order, 'post_only');
         const triggerPrice = this.safeNumber(order, 'stop_price');
         const clientOrderId = this.safeString(order, 'client_oid');
         return this.safeOrder({
@@ -1569,7 +1589,7 @@ export default class coinbaseexchange extends Exchange {
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        const postOnly = this.safeValue2(params, 'postOnly', 'post_only', false);
+        const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
         if (postOnly === true) {
             request['post_only'] = true;
         }
@@ -1774,10 +1794,10 @@ export default class coinbaseexchange extends Exchange {
         const amount = this.parseNumber(amountString);
         const after = this.parseNumber(afterString);
         const before = this.parseNumber(beforeString);
-        const timestamp = this.parse8601(this.safeValue(item, 'created_at'));
+        const timestamp = this.parse8601(this.safeString(item, 'created_at'));
         const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
         const code = this.safeCurrencyCode(undefined, currency);
-        const details = this.safeValue(item, 'details', {});
+        const details = this.safeDict(item, 'details', {});
         let account = undefined;
         let referenceAccount = undefined;
         let referenceId = undefined;
@@ -1831,7 +1851,7 @@ export default class coinbaseexchange extends Exchange {
         await this.loadAccounts();
         const currency = this.currency(code);
         const accountsByCurrencyCode = this.indexBy(this.accounts, 'code');
-        const account = this.safeValue(accountsByCurrencyCode, code);
+        const account = this.safeDict(accountsByCurrencyCode, code);
         if (account === undefined) {
             throw new ExchangeError(this.id + ' fetchLedger() could not find account id for ' + code);
         }
@@ -1886,7 +1906,7 @@ export default class coinbaseexchange extends Exchange {
             if (code !== undefined) {
                 currency = this.currency(code);
                 const accountsByCurrencyCode = this.indexBy(this.accounts, 'code');
-                const account = this.safeValue(accountsByCurrencyCode, code);
+                const account = this.safeDict(accountsByCurrencyCode, code);
                 if (account === undefined) {
                     throw new ExchangeError(this.id + ' fetchDepositsWithdrawals() could not find account id for ' + code);
                 }
@@ -1934,7 +1954,7 @@ export default class coinbaseexchange extends Exchange {
             response = this.toArray(transfers);
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString(response[i], 'account_id');
-                const account = this.safeValue(this.accountsById, account_id);
+                const account = this.safeDict(this.accountsById, account_id);
                 const codeInner = this.safeString(account, 'code');
                 response[i]['currency'] = codeInner;
             }
@@ -2052,7 +2072,7 @@ export default class coinbaseexchange extends Exchange {
         //        }
         //    ]
         //
-        const details = this.safeValue(transaction, 'details', {});
+        const details = this.safeDict(transaction, 'details', {});
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at'));
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -2122,7 +2142,7 @@ export default class coinbaseexchange extends Exchange {
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy(accounts, 'currency');
         }
         const currencyId = currency['id'];
-        const account = this.safeValue(this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const account = this.safeDict(this.options['coinbaseAccountsByCurrencyId'], currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress(this.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");

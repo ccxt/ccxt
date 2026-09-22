@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -412,6 +412,12 @@ export default class htx extends Exchange {
                             'v2/etp/transactions': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/transaction': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/limit': { 'cost': 1 } as Endpoint<Dict>,
+                            // Referral
+                            'v2/invitee/rebate/referrals': { 'cost': 10 } as Endpoint<Dict>, // 1 request per second
+                            'v2/invitee/rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/all_rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/invitee/rebate/batcher_rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Account
@@ -462,6 +468,8 @@ export default class htx extends Exchange {
                             'v2/etp/redemption': { 'cost': 5 } as Endpoint<Dict>,
                             'v2/etp/{transactId}/cancel': { 'cost': 10 } as Endpoint<Dict>,
                             'v2/etp/batch-cancel': { 'cost': 50 } as Endpoint<Dict>,
+                            // Universal Transfer
+                            'v5/account/universal_transfer': { 'cost': 4 } as Endpoint<Dict>, // 5 requests per 2 seconds
                         },
                     },
                 },
@@ -601,6 +609,13 @@ export default class htx extends Exchange {
                             'v5/algo/order/opens': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/order/history': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/instruments': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/statistics': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/profit-sharing-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/followers': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
                             // Future Account Interface
@@ -735,6 +750,12 @@ export default class htx extends Exchange {
                             'v5/account/fee_deduction_currency': { 'cost': 0.20834 } as Endpoint<Dict>,
                             'v5/algo/order': { 'cost': 0.41679 } as Endpoint<Dict>,
                             'v5/algo/cancel_orders': { 'cost': 0.41679 } as Endpoint<Dict>,
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/follower-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/config': { 'cost': 2 } as Endpoint<Dict>,
+                            'api/v6/copyTrading/trader/apikey': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1266,7 +1287,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         // the former statuspage endpoints (status*.huobigroup.com) were
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
@@ -1344,8 +1365,8 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
-        const options = this.safeValue (this.options, 'fetchTime', {});
+    override async fetchTime (params: Dict = {}): Promise<Int> {
+        const options = this.safeDict (this.options, 'fetchTime', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
@@ -1397,7 +1418,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1421,12 +1442,12 @@ export default class htx extends Exchange {
         //         "success":true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
-    override async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
+    override async fetchTradingLimits (symbols: Strings = undefined, params: Dict = {}): Promise<Dict> {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -1456,7 +1477,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    async fetchTradingLimitsById (id: Str, params = {}) {
+    async fetchTradingLimitsById (id: Str, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'symbol': id,
         };
@@ -1477,10 +1498,10 @@ export default class htx extends Exchange {
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+        return this.parseTradingLimits (this.safeDict (response, 'data', {}));
     }
 
-    parseTradingLimits (limits: any, symbol: Str = undefined, params = {}) {
+    parseTradingLimits (limits: Dict, symbol: Str = undefined, params: Dict = {}): Dict {
         //
         //   {                                "symbol": "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -1507,7 +1528,7 @@ export default class htx extends Exchange {
         };
     }
 
-    override costToPrecision (symbol: Str, cost: any) {
+    override costToPrecision (symbol: Str, cost: any): string {
         return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
@@ -1522,7 +1543,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
@@ -1565,7 +1586,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params = {}): Promise<Market[]> {
+    async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params: Dict = {}): Promise<Market[]> {
         const isSpot = (type === 'spot');
         const request: Dict = {};
         let response = undefined;
@@ -1890,9 +1911,9 @@ export default class htx extends Exchange {
         };
         for (let i = 0; i < futureMarkets.length; i++) {
             const market = futureMarkets[i];
-            const info = this.safeValue (market, 'info', {});
+            const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
-            const contractSuffix = this.safeValue (futuresCharsMaps, contractType);
+            const contractSuffix = this.safeString (futuresCharsMaps, contractType);
             // see comment on formats a bit above
             const constructedId = (market['linear'] === true) ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
@@ -2018,7 +2039,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2083,7 +2104,7 @@ export default class htx extends Exchange {
         //         "ts":1637502670059
         //     }
         //
-        const tick = this.safeValue (response, 'tick', {});
+        const tick = this.safeDict (response, 'tick', {});
         const ticker = this.parseTicker (tick, market);
         const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
@@ -2103,7 +2124,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2216,7 +2237,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
      */
-    override async fetchLastPrices (symbols: Strings = undefined, params = {}) {
+    override async fetchLastPrices (symbols: Strings = undefined, params: Dict = {}): Promise<LastPrices> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2305,12 +2326,12 @@ export default class htx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const tick = this.safeValue (response, 'tick', {});
+        const tick = this.safeDict (response, 'tick', {});
         const data = this.safeList (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -2340,7 +2361,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2417,7 +2438,7 @@ export default class htx extends Exchange {
             if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
-            const tick = this.safeValue (response, 'tick');
+            const tick = this.safeDict (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
             const result = this.parseOrderBook (tick, symbol, timestamp);
             result['nonce'] = this.safeInteger (tick, 'version');
@@ -2610,7 +2631,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2636,7 +2657,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2662,7 +2683,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2861,7 +2882,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2917,10 +2938,10 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         let result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue (data[i], 'data', []);
+            const trades = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -2970,7 +2991,7 @@ export default class htx extends Exchange {
      * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3110,7 +3131,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3128,7 +3149,7 @@ export default class htx extends Exchange {
         return this.parseAccounts (data);
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: Dict): Account {
         //
         //     {
         //         "id": 5202591,
@@ -3138,7 +3159,7 @@ export default class htx extends Exchange {
         //     }
         //
         const typeId = this.safeString (account, 'type');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         const type = this.safeValue (accountsById, typeId, typeId);
         return {
             'info': account,
@@ -3159,7 +3180,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params = {}): Promise<Str> {
+    async fetchAccountIdByType (type: string, marginMode: Str = undefined, symbol: Str = undefined, params: Dict = {}): Promise<Str> {
         const accounts = await this.loadAccounts ();
         const accountId = this.safeString2 (params, 'accountId', 'account-id');
         if (accountId !== undefined) {
@@ -3178,7 +3199,7 @@ export default class htx extends Exchange {
         }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const info = this.safeValue (account, 'info');
+            const info = this.safeDict (account, 'info');
             const subtype = this.safeString (info, 'subtype');
             const typeFromAccount = this.safeString (account, 'type');
             if (type === 'margin') {
@@ -3189,7 +3210,7 @@ export default class htx extends Exchange {
                 return this.safeString (account, 'id');
             }
         }
-        const defaultAccount = this.safeValue (accounts, 0, {});
+        const defaultAccount = this.safeDict (accounts, 0, {});
         return this.safeString (defaultAccount, 'id');
     }
 
@@ -3201,7 +3222,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
@@ -3324,7 +3345,7 @@ export default class htx extends Exchange {
         });
     }
 
-    override networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined) {
+    override networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): Str {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys (this.options['networkNamesByChainIds']);
         const keysLength = keys.length;
@@ -3335,7 +3356,7 @@ export default class htx extends Exchange {
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
-    override networkCodeToId (networkCode: Str, currencyCode: Str = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    override networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (networkCode === undefined) {
             return undefined;
         }
@@ -3347,7 +3368,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+        const uniqueNetworkIds = this.safeDict (this.options['networkChainIdsByNames'], currencyCode, {});
         if (networkCode in uniqueNetworkIds) {
             return uniqueNetworkIds[networkCode];
         } else {
@@ -3371,7 +3392,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3603,7 +3624,7 @@ export default class htx extends Exchange {
                 }
                 result = this.safeBalance (result);
             } else {
-                const balances = this.safeValue (data, 'list', []);
+                const balances = this.safeList (data, 'list', []);
                 for (let i = 0; i < balances.length; i++) {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
@@ -3650,7 +3671,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3851,7 +3872,7 @@ export default class htx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseMarginBalanceHelper (balance: any, code: any, result: any) {
+    parseMarginBalanceHelper (balance: Dict, code: string, result: Dict) {
         let account: NullableDict = undefined;
         if (code in result) {
             account = result[code];
@@ -3873,7 +3894,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchSpotOrdersByStates (states: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -3949,15 +3970,15 @@ export default class htx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchSpotOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchClosedSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchSpotOrdersByStates ('filled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
         }
@@ -3968,7 +3989,7 @@ export default class htx extends Exchange {
         let request: Dict = {};
         let response = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         const stopLoss = this.safeBool (params, 'stopLoss');
         const takeProfit = this.safeBool (params, 'takeProfit');
         const trailing = this.safeBool (params, 'trailing', false);
@@ -4107,12 +4128,12 @@ export default class htx extends Exchange {
         }
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
-            orders = this.safeValue (orders, 'orders', []);
+            orders = this.safeList (orders, 'orders', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedContractOrders() requires a symbol argument');
         }
@@ -4123,7 +4144,7 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         if (market['linear'] === true) {
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
             const stopLoss = this.safeBool (params, 'stopLoss');
             const takeProfit = this.safeBool (params, 'takeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
@@ -4161,7 +4182,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.takeProfit] *contract only* set to true if you want to fetch take profit orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4200,7 +4221,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4224,7 +4245,7 @@ export default class htx extends Exchange {
             const request: Dict = {};
             if (this.safeBool (market, 'linear') === true) {
                 const trigger = this.safeBool2 (params, 'stop', 'trigger');
-                const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+                const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
                 const stopLoss = this.safeBool (params, 'stopLoss');
                 const takeProfit = this.safeBool (params, 'takeProfit');
                 const trailing = this.safeBool (params, 'trailing', false);
@@ -4259,7 +4280,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4299,7 +4320,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4661,7 +4682,7 @@ export default class htx extends Exchange {
         //
         let orders = this.safeValue (response, 'data');
         if (!Array.isArray (orders)) {
-            orders = this.safeValue (orders, 'orders', []);
+            orders = this.safeList (orders, 'orders', []);
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -5060,7 +5081,7 @@ export default class htx extends Exchange {
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    async createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -5089,10 +5110,10 @@ export default class htx extends Exchange {
         };
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
-        const options = this.safeValue (this.options, market['type'], {});
+        const options = this.safeDict (this.options, market['type'], {});
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
         if (triggerPrice === undefined) {
-            const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
+            const stopOrderTypes = this.safeDict (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
@@ -5121,7 +5142,7 @@ export default class htx extends Exchange {
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
+            const broker = this.safeDict (this.options, 'broker', {});
             const brokerId = this.safeString (broker, 'id');
             request['client-order-id'] = brokerId + this.uuid ();
         } else {
@@ -5163,7 +5184,7 @@ export default class htx extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
+        const limitOrderTypes = this.safeDict (options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -5171,7 +5192,7 @@ export default class htx extends Exchange {
         return this.extend (request, params);
     }
 
-    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -5360,7 +5381,7 @@ export default class htx extends Exchange {
                 request['lever_rate'] = this.safeIntegerN (params, [ 'leverRate', 'lever_rate', 'leverage' ], 1);
             }
         }
-        const broker = this.safeValue (this.options, 'broker', {});
+        const broker = this.safeDict (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
         params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged' ]);
@@ -5411,7 +5432,7 @@ export default class htx extends Exchange {
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5563,13 +5584,13 @@ export default class htx extends Exchange {
                 'amount': amount,
             }) as Order;
         } else if (isStopLossTriggerOrder) {
-            data = this.safeValue (response, 'data', {});
-            result = this.safeValue (data, 'sl_order', {});
+            data = this.safeDict (response, 'data', {});
+            result = this.safeDict (data, 'sl_order', {});
         } else if (isTakeProfitTriggerOrder) {
-            data = this.safeValue (response, 'data', {});
-            result = this.safeValue (data, 'tp_order', {});
+            data = this.safeDict (response, 'data', {});
+            result = this.safeDict (data, 'tp_order', {});
         } else {
-            result = this.safeValue (response, 'data', {});
+            result = this.safeDict (response, 'data', {});
         }
         if (result === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
@@ -5589,7 +5610,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5611,7 +5632,7 @@ export default class htx extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -5715,15 +5736,15 @@ export default class htx extends Exchange {
         //
         let result: NullableDict = undefined;
         if (this.safeBool (market, 'spot') === true) {
-            result = this.safeValue (response, 'data', []);
+            result = this.safeList (response, 'data', []);
         } else {
             const data = this.safeValue (response, 'data');
             if (Array.isArray (data)) {
                 result = data;
             } else {
-                const batchData = this.safeValue (response, 'data', {});
-                const success = this.safeValue (batchData, 'success', []);
-                const errors = this.safeValue (batchData, 'errors', []);
+                const batchData = this.safeDict (response, 'data', {});
+                const success = this.safeList (batchData, 'success', []);
+                const errors = this.safeList (batchData, 'errors', []);
                 result = this.arrayConcat (success, errors);
             }
         }
@@ -5746,7 +5767,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5926,7 +5947,7 @@ export default class htx extends Exchange {
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5947,7 +5968,7 @@ export default class htx extends Exchange {
             // 'symbol': market['settleId'],
         };
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
         params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
         let response = undefined;
         if (marketType === 'spot') {
@@ -6202,7 +6223,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6257,7 +6278,7 @@ export default class htx extends Exchange {
             }
             request['contract_code'] = this.safeString (market, 'id');
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
-            const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+            const stopLossTakeProfit = this.safeBool (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
             if (this.safeBool (market, 'linear') === true) {
@@ -6329,7 +6350,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6389,7 +6410,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
+    override async fetchDepositAddressesByNetwork (code: string, params: Dict = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6411,7 +6432,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
@@ -6425,7 +6446,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6436,7 +6457,7 @@ export default class htx extends Exchange {
         return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
-    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params = {}): Promise<DepositAddress[]> {
+    async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params: Dict = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6459,7 +6480,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
@@ -6484,7 +6505,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -6548,7 +6569,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -6735,7 +6756,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -6759,13 +6780,13 @@ export default class htx extends Exchange {
             amountPrecision = '0';
         }
         amount = parseFloat (amountPrecision);
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
-                const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
+                const targetNetwork = this.safeDict (currency['networks'], networkCode, {});
                 fee = this.safeNumber (targetNetwork, 'fee');
                 if (fee === undefined) {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
@@ -6879,7 +6900,7 @@ export default class htx extends Exchange {
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6973,7 +6994,7 @@ export default class htx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7027,7 +7048,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    override async fetchIsolatedBorrowRates (params = {}): Promise<IsolatedBorrowRates> {
+    override async fetchIsolatedBorrowRates (params: Dict = {}): Promise<IsolatedBorrowRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7061,7 +7082,7 @@ export default class htx extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseIsolatedBorrowRates (data);
     }
 
@@ -7091,9 +7112,9 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const currencies = this.safeValue (info, 'currencies', []);
-        const baseData = this.safeValue (currencies, 0);
-        const quoteData = this.safeValue (currencies, 1);
+        const currencies = this.safeList (info, 'currencies', []);
+        const baseData = this.safeDict (currencies, 0);
+        const quoteData = this.safeDict (currencies, 1);
         const baseId = this.safeString (baseData, 'currency');
         const quoteId = this.safeString (quoteData, 'currency');
         return {
@@ -7123,7 +7144,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -7216,7 +7237,7 @@ export default class htx extends Exchange {
             }
         } else {
             const cursor = this.safeValue (data, 'current_page');
-            const result = this.safeValue (data, 'data', []);
+            const result = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
                 entry['current_page'] = cursor;
@@ -7291,7 +7312,7 @@ export default class htx extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval: any) {
+    parseFundingInterval (interval: Str): Str {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7365,7 +7386,7 @@ export default class htx extends Exchange {
             const data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
         } else {
-            result = this.safeValue (response, 'data', {});
+            result = this.safeDict (response, 'data', {});
         }
         return this.parseFundingRate (result, market);
     }
@@ -7379,7 +7400,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7422,7 +7443,7 @@ export default class htx extends Exchange {
         //         "ts": 1643346173103
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -7439,7 +7460,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7555,11 +7576,11 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathString: string = path;
         let url = '/';
         const isArrayParams = Array.isArray (params);
@@ -7645,7 +7666,7 @@ export default class htx extends Exchange {
             } else if (access === 'private') {
                 this.checkRequiredCredentials ();
                 if (method === 'POST') {
-                    const options = this.safeValue (this.options, 'broker', {});
+                    const options = this.safeDict (this.options, 'broker', {});
                     const id = this.safeString (options, 'id', 'AA03022abc');
                     if (!isArrayParams) {
                         if ((pathString.indexOf ('cancel') === -1) && pathString.endsWith ('order')) {
@@ -7764,7 +7785,7 @@ export default class htx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7857,7 +7878,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Dict> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7924,7 +7945,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined): Dict {
         //
         //     {
         //       "id": "1667161118",
@@ -7965,7 +7986,7 @@ export default class htx extends Exchange {
         };
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //    {
         //        "symbol": "BTC",
@@ -8027,7 +8048,7 @@ export default class htx extends Exchange {
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const entryPrice = this.safeNumber2 (position, 'cost_open', 'open_avg_price');
         const initialMargin = this.safeString2 (position, 'position_margin', 'initial_margin');
@@ -8120,7 +8141,7 @@ export default class htx extends Exchange {
      * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8235,7 +8256,7 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -8260,7 +8281,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8401,7 +8422,7 @@ export default class htx extends Exchange {
         if (marginMode === 'cross') {
             account = data;
         } else {
-            account = this.safeValue (data, 0);
+            account = this.safeDict (data, 0);
         }
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
@@ -8415,7 +8436,7 @@ export default class htx extends Exchange {
                 }
             }
         } else {
-            position = this.safeValue (positions, 0);
+            position = this.safeDict (positions, 0);
         }
         const timestamp = this.safeInteger (response, 'ts');
         const parsed = this.parsePosition (this.extend (position, omitted), market);
@@ -8497,7 +8518,7 @@ export default class htx extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8562,7 +8583,7 @@ export default class htx extends Exchange {
         //         "ok": true
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -8574,7 +8595,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params: Dict = {}): Promise<LeverageTiers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8655,7 +8676,7 @@ export default class htx extends Exchange {
      * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
         }
@@ -8754,7 +8775,7 @@ export default class htx extends Exchange {
         //        "ts": 1648227062944
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const tick = this.safeList (data, 'tick');
         return this.parseOpenInterestsHistory (tick, market, since, limit);
     }
@@ -8769,7 +8790,7 @@ export default class htx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8845,7 +8866,7 @@ export default class htx extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8935,14 +8956,14 @@ export default class htx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }) as OpenInterest;
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601 (timestamp);
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterestHistory
         //
@@ -9018,7 +9039,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9055,7 +9076,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async borrowCrossMargin (code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9090,7 +9111,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9113,7 +9134,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         const loan = this.safeValue (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
@@ -9132,7 +9153,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
+    override async repayCrossMargin (code: string, amount: number, params: Dict = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9155,7 +9176,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeList (response, 'Data', []);
         const loan = this.safeValue (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
@@ -9163,7 +9184,7 @@ export default class htx extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         // borrowMargin cross
         //
@@ -9213,7 +9234,7 @@ export default class htx extends Exchange {
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
@@ -9319,7 +9340,7 @@ export default class htx extends Exchange {
             const settlementsLinear = this.parseSettlements (dataLinear, market);
             return this.sortBy (settlementsLinear, 'timestamp');
         }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
         return this.sortBy (settlements, 'timestamp');
@@ -9334,7 +9355,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params: Dict = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9379,7 +9400,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         //            {
         //              "currency": "sxp",
@@ -9411,7 +9432,7 @@ export default class htx extends Exchange {
         //              "instStatus": "normal"
         //          }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         const code = this.safeString (currency, 'code');
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
@@ -9500,7 +9521,7 @@ export default class htx extends Exchange {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             const settlement = settlements[i];
-            const list = this.safeValue (settlement, 'list');
+            const list = this.safeList (settlement, 'list');
             if (market['linear'] === true) {
                 const parsedSettlement = this.parseSettlement (settlement, market);
                 result.push (parsedSettlement);
@@ -9582,7 +9603,7 @@ export default class htx extends Exchange {
      * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9662,7 +9683,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     {
         //         "query_id": 452057,
@@ -9728,7 +9749,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9797,7 +9818,7 @@ export default class htx extends Exchange {
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9837,7 +9858,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+    override async fetchPositionsADLRank (symbols: Strings = undefined, params: Dict = {}): Promise<ADL[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

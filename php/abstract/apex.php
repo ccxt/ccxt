@@ -130,6 +130,12 @@ abstract class apex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_v3_stock_account($params = array()) {
+        return $this->request('v3/stock/account', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_v3_delete_open_orders($params = array()) {
         return $this->request('v3/delete-open-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -168,6 +174,30 @@ abstract class apex extends \ccxt\Exchange {
      */
     public function private_post_v3_contract_transfer_out($params = array()) {
         return $this->request('v3/contract-transfer-out', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v3_contract_transfer_to($params = array()) {
+        return $this->request('v3/contract-transfer-to', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v3_submit_withdraw_claim($params = array()) {
+        return $this->request('v3/submit-withdraw-claim', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v3_stock_register_account($params = array()) {
+        return $this->request('v3/stock/register-account', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_v3_stock_generate_api($params = array()) {
+        return $this->request('v3/stock/generate-api', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -292,6 +322,12 @@ abstract class apex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetV3StockAccount($params = array()) {
+        return $this->request('v3/stock/account', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostV3DeleteOpenOrders($params = array()) {
         return $this->request('v3/delete-open-orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -330,5 +366,29 @@ abstract class apex extends \ccxt\Exchange {
      */
     public function privatePostV3ContractTransferOut($params = array()) {
         return $this->request('v3/contract-transfer-out', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV3ContractTransferTo($params = array()) {
+        return $this->request('v3/contract-transfer-to', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV3SubmitWithdrawClaim($params = array()) {
+        return $this->request('v3/submit-withdraw-claim', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV3StockRegisterAccount($params = array()) {
+        return $this->request('v3/stock/register-account', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostV3StockGenerateApi($params = array()) {
+        return $this->request('v3/stock/generate-api', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

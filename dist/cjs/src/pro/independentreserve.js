@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
+var number = require('../base/functions/number.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
@@ -77,7 +78,7 @@ class independentreserve extends independentreserve$1["default"] {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeValue(message, 'Data', {});
+        const data = this.safeDict(message, 'Data', {});
         const marketId = this.safeString(data, 'Pair');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -187,7 +188,7 @@ class independentreserve extends independentreserve$1["default"] {
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
+        const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -198,7 +199,11 @@ class independentreserve extends independentreserve$1["default"] {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset(snapshot);
-            subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = this.extend(subscription, {
+                'receivedSnapshot': true,
+            });
         }
         else {
             const asks = this.safeList(orderBook, 'Offers', []);
@@ -225,7 +230,7 @@ class independentreserve extends independentreserve$1["default"] {
                     payload = payload + this.valueToChecksum(storedAsks[i][0]) + this.valueToChecksum(storedAsks[i][1]);
                 }
             }
-            const calculatedChecksum = this.crc32(payload, true);
+            const calculatedChecksum = this.crc32(payload, false);
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -240,7 +245,10 @@ class independentreserve extends independentreserve$1["default"] {
         }
     }
     valueToChecksum(value) {
-        let result = value.toFixed(8);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        let result = this.decimalToPrecision(value, number.ROUND, 8, number.DECIMAL_PLACES, number.PAD_WITH_ZERO);
         result = result.replace('.', '');
         // remove leading zeros
         result = this.parseNumber(result);

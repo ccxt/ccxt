@@ -141,6 +141,7 @@ export default class btcturk extends Exchange {
                     'get': {
                         'orderbook': { 'cost': 1 },
                         'ticker': { 'cost': 0.1 },
+                        'ticker/currency': { 'cost': 0.1 },
                         'trades': { 'cost': 1 }, // ?last=COUNT (max 50)
                         'ohlc': { 'cost': 1 },
                         'server/exchangeinfo': { 'cost': 1 },
@@ -151,13 +152,18 @@ export default class btcturk extends Exchange {
                         'users/balances': { 'cost': 1 },
                         'openOrders': { 'cost': 1 },
                         'allOrders': { 'cost': 1 },
+                        'order/{orderId}': { 'cost': 1 },
                         'users/transactions/trade': { 'cost': 1 },
+                        'users/transactions/crypto': { 'cost': 1 },
+                        'users/transactions/fiat': { 'cost': 1 },
+                        'crypto-deposit-declarations': { 'cost': 1 },
                     },
                     'post': {
                         'users/transactions/crypto': { 'cost': 1 },
                         'users/transactions/fiat': { 'cost': 1 },
                         'order': { 'cost': 1 },
                         'cancelOrder': { 'cost': 1 },
+                        'crypto-deposit-declarations/confirm': { 'cost': 1 },
                     },
                     'delete': {
                         'order': { 'cost': 1 },
@@ -547,7 +553,7 @@ export default class btcturk extends Exchange {
             await this.loadMarkets();
         }
         const tickers = await this.fetchTickers([symbol], params);
-        return this.safeValue(tickers, symbol);
+        return this.safeDict(tickers, symbol);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -699,7 +705,7 @@ export default class btcturk extends Exchange {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.safeValue(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
+            'resolution': this.safeString(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger(params, 'until', this.milliseconds());
         request['to'] = this.parseToInt((until / 1000));

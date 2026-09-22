@@ -202,6 +202,8 @@ class woofipro extends woofipro$1["default"] {
                             'client/points': { 'cost': 1 },
                             'public/points/epoch': { 'cost': 1 },
                             'public/points/epoch_dates': { 'cost': 1 },
+                            'public/points/rankings': { 'cost': 1 },
+                            'public/points/stages': { 'cost': 1 },
                             'public/referral/check_ref_code': { 'cost': 1 },
                             'public/referral/verify_ref_code': { 'cost': 1 },
                             'referral/admin_info': { 'cost': 1 },
@@ -215,6 +217,7 @@ class woofipro extends woofipro$1["default"] {
                             'tv/config': { 'cost': 1 },
                             'tv/history': { 'cost': 1 },
                             'tv/symbol_info': { 'cost': 1 },
+                            'tv/kline_history': { 'cost': 1 },
                             'public/funding_rate_history': { 'cost': 1 },
                             'public/funding_rate/{symbol}': { 'cost': 0.33 },
                             'public/funding_rates': { 'cost': 1 },
@@ -224,6 +227,9 @@ class woofipro extends woofipro$1["default"] {
                             'public/token': { 'cost': 1 },
                             'public/futures': { 'cost': 1 },
                             'public/futures/{symbol}': { 'cost': 1 },
+                            'staking/valor2/batch_info': { 'cost': 1 },
+                            'staking/valor2/pool_info': { 'cost': 1 },
+                            'staking/valor2/revenue_buyback': { 'cost': 1 },
                         },
                         'post': {
                             'register_account': { 'cost': 1 },
@@ -248,6 +254,7 @@ class woofipro extends woofipro$1["default"] {
                             'client/holding': { 'cost': 1 },
                             'withdraw_nonce': { 'cost': 1 },
                             'settle_nonce': { 'cost': 1 },
+                            'transfer_nonce': { 'cost': 1 },
                             'pnl_settlement/history': { 'cost': 1 },
                             'volume/user/daily': { 'cost': 60 },
                             'volume/user/stats': { 'cost': 60 },
@@ -262,9 +269,22 @@ class woofipro extends woofipro$1["default"] {
                             'volume/broker/daily': { 'cost': 60 },
                             'broker/fee_rate/default': { 'cost': 10 },
                             'broker/user_info': { 'cost': 10 },
+                            'broker/daily_fee_revenue': { 'cost': 10 },
                             'orderbook/{symbol}': { 'cost': 1 },
                             'kline': { 'cost': 1 },
                             'client/margin_modes': { 'cost': 1 },
+                            'client/leverages': { 'cost': 1 },
+                            'client/points/user_statistics': { 'cost': 1 },
+                            'staking/valor2/redeem': { 'cost': 1 },
+                            'referral/multi_level/admin': { 'cost': 1 },
+                            'referral/multi_level/admin/info': { 'cost': 1 },
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 },
+                            'referral/multi_level/admin/summary': { 'cost': 1 },
+                            'referral/multi_level/max_rebate_rate': { 'cost': 1 },
+                            'referral/multi_level/rebate_info': { 'cost': 1 },
+                            'referral/multi_level/referee_list': { 'cost': 1 },
+                            'referral/multi_level/statistics': { 'cost': 1 },
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 },
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 },
@@ -280,6 +300,7 @@ class woofipro extends woofipro$1["default"] {
                             'notification/inbox/mark_read': { 'cost': 60 },
                             'notification/inbox/mark_read_all': { 'cost': 60 },
                             'client/leverage': { 'cost': 120 },
+                            'client/leverages': { 'cost': 120 },
                             'client/margin_mode': { 'cost': 1 },
                             'position_margin': { 'cost': 1 },
                             'client/maintenance_config': { 'cost': 60 },
@@ -294,6 +315,15 @@ class woofipro extends woofipro$1["default"] {
                             'referral/update': { 'cost': 10 },
                             'referral/bind': { 'cost': 10 },
                             'referral/edit_split': { 'cost': 10 },
+                            'referral/edit_referee_description': { 'cost': 10 },
+                            'referral/multi_level/admin': { 'cost': 10 },
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/update': { 'cost': 10 },
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 },
+                            'referral/multi_level/claim_code': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 },
                         },
                         'put': {
                             'order': { 'cost': 1 },
@@ -308,6 +338,13 @@ class woofipro extends woofipro$1["default"] {
                             'orders': { 'cost': 1 },
                             'batch-order': { 'cost': 1 },
                             'client/batch-order': { 'cost': 1 },
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': { 'cost': 1 },
                         },
                     },
                 },
@@ -1663,7 +1700,7 @@ class woofipro extends woofipro$1["default"] {
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeValue2(order, 'status', 'algoStatus');
+        let status = this.safeString2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
@@ -1678,14 +1715,14 @@ class woofipro extends woofipro$1["default"] {
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeValue(order, 'childOrders');
+        const childOrders = this.safeList(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue(childOrders, 0);
-            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const first = this.safeDict(childOrders, 0);
+            const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                const stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1745,7 +1782,7 @@ class woofipro extends woofipro$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -1787,8 +1824,8 @@ class woofipro extends woofipro$1["default"] {
             'side': orderSide,
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
@@ -1897,9 +1934,9 @@ class woofipro extends woofipro$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -1963,9 +2000,9 @@ class woofipro extends woofipro$1["default"] {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -2430,7 +2467,7 @@ class woofipro extends woofipro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit);
     }

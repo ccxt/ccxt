@@ -8,81 +8,156 @@
 package ccxt
 
 // PublicGetV2UserApiExchangeMarkets returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV2UserApiExchangeMarketPrice returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/market/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetV2UserApiExchangeMarketsPrice returns a channel that yields a JSON object.
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarketsPrice(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/markets/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExchangeMarketAssets returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
+func (this *Cryptomus) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/market/assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExchangeMarketOrderBookCurrencyPair returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
+func (this *Cryptomus) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/market/order-book/{currencyPair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExchangeMarketTickers returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
+func (this *Cryptomus) PublicGetV1ExchangeMarketTickers(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/market/tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExchangeMarketTradesCurrencyPair returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
+func (this *Cryptomus) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...any) <-chan any {
+	return this.Fetch2Async("v1/exchange/market/trades/{currencyPair}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiExchangeOrders returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
+func (this *Cryptomus) PrivateGetV2UserApiExchangeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiExchangeOrdersHistory returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
+func (this *Cryptomus) PrivateGetV2UserApiExchangeOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/orders/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiExchangeAccountBalance returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
+func (this *Cryptomus) PrivateGetV2UserApiExchangeAccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/account/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiExchangeAccountTariffs returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
+func (this *Cryptomus) PrivateGetV2UserApiExchangeAccountTariffs(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/account/tariffs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiPaymentServices returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
+func (this *Cryptomus) PrivateGetV2UserApiPaymentServices(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/payment/services", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiPayoutServices returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
+func (this *Cryptomus) PrivateGetV2UserApiPayoutServices(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/payout/services", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV2UserApiTransactionList returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
+func (this *Cryptomus) PrivateGetV2UserApiTransactionList(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/transaction/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiBalance returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiConvertDirectionList returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiConvertDirectionList(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert/direction-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiConvertOrderList returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiConvertOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert/order-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiAmlCheckBalance returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiAmlCheckCurrencies returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/currencies", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiAmlCheckPackages returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckPackages(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/packages", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/request", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV2UserApiAmlCheckRequestId returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckRequestId(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/request/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2UserApiExchangeOrders returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
+func (this *Cryptomus) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV2UserApiExchangeOrdersMarket returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
+func (this *Cryptomus) PrivatePostV2UserApiExchangeOrdersMarket(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/orders/market", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV2UserApiConvert returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvert(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV2UserApiConvertCalculate returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvertCalculate(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert/calculate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV2UserApiConvertLimit returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvertLimit(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert/limit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/request", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV2UserApiAmlCheckRequestIdReportSend returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiAmlCheckRequestIdReportSend(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/aml/check/request/{id}/report/send", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteV2UserApiExchangeOrdersOrderId returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
+func (this *Cryptomus) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/exchange/orders/{orderId}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteV2UserApiConvertOrderUuid returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateDeleteV2UserApiConvertOrderUuid(args ...any) <-chan any {
+	return this.Fetch2Async("v2/user-api/convert/{orderUuid}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

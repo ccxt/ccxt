@@ -1,22 +1,12 @@
 import Exchange from './abstract/mudrex.js';
-import type { Balances, Dict, Int, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 /**
  * @class mudrex
  * @augments Exchange
  */
 export default class mudrex extends Exchange {
     describe(): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: string;
-        method: string;
-        body: undefined;
-        headers: Dict;
-    } | {
-        url: string;
-        method: string;
-        body: string;
-        headers: Dict;
-    };
+    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -33,7 +23,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name mudrex#fetchMarkOHLCV
@@ -46,7 +36,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchMarkOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchMarkOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name mudrex#fetchTicker
@@ -56,7 +46,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name mudrex#fetchTickers
@@ -66,7 +56,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -76,7 +66,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(asset: Dict): Market;
     /**
      * @method
@@ -88,7 +78,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to query the balance for
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -99,7 +89,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     /**
      * @method
      * @name mudrex#setLeverage
@@ -111,7 +101,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name mudrex#createOrder
@@ -135,7 +125,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mudrex#editOrder
@@ -150,7 +140,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -163,7 +153,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mudrex#fetchOrder
@@ -174,7 +164,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mudrex#fetchOrdersByState
@@ -187,7 +177,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrdersByState(state: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByState(state: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name mudrex#fetchOrders
@@ -199,7 +189,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name mudrex#fetchOpenOrders
@@ -211,7 +201,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name mudrex#fetchClosedOrders
@@ -223,7 +213,7 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name mudrex#fetchPositions
@@ -234,7 +224,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to query positions for
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name mudrex#fetchPositionsHistory
@@ -247,7 +237,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.trade_currency] the settlement currency to filter positions by
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -261,7 +251,7 @@ export default class mudrex extends Exchange {
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
+    closePosition(symbol: string, side?: OrderSide, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mudrex#addMargin
@@ -273,7 +263,7 @@ export default class mudrex extends Exchange {
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name mudrex#reduceMargin
@@ -284,20 +274,21 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.trade.mudrex.com/docs
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+     * @see https://docs.trade.mudrex.com/docs/fees
+     * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+     * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -311,5 +302,5 @@ export default class mudrex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
 }

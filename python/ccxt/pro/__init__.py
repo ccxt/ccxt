@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.77'
+__version__ = '4.5.82'
 
 # ----------------------------------------------------------------------------
 
@@ -81,6 +81,7 @@ from ccxt.pro.blofin import blofin                                        # noqa
 from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.bybiteu import bybiteu                                      # noqa: F401
+from ccxt.pro.bybitid import bybitid                                      # noqa: F401
 from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
@@ -159,6 +160,7 @@ exchanges = [
     'bullish',
     'bybit',
     'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',

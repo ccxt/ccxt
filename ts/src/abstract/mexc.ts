@@ -27,6 +27,7 @@ interface Exchange {
     spotPublicGetEtfInfo (params?: {}): Promise<Dict>;
     spotPrivateGetKycStatus (params?: {}): Promise<Dict>;
     spotPrivateGetUid (params?: {}): Promise<Dict>;
+    spotPrivateGetApiKeyInfo (params?: {}): Promise<Dict>;
     spotPrivateGetOrder (params?: {}): Promise<Dict>;
     spotPrivateGetOpenOrders (params?: {}): Promise<List>;
     spotPrivateGetAllOrders (params?: {}): Promise<List>;
@@ -87,6 +88,7 @@ interface Exchange {
     spotPrivatePostSubAccountMargin (params?: {}): Promise<Dict>;
     spotPrivatePostBatchOrders (params?: {}): Promise<List>;
     spotPrivatePostStrategyGroup (params?: {}): Promise<Dict>;
+    spotPrivatePostStrategyGroupUid (params?: {}): Promise<Dict>;
     spotPrivatePostCapitalWithdrawApply (params?: {}): Promise<Dict>;
     spotPrivatePostCapitalWithdraw (params?: {}): Promise<Dict>;
     spotPrivatePostCapitalTransfer (params?: {}): Promise<Dict>;

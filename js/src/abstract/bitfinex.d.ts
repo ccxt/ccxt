@@ -76,6 +76,7 @@ interface Exchange {
     privatePostAuthWOrderCancelMulti(params?: {}): Promise<List>;
     privatePostAuthROrdersSymbolHist(params?: {}): Promise<List>;
     privatePostAuthROrdersHist(params?: {}): Promise<List>;
+    privatePostAuthROrdersOtcSymbolHist(params?: {}): Promise<List>;
     privatePostAuthROrderSymbolIdTrades(params?: {}): Promise<List>;
     privatePostAuthRTradesSymbolHist(params?: {}): Promise<List>;
     privatePostAuthRTradesHist(params?: {}): Promise<List>;
@@ -91,6 +92,7 @@ interface Exchange {
     privatePostAuthRPositionsHist(params?: {}): Promise<List>;
     privatePostAuthRPositionsAudit(params?: {}): Promise<List>;
     privatePostAuthRPositionsSnap(params?: {}): Promise<List>;
+    privatePostAuthWPositionUpdateFundingType(params?: {}): Promise<List>;
     privatePostAuthWDerivCollateralSet(params?: {}): Promise<List>;
     privatePostAuthWDerivCollateralLimits(params?: {}): Promise<List>;
     privatePostAuthRFundingOffers(params?: {}): Promise<List>;
@@ -122,10 +124,13 @@ interface Exchange {
     privatePostAuthRAuditHist(params?: {}): Promise<List>;
     privatePostAuthWTransfer(params?: {}): Promise<List>;
     privatePostAuthWDepositAddress(params?: {}): Promise<List>;
+    privatePostAuthRDepositAddressAll(params?: {}): Promise<List>;
     privatePostAuthWDepositInvoice(params?: {}): Promise<List>;
+    privatePostAuthRExtInvoicePayments(params?: {}): Promise<List>;
     privatePostAuthWWithdraw(params?: {}): Promise<List>;
     privatePostAuthRMovementsCurrencyHist(params?: {}): Promise<List>;
     privatePostAuthRMovementsHist(params?: {}): Promise<List>;
+    privatePostAuthRMovementsInfo(params?: {}): Promise<List>;
     privatePostAuthRAlerts(params?: {}): Promise<List>;
     privatePostAuthWAlertSet(params?: {}): Promise<List>;
     privatePostAuthWAlertPriceSymbolPriceDel(params?: {}): Promise<List>;
@@ -137,6 +142,9 @@ interface Exchange {
     privatePostAuthRPulseHist(params?: {}): Promise<List>;
     privatePostAuthWPulseAdd(params?: {}): Promise<List>;
     privatePostAuthWPulseDel(params?: {}): Promise<List>;
+    privatePostAuthWExtWalletsDepositsRequest(params?: {}): Promise<List>;
+    privatePostAuthWExtWalletsWithdrawalsRequest(params?: {}): Promise<List>;
+    privatePostAuthRExtWalletsTransfersFreeCount(params?: {}): Promise<List>;
 }
 declare abstract class Exchange extends _Exchange {
 }

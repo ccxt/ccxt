@@ -320,6 +320,7 @@ class coinex extends Exchange {
                             'futures/basis-history' => array( 'cost' => 1 ),
                             'assets/deposit-withdraw-config' => array( 'cost' => 1 ),
                             'assets/all-deposit-withdraw-config' => array( 'cost' => 1 ),
+                            'assets/info' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -431,6 +432,8 @@ class coinex extends Exchange {
                             'futures/adjust-position-leverage' => array( 'cost' => 20 ),
                             'futures/set-position-stop-loss' => array( 'cost' => 20 ),
                             'futures/set-position-take-profit' => array( 'cost' => 20 ),
+                            'futures/modify-position-stop-loss' => array( 'cost' => 20 ),
+                            'futures/modify-position-take-profit' => array( 'cost' => 20 ),
                         ),
                     ),
                 ),
@@ -537,7 +540,7 @@ class coinex extends Exchange {
                         'leverage' => false,
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => true,
-                        'selfTradePrevention' => true, // todo => implement
+                        'selfTradePrevention' => true, // todo: implement
                         'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
@@ -620,16 +623,16 @@ class coinex extends Exchange {
                     '36' => '\\ccxt\\RequestTimeout', // Service timeout
                     '213' => '\\ccxt\\RateLimitExceeded', // Too many requests
                     '107' => '\\ccxt\\InsufficientFunds',
-                    '158' => '\\ccxt\\PermissionDenied', // array("code":158,"data":array(),"message":"API permission is not allowed")
+                    '158' => '\\ccxt\\PermissionDenied', // {"code":158,"data":{},"message":"API permission is not allowed"}
                     '600' => '\\ccxt\\OrderNotFound',
                     '601' => '\\ccxt\\InvalidOrder',
                     '602' => '\\ccxt\\InvalidOrder',
                     '606' => '\\ccxt\\InvalidOrder',
                     '3008' => '\\ccxt\\RequestTimeout', // Service busy, please try again later.
-                    '3109' => '\\ccxt\\InsufficientFunds', // array("code":3109,"data":array(),"message":"balance not enough")
+                    '3109' => '\\ccxt\\InsufficientFunds', // {"code":3109,"data":{},"message":"balance not enough"}
                     '3127' => '\\ccxt\\InvalidOrder', // The order quantity is below the minimum requirement. Please adjust the order quantity.
-                    '3157' => '\\ccxt\\BadSymbol', // array("code":3157,"data":array(),"message":"Service has been property_exists($this, stopped) market")
-                    '3600' => '\\ccxt\\OrderNotFound', // array("code":3600,"data":array(),"message":"Order not found")
+                    '3157' => '\\ccxt\\BadSymbol', // {"code":3157,"data":{},"message":"Service has been stopped in this market"}
+                    '3600' => '\\ccxt\\OrderNotFound', // {"code":3600,"data":{},"message":"Order not found"}
                     '3606' => '\\ccxt\\InvalidOrder', // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610' => '\\ccxt\\ExchangeError', // Order cancellation prohibited during the Call Auction period.
                     '3612' => '\\ccxt\\InvalidOrder', // The est. ask price is lower than the current bottom ask price. Please reduce the amount.
@@ -642,7 +645,7 @@ class coinex extends Exchange {
                     '3619' => '\\ccxt\\InvalidOrder', // The deviation between your order price and the trigger price is too high. Please adjust your order price and try again.
                     '3620' => '\\ccxt\\InvalidOrder', // Market order submission is temporarily unavailable due to insufficient depth in the current market
                     '3621' => '\\ccxt\\InvalidOrder', // This order can't be completely executed and has been canceled.
-                    '3622' => '\\ccxt\\InvalidOrder', // This order can't be set Only and has been canceled.
+                    '3622' => '\\ccxt\\InvalidOrder', // This order can't be set as Maker Only and has been canceled.
                     '3627' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
                     '3628' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
                     '3629' => '\\ccxt\\InvalidOrder', // The current market depth is low, please reduce your order amount and try again.
@@ -663,7 +666,7 @@ class coinex extends Exchange {
                     '4011' => '\\ccxt\\PermissionDenied', // User prohibited from accessing, please contact customer service for help.
                     '4017' => '\\ccxt\\ExchangeError', // Signature expired, please try again later.
                     '4115' => '\\ccxt\\AccountSuspended', // User prohibited from trading, please contact customer service for help.
-                    '4117' => '\\ccxt\\BadSymbol', // Trading property_exists($this, prohibited) market, please try again later.
+                    '4117' => '\\ccxt\\BadSymbol', // Trading prohibited in this market, please try again later.
                     '4123' => '\\ccxt\\RateLimitExceeded', // Rate limit triggered. Please adjust your strategy and reduce the request rate.
                     '4130' => '\\ccxt\\ExchangeError', // Futures trading prohibited, please try again later.
                     '4158' => '\\ccxt\\ExchangeError', // Trading prohibited, please try again later.
@@ -676,7 +679,7 @@ class coinex extends Exchange {
                     'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
-            'rollingWindowSize' => 1000.0,    // docs say 1000.0 => https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
+            'rollingWindowSize' => 1000.0,    // docs say 1000.0: https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
         ));
     }
 
@@ -692,37 +695,37 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetAssetsAllDepositWithdrawConfig($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "asset" => array(
-        //                     "ccy" => "CET",
-        //                     "deposit_enabled" => true,
-        //                     "withdraw_enabled" => true,
-        //                     "inter_transfer_enabled" => true,
-        //                     "is_st" => false
-        //                 ),
-        //                 "chains" => array(
-        //                     array(
-        //                         "chain" => "CSC",
-        //                         "min_deposit_amount" => "0.8",
-        //                         "min_withdraw_amount" => "8",
-        //                         "deposit_enabled" => true,
-        //                         "withdraw_enabled" => true,
-        //                         "deposit_delay_minutes" => 0,
-        //                         "safe_confirmations" => 10,
-        //                         "irreversible_confirmations" => 20,
-        //                         "deflation_rate" => "0",
-        //                         "withdrawal_fee" => "0.026",
-        //                         "withdrawal_precision" => 8,
-        //                         "memo" => "",
-        //                         "is_memo_required_for_deposit" => false,
-        //                         "explorer_asset_url" => ""
-        //                     ),
-        //                 )
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -824,24 +827,24 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetSpotMarket($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "market" => "BTCUSDT",
-        //                 "taker_fee_rate" => "0.002",
-        //                 "maker_fee_rate" => "0.002",
-        //                 "min_amount" => "0.0005",
-        //                 "base_ccy" => "BTC",
-        //                 "quote_ccy" => "USDT",
-        //                 "base_ccy_precision" => 8,
-        //                 "quote_ccy_precision" => 2,
-        //                 "is_amm_available" => true,
-        //                 "is_margin_available" => true,
-        //                 "is_pre_trading_available" => true,
-        //                 "is_api_trading_available" => true
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
+        //                 "quote_ccy": "USDT",
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $markets = $this->safe_list($response, 'data', array());
@@ -913,23 +916,23 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetFuturesMarket($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "base_ccy" => "BTC",
-        //                 "base_ccy_precision" => 8,
-        //                 "contract_type" => "inverse",
-        //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
-        //                 "maker_fee_rate" => "0",
-        //                 "market" => "BTCUSD",
-        //                 "min_amount" => "10",
-        //                 "open_interest_volume" => "2566879",
-        //                 "quote_ccy" => "USD",
-        //                 "quote_ccy_precision" => 2,
-        //                 "taker_fee_rate" => "0"
-        //             ),
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "base_ccy": "BTC",
+        //                 "base_ccy_precision": 8,
+        //                 "contract_type": "inverse",
+        //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+        //                 "maker_fee_rate": "0",
+        //                 "market": "BTCUSD",
+        //                 "min_amount": "10",
+        //                 "open_interest_volume": "2566879",
+        //                 "quote_ccy": "USD",
+        //                 "quote_ccy_precision": 2,
+        //                 "taker_fee_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $markets = $this->safe_list($response, 'data', array());
@@ -1010,35 +1013,35 @@ class coinex extends Exchange {
         // Spot fetchTicker, fetchTickers
         //
         //     {
-        //         "close" => "62393.47",
-        //         "high" => "64106.41",
-        //         "last" => "62393.47",
-        //         "low" => "59650.01",
-        //         "market" => "BTCUSDT",
-        //         "open" => "61616.15",
-        //         "period" => 86400,
-        //         "value" => "28711273.4065667262",
-        //         "volume" => "461.76557205",
-        //         "volume_buy" => "11.41506354",
-        //         "volume_sell" => "7.3240169"
+        //         "close": "62393.47",
+        //         "high": "64106.41",
+        //         "last": "62393.47",
+        //         "low": "59650.01",
+        //         "market": "BTCUSDT",
+        //         "open": "61616.15",
+        //         "period": 86400,
+        //         "value": "28711273.4065667262",
+        //         "volume": "461.76557205",
+        //         "volume_buy": "11.41506354",
+        //         "volume_sell": "7.3240169"
         //     }
         //
         // Swap fetchTicker, fetchTickers
         //
         //     {
-        //         "close" => "62480.08",
-        //         "high" => "64100",
-        //         "index_price" => "62443.05",
-        //         "last" => "62480.08",
-        //         "low" => "59600",
-        //         "mark_price" => "62443.05",
-        //         "market" => "BTCUSDT",
-        //         "open" => "61679.98",
-        //         "period" => 86400,
-        //         "value" => "180226025.69791713065326633165",
-        //         "volume" => "2900.2218",
-        //         "volume_buy" => "7.3847",
-        //         "volume_sell" => "6.1249"
+        //         "close": "62480.08",
+        //         "high": "64100",
+        //         "index_price": "62443.05",
+        //         "last": "62480.08",
+        //         "low": "59600",
+        //         "mark_price": "62443.05",
+        //         "market": "BTCUSDT",
+        //         "open": "61679.98",
+        //         "period": 86400,
+        //         "value": "180226025.69791713065326633165",
+        //         "volume": "2900.2218",
+        //         "volume_buy": "7.3847",
+        //         "volume_sell": "6.1249"
         //     }
         //
         $marketType = (is_array($ticker) && array_key_exists('mark_price' ?? '', $ticker)) ? 'swap' : 'spot';
@@ -1101,47 +1104,47 @@ class coinex extends Exchange {
         // Spot
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "close" => "62393.47",
-        //                 "high" => "64106.41",
-        //                 "last" => "62393.47",
-        //                 "low" => "59650.01",
-        //                 "market" => "BTCUSDT",
-        //                 "open" => "61616.15",
-        //                 "period" => 86400,
-        //                 "value" => "28711273.4065667262",
-        //                 "volume" => "461.76557205",
-        //                 "volume_buy" => "11.41506354",
-        //                 "volume_sell" => "7.3240169"
+        //                 "close": "62393.47",
+        //                 "high": "64106.41",
+        //                 "last": "62393.47",
+        //                 "low": "59650.01",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61616.15",
+        //                 "period": 86400,
+        //                 "value": "28711273.4065667262",
+        //                 "volume": "461.76557205",
+        //                 "volume_buy": "11.41506354",
+        //                 "volume_sell": "7.3240169"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         // Swap
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "close" => "62480.08",
-        //                 "high" => "64100",
-        //                 "index_price" => "62443.05",
-        //                 "last" => "62480.08",
-        //                 "low" => "59600",
-        //                 "mark_price" => "62443.05",
-        //                 "market" => "BTCUSDT",
-        //                 "open" => "61679.98",
-        //                 "period" => 86400,
-        //                 "value" => "180226025.69791713065326633165",
-        //                 "volume" => "2900.2218",
-        //                 "volume_buy" => "7.3847",
-        //                 "volume_sell" => "6.1249"
+        //                 "close": "62480.08",
+        //                 "high": "64100",
+        //                 "index_price": "62443.05",
+        //                 "last": "62480.08",
+        //                 "low": "59600",
+        //                 "mark_price": "62443.05",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61679.98",
+        //                 "period": 86400,
+        //                 "value": "180226025.69791713065326633165",
+        //                 "volume": "2900.2218",
+        //                 "volume_buy": "7.3847",
+        //                 "volume_sell": "6.1249"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1166,7 +1169,7 @@ class coinex extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $market = null;
         if ($symbols !== null) {
-            $symbol = $this->safe_value($symbols, 0);
+            $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
@@ -1180,47 +1183,47 @@ class coinex extends Exchange {
         // Spot
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "close" => "62393.47",
-        //                 "high" => "64106.41",
-        //                 "last" => "62393.47",
-        //                 "low" => "59650.01",
-        //                 "market" => "BTCUSDT",
-        //                 "open" => "61616.15",
-        //                 "period" => 86400,
-        //                 "value" => "28711273.4065667262",
-        //                 "volume" => "461.76557205",
-        //                 "volume_buy" => "11.41506354",
-        //                 "volume_sell" => "7.3240169"
+        //                 "close": "62393.47",
+        //                 "high": "64106.41",
+        //                 "last": "62393.47",
+        //                 "low": "59650.01",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61616.15",
+        //                 "period": 86400,
+        //                 "value": "28711273.4065667262",
+        //                 "volume": "461.76557205",
+        //                 "volume_buy": "11.41506354",
+        //                 "volume_sell": "7.3240169"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         // Swap
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "close" => "62480.08",
-        //                 "high" => "64100",
-        //                 "index_price" => "62443.05",
-        //                 "last" => "62480.08",
-        //                 "low" => "59600",
-        //                 "mark_price" => "62443.05",
-        //                 "market" => "BTCUSDT",
-        //                 "open" => "61679.98",
-        //                 "period" => 86400,
-        //                 "value" => "180226025.69791713065326633165",
-        //                 "volume" => "2900.2218",
-        //                 "volume_buy" => "7.3847",
-        //                 "volume_sell" => "6.1249"
+        //                 "close": "62480.08",
+        //                 "high": "64100",
+        //                 "index_price": "62443.05",
+        //                 "last": "62480.08",
+        //                 "low": "59600",
+        //                 "mark_price": "62443.05",
+        //                 "market": "BTCUSDT",
+        //                 "open": "61679.98",
+        //                 "period": 86400,
+        //                 "value": "180226025.69791713065326633165",
+        //                 "volume": "2900.2218",
+        //                 "volume_buy": "7.3847",
+        //                 "volume_sell": "6.1249"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1239,18 +1242,18 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetTime($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "timestamp" => 1711699867777
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "timestamp": 1711699867777
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->safe_integer($data, 'timestamp');
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = 20, $params = array()) {
+    public function fetch_order_book(string $symbol, ?int $limit = 20, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -1278,54 +1281,54 @@ class coinex extends Exchange {
             $response = $this->v2PublicGetFuturesDepth($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "depth" => array(
-            //                 "asks" => array(
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
             //                     ["70851.94", "0.2119"],
             //                     ["70851.95", "0.0004"],
             //                     ["70851.96", "0.0004"]
-            //                 ),
-            //                 "bids" => array(
+            //                 ],
+            //                 "bids": [
             //                     ["70851.93", "1.0314"],
             //                     ["70850.93", "0.0021"],
             //                     ["70850.42", "0.0306"]
-            //                 ),
-            //                 "checksum" => 2956436260,
-            //                 "last" => "70851.94",
-            //                 "updated_at" => 1712824003252
-            //             ),
-            //             "is_full" => true,
-            //             "market" => "BTCUSDT"
-            //         ),
-            //         "message" => "OK"
+            //                 ],
+            //                 "checksum": 2956436260,
+            //                 "last": "70851.94",
+            //                 "updated_at": 1712824003252
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
             //     }
             //
         } else {
             $response = $this->v2PublicGetSpotDepth($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "depth" => array(
-            //                 "asks" => array(
+            //         "code": 0,
+            //         "data": {
+            //             "depth": {
+            //                 "asks": [
             //                     ["70875.31", "0.28670282"],
             //                     ["70875.32", "0.31008114"],
             //                     ["70875.42", "0.05876653"]
-            //                 ),
-            //                 "bids" => array(
+            //                 ],
+            //                 "bids": [
             //                     ["70855.3", "0.00632222"],
             //                     ["70855.29", "0.36216834"],
             //                     ["70855.17", "0.10166802"]
-            //                 ),
-            //                 "checksum" => 2313816665,
-            //                 "last" => "70857.19",
-            //                 "updated_at" => 1712823790987
-            //             ),
-            //             "is_full" => true,
-            //             "market" => "BTCUSDT"
-            //         ),
-            //         "message" => "OK"
+            //                 ],
+            //                 "checksum": 2313816665,
+            //                 "last": "70857.19",
+            //                 "updated_at": 1712823790987
+            //             },
+            //             "is_full": true,
+            //             "market": "BTCUSDT"
+            //         },
+            //         "message": "OK"
             //     }
             //
         }
@@ -1340,39 +1343,39 @@ class coinex extends Exchange {
         // Spot and Swap fetchTrades (public)
         //
         //     {
-        //         "amount" => "0.00049432",
-        //         "created_at" => 1713849825667,
-        //         "deal_id" => 4137517302,
-        //         "price" => "66251",
-        //         "side" => "buy"
+        //         "amount": "0.00049432",
+        //         "created_at": 1713849825667,
+        //         "deal_id": 4137517302,
+        //         "price": "66251",
+        //         "side": "buy"
         //     }
         //
         // Spot and Margin fetchMyTrades (private)
         //
         //     {
-        //         "amount" => "0.00010087",
-        //         "created_at" => 1714618087585,
-        //         "deal_id" => 4161200602,
-        //         "margin_market" => "",
-        //         "market" => "BTCUSDT",
-        //         "order_id" => 117654919342,
-        //         "price" => "57464.04",
-        //         "side" => "sell"
+        //         "amount": "0.00010087",
+        //         "created_at": 1714618087585,
+        //         "deal_id": 4161200602,
+        //         "margin_market": "",
+        //         "market": "BTCUSDT",
+        //         "order_id": 117654919342,
+        //         "price": "57464.04",
+        //         "side": "sell"
         //     }
         //
         // Swap fetchMyTrades (private)
         //
         //     {
-        //         "deal_id" => 1180222387,
-        //         "created_at" => 1714119054558,
-        //         "market" => "BTCUSDT",
-        //         "side" => "buy",
-        //         "order_id" => 136915589622,
-        //         "price" => "64376",
-        //         "amount" => "0.0001",
-        //         "role" => "taker",
-        //         "fee" => "0.0299",
-        //         "fee_ccy" => "USDT"
+        //         "deal_id": 1180222387,
+        //         "created_at": 1714119054558,
+        //         "market": "BTCUSDT",
+        //         "side": "buy",
+        //         "order_id": 136915589622,
+        //         "price": "64376",
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
@@ -1428,7 +1431,7 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            // 'last_id' => 0,
+            // 'last_id': 0,
         );
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
@@ -1442,17 +1445,17 @@ class coinex extends Exchange {
         // Spot and Swap
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "amount" => "0.00049432",
-        //                 "created_at" => 1713849825667,
-        //                 "deal_id" => 4137517302,
-        //                 "price" => "66251",
-        //                 "side" => "buy"
-        //             ),
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "amount": "0.00049432",
+        //                 "created_at": 1713849825667,
+        //                 "deal_id": 4137517302,
+        //                 "price": "66251",
+        //                 "side": "buy"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
         return $this->parse_trades($response['data'], $market, $since, $limit);
@@ -1480,45 +1483,45 @@ class coinex extends Exchange {
             $response = $this->v2PublicGetSpotMarket($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
+            //         "code": 0,
+            //         "data": [
             //             {
-            //                 "base_ccy" => "BTC",
-            //                 "base_ccy_precision" => 8,
-            //                 "is_amm_available" => false,
-            //                 "is_margin_available" => true,
-            //                 "maker_fee_rate" => "0.002",
-            //                 "market" => "BTCUSDT",
-            //                 "min_amount" => "0.0001",
-            //                 "quote_ccy" => "USDT",
-            //                 "quote_ccy_precision" => 2,
-            //                 "taker_fee_rate" => "0.002"
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "is_amm_available": false,
+            //                 "is_margin_available": true,
+            //                 "maker_fee_rate": "0.002",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0.002"
             //             }
-            //         ),
-            //         "message" => "OK"
+            //         ],
+            //         "message": "OK"
             //     }
             //
         } else {
             $response = $this->v2PublicGetFuturesMarket($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
+            //         "code": 0,
+            //         "data": [
             //             {
-            //                 "base_ccy" => "BTC",
-            //                 "base_ccy_precision" => 8,
-            //                 "contract_type" => "linear",
-            //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
-            //                 "maker_fee_rate" => "0",
-            //                 "market" => "BTCUSDT",
-            //                 "min_amount" => "0.0001",
-            //                 "open_interest_volume" => "185.7498",
-            //                 "quote_ccy" => "USDT",
-            //                 "quote_ccy_precision" => 2,
-            //                 "taker_fee_rate" => "0"
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "contract_type": "linear",
+            //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            //                 "maker_fee_rate": "0",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "open_interest_volume": "185.7498",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0"
             //             }
-            //         ),
-            //         "message" => "OK"
+            //         ],
+            //         "message": "OK"
             //     }
             //
         }
@@ -1546,45 +1549,45 @@ class coinex extends Exchange {
             $response = $this->v2PublicGetFuturesMarket($params);
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
+            //         "code": 0,
+            //         "data": [
             //             {
-            //                 "base_ccy" => "BTC",
-            //                 "base_ccy_precision" => 8,
-            //                 "contract_type" => "linear",
-            //                 "leverage" => ["1","2","3","5","8","10","15","20","30","50","100"],
-            //                 "maker_fee_rate" => "0",
-            //                 "market" => "BTCUSDT",
-            //                 "min_amount" => "0.0001",
-            //                 "open_interest_volume" => "185.7498",
-            //                 "quote_ccy" => "USDT",
-            //                 "quote_ccy_precision" => 2,
-            //                 "taker_fee_rate" => "0"
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "contract_type": "linear",
+            //                 "leverage": ["1","2","3","5","8","10","15","20","30","50","100"],
+            //                 "maker_fee_rate": "0",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "open_interest_volume": "185.7498",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0"
             //             }
-            //         ),
-            //         "message" => "OK"
+            //         ],
+            //         "message": "OK"
             //     }
             //
         } else {
             $response = $this->v2PublicGetSpotMarket($params);
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             array(
-            //                 "base_ccy" => "BTC",
-            //                 "base_ccy_precision" => 8,
-            //                 "is_amm_available" => false,
-            //                 "is_margin_available" => true,
-            //                 "maker_fee_rate" => "0.002",
-            //                 "market" => "BTCUSDT",
-            //                 "min_amount" => "0.0001",
-            //                 "quote_ccy" => "USDT",
-            //                 "quote_ccy_precision" => 2,
-            //                 "taker_fee_rate" => "0.002"
-            //             ),
-            //         ),
-            //         "message" => "OK"
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "base_ccy": "BTC",
+            //                 "base_ccy_precision": 8,
+            //                 "is_amm_available": false,
+            //                 "is_margin_available": true,
+            //                 "maker_fee_rate": "0.002",
+            //                 "market": "BTCUSDT",
+            //                 "min_amount": "0.0001",
+            //                 "quote_ccy": "USDT",
+            //                 "quote_ccy_precision": 2,
+            //                 "taker_fee_rate": "0.002"
+            //             },
+            //         ],
+            //         "message": "OK"
             //     }
             //
         }
@@ -1601,7 +1604,7 @@ class coinex extends Exchange {
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
-        $marketId = $this->safe_value($fee, 'market');
+        $marketId = $this->safe_string($fee, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $fee,
@@ -1616,14 +1619,14 @@ class coinex extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "close" => "66999.95",
-        //         "created_at" => 1713934620000,
-        //         "high" => "66999.95",
-        //         "low" => "66988.53",
-        //         "market" => "BTCUSDT",
-        //         "open" => "66988.53",
-        //         "value" => "0.1572393",        // base volume
-        //         "volume" => "10533.2501364336" // quote volume
+        //         "close": "66999.95",
+        //         "created_at": 1713934620000,
+        //         "high": "66999.95",
+        //         "low": "66988.53",
+        //         "market": "BTCUSDT",
+        //         "open": "66988.53",
+        //         "value": "0.1572393",        // base volume
+        //         "volume": "10533.2501364336" // quote volume
         //     }
         //
         return array(
@@ -1648,7 +1651,7 @@ class coinex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1670,60 +1673,60 @@ class coinex extends Exchange {
         // Spot and Swap
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "close" => "66999.95",
-        //                 "created_at" => 1713934620000,
-        //                 "high" => "66999.95",
-        //                 "low" => "66988.53",
-        //                 "market" => "BTCUSDT",
-        //                 "open" => "66988.53",
-        //                 "value" => "0.1572393",
-        //                 "volume" => "10533.2501364336"
-        //             ),
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "close": "66999.95",
+        //                 "created_at": 1713934620000,
+        //                 "high": "66999.95",
+        //                 "low": "66988.53",
+        //                 "market": "BTCUSDT",
+        //                 "open": "66988.53",
+        //                 "value": "0.1572393",
+        //                 "volume": "10533.2501364336"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_margin_balance($params = array()) {
+    public function fetch_margin_balance($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->v2PrivateGetAssetsMarginBalance($params);
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "margin_account" => "BTCUSDT",
-        //                 "base_ccy" => "BTC",
-        //                 "quote_ccy" => "USDT",
-        //                 "available" => array(
-        //                     "base_ccy" => "0.00000026",
-        //                     "quote_ccy" => "0"
-        //                 ),
-        //                 "frozen" => array(
-        //                     "base_ccy" => "0",
-        //                     "quote_ccy" => "0"
-        //                 ),
-        //                 "repaid" => array(
-        //                     "base_ccy" => "0",
-        //                     "quote_ccy" => "0"
-        //                 ),
-        //                 "interest" => array(
-        //                     "base_ccy" => "0",
-        //                     "quote_ccy" => "0"
-        //                 ),
-        //                 "rik_rate" => "",
-        //                 "liq_price" => ""
-        //             ),
-        //         ),
-        //         "code" => 0,
-        //         "message" => "OK"
+        //         "data": [
+        //             {
+        //                 "margin_account": "BTCUSDT",
+        //                 "base_ccy": "BTC",
+        //                 "quote_ccy": "USDT",
+        //                 "available": {
+        //                     "base_ccy": "0.00000026",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "frozen": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "repaid": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "interest": {
+        //                     "base_ccy": "0",
+        //                     "quote_ccy": "0"
+        //                 },
+        //                 "rik_rate": "",
+        //                 "liq_price": ""
+        //             },
+        //         ],
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
         $result = array( 'info' => $response );
@@ -1749,22 +1752,22 @@ class coinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_spot_balance($params = array()) {
+    public function fetch_spot_balance($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->v2PrivateGetAssetsSpotBalance($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "available" => "0.00000046",
-        //                 "ccy" => "USDT",
-        //                 "frozen" => "0"
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $result = array( 'info' => $response );
@@ -1783,25 +1786,25 @@ class coinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_swap_balance($params = array()) {
+    public function fetch_swap_balance($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->v2PrivateGetAssetsFuturesBalance($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "available" => "0.00000046",
-        //                 "ccy" => "USDT",
-        //                 "frozen" => "0",
-        //                 "margin" => "0",
-        //                 "transferrable" => "0.00000046",
-        //                 "unrealized_pnl" => "0"
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0",
+        //                 "margin": "0",
+        //                 "transferrable": "0.00000046",
+        //                 "unrealized_pnl": "0"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $result = array( 'info' => $response );
@@ -1820,22 +1823,22 @@ class coinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_financial_balance($params = array()) {
+    public function fetch_financial_balance($params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $response = $this->v2PrivateGetAssetsFinancialBalance($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "available" => "0.00000046",
-        //                 "ccy" => "USDT",
-        //                 "frozen" => "0"
+        //                 "available": "0.00000046",
+        //                 "ccy": "USDT",
+        //                 "frozen": "0"
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $result = array( 'info' => $response );
@@ -1900,207 +1903,207 @@ class coinex extends Exchange {
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
         //
         //     {
-        //         "amount" => "0.0001",
-        //         "base_fee" => "0",
-        //         "ccy" => "BTC",
-        //         "client_id" => "x-167673045-a0a3c6461459a801",
-        //         "created_at" => 1714114386250,
-        //         "discount_fee" => "0",
-        //         "filled_amount" => "0",
-        //         "filled_value" => "0",
-        //         "last_fill_amount" => "0",
-        //         "last_fill_price" => "0",
-        //         "maker_fee_rate" => "0.002",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "SPOT",
-        //         "order_id" => 117178743547,
-        //         "price" => "61000",
-        //         "quote_fee" => "0",
-        //         "side" => "buy",
-        //         "taker_fee_rate" => "0.002",
-        //         "type" => "limit",
-        //         "unfilled_amount" => "0.0001",
-        //         "updated_at" => 1714114386250
+        //         "amount": "0.0001",
+        //         "base_fee": "0",
+        //         "ccy": "BTC",
+        //         "client_id": "x-167673045-a0a3c6461459a801",
+        //         "created_at": 1714114386250,
+        //         "discount_fee": "0",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_fill_amount": "0",
+        //         "last_fill_price": "0",
+        //         "maker_fee_rate": "0.002",
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "order_id": 117178743547,
+        //         "price": "61000",
+        //         "quote_fee": "0",
+        //         "side": "buy",
+        //         "taker_fee_rate": "0.002",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714114386250
         //     }
         //
         // Spot and Margin fetchClosedOrders
         //
         //     {
-        //         "order_id" => 117180532345,
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "SPOT",
-        //         "side" => "sell",
-        //         "type" => "market",
-        //         "ccy" => "BTC",
-        //         "amount" => "0.00015484",
-        //         "price" => "0",
-        //         "client_id" => "",
-        //         "created_at" => 1714116494219,
-        //         "updated_at" => 0,
-        //         "base_fee" => "0",
-        //         "quote_fee" => "0.0199931699632",
-        //         "discount_fee" => "0",
-        //         "maker_fee_rate" => "0",
-        //         "taker_fee_rate" => "0.002",
-        //         "unfilled_amount" => "0",
-        //         "filled_amount" => "0.00015484",
-        //         "filled_value" => "9.9965849816"
+        //         "order_id": 117180532345,
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "side": "sell",
+        //         "type": "market",
+        //         "ccy": "BTC",
+        //         "amount": "0.00015484",
+        //         "price": "0",
+        //         "client_id": "",
+        //         "created_at": 1714116494219,
+        //         "updated_at": 0,
+        //         "base_fee": "0",
+        //         "quote_fee": "0.0199931699632",
+        //         "discount_fee": "0",
+        //         "maker_fee_rate": "0",
+        //         "taker_fee_rate": "0.002",
+        //         "unfilled_amount": "0",
+        //         "filled_amount": "0.00015484",
+        //         "filled_value": "9.9965849816"
         //     }
         //
         // Spot, Margin and Swap trigger createOrder, createOrders, editOrder
         //
         //     {
-        //         "stop_id" => 117180138153
+        //         "stop_id": 117180138153
         //     }
         //
         // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         //
         //     {
-        //         "amount" => "0.0001",
-        //         "client_id" => "x-167673045-1471b81d747080a0",
-        //         "created_at" => 1714116769986,
-        //         "fee" => "0",
-        //         "fee_ccy" => "USDT",
-        //         "filled_amount" => "0",
-        //         "filled_value" => "0",
-        //         "last_filled_amount" => "0",
-        //         "last_filled_price" => "0",
-        //         "maker_fee_rate" => "0.0003",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "order_id" => 136913377780,
-        //         "price" => "61000.42",
-        //         "realized_pnl" => "0",
-        //         "side" => "buy",
-        //         "taker_fee_rate" => "0.0005",
-        //         "type" => "limit",
-        //         "unfilled_amount" => "0.0001",
-        //         "updated_at" => 1714116769986
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-1471b81d747080a0",
+        //         "created_at": 1714116769986,
+        //         "fee": "0",
+        //         "fee_ccy": "USDT",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_filled_amount": "0",
+        //         "last_filled_price": "0",
+        //         "maker_fee_rate": "0.0003",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "order_id": 136913377780,
+        //         "price": "61000.42",
+        //         "realized_pnl": "0",
+        //         "side": "buy",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714116769986
         //     }
         //
         // Swap stopLossPrice and takeProfitPrice createOrder
         //
         //     {
-        //         "adl_level" => 1,
-        //         "ath_margin_size" => "2.14586666",
-        //         "ath_position_amount" => "0.0001",
-        //         "avg_entry_price" => "64376",
-        //         "bkr_price" => "0",
-        //         "close_avbl" => "0.0001",
-        //         "cml_position_value" => "6.4376",
-        //         "created_at" => 1714119054558,
-        //         "leverage" => "3",
-        //         "liq_price" => "0",
-        //         "maintenance_margin_rate" => "0.005",
-        //         "maintenance_margin_value" => "0.03218632",
-        //         "margin_avbl" => "2.14586666",
-        //         "margin_mode" => "cross",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "max_position_value" => "6.4376",
-        //         "open_interest" => "0.0001",
-        //         "position_id" => 303884204,
-        //         "position_margin_rate" => "3.10624785634397912265",
-        //         "realized_pnl" => "-0.0032188",
-        //         "settle_price" => "64376",
-        //         "settle_value" => "6.4376",
-        //         "side" => "long",
-        //         "stop_loss_price" => "62000",
-        //         "stop_loss_type" => "latest_price",
-        //         "take_profit_price" => "0",
-        //         "take_profit_type" => "",
-        //         "unrealized_pnl" => "0",
-        //         "updated_at" => 1714119054559
+        //         "adl_level": 1,
+        //         "ath_margin_size": "2.14586666",
+        //         "ath_position_amount": "0.0001",
+        //         "avg_entry_price": "64376",
+        //         "bkr_price": "0",
+        //         "close_avbl": "0.0001",
+        //         "cml_position_value": "6.4376",
+        //         "created_at": 1714119054558,
+        //         "leverage": "3",
+        //         "liq_price": "0",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03218632",
+        //         "margin_avbl": "2.14586666",
+        //         "margin_mode": "cross",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "max_position_value": "6.4376",
+        //         "open_interest": "0.0001",
+        //         "position_id": 303884204,
+        //         "position_margin_rate": "3.10624785634397912265",
+        //         "realized_pnl": "-0.0032188",
+        //         "settle_price": "64376",
+        //         "settle_value": "6.4376",
+        //         "side": "long",
+        //         "stop_loss_price": "62000",
+        //         "stop_loss_type": "latest_price",
+        //         "take_profit_price": "0",
+        //         "take_profit_type": "",
+        //         "unrealized_pnl": "0",
+        //         "updated_at": 1714119054559
         //     }
         //
         // Swap fetchOrder
         //
         //     {
-        //         "amount" => "0.0001",
-        //         "client_id" => "x-167673045-da5f31dcd478a829",
-        //         "created_at" => 1714460987164,
-        //         "fee" => "0",
-        //         "fee_ccy" => "USDT",
-        //         "filled_amount" => "0",
-        //         "filled_value" => "0",
-        //         "last_filled_amount" => "0",
-        //         "last_filled_price" => "0",
-        //         "maker_fee_rate" => "0.0003",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "order_id" => 137319868771,
-        //         "price" => "61000",
-        //         "realized_pnl" => "0",
-        //         "side" => "buy",
-        //         "status" => "open",
-        //         "taker_fee_rate" => "0.0005",
-        //         "type" => "limit",
-        //         "unfilled_amount" => "0.0001",
-        //         "updated_at" => 1714460987164
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-da5f31dcd478a829",
+        //         "created_at": 1714460987164,
+        //         "fee": "0",
+        //         "fee_ccy": "USDT",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_filled_amount": "0",
+        //         "last_filled_price": "0",
+        //         "maker_fee_rate": "0.0003",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "order_id": 137319868771,
+        //         "price": "61000",
+        //         "realized_pnl": "0",
+        //         "side": "buy",
+        //         "status": "open",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714460987164
         //     }
         //
         // Spot and Margin fetchOrder
         //
         //     {
-        //         "amount" => "0.0001",
-        //         "base_fee" => "0",
-        //         "ccy" => "BTC",
-        //         "client_id" => "x-167673045-da918d6724e3af81",
-        //         "created_at" => 1714461638958,
-        //         "discount_fee" => "0",
-        //         "filled_amount" => "0",
-        //         "filled_value" => "0",
-        //         "last_fill_amount" => "0",
-        //         "last_fill_price" => "0",
-        //         "maker_fee_rate" => "0.002",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "SPOT",
-        //         "order_id" => 117492012985,
-        //         "price" => "61000",
-        //         "quote_fee" => "0",
-        //         "side" => "buy",
-        //         "status" => "open",
-        //         "taker_fee_rate" => "0.002",
-        //         "type" => "limit",
-        //         "unfilled_amount" => "0.0001",
-        //         "updated_at" => 1714461638958
+        //         "amount": "0.0001",
+        //         "base_fee": "0",
+        //         "ccy": "BTC",
+        //         "client_id": "x-167673045-da918d6724e3af81",
+        //         "created_at": 1714461638958,
+        //         "discount_fee": "0",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "last_fill_amount": "0",
+        //         "last_fill_price": "0",
+        //         "maker_fee_rate": "0.002",
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "order_id": 117492012985,
+        //         "price": "61000",
+        //         "quote_fee": "0",
+        //         "side": "buy",
+        //         "status": "open",
+        //         "taker_fee_rate": "0.002",
+        //         "type": "limit",
+        //         "unfilled_amount": "0.0001",
+        //         "updated_at": 1714461638958
         //     }
         //
         // Swap trigger fetchOpenOrders, fetchClosedOrders - Spot and Swap trigger cancelOrders, cancelOrder
         //
         //     {
-        //         "amount" => "0.0001",
-        //         "client_id" => "x-167673045-a7d7714c6478acf6",
-        //         "created_at" => 1714187923820,
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "price" => "61000",
-        //         "side" => "buy",
-        //         "stop_id" => 136984426097,
-        //         "trigger_direction" => "higher",
-        //         "trigger_price" => "62000",
-        //         "trigger_price_type" => "latest_price",
-        //         "type" => "limit",
-        //         "updated_at" => 1714187974363
+        //         "amount": "0.0001",
+        //         "client_id": "x-167673045-a7d7714c6478acf6",
+        //         "created_at": 1714187923820,
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "price": "61000",
+        //         "side": "buy",
+        //         "stop_id": 136984426097,
+        //         "trigger_direction": "higher",
+        //         "trigger_price": "62000",
+        //         "trigger_price_type": "latest_price",
+        //         "type": "limit",
+        //         "updated_at": 1714187974363
         //     }
         //
         // Spot and Margin trigger fetchOpenOrders, fetchClosedOrders
         //
         //     {
-        //         "stop_id" => 117586439530,
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "SPOT",
-        //         "ccy" => "BTC",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "amount" => "0.0001",
-        //         "price" => "51000",
-        //         "trigger_price" => "52000",
-        //         "trigger_direction" => "higher",
-        //         "trigger_price_type" => "mark_price",
-        //         "client_id" => "x-167673045-df61777094c69312",
-        //         "created_at" => 1714551237335,
-        //         "updated_at" => 1714551237335
+        //         "stop_id": 117586439530,
+        //         "market": "BTCUSDT",
+        //         "market_type": "SPOT",
+        //         "ccy": "BTC",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "amount": "0.0001",
+        //         "price": "51000",
+        //         "trigger_price": "52000",
+        //         "trigger_direction": "higher",
+        //         "trigger_price_type": "mark_price",
+        //         "client_id": "x-167673045-df61777094c69312",
+        //         "created_at": 1714551237335,
+        //         "updated_at": 1714551237335
         //     }
         //
         $rawStatus = $this->safe_string($order, 'status');
@@ -2163,7 +2166,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): array {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
@@ -2186,7 +2189,7 @@ class coinex extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -2292,7 +2295,7 @@ class coinex extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -2337,42 +2340,42 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostSpotStopOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "stop_id" => 117180138153
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 117180138153
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostSpotOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "amount" => "0.0001",
-                //             "base_fee" => "0",
-                //             "ccy" => "BTC",
-                //             "client_id" => "x-167673045-a0a3c6461459a801",
-                //             "created_at" => 1714114386250,
-                //             "discount_fee" => "0",
-                //             "filled_amount" => "0",
-                //             "filled_value" => "0",
-                //             "last_fill_amount" => "0",
-                //             "last_fill_price" => "0",
-                //             "maker_fee_rate" => "0.002",
-                //             "market" => "BTCUSDT",
-                //             "market_type" => "SPOT",
-                //             "order_id" => 117178743547,
-                //             "price" => "61000",
-                //             "quote_fee" => "0",
-                //             "side" => "buy",
-                //             "taker_fee_rate" => "0.002",
-                //             "type" => "limit",
-                //             "unfilled_amount" => "0.0001",
-                //             "updated_at" => 1714114386250
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "amount": "0.0001",
+                //             "base_fee": "0",
+                //             "ccy": "BTC",
+                //             "client_id": "x-167673045-a0a3c6461459a801",
+                //             "created_at": 1714114386250,
+                //             "discount_fee": "0",
+                //             "filled_amount": "0",
+                //             "filled_value": "0",
+                //             "last_fill_amount": "0",
+                //             "last_fill_price": "0",
+                //             "maker_fee_rate": "0.002",
+                //             "market": "BTCUSDT",
+                //             "market_type": "SPOT",
+                //             "order_id": 117178743547,
+                //             "price": "61000",
+                //             "quote_fee": "0",
+                //             "side": "buy",
+                //             "taker_fee_rate": "0.002",
+                //             "type": "limit",
+                //             "unfilled_amount": "0.0001",
+                //             "updated_at": 1714114386250
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -2381,11 +2384,11 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostFuturesStopOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "stop_id" => 136915460994
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 136915460994
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             } elseif ($isStopLossOrTakeProfitTrigger) {
@@ -2393,80 +2396,80 @@ class coinex extends Exchange {
                     $response = $this->v2PrivatePostFuturesSetPositionStopLoss($request);
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "adl_level" => 1,
-                    //             "ath_margin_size" => "2.14586666",
-                    //             "ath_position_amount" => "0.0001",
-                    //             "avg_entry_price" => "64376",
-                    //             "bkr_price" => "0",
-                    //             "close_avbl" => "0.0001",
-                    //             "cml_position_value" => "6.4376",
-                    //             "created_at" => 1714119054558,
-                    //             "leverage" => "3",
-                    //             "liq_price" => "0",
-                    //             "maintenance_margin_rate" => "0.005",
-                    //             "maintenance_margin_value" => "0.03218632",
-                    //             "margin_avbl" => "2.14586666",
-                    //             "margin_mode" => "cross",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "FUTURES",
-                    //             "max_position_value" => "6.4376",
-                    //             "open_interest" => "0.0001",
-                    //             "position_id" => 303884204,
-                    //             "position_margin_rate" => "3.10624785634397912265",
-                    //             "realized_pnl" => "-0.0032188",
-                    //             "settle_price" => "64376",
-                    //             "settle_value" => "6.4376",
-                    //             "side" => "long",
-                    //             "stop_loss_price" => "62000",
-                    //             "stop_loss_type" => "latest_price",
-                    //             "take_profit_price" => "0",
-                    //             "take_profit_type" => "",
-                    //             "unrealized_pnl" => "0",
-                    //             "updated_at" => 1714119054559
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "adl_level": 1,
+                    //             "ath_margin_size": "2.14586666",
+                    //             "ath_position_amount": "0.0001",
+                    //             "avg_entry_price": "64376",
+                    //             "bkr_price": "0",
+                    //             "close_avbl": "0.0001",
+                    //             "cml_position_value": "6.4376",
+                    //             "created_at": 1714119054558,
+                    //             "leverage": "3",
+                    //             "liq_price": "0",
+                    //             "maintenance_margin_rate": "0.005",
+                    //             "maintenance_margin_value": "0.03218632",
+                    //             "margin_avbl": "2.14586666",
+                    //             "margin_mode": "cross",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "max_position_value": "6.4376",
+                    //             "open_interest": "0.0001",
+                    //             "position_id": 303884204,
+                    //             "position_margin_rate": "3.10624785634397912265",
+                    //             "realized_pnl": "-0.0032188",
+                    //             "settle_price": "64376",
+                    //             "settle_value": "6.4376",
+                    //             "side": "long",
+                    //             "stop_loss_price": "62000",
+                    //             "stop_loss_type": "latest_price",
+                    //             "take_profit_price": "0",
+                    //             "take_profit_type": "",
+                    //             "unrealized_pnl": "0",
+                    //             "updated_at": 1714119054559
+                    //         },
+                    //         "message": "OK"
                     //     }
                     //
                 } elseif ($isTakeProfitTriggerOrder) {
                     $response = $this->v2PrivatePostFuturesSetPositionTakeProfit($request);
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "adl_level" => 1,
-                    //             "ath_margin_size" => "2.14586666",
-                    //             "ath_position_amount" => "0.0001",
-                    //             "avg_entry_price" => "64376",
-                    //             "bkr_price" => "0",
-                    //             "close_avbl" => "0.0001",
-                    //             "cml_position_value" => "6.4376",
-                    //             "created_at" => 1714119054558,
-                    //             "leverage" => "3",
-                    //             "liq_price" => "0",
-                    //             "maintenance_margin_rate" => "0.005",
-                    //             "maintenance_margin_value" => "0.03218632",
-                    //             "margin_avbl" => "2.14586666",
-                    //             "margin_mode" => "cross",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "FUTURES",
-                    //             "max_position_value" => "6.4376",
-                    //             "open_interest" => "0.0001",
-                    //             "position_id" => 303884204,
-                    //             "position_margin_rate" => "3.10624785634397912265",
-                    //             "realized_pnl" => "-0.0032188",
-                    //             "settle_price" => "64376",
-                    //             "settle_value" => "6.4376",
-                    //             "side" => "long",
-                    //             "stop_loss_price" => "62000",
-                    //             "stop_loss_type" => "latest_price",
-                    //             "take_profit_price" => "70000",
-                    //             "take_profit_type" => "latest_price",
-                    //             "unrealized_pnl" => "0",
-                    //             "updated_at" => 1714119054559
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "adl_level": 1,
+                    //             "ath_margin_size": "2.14586666",
+                    //             "ath_position_amount": "0.0001",
+                    //             "avg_entry_price": "64376",
+                    //             "bkr_price": "0",
+                    //             "close_avbl": "0.0001",
+                    //             "cml_position_value": "6.4376",
+                    //             "created_at": 1714119054558,
+                    //             "leverage": "3",
+                    //             "liq_price": "0",
+                    //             "maintenance_margin_rate": "0.005",
+                    //             "maintenance_margin_value": "0.03218632",
+                    //             "margin_avbl": "2.14586666",
+                    //             "margin_mode": "cross",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "max_position_value": "6.4376",
+                    //             "open_interest": "0.0001",
+                    //             "position_id": 303884204,
+                    //             "position_margin_rate": "3.10624785634397912265",
+                    //             "realized_pnl": "-0.0032188",
+                    //             "settle_price": "64376",
+                    //             "settle_value": "6.4376",
+                    //             "side": "long",
+                    //             "stop_loss_price": "62000",
+                    //             "stop_loss_type": "latest_price",
+                    //             "take_profit_price": "70000",
+                    //             "take_profit_type": "latest_price",
+                    //             "unrealized_pnl": "0",
+                    //             "updated_at": 1714119054559
+                    //         },
+                    //         "message": "OK"
                     //     }
                     //
                 }
@@ -2475,60 +2478,60 @@ class coinex extends Exchange {
                     $response = $this->v2PrivatePostFuturesClosePosition($request);
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "client_id" => "x-167673045-4f264600c432ac06",
-                    //             "created_at" => 1714119323764,
-                    //             "fee" => "0.003221",
-                    //             "fee_ccy" => "USDT",
-                    //             "filled_amount" => "0.0001",
-                    //             "filled_value" => "6.442017",
-                    //             "last_filled_amount" => "0.0001",
-                    //             "last_filled_price" => "64420.17",
-                    //             "maker_fee_rate" => "0",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "FUTURES",
-                    //             "order_id" => 136915813578,
-                    //             "price" => "0",
-                    //             "realized_pnl" => "0.004417",
-                    //             "side" => "sell",
-                    //             "taker_fee_rate" => "0.0005",
-                    //             "type" => "market",
-                    //             "unfilled_amount" => "0",
-                    //             "updated_at" => 1714119323764
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "client_id": "x-167673045-4f264600c432ac06",
+                    //             "created_at": 1714119323764,
+                    //             "fee": "0.003221",
+                    //             "fee_ccy": "USDT",
+                    //             "filled_amount": "0.0001",
+                    //             "filled_value": "6.442017",
+                    //             "last_filled_amount": "0.0001",
+                    //             "last_filled_price": "64420.17",
+                    //             "maker_fee_rate": "0",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "order_id": 136915813578,
+                    //             "price": "0",
+                    //             "realized_pnl": "0.004417",
+                    //             "side": "sell",
+                    //             "taker_fee_rate": "0.0005",
+                    //             "type": "market",
+                    //             "unfilled_amount": "0",
+                    //             "updated_at": 1714119323764
+                    //         },
+                    //         "message": "OK"
                     //     }
                     //
                 } else {
                     $response = $this->v2PrivatePostFuturesOrder($request);
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "client_id" => "x-167673045-1471b81d747080a0",
-                    //             "created_at" => 1714116769986,
-                    //             "fee" => "0",
-                    //             "fee_ccy" => "USDT",
-                    //             "filled_amount" => "0",
-                    //             "filled_value" => "0",
-                    //             "last_filled_amount" => "0",
-                    //             "last_filled_price" => "0",
-                    //             "maker_fee_rate" => "0.0003",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "FUTURES",
-                    //             "order_id" => 136913377780,
-                    //             "price" => "61000.42",
-                    //             "realized_pnl" => "0",
-                    //             "side" => "buy",
-                    //             "taker_fee_rate" => "0.0005",
-                    //             "type" => "limit",
-                    //             "unfilled_amount" => "0.0001",
-                    //             "updated_at" => 1714116769986
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "client_id": "x-167673045-1471b81d747080a0",
+                    //             "created_at": 1714116769986,
+                    //             "fee": "0",
+                    //             "fee_ccy": "USDT",
+                    //             "filled_amount": "0",
+                    //             "filled_value": "0",
+                    //             "last_filled_amount": "0",
+                    //             "last_filled_price": "0",
+                    //             "maker_fee_rate": "0.0003",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "order_id": 136913377780,
+                    //             "price": "61000.42",
+                    //             "realized_pnl": "0",
+                    //             "side": "buy",
+                    //             "taker_fee_rate": "0.0005",
+                    //             "type": "limit",
+                    //             "unfilled_amount": "0.0001",
+                    //             "updated_at": 1714116769986
+                    //         },
+                    //         "message": "OK"
                     //     }
                     //
                 }
@@ -2571,9 +2574,9 @@ class coinex extends Exchange {
             }
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             if ($type !== 'limit') {
                 throw new NotSupported($this->id . ' createOrders() does not support ' . $type . ' $orders, only limit $orders are accepted');
             }
@@ -2599,55 +2602,55 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostSpotBatchStopOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "stop_id" => 117186257510
-                //                 ),
-                //                 "message" => "OK"
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "stop_id": 117186257510
+                //                 },
+                //                 "message": "OK"
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostSpotBatchOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "amount" => "0.0001",
-                //                 "base_fee" => "0",
-                //                 "ccy" => "BTC",
-                //                 "client_id" => "x-167673045-f3651372049dab0d",
-                //                 "created_at" => 1714121403450,
-                //                 "discount_fee" => "0",
-                //                 "filled_amount" => "0",
-                //                 "filled_value" => "0",
-                //                 "last_fill_amount" => "0",
-                //                 "last_fill_price" => "0",
-                //                 "maker_fee_rate" => "0.002",
-                //                 "market" => "BTCUSDT",
-                //                 "market_type" => "SPOT",
-                //                 "order_id" => 117185362233,
-                //                 "price" => "61000",
-                //                 "quote_fee" => "0",
-                //                 "side" => "buy",
-                //                 "taker_fee_rate" => "0.002",
-                //                 "type" => "limit",
-                //                 "unfilled_amount" => "0.0001",
-                //                 "updated_at" => 1714121403450
-                //             ),
+                //         "code": 0,
+                //         "data": [
                 //             {
-                //                 "code" => 3109,
-                //                 "data" => null,
-                //                 "message" => "balance not enough"
+                //                 "amount": "0.0001",
+                //                 "base_fee": "0",
+                //                 "ccy": "BTC",
+                //                 "client_id": "x-167673045-f3651372049dab0d",
+                //                 "created_at": 1714121403450,
+                //                 "discount_fee": "0",
+                //                 "filled_amount": "0",
+                //                 "filled_value": "0",
+                //                 "last_fill_amount": "0",
+                //                 "last_fill_price": "0",
+                //                 "maker_fee_rate": "0.002",
+                //                 "market": "BTCUSDT",
+                //                 "market_type": "SPOT",
+                //                 "order_id": 117185362233,
+                //                 "price": "61000",
+                //                 "quote_fee": "0",
+                //                 "side": "buy",
+                //                 "taker_fee_rate": "0.002",
+                //                 "type": "limit",
+                //                 "unfilled_amount": "0.0001",
+                //                 "updated_at": 1714121403450
+                //             },
+                //             {
+                //                 "code": 3109,
+                //                 "data": null,
+                //                 "message": "balance not enough"
                 //             }
-                //         ),
-                //         "message" => "OK"
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -2656,17 +2659,17 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostFuturesBatchStopOrder($request);
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "stop_id" => 136919625994
-                //                 ),
-                //                 "message" => "OK"
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "stop_id": 136919625994
+                //                 },
+                //                 "message": "OK"
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             } elseif ($isStopLossOrTakeProfitTrigger) {
@@ -2678,36 +2681,36 @@ class coinex extends Exchange {
                     $response = $this->v2PrivatePostFuturesBatchOrder($request);
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             array(
-                    //                 "code" => 0,
-                    //                 "data" => array(
-                    //                     "amount" => "0.0001",
-                    //                     "client_id" => "x-167673045-2cb7436f3462a654",
-                    //                     "created_at" => 1714122832493,
-                    //                     "fee" => "0",
-                    //                     "fee_ccy" => "USDT",
-                    //                     "filled_amount" => "0",
-                    //                     "filled_value" => "0",
-                    //                     "last_filled_amount" => "0",
-                    //                     "last_filled_price" => "0",
-                    //                     "maker_fee_rate" => "0.0003",
-                    //                     "market" => "BTCUSDT",
-                    //                     "market_type" => "FUTURES",
-                    //                     "order_id" => 136918835063,
-                    //                     "price" => "61000",
-                    //                     "realized_pnl" => "0",
-                    //                     "side" => "buy",
-                    //                     "taker_fee_rate" => "0.0005",
-                    //                     "type" => "limit",
-                    //                     "unfilled_amount" => "0.0001",
-                    //                     "updated_at" => 1714122832493
-                    //                 ),
-                    //                 "message" => "OK"
-                    //             ),
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": [
+                    //             {
+                    //                 "code": 0,
+                    //                 "data": {
+                    //                     "amount": "0.0001",
+                    //                     "client_id": "x-167673045-2cb7436f3462a654",
+                    //                     "created_at": 1714122832493,
+                    //                     "fee": "0",
+                    //                     "fee_ccy": "USDT",
+                    //                     "filled_amount": "0",
+                    //                     "filled_value": "0",
+                    //                     "last_filled_amount": "0",
+                    //                     "last_filled_price": "0",
+                    //                     "maker_fee_rate": "0.0003",
+                    //                     "market": "BTCUSDT",
+                    //                     "market_type": "FUTURES",
+                    //                     "order_id": 136918835063,
+                    //                     "price": "61000",
+                    //                     "realized_pnl": "0",
+                    //                     "side": "buy",
+                    //                     "taker_fee_rate": "0.0005",
+                    //                     "type": "limit",
+                    //                     "unfilled_amount": "0.0001",
+                    //                     "updated_at": 1714122832493
+                    //                 },
+                    //                 "message": "OK"
+                    //             },
+                    //         ],
+                    //         "message": "OK"
                     //     }
                     //
                 }
@@ -2739,7 +2742,7 @@ class coinex extends Exchange {
         return $results;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2781,67 +2784,67 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostSpotCancelBatchStopOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "amount" => "0.0001",
-                //                     "ccy" => "BTC",
-                //                     "client_id" => "x-167673045-8e33d6f4a4bcb022",
-                //                     "created_at" => 1714188827291,
-                //                     "market" => "BTCUSDT",
-                //                     "market_type" => "SPOT",
-                //                     "price" => "61000",
-                //                     "side" => "buy",
-                //                     "stop_id" => 117248845854,
-                //                     "trigger_direction" => "higher",
-                //                     "trigger_price" => "62000",
-                //                     "trigger_price_type" => "mark_price",
-                //                     "type" => "limit",
-                //                     "updated_at" => 1714188827291
-                //                 ),
-                //                 "message" => "OK"
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "amount": "0.0001",
+                //                     "ccy": "BTC",
+                //                     "client_id": "x-167673045-8e33d6f4a4bcb022",
+                //                     "created_at": 1714188827291,
+                //                     "market": "BTCUSDT",
+                //                     "market_type": "SPOT",
+                //                     "price": "61000",
+                //                     "side": "buy",
+                //                     "stop_id": 117248845854,
+                //                     "trigger_direction": "higher",
+                //                     "trigger_price": "62000",
+                //                     "trigger_price_type": "mark_price",
+                //                     "type": "limit",
+                //                     "updated_at": 1714188827291
+                //                 },
+                //                 "message": "OK"
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostSpotCancelBatchOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "amount" => "0.0001",
-                //                     "base_fee" => "0",
-                //                     "ccy" => "BTC",
-                //                     "client_id" => "x-167673045-c1cc78e5b42d8c4e",
-                //                     "created_at" => 1714188449497,
-                //                     "discount_fee" => "0",
-                //                     "filled_amount" => "0",
-                //                     "filled_value" => "0",
-                //                     "last_fill_amount" => "0",
-                //                     "last_fill_price" => "0",
-                //                     "maker_fee_rate" => "0.002",
-                //                     "market" => "BTCUSDT",
-                //                     "market_type" => "SPOT",
-                //                     "order_id" => 117248494358,
-                //                     "price" => "60000",
-                //                     "quote_fee" => "0",
-                //                     "side" => "buy",
-                //                     "taker_fee_rate" => "0.002",
-                //                     "type" => "limit",
-                //                     "unfilled_amount" => "0.0001",
-                //                     "updated_at" => 1714188449497
-                //                 ),
-                //                 "message" => ""
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "amount": "0.0001",
+                //                     "base_fee": "0",
+                //                     "ccy": "BTC",
+                //                     "client_id": "x-167673045-c1cc78e5b42d8c4e",
+                //                     "created_at": 1714188449497,
+                //                     "discount_fee": "0",
+                //                     "filled_amount": "0",
+                //                     "filled_value": "0",
+                //                     "last_fill_amount": "0",
+                //                     "last_fill_price": "0",
+                //                     "maker_fee_rate": "0.002",
+                //                     "market": "BTCUSDT",
+                //                     "market_type": "SPOT",
+                //                     "order_id": 117248494358,
+                //                     "price": "60000",
+                //                     "quote_fee": "0",
+                //                     "side": "buy",
+                //                     "taker_fee_rate": "0.002",
+                //                     "type": "limit",
+                //                     "unfilled_amount": "0.0001",
+                //                     "updated_at": 1714188449497
+                //                 },
+                //                 "message": ""
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -2851,65 +2854,65 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostFuturesCancelBatchStopOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "amount" => "0.0001",
-                //                     "client_id" => "x-167673045-a7d7714c6478acf6",
-                //                     "created_at" => 1714187923820,
-                //                     "market" => "BTCUSDT",
-                //                     "market_type" => "FUTURES",
-                //                     "price" => "61000",
-                //                     "side" => "buy",
-                //                     "stop_id" => 136984426097,
-                //                     "trigger_direction" => "higher",
-                //                     "trigger_price" => "62000",
-                //                     "trigger_price_type" => "latest_price",
-                //                     "type" => "limit",
-                //                     "updated_at" => 1714187974363
-                //                 ),
-                //                 "message" => ""
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "amount": "0.0001",
+                //                     "client_id": "x-167673045-a7d7714c6478acf6",
+                //                     "created_at": 1714187923820,
+                //                     "market": "BTCUSDT",
+                //                     "market_type": "FUTURES",
+                //                     "price": "61000",
+                //                     "side": "buy",
+                //                     "stop_id": 136984426097,
+                //                     "trigger_direction": "higher",
+                //                     "trigger_price": "62000",
+                //                     "trigger_price_type": "latest_price",
+                //                     "type": "limit",
+                //                     "updated_at": 1714187974363
+                //                 },
+                //                 "message": ""
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostFuturesCancelBatchOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             array(
-                //                 "code" => 0,
-                //                 "data" => array(
-                //                     "amount" => "0.0001",
-                //                     "client_id" => "x-167673045-9f80fde284339a72",
-                //                     "created_at" => 1714187491784,
-                //                     "fee" => "0",
-                //                     "fee_ccy" => "USDT",
-                //                     "filled_amount" => "0",
-                //                     "filled_value" => "0",
-                //                     "last_filled_amount" => "0",
-                //                     "last_filled_price" => "0",
-                //                     "maker_fee_rate" => "0.0003",
-                //                     "market" => "BTCUSDT",
-                //                     "market_type" => "FUTURES",
-                //                     "order_id" => 136983851788,
-                //                     "price" => "61000",
-                //                     "realized_pnl" => "0",
-                //                     "side" => "buy",
-                //                     "taker_fee_rate" => "0.0005",
-                //                     "type" => "limit",
-                //                     "unfilled_amount" => "0.0001",
-                //                     "updated_at" => 1714187567079
-                //                 ),
-                //                 "message" => ""
-                //             ),
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": [
+                //             {
+                //                 "code": 0,
+                //                 "data": {
+                //                     "amount": "0.0001",
+                //                     "client_id": "x-167673045-9f80fde284339a72",
+                //                     "created_at": 1714187491784,
+                //                     "fee": "0",
+                //                     "fee_ccy": "USDT",
+                //                     "filled_amount": "0",
+                //                     "filled_value": "0",
+                //                     "last_filled_amount": "0",
+                //                     "last_filled_price": "0",
+                //                     "maker_fee_rate": "0.0003",
+                //                     "market": "BTCUSDT",
+                //                     "market_type": "FUTURES",
+                //                     "order_id": 136983851788,
+                //                     "price": "61000",
+                //                     "realized_pnl": "0",
+                //                     "side": "buy",
+                //                     "taker_fee_rate": "0.0005",
+                //                     "type": "limit",
+                //                     "unfilled_amount": "0.0001",
+                //                     "updated_at": 1714187567079
+                //                 },
+                //                 "message": ""
+                //             },
+                //         ],
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -2925,7 +2928,7 @@ class coinex extends Exchange {
         return $results;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -2982,43 +2985,43 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostSpotModifyStopOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "stop_id" => 117337235167
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 117337235167
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostSpotModifyOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "amount" => "0.0001",
-                //             "base_fee" => "0",
-                //             "ccy" => "BTC",
-                //             "client_id" => "x-167673045-87eb2bebf42882d8",
-                //             "created_at" => 1714290302047,
-                //             "discount_fee" => "0",
-                //             "filled_amount" => "0",
-                //             "filled_value" => "0",
-                //             "last_fill_amount" => "0",
-                //             "last_fill_price" => "0",
-                //             "maker_fee_rate" => "0.002",
-                //             "market" => "BTCUSDT",
-                //             "market_type" => "SPOT",
-                //             "order_id" => 117336922195,
-                //             "price" => "61000",
-                //             "quote_fee" => "0",
-                //             "side" => "buy",
-                //             "status" => "open",
-                //             "taker_fee_rate" => "0.002",
-                //             "type" => "limit",
-                //             "unfilled_amount" => "0.0001",
-                //             "updated_at" => 1714290191141
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "amount": "0.0001",
+                //             "base_fee": "0",
+                //             "ccy": "BTC",
+                //             "client_id": "x-167673045-87eb2bebf42882d8",
+                //             "created_at": 1714290302047,
+                //             "discount_fee": "0",
+                //             "filled_amount": "0",
+                //             "filled_value": "0",
+                //             "last_fill_amount": "0",
+                //             "last_fill_price": "0",
+                //             "maker_fee_rate": "0.002",
+                //             "market": "BTCUSDT",
+                //             "market_type": "SPOT",
+                //             "order_id": 117336922195,
+                //             "price": "61000",
+                //             "quote_fee": "0",
+                //             "side": "buy",
+                //             "status": "open",
+                //             "taker_fee_rate": "0.002",
+                //             "type": "limit",
+                //             "unfilled_amount": "0.0001",
+                //             "updated_at": 1714290191141
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -3028,41 +3031,41 @@ class coinex extends Exchange {
                 $response = $this->v2PrivatePostFuturesModifyStopOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "stop_id" => 137091875605
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "stop_id": 137091875605
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             } else {
                 $response = $this->v2PrivatePostFuturesModifyOrder($this->extend($request, $params));
                 //
                 //     {
-                //         "code" => 0,
-                //         "data" => array(
-                //             "amount" => "0.0001",
-                //             "client_id" => "x-167673045-3f2d09191462b207",
-                //             "created_at" => 1714290927630,
-                //             "fee" => "0",
-                //             "fee_ccy" => "USDT",
-                //             "filled_amount" => "0",
-                //             "filled_value" => "0",
-                //             "last_filled_amount" => "0",
-                //             "last_filled_price" => "0",
-                //             "maker_fee_rate" => "0.0003",
-                //             "market" => "BTCUSDT",
-                //             "market_type" => "FUTURES",
-                //             "order_id" => 137091566717,
-                //             "price" => "61000",
-                //             "realized_pnl" => "0",
-                //             "side" => "buy",
-                //             "taker_fee_rate" => "0.0005",
-                //             "type" => "limit",
-                //             "unfilled_amount" => "0.0001",
-                //             "updated_at" => 1714290927630
-                //         ),
-                //         "message" => "OK"
+                //         "code": 0,
+                //         "data": {
+                //             "amount": "0.0001",
+                //             "client_id": "x-167673045-3f2d09191462b207",
+                //             "created_at": 1714290927630,
+                //             "fee": "0",
+                //             "fee_ccy": "USDT",
+                //             "filled_amount": "0",
+                //             "filled_value": "0",
+                //             "last_filled_amount": "0",
+                //             "last_filled_price": "0",
+                //             "maker_fee_rate": "0.0003",
+                //             "market": "BTCUSDT",
+                //             "market_type": "FUTURES",
+                //             "order_id": 137091566717,
+                //             "price": "61000",
+                //             "realized_pnl": "0",
+                //             "side": "buy",
+                //             "taker_fee_rate": "0.0005",
+                //             "type": "limit",
+                //             "unfilled_amount": "0.0001",
+                //             "updated_at": 1714290927630
+                //         },
+                //         "message": "OK"
                 //     }
                 //
             }
@@ -3095,8 +3098,8 @@ class coinex extends Exchange {
                 $orderSymbols[] = $marketId;
             }
             $id = $this->safe_string($rawOrder, 'id');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $marginMode = null;
             list($marginMode, $orderParams) = $this->handle_margin_mode_and_params('editOrders', $orderParams);
@@ -3150,7 +3153,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -3202,128 +3205,128 @@ class coinex extends Exchange {
                 if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelStopOrderByClientId($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "code" => 0,
-                    //                 "data" => array(
-                    //                     "amount" => "0.0001",
-                    //                     "client_id" => "client01",
-                    //                     "created_at" => 1714368624473,
-                    //                     "market" => "BTCUSDT",
-                    //                     "market_type" => "FUTURES",
-                    //                     "price" => "61000",
-                    //                     "side" => "buy",
-                    //                     "stop_id" => 137175823891,
-                    //                     "trigger_direction" => "higher",
-                    //                     "trigger_price" => "61500",
-                    //                     "trigger_price_type" => "latest_price",
-                    //                     "type" => "limit",
-                    //                     "updated_at" => 1714368661444
-                    //                 ),
-                    //                 "message" => ""
+                    //                 "code": 0,
+                    //                 "data": {
+                    //                     "amount": "0.0001",
+                    //                     "client_id": "client01",
+                    //                     "created_at": 1714368624473,
+                    //                     "market": "BTCUSDT",
+                    //                     "market_type": "FUTURES",
+                    //                     "price": "61000",
+                    //                     "side": "buy",
+                    //                     "stop_id": 137175823891,
+                    //                     "trigger_direction": "higher",
+                    //                     "trigger_price": "61500",
+                    //                     "trigger_price_type": "latest_price",
+                    //                     "type": "limit",
+                    //                     "updated_at": 1714368661444
+                    //                 },
+                    //                 "message": ""
                     //             }
-                    //         ),
-                    //         "message" => "OK"
+                    //         ],
+                    //         "message": "OK"
                     //     }
                 } else {
                     $response = $this->v2PrivatePostSpotCancelStopOrderByClientId($this->extend($request, $params));
                     //     {
                     //         "code" :0,
-                    //         "data" => array(
+                    //         "data": [
                     //             {
-                    //                 "code" => 0,
-                    //                 "data" => array(
-                    //                     "amount" => "0.0001",
-                    //                     "ccy" => "BTC",
-                    //                     "client_id" => "client01",
-                    //                     "created_at" => 1714366950279,
-                    //                     "market" => "BTCUSDT",
-                    //                     "market_type" => "SPOT",
-                    //                     "price" => "61000",
-                    //                     "side" => "buy",
-                    //                     "stop_id" => 117402512706,
-                    //                     "trigger_direction" => "higher",
-                    //                     "trigger_price" => "61500",
-                    //                     "trigger_price_type" => "mark_price",
-                    //                     "type" => "limit",
-                    //                     "updated_at" => 1714366950279
-                    //                 ),
-                    //                 "message" => "OK"
+                    //                 "code": 0,
+                    //                 "data": {
+                    //                     "amount": "0.0001",
+                    //                     "ccy": "BTC",
+                    //                     "client_id": "client01",
+                    //                     "created_at": 1714366950279,
+                    //                     "market": "BTCUSDT",
+                    //                     "market_type": "SPOT",
+                    //                     "price": "61000",
+                    //                     "side": "buy",
+                    //                     "stop_id": 117402512706,
+                    //                     "trigger_direction": "higher",
+                    //                     "trigger_price": "61500",
+                    //                     "trigger_price_type": "mark_price",
+                    //                     "type": "limit",
+                    //                     "updated_at": 1714366950279
+                    //                 },
+                    //                 "message": "OK"
                     //             }
-                    //         ),
-                    //         "message" => "OK"
+                    //         ],
+                    //         "message": "OK"
                     //     }
                 }
             } else {
                 if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelOrderByClientId($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "code" => 0,
-                    //                 "data" => array(
-                    //                     "amount" => "0.0001",
-                    //                     "client_id" => "x-167673045-bf60e24bb437a3df",
-                    //                     "created_at" => 1714368416437,
-                    //                     "fee" => "0",
-                    //                     "fee_ccy" => "USDT",
-                    //                     "filled_amount" => "0",
-                    //                     "filled_value" => "0",
-                    //                     "last_filled_amount" => "0",
-                    //                     "last_filled_price" => "0",
-                    //                     "maker_fee_rate" => "0.0003",
-                    //                     "market" => "BTCUSDT",
-                    //                     "market_type" => "FUTURES",
-                    //                     "order_id" => 137175616437,
-                    //                     "price" => "61000",
-                    //                     "realized_pnl" => "0",
-                    //                     "side" => "buy",
-                    //                     "taker_fee_rate" => "0.0005",
-                    //                     "type" => "limit",
-                    //                     "unfilled_amount" => "0.0001",
-                    //                     "updated_at" => 1714368507174
-                    //                 ),
-                    //                 "message" => ""
+                    //                 "code": 0,
+                    //                 "data": {
+                    //                     "amount": "0.0001",
+                    //                     "client_id": "x-167673045-bf60e24bb437a3df",
+                    //                     "created_at": 1714368416437,
+                    //                     "fee": "0",
+                    //                     "fee_ccy": "USDT",
+                    //                     "filled_amount": "0",
+                    //                     "filled_value": "0",
+                    //                     "last_filled_amount": "0",
+                    //                     "last_filled_price": "0",
+                    //                     "maker_fee_rate": "0.0003",
+                    //                     "market": "BTCUSDT",
+                    //                     "market_type": "FUTURES",
+                    //                     "order_id": 137175616437,
+                    //                     "price": "61000",
+                    //                     "realized_pnl": "0",
+                    //                     "side": "buy",
+                    //                     "taker_fee_rate": "0.0005",
+                    //                     "type": "limit",
+                    //                     "unfilled_amount": "0.0001",
+                    //                     "updated_at": 1714368507174
+                    //                 },
+                    //                 "message": ""
                     //             }
-                    //         ),
-                    //         "message" => "OK"
+                    //         ],
+                    //         "message": "OK"
                     //     }
                 } else {
                     $response = $this->v2PrivatePostSpotCancelOrderByClientId($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "code" => 0,
-                    //                 "data" => array(
-                    //                     "amount" => "0.0001",
-                    //                     "base_fee" => "0",
-                    //                     "ccy" => "BTC",
-                    //                     "client_id" => "x-167673045-d49eaca5f412afc8",
-                    //                     "created_at" => 1714366502807,
-                    //                     "discount_fee" => "0",
-                    //                     "filled_amount" => "0",
-                    //                     "filled_value" => "0",
-                    //                     "last_fill_amount" => "0",
-                    //                     "last_fill_price" => "0",
-                    //                     "maker_fee_rate" => "0.002",
-                    //                     "market" => "BTCUSDT",
-                    //                     "market_type" => "SPOT",
-                    //                     "order_id" => 117402157490,
-                    //                     "price" => "61000",
-                    //                     "quote_fee" => "0",
-                    //                     "side" => "buy",
-                    //                     "taker_fee_rate" => "0.002",
-                    //                     "type" => "limit",
-                    //                     "unfilled_amount" => "0.0001",
-                    //                     "updated_at" => 1714366502807
-                    //                 ),
-                    //                 "message" => "OK"
+                    //                 "code": 0,
+                    //                 "data": {
+                    //                     "amount": "0.0001",
+                    //                     "base_fee": "0",
+                    //                     "ccy": "BTC",
+                    //                     "client_id": "x-167673045-d49eaca5f412afc8",
+                    //                     "created_at": 1714366502807,
+                    //                     "discount_fee": "0",
+                    //                     "filled_amount": "0",
+                    //                     "filled_value": "0",
+                    //                     "last_fill_amount": "0",
+                    //                     "last_fill_price": "0",
+                    //                     "maker_fee_rate": "0.002",
+                    //                     "market": "BTCUSDT",
+                    //                     "market_type": "SPOT",
+                    //                     "order_id": 117402157490,
+                    //                     "price": "61000",
+                    //                     "quote_fee": "0",
+                    //                     "side": "buy",
+                    //                     "taker_fee_rate": "0.002",
+                    //                     "type": "limit",
+                    //                     "unfilled_amount": "0.0001",
+                    //                     "updated_at": 1714366502807
+                    //                 },
+                    //                 "message": "OK"
                     //             }
-                    //         ),
-                    //         "message" => "OK"
+                    //         ],
+                    //         "message": "OK"
                     //     }
                 }
             }
@@ -3333,46 +3336,46 @@ class coinex extends Exchange {
                 if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelStopOrder($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "ccy" => "BTC",
-                    //             "client_id" => "x-167673045-f21ecfd7542abf1f",
-                    //             "created_at" => 1714366177334,
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "SPOT",
-                    //             "price" => "61000",
-                    //             "side" => "buy",
-                    //             "stop_id" => 117401897954,
-                    //             "trigger_direction" => "higher",
-                    //             "trigger_price" => "61500",
-                    //             "trigger_price_type" => "mark_price",
-                    //             "type" => "limit",
-                    //             "updated_at" => 1714366177334
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "ccy": "BTC",
+                    //             "client_id": "x-167673045-f21ecfd7542abf1f",
+                    //             "created_at": 1714366177334,
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "SPOT",
+                    //             "price": "61000",
+                    //             "side": "buy",
+                    //             "stop_id": 117401897954,
+                    //             "trigger_direction": "higher",
+                    //             "trigger_price": "61500",
+                    //             "trigger_price_type": "mark_price",
+                    //             "type": "limit",
+                    //             "updated_at": 1714366177334
+                    //         },
+                    //         "message": "OK"
                     //     }
                 } else {
                     $response = $this->v2PrivatePostSpotCancelStopOrder($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "ccy" => "BTC",
-                    //             "client_id" => "x-167673045-f21ecfd7542abf1f",
-                    //             "created_at" => 1714366177334,
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "SPOT",
-                    //             "price" => "61000",
-                    //             "side" => "buy",
-                    //             "stop_id" => 117401897954,
-                    //             "trigger_direction" => "higher",
-                    //             "trigger_price" => "61500",
-                    //             "trigger_price_type" => "mark_price",
-                    //             "type" => "limit",
-                    //             "updated_at" => 1714366177334
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "ccy": "BTC",
+                    //             "client_id": "x-167673045-f21ecfd7542abf1f",
+                    //             "created_at": 1714366177334,
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "SPOT",
+                    //             "price": "61000",
+                    //             "side": "buy",
+                    //             "stop_id": 117401897954,
+                    //             "trigger_direction": "higher",
+                    //             "trigger_price": "61500",
+                    //             "trigger_price_type": "mark_price",
+                    //             "type": "limit",
+                    //             "updated_at": 1714366177334
+                    //         },
+                    //         "message": "OK"
                     //     }
                 }
             } else {
@@ -3380,59 +3383,59 @@ class coinex extends Exchange {
                 if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelOrder($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "client_id" => "x-167673045-7f14381c74a98a85",
-                    //             "created_at" => 1714367342024,
-                    //             "fee" => "0",
-                    //             "fee_ccy" => "USDT",
-                    //             "filled_amount" => "0",
-                    //             "filled_value" => "0",
-                    //             "last_filled_amount" => "0",
-                    //             "last_filled_price" => "0",
-                    //             "maker_fee_rate" => "0.0003",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "FUTURES",
-                    //             "order_id" => 137174472136,
-                    //             "price" => "61000",
-                    //             "realized_pnl" => "0",
-                    //             "side" => "buy",
-                    //             "taker_fee_rate" => "0.0005",
-                    //             "type" => "limit",
-                    //             "unfilled_amount" => "0.0001",
-                    //             "updated_at" => 1714367515978
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "client_id": "x-167673045-7f14381c74a98a85",
+                    //             "created_at": 1714367342024,
+                    //             "fee": "0",
+                    //             "fee_ccy": "USDT",
+                    //             "filled_amount": "0",
+                    //             "filled_value": "0",
+                    //             "last_filled_amount": "0",
+                    //             "last_filled_price": "0",
+                    //             "maker_fee_rate": "0.0003",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "FUTURES",
+                    //             "order_id": 137174472136,
+                    //             "price": "61000",
+                    //             "realized_pnl": "0",
+                    //             "side": "buy",
+                    //             "taker_fee_rate": "0.0005",
+                    //             "type": "limit",
+                    //             "unfilled_amount": "0.0001",
+                    //             "updated_at": 1714367515978
+                    //         },
+                    //         "message": "OK"
                     //     }
                 } else {
                     $response = $this->v2PrivatePostSpotCancelOrder($this->extend($request, $params));
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             "amount" => "0.0001",
-                    //             "base_fee" => "0",
-                    //             "ccy" => "BTC",
-                    //             "client_id" => "x-167673045-86fbe37b54a2aea3",
-                    //             "created_at" => 1714365277437,
-                    //             "discount_fee" => "0",
-                    //             "filled_amount" => "0",
-                    //             "filled_value" => "0",
-                    //             "last_fill_amount" => "0",
-                    //             "last_fill_price" => "0",
-                    //             "maker_fee_rate" => "0.002",
-                    //             "market" => "BTCUSDT",
-                    //             "market_type" => "SPOT",
-                    //             "order_id" => 117401168172,
-                    //             "price" => "61000",
-                    //             "quote_fee" => "0",
-                    //             "side" => "buy",
-                    //             "taker_fee_rate" => "0.002",
-                    //             "type" => "limit",
-                    //             "unfilled_amount" => "0.0001",
-                    //             "updated_at" => 1714365277437
-                    //         ),
-                    //         "message" => "OK"
+                    //         "code": 0,
+                    //         "data": {
+                    //             "amount": "0.0001",
+                    //             "base_fee": "0",
+                    //             "ccy": "BTC",
+                    //             "client_id": "x-167673045-86fbe37b54a2aea3",
+                    //             "created_at": 1714365277437,
+                    //             "discount_fee": "0",
+                    //             "filled_amount": "0",
+                    //             "filled_value": "0",
+                    //             "last_fill_amount": "0",
+                    //             "last_fill_price": "0",
+                    //             "maker_fee_rate": "0.002",
+                    //             "market": "BTCUSDT",
+                    //             "market_type": "SPOT",
+                    //             "order_id": 117401168172,
+                    //             "price": "61000",
+                    //             "quote_fee": "0",
+                    //             "side": "buy",
+                    //             "taker_fee_rate": "0.002",
+                    //             "type": "limit",
+                    //             "unfilled_amount": "0.0001",
+                    //             "updated_at": 1714365277437
+                    //         },
+                    //         "message": "OK"
                     //     }
                 }
             }
@@ -3447,7 +3450,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -3474,7 +3477,7 @@ class coinex extends Exchange {
             $request['market_type'] = 'FUTURES';
             $response = $this->v2PrivatePostFuturesCancelAllOrder($this->extend($request, $params));
             //
-            // array("code":0,"data":array(),"message":"OK")
+            // {"code":0,"data":{},"message":"OK"}
             //
         } else {
             $marginMode = null;
@@ -3486,7 +3489,7 @@ class coinex extends Exchange {
             }
             $response = $this->v2PrivatePostSpotCancelAllOrder($this->extend($request, $params));
             //
-            // array("code":0,"data":array(),"message":"OK")
+            // {"code":0,"data":{},"message":"OK"}
             //
         }
         return array(
@@ -3496,7 +3499,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -3524,63 +3527,63 @@ class coinex extends Exchange {
             $response = $this->v2PrivateGetFuturesOrderStatus($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "amount" => "0.0001",
-            //             "client_id" => "x-167673045-da5f31dcd478a829",
-            //             "created_at" => 1714460987164,
-            //             "fee" => "0",
-            //             "fee_ccy" => "USDT",
-            //             "filled_amount" => "0",
-            //             "filled_value" => "0",
-            //             "last_filled_amount" => "0",
-            //             "last_filled_price" => "0",
-            //             "maker_fee_rate" => "0.0003",
-            //             "market" => "BTCUSDT",
-            //             "market_type" => "FUTURES",
-            //             "order_id" => 137319868771,
-            //             "price" => "61000",
-            //             "realized_pnl" => "0",
-            //             "side" => "buy",
-            //             "status" => "open",
-            //             "taker_fee_rate" => "0.0005",
-            //             "type" => "limit",
-            //             "unfilled_amount" => "0.0001",
-            //             "updated_at" => 1714460987164
-            //         ),
-            //         "message" => "OK"
+            //         "code": 0,
+            //         "data": {
+            //             "amount": "0.0001",
+            //             "client_id": "x-167673045-da5f31dcd478a829",
+            //             "created_at": 1714460987164,
+            //             "fee": "0",
+            //             "fee_ccy": "USDT",
+            //             "filled_amount": "0",
+            //             "filled_value": "0",
+            //             "last_filled_amount": "0",
+            //             "last_filled_price": "0",
+            //             "maker_fee_rate": "0.0003",
+            //             "market": "BTCUSDT",
+            //             "market_type": "FUTURES",
+            //             "order_id": 137319868771,
+            //             "price": "61000",
+            //             "realized_pnl": "0",
+            //             "side": "buy",
+            //             "status": "open",
+            //             "taker_fee_rate": "0.0005",
+            //             "type": "limit",
+            //             "unfilled_amount": "0.0001",
+            //             "updated_at": 1714460987164
+            //         },
+            //         "message": "OK"
             //     }
             //
         } else {
             $response = $this->v2PrivateGetSpotOrderStatus($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
-            //             "amount" => "0.0001",
-            //             "base_fee" => "0",
-            //             "ccy" => "BTC",
-            //             "client_id" => "x-167673045-da918d6724e3af81",
-            //             "created_at" => 1714461638958,
-            //             "discount_fee" => "0",
-            //             "filled_amount" => "0",
-            //             "filled_value" => "0",
-            //             "last_fill_amount" => "0",
-            //             "last_fill_price" => "0",
-            //             "maker_fee_rate" => "0.002",
-            //             "market" => "BTCUSDT",
-            //             "market_type" => "SPOT",
-            //             "order_id" => 117492012985,
-            //             "price" => "61000",
-            //             "quote_fee" => "0",
-            //             "side" => "buy",
-            //             "status" => "open",
-            //             "taker_fee_rate" => "0.002",
-            //             "type" => "limit",
-            //             "unfilled_amount" => "0.0001",
-            //             "updated_at" => 1714461638958
-            //         ),
-            //         "message" => "OK"
+            //         "code": 0,
+            //         "data": {
+            //             "amount": "0.0001",
+            //             "base_fee": "0",
+            //             "ccy": "BTC",
+            //             "client_id": "x-167673045-da918d6724e3af81",
+            //             "created_at": 1714461638958,
+            //             "discount_fee": "0",
+            //             "filled_amount": "0",
+            //             "filled_value": "0",
+            //             "last_fill_amount": "0",
+            //             "last_fill_price": "0",
+            //             "maker_fee_rate": "0.002",
+            //             "market": "BTCUSDT",
+            //             "market_type": "SPOT",
+            //             "order_id": 117492012985,
+            //             "price": "61000",
+            //             "quote_fee": "0",
+            //             "side": "buy",
+            //             "status": "open",
+            //             "taker_fee_rate": "0.002",
+            //             "type": "limit",
+            //             "unfilled_amount": "0.0001",
+            //             "updated_at": 1714461638958
+            //         },
+            //         "message": "OK"
             //     }
             //
         }
@@ -3632,27 +3635,27 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetFuturesFinishedStopOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             array(
-                    //                 "stop_id" => 52431158859,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "FUTURES",
-                    //                 "side" => "sell",
-                    //                 "type" => "market",
-                    //                 "amount" => "0.0005",
-                    //                 "price" => "20599.64",
-                    //                 "client_id" => "",
-                    //                 "created_at" => 1667547909856,
-                    //                 "updated_at" => 1667547909856,
-                    //                 "trigger_price" => "20599.64",
-                    //                 "trigger_price_type" => "latest_price",
-                    //                 "trigger_direction" => ""
-                    //             ),
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "has_next" => false
+                    //         "code": 0,
+                    //         "data": [
+                    //             {
+                    //                 "stop_id": 52431158859,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "FUTURES",
+                    //                 "side": "sell",
+                    //                 "type": "market",
+                    //                 "amount": "0.0005",
+                    //                 "price": "20599.64",
+                    //                 "client_id": "",
+                    //                 "created_at": 1667547909856,
+                    //                 "updated_at": 1667547909856,
+                    //                 "trigger_price": "20599.64",
+                    //                 "trigger_price_type": "latest_price",
+                    //                 "trigger_direction": ""
+                    //             },
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3660,31 +3663,31 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetFuturesFinishedOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             array(
-                    //                 "order_id" => 136915813578,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "FUTURES",
-                    //                 "side" => "sell",
-                    //                 "type" => "market",
-                    //                 "amount" => "0.0001",
-                    //                 "price" => "0",
-                    //                 "client_id" => "x-167673045-4f264600c432ac06",
-                    //                 "created_at" => 1714119323764,
-                    //                 "updated_at" => 1714119323764,
-                    //                 "unfilled_amount" => "0",
-                    //                 "filled_amount" => "0.0001",
-                    //                 "filled_value" => "6.442017",
-                    //                 "fee" => "0.003221",
-                    //                 "fee_ccy" => "USDT",
-                    //                 "maker_fee_rate" => "0",
-                    //                 "taker_fee_rate" => "0.0005"
-                    //             ),
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "has_next" => false
+                    //         "code": 0,
+                    //         "data": [
+                    //             {
+                    //                 "order_id": 136915813578,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "FUTURES",
+                    //                 "side": "sell",
+                    //                 "type": "market",
+                    //                 "amount": "0.0001",
+                    //                 "price": "0",
+                    //                 "client_id": "x-167673045-4f264600c432ac06",
+                    //                 "created_at": 1714119323764,
+                    //                 "updated_at": 1714119323764,
+                    //                 "unfilled_amount": "0",
+                    //                 "filled_amount": "0.0001",
+                    //                 "filled_value": "6.442017",
+                    //                 "fee": "0.003221",
+                    //                 "fee_ccy": "USDT",
+                    //                 "maker_fee_rate": "0",
+                    //                 "taker_fee_rate": "0.0005"
+                    //             },
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3694,28 +3697,28 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetFuturesPendingStopOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "stop_id" => 137481469849,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "FUTURES",
-                    //                 "side" => "buy",
-                    //                 "type" => "limit",
-                    //                 "amount" => "0.0001",
-                    //                 "price" => "51000",
-                    //                 "client_id" => "x-167673045-2b932341949fa2a1",
-                    //                 "created_at" => 1714552257876,
-                    //                 "updated_at" => 1714552257876,
-                    //                 "trigger_price" => "52000",
-                    //                 "trigger_price_type" => "latest_price",
-                    //                 "trigger_direction" => "higher"
+                    //                 "stop_id": 137481469849,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "FUTURES",
+                    //                 "side": "buy",
+                    //                 "type": "limit",
+                    //                 "amount": "0.0001",
+                    //                 "price": "51000",
+                    //                 "client_id": "x-167673045-2b932341949fa2a1",
+                    //                 "created_at": 1714552257876,
+                    //                 "updated_at": 1714552257876,
+                    //                 "trigger_price": "52000",
+                    //                 "trigger_price_type": "latest_price",
+                    //                 "trigger_direction": "higher"
                     //             }
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "total" => 1,
-                    //             "has_next" => false
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "total": 1,
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3723,35 +3726,35 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetFuturesPendingOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "order_id" => 137480580906,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "FUTURES",
-                    //                 "side" => "buy",
-                    //                 "type" => "limit",
-                    //                 "amount" => "0.0001",
-                    //                 "price" => "51000",
-                    //                 "client_id" => "",
-                    //                 "created_at" => 1714551877569,
-                    //                 "updated_at" => 1714551877569,
-                    //                 "unfilled_amount" => "0.0001",
-                    //                 "filled_amount" => "0",
-                    //                 "filled_value" => "0",
-                    //                 "fee" => "0",
-                    //                 "fee_ccy" => "USDT",
-                    //                 "maker_fee_rate" => "0.0003",
-                    //                 "taker_fee_rate" => "0.0005",
-                    //                 "last_filled_amount" => "0",
-                    //                 "last_filled_price" => "0",
-                    //                 "realized_pnl" => "0"
+                    //                 "order_id": 137480580906,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "FUTURES",
+                    //                 "side": "buy",
+                    //                 "type": "limit",
+                    //                 "amount": "0.0001",
+                    //                 "price": "51000",
+                    //                 "client_id": "",
+                    //                 "created_at": 1714551877569,
+                    //                 "updated_at": 1714551877569,
+                    //                 "unfilled_amount": "0.0001",
+                    //                 "filled_amount": "0",
+                    //                 "filled_value": "0",
+                    //                 "fee": "0",
+                    //                 "fee_ccy": "USDT",
+                    //                 "maker_fee_rate": "0.0003",
+                    //                 "taker_fee_rate": "0.0005",
+                    //                 "last_filled_amount": "0",
+                    //                 "last_filled_price": "0",
+                    //                 "realized_pnl": "0"
                     //             }
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "total" => 1,
-                    //             "has_next" => false
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "total": 1,
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3770,28 +3773,28 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetSpotFinishedStopOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "stop_id" => 117654881420,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "SPOT",
-                    //                 "ccy" => "USDT",
-                    //                 "side" => "buy",
-                    //                 "type" => "market",
-                    //                 "amount" => "5.83325524",
-                    //                 "price" => "0",
-                    //                 "trigger_price" => "57418",
-                    //                 "trigger_direction" => "lower",
-                    //                 "trigger_price_type" => "mark_price",
-                    //                 "client_id" => "",
-                    //                 "created_at" => 1714618050597,
-                    //                 "updated_at" => 0
+                    //                 "stop_id": 117654881420,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "SPOT",
+                    //                 "ccy": "USDT",
+                    //                 "side": "buy",
+                    //                 "type": "market",
+                    //                 "amount": "5.83325524",
+                    //                 "price": "0",
+                    //                 "trigger_price": "57418",
+                    //                 "trigger_direction": "lower",
+                    //                 "trigger_price_type": "mark_price",
+                    //                 "client_id": "",
+                    //                 "created_at": 1714618050597,
+                    //                 "updated_at": 0
                     //             }
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "has_next" => false
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3799,33 +3802,33 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetSpotFinishedOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
-                    //             array(
-                    //                 "order_id" => 117180532345,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "SPOT",
-                    //                 "side" => "sell",
-                    //                 "type" => "market",
-                    //                 "ccy" => "BTC",
-                    //                 "amount" => "0.00015484",
-                    //                 "price" => "0",
-                    //                 "client_id" => "",
-                    //                 "created_at" => 1714116494219,
-                    //                 "updated_at" => 0,
-                    //                 "base_fee" => "0",
-                    //                 "quote_fee" => "0.0199931699632",
-                    //                 "discount_fee" => "0",
-                    //                 "maker_fee_rate" => "0",
-                    //                 "taker_fee_rate" => "0.002",
-                    //                 "unfilled_amount" => "0",
-                    //                 "filled_amount" => "0.00015484",
-                    //                 "filled_value" => "9.9965849816"
-                    //             ),
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "has_next" => false
+                    //         "code": 0,
+                    //         "data": [
+                    //             {
+                    //                 "order_id": 117180532345,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "SPOT",
+                    //                 "side": "sell",
+                    //                 "type": "market",
+                    //                 "ccy": "BTC",
+                    //                 "amount": "0.00015484",
+                    //                 "price": "0",
+                    //                 "client_id": "",
+                    //                 "created_at": 1714116494219,
+                    //                 "updated_at": 0,
+                    //                 "base_fee": "0",
+                    //                 "quote_fee": "0.0199931699632",
+                    //                 "discount_fee": "0",
+                    //                 "maker_fee_rate": "0",
+                    //                 "taker_fee_rate": "0.002",
+                    //                 "unfilled_amount": "0",
+                    //                 "filled_amount": "0.00015484",
+                    //                 "filled_value": "9.9965849816"
+                    //             },
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3835,29 +3838,29 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetSpotPendingStopOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "stop_id" => 117586439530,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "SPOT",
-                    //                 "ccy" => "BTC",
-                    //                 "side" => "buy",
-                    //                 "type" => "limit",
-                    //                 "amount" => "0.0001",
-                    //                 "price" => "51000",
-                    //                 "trigger_price" => "52000",
-                    //                 "trigger_direction" => "higher",
-                    //                 "trigger_price_type" => "mark_price",
-                    //                 "client_id" => "x-167673045-df61777094c69312",
-                    //                 "created_at" => 1714551237335,
-                    //                 "updated_at" => 1714551237335
+                    //                 "stop_id": 117586439530,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "SPOT",
+                    //                 "ccy": "BTC",
+                    //                 "side": "buy",
+                    //                 "type": "limit",
+                    //                 "amount": "0.0001",
+                    //                 "price": "51000",
+                    //                 "trigger_price": "52000",
+                    //                 "trigger_direction": "higher",
+                    //                 "trigger_price_type": "mark_price",
+                    //                 "client_id": "x-167673045-df61777094c69312",
+                    //                 "created_at": 1714551237335,
+                    //                 "updated_at": 1714551237335
                     //             }
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "total" => 1,
-                    //             "has_next" => false
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "total": 1,
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3865,36 +3868,36 @@ class coinex extends Exchange {
                     $response = $this->v2PrivateGetSpotPendingOrder($this->extend($request, $params));
                     //
                     //     {
-                    //         "code" => 0,
-                    //         "data" => array(
+                    //         "code": 0,
+                    //         "data": [
                     //             {
-                    //                 "order_id" => 117585921297,
-                    //                 "market" => "BTCUSDT",
-                    //                 "market_type" => "SPOT",
-                    //                 "side" => "buy",
-                    //                 "type" => "limit",
-                    //                 "ccy" => "BTC",
-                    //                 "amount" => "0.00011793",
-                    //                 "price" => "52000",
-                    //                 "client_id" => "",
-                    //                 "created_at" => 1714550707486,
-                    //                 "updated_at" => 1714550707486,
-                    //                 "base_fee" => "0",
-                    //                 "quote_fee" => "0",
-                    //                 "discount_fee" => "0",
-                    //                 "maker_fee_rate" => "0.002",
-                    //                 "taker_fee_rate" => "0.002",
-                    //                 "last_fill_amount" => "0",
-                    //                 "last_fill_price" => "0",
-                    //                 "unfilled_amount" => "0.00011793",
-                    //                 "filled_amount" => "0",
-                    //                 "filled_value" => "0"
+                    //                 "order_id": 117585921297,
+                    //                 "market": "BTCUSDT",
+                    //                 "market_type": "SPOT",
+                    //                 "side": "buy",
+                    //                 "type": "limit",
+                    //                 "ccy": "BTC",
+                    //                 "amount": "0.00011793",
+                    //                 "price": "52000",
+                    //                 "client_id": "",
+                    //                 "created_at": 1714550707486,
+                    //                 "updated_at": 1714550707486,
+                    //                 "base_fee": "0",
+                    //                 "quote_fee": "0",
+                    //                 "discount_fee": "0",
+                    //                 "maker_fee_rate": "0.002",
+                    //                 "taker_fee_rate": "0.002",
+                    //                 "last_fill_amount": "0",
+                    //                 "last_fill_price": "0",
+                    //                 "unfilled_amount": "0.00011793",
+                    //                 "filled_amount": "0",
+                    //                 "filled_value": "0"
                     //             }
-                    //         ),
-                    //         "message" => "OK",
-                    //         "pagination" => {
-                    //             "total" => 1,
-                    //             "has_next" => false
+                    //         ],
+                    //         "message": "OK",
+                    //         "pagination": {
+                    //             "total": 1,
+                    //             "has_next": false
                     //         }
                     //     }
                     //
@@ -3976,12 +3979,12 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostAssetsRenewalDepositAddress($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "address" => "0x321bd6479355142334f45653ad5d8b76105a1234",
-        //             "memo" => ""
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        //             "memo": ""
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -4015,12 +4018,12 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsDepositAddress($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "address" => "0x321bd6479355142334f45653ad5d8b76105a1234",
-        //             "memo" => ""
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "address": "0x321bd6479355142334f45653ad5d8b76105a1234",
+        //             "memo": ""
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -4030,8 +4033,8 @@ class coinex extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
-        //         "memo" => ""
+        //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "memo": ""
         //     }
         //
         $coinAddress = $this->safe_string($depositAddress, 'address', '');
@@ -4054,7 +4057,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all trades made by the user
          *
@@ -4092,21 +4095,21 @@ class coinex extends Exchange {
             $response = $this->v2PrivateGetFuturesUserDeals($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
+            //         "code": 0,
+            //         "data": [
             //             {
-            //                 "deal_id" => 1180222387,
-            //                 "created_at" => 1714119054558,
-            //                 "market" => "BTCUSDT",
-            //                 "side" => "buy",
-            //                 "order_id" => 136915589622,
-            //                 "price" => "64376",
-            //                 "amount" => "0.0001"
+            //                 "deal_id": 1180222387,
+            //                 "created_at": 1714119054558,
+            //                 "market": "BTCUSDT",
+            //                 "side": "buy",
+            //                 "order_id": 136915589622,
+            //                 "price": "64376",
+            //                 "amount": "0.0001"
             //             }
-            //         ),
-            //         "message" => "OK",
-            //         "pagination" => {
-            //             "has_next" => true
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
             //         }
             //     }
             //
@@ -4121,22 +4124,22 @@ class coinex extends Exchange {
             $response = $this->v2PrivateGetSpotUserDeals($this->extend($request, $params));
             //
             //     {
-            //         "code" => 0,
-            //         "data" => array(
+            //         "code": 0,
+            //         "data": [
             //             {
-            //                 "amount" => "0.00010087",
-            //                 "created_at" => 1714618087585,
-            //                 "deal_id" => 4161200602,
-            //                 "margin_market" => "",
-            //                 "market" => "BTCUSDT",
-            //                 "order_id" => 117654919342,
-            //                 "price" => "57464.04",
-            //                 "side" => "sell"
+            //                 "amount": "0.00010087",
+            //                 "created_at": 1714618087585,
+            //                 "deal_id": 4161200602,
+            //                 "margin_market": "",
+            //                 "market": "BTCUSDT",
+            //                 "order_id": 117654919342,
+            //                 "price": "57464.04",
+            //                 "side": "sell"
             //             }
-            //         ),
-            //         "message" => "OK",
-            //         "pagination" => {
-            //             "has_next" => true
+            //         ],
+            //         "message": "OK",
+            //         "pagination": {
+            //             "has_next": true
             //         }
             //     }
             //
@@ -4188,44 +4191,44 @@ class coinex extends Exchange {
         }
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "position_id" => 305891033,
-        //                 "market" => "BTCUSDT",
-        //                 "market_type" => "FUTURES",
-        //                 "side" => "long",
-        //                 "margin_mode" => "cross",
-        //                 "open_interest" => "0.0001",
-        //                 "close_avbl" => "0.0001",
-        //                 "ath_position_amount" => "0.0001",
-        //                 "unrealized_pnl" => "0",
-        //                 "realized_pnl" => "-0.00311684",
-        //                 "avg_entry_price" => "62336.8",
-        //                 "cml_position_value" => "6.23368",
-        //                 "max_position_value" => "6.23368",
-        //                 "created_at" => 1715152208041,
-        //                 "updated_at" => 1715152208041,
-        //                 "take_profit_price" => "0",
-        //                 "stop_loss_price" => "0",
-        //                 "take_profit_type" => "",
-        //                 "stop_loss_type" => "",
-        //                 "settle_price" => "62336.8",
-        //                 "settle_value" => "6.23368",
-        //                 "leverage" => "3",
-        //                 "margin_avbl" => "2.07789333",
-        //                 "ath_margin_size" => "2.07789333",
-        //                 "position_margin_rate" => "2.40545879023305655728",
-        //                 "maintenance_margin_rate" => "0.005",
-        //                 "maintenance_margin_value" => "0.03118094",
-        //                 "liq_price" => "0",
-        //                 "bkr_price" => "0",
-        //                 "adl_level" => 1
+        //                 "position_id": 305891033,
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
         //             }
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => false
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
         //         }
         //     }
         //
@@ -4237,7 +4240,7 @@ class coinex extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch $data on a single open contract trade position
          *
@@ -4258,44 +4261,44 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetFuturesPendingPosition($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "position_id" => 305891033,
-        //                 "market" => "BTCUSDT",
-        //                 "market_type" => "FUTURES",
-        //                 "side" => "long",
-        //                 "margin_mode" => "cross",
-        //                 "open_interest" => "0.0001",
-        //                 "close_avbl" => "0.0001",
-        //                 "ath_position_amount" => "0.0001",
-        //                 "unrealized_pnl" => "0",
-        //                 "realized_pnl" => "-0.00311684",
-        //                 "avg_entry_price" => "62336.8",
-        //                 "cml_position_value" => "6.23368",
-        //                 "max_position_value" => "6.23368",
-        //                 "created_at" => 1715152208041,
-        //                 "updated_at" => 1715152208041,
-        //                 "take_profit_price" => "0",
-        //                 "stop_loss_price" => "0",
-        //                 "take_profit_type" => "",
-        //                 "stop_loss_type" => "",
-        //                 "settle_price" => "62336.8",
-        //                 "settle_value" => "6.23368",
-        //                 "leverage" => "3",
-        //                 "margin_avbl" => "2.07789333",
-        //                 "ath_margin_size" => "2.07789333",
-        //                 "position_margin_rate" => "2.40545879023305655728",
-        //                 "maintenance_margin_rate" => "0.005",
-        //                 "maintenance_margin_value" => "0.03118094",
-        //                 "liq_price" => "0",
-        //                 "bkr_price" => "0",
-        //                 "adl_level" => 1
+        //                 "position_id": 305891033,
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
         //             }
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => false
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
         //         }
         //     }
         //
@@ -4303,39 +4306,39 @@ class coinex extends Exchange {
         return $this->parse_position($data[0], $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "position_id" => 305891033,
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "side" => "long",
-        //         "margin_mode" => "cross",
-        //         "open_interest" => "0.0001",
-        //         "close_avbl" => "0.0001",
-        //         "ath_position_amount" => "0.0001",
-        //         "unrealized_pnl" => "0",
-        //         "realized_pnl" => "-0.00311684",
-        //         "avg_entry_price" => "62336.8",
-        //         "cml_position_value" => "6.23368",
-        //         "max_position_value" => "6.23368",
-        //         "created_at" => 1715152208041,
-        //         "updated_at" => 1715152208041,
-        //         "take_profit_price" => "0",
-        //         "stop_loss_price" => "0",
-        //         "take_profit_type" => "",
-        //         "stop_loss_type" => "",
-        //         "settle_price" => "62336.8",
-        //         "settle_value" => "6.23368",
-        //         "leverage" => "3",
-        //         "margin_avbl" => "2.07789333",
-        //         "ath_margin_size" => "2.07789333",
-        //         "position_margin_rate" => "2.40545879023305655728",
-        //         "maintenance_margin_rate" => "0.005",
-        //         "maintenance_margin_value" => "0.03118094",
-        //         "liq_price" => "0",
-        //         "bkr_price" => "0",
-        //         "adl_level" => 1
+        //         "position_id": 305891033,
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "side": "long",
+        //         "margin_mode": "cross",
+        //         "open_interest": "0.0001",
+        //         "close_avbl": "0.0001",
+        //         "ath_position_amount": "0.0001",
+        //         "unrealized_pnl": "0",
+        //         "realized_pnl": "-0.00311684",
+        //         "avg_entry_price": "62336.8",
+        //         "cml_position_value": "6.23368",
+        //         "max_position_value": "6.23368",
+        //         "created_at": 1715152208041,
+        //         "updated_at": 1715152208041,
+        //         "take_profit_price": "0",
+        //         "stop_loss_price": "0",
+        //         "take_profit_type": "",
+        //         "stop_loss_type": "",
+        //         "settle_price": "62336.8",
+        //         "settle_value": "6.23368",
+        //         "leverage": "3",
+        //         "margin_avbl": "2.07789333",
+        //         "ath_margin_size": "2.07789333",
+        //         "position_margin_rate": "2.40545879023305655728",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03118094",
+        //         "liq_price": "0",
+        //         "bkr_price": "0",
+        //         "adl_level": 1
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
@@ -4416,12 +4419,12 @@ class coinex extends Exchange {
         return $this->v2PrivatePostFuturesAdjustPositionLeverage($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "leverage" => 1,
-        //             "margin_mode" => "isolated"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
         //     }
         //
     }
@@ -4464,12 +4467,12 @@ class coinex extends Exchange {
         return $this->v2PrivatePostFuturesAdjustPositionLeverage($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "leverage" => 1,
-        //             "margin_mode" => "isolated"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 1,
+        //             "margin_mode": "isolated"
+        //         },
+        //         "message": "OK"
         //     }
         //
     }
@@ -4495,27 +4498,27 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetFuturesPositionLevel($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "level" => array(
-        //                     array(
-        //                         "amount" => "20001",
-        //                         "leverage" => "20",
-        //                         "maintenance_margin_rate" => "0.02",
-        //                         "min_initial_margin_rate" => "0.05"
-        //                     ),
-        //                     array(
-        //                         "amount" => "50001",
-        //                         "leverage" => "10",
-        //                         "maintenance_margin_rate" => "0.04",
-        //                         "min_initial_margin_rate" => "0.1"
-        //                     ),
-        //                 ),
-        //                 "market" => "MINAUSDT"
-        //             ),
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": [
+        //                     {
+        //                         "amount": "20001",
+        //                         "leverage": "20",
+        //                         "maintenance_margin_rate": "0.02",
+        //                         "min_initial_margin_rate": "0.05"
+        //                     },
+        //                     {
+        //                         "amount": "50001",
+        //                         "leverage": "10",
+        //                         "maintenance_margin_rate": "0.04",
+        //                         "min_initial_margin_rate": "0.1"
+        //                     },
+        //                 ],
+        //                 "market": "MINAUSDT"
+        //             },
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4548,7 +4551,7 @@ class coinex extends Exchange {
         return $tiers;
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
+    public function modify_margin_helper(string $symbol, ?float $amount, ?string $addOrReduce, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4566,40 +4569,40 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostFuturesAdjustPositionMargin($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "adl_level" => 1,
-        //             "ath_margin_size" => "2.034928",
-        //             "ath_position_amount" => "0.0001",
-        //             "avg_entry_price" => "61047.84",
-        //             "bkr_price" => "30698.5600000000000004142",
-        //             "close_avbl" => "0.0001",
-        //             "cml_position_value" => "6.104784",
-        //             "created_at" => 1715488472908,
-        //             "leverage" => "3",
-        //             "liq_price" => "30852.82412060301507579316",
-        //             "maintenance_margin_rate" => "0.005",
-        //             "maintenance_margin_value" => "0.03051465",
-        //             "margin_avbl" => "3.034928",
-        //             "margin_mode" => "isolated",
-        //             "market" => "BTCUSDT",
-        //             "market_type" => "FUTURES",
-        //             "max_position_value" => "6.104784",
-        //             "open_interest" => "0.0001",
-        //             "position_id" => 306458800,
-        //             "position_margin_rate" => "0.49713929272518077625",
-        //             "realized_pnl" => "-0.003052392",
-        //             "settle_price" => "61047.84",
-        //             "settle_value" => "6.104784",
-        //             "side" => "long",
-        //             "stop_loss_price" => "0",
-        //             "stop_loss_type" => "",
-        //             "take_profit_price" => "0",
-        //             "take_profit_type" => "",
-        //             "unrealized_pnl" => "0",
-        //             "updated_at" => 1715488805563
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "adl_level": 1,
+        //             "ath_margin_size": "2.034928",
+        //             "ath_position_amount": "0.0001",
+        //             "avg_entry_price": "61047.84",
+        //             "bkr_price": "30698.5600000000000004142",
+        //             "close_avbl": "0.0001",
+        //             "cml_position_value": "6.104784",
+        //             "created_at": 1715488472908,
+        //             "leverage": "3",
+        //             "liq_price": "30852.82412060301507579316",
+        //             "maintenance_margin_rate": "0.005",
+        //             "maintenance_margin_value": "0.03051465",
+        //             "margin_avbl": "3.034928",
+        //             "margin_mode": "isolated",
+        //             "market": "BTCUSDT",
+        //             "market_type": "FUTURES",
+        //             "max_position_value": "6.104784",
+        //             "open_interest": "0.0001",
+        //             "position_id": 306458800,
+        //             "position_margin_rate": "0.49713929272518077625",
+        //             "realized_pnl": "-0.003052392",
+        //             "settle_price": "61047.84",
+        //             "settle_value": "6.104784",
+        //             "side": "long",
+        //             "stop_loss_price": "0",
+        //             "stop_loss_type": "",
+        //             "take_profit_price": "0",
+        //             "take_profit_type": "",
+        //             "unrealized_pnl": "0",
+        //             "updated_at": 1715488805563
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -4617,53 +4620,53 @@ class coinex extends Exchange {
         // addMargin/reduceMargin
         //
         //     {
-        //         "adl_level" => 1,
-        //         "ath_margin_size" => "2.034928",
-        //         "ath_position_amount" => "0.0001",
-        //         "avg_entry_price" => "61047.84",
-        //         "bkr_price" => "30698.5600000000000004142",
-        //         "close_avbl" => "0.0001",
-        //         "cml_position_value" => "6.104784",
-        //         "created_at" => 1715488472908,
-        //         "leverage" => "3",
-        //         "liq_price" => "30852.82412060301507579316",
-        //         "maintenance_margin_rate" => "0.005",
-        //         "maintenance_margin_value" => "0.03051465",
-        //         "margin_avbl" => "3.034928",
-        //         "margin_mode" => "isolated",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "max_position_value" => "6.104784",
-        //         "open_interest" => "0.0001",
-        //         "position_id" => 306458800,
-        //         "position_margin_rate" => "0.49713929272518077625",
-        //         "realized_pnl" => "-0.003052392",
-        //         "settle_price" => "61047.84",
-        //         "settle_value" => "6.104784",
-        //         "side" => "long",
-        //         "stop_loss_price" => "0",
-        //         "stop_loss_type" => "",
-        //         "take_profit_price" => "0",
-        //         "take_profit_type" => "",
-        //         "unrealized_pnl" => "0",
-        //         "updated_at" => 1715488805563
+        //         "adl_level": 1,
+        //         "ath_margin_size": "2.034928",
+        //         "ath_position_amount": "0.0001",
+        //         "avg_entry_price": "61047.84",
+        //         "bkr_price": "30698.5600000000000004142",
+        //         "close_avbl": "0.0001",
+        //         "cml_position_value": "6.104784",
+        //         "created_at": 1715488472908,
+        //         "leverage": "3",
+        //         "liq_price": "30852.82412060301507579316",
+        //         "maintenance_margin_rate": "0.005",
+        //         "maintenance_margin_value": "0.03051465",
+        //         "margin_avbl": "3.034928",
+        //         "margin_mode": "isolated",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "max_position_value": "6.104784",
+        //         "open_interest": "0.0001",
+        //         "position_id": 306458800,
+        //         "position_margin_rate": "0.49713929272518077625",
+        //         "realized_pnl": "-0.003052392",
+        //         "settle_price": "61047.84",
+        //         "settle_value": "6.104784",
+        //         "side": "long",
+        //         "stop_loss_price": "0",
+        //         "stop_loss_type": "",
+        //         "take_profit_price": "0",
+        //         "take_profit_type": "",
+        //         "unrealized_pnl": "0",
+        //         "updated_at": 1715488805563
         //     }
         //
         // fetchMarginAdjustmentHistory
         //
         //     {
-        //         "bkr_pirce" => "24698.56000000000000005224",
-        //         "created_at" => 1715489978697,
-        //         "leverage" => "3",
-        //         "liq_price" => "24822.67336683417085432386",
-        //         "margin_avbl" => "3.634928",
-        //         "margin_change" => "-1.5",
-        //         "margin_mode" => "isolated",
-        //         "market" => "BTCUSDT",
-        //         "market_type" => "FUTURES",
-        //         "open_interest" => "0.0001",
-        //         "position_id" => 306458800,
-        //         "settle_price" => "61047.84"
+        //         "bkr_pirce": "24698.56000000000000005224",
+        //         "created_at": 1715489978697,
+        //         "leverage": "3",
+        //         "liq_price": "24822.67336683417085432386",
+        //         "margin_avbl": "3.634928",
+        //         "margin_change": "-1.5",
+        //         "margin_mode": "isolated",
+        //         "market": "BTCUSDT",
+        //         "market_type": "FUTURES",
+        //         "open_interest": "0.0001",
+        //         "position_id": 306458800,
+        //         "settle_price": "61047.84"
         //     }
         //
         $marketId = $this->safe_string($data, 'market');
@@ -4711,7 +4714,7 @@ class coinex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding fee payments paid and received on this account
          *
@@ -4744,22 +4747,22 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetFuturesPositionFundingHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "ccy" => "USDT",
-        //                 "created_at" => 1715673620183,
-        //                 "funding_rate" => "0",
-        //                 "funding_value" => "0",
-        //                 "market" => "BTCUSDT",
-        //                 "market_type" => "FUTURES",
-        //                 "position_id" => 306458800,
-        //                 "side" => "long"
-        //             ),
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => true
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "created_at": 1715673620183,
+        //                 "funding_rate": "0",
+        //                 "funding_value": "0",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "position_id": 306458800,
+        //                 "side": "long"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
         //         }
         //     }
         //
@@ -4806,20 +4809,20 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetFuturesFundingRate($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "latest_funding_rate" => "0",
-        //                 "latest_funding_time" => 1715731200000,
-        //                 "mark_price" => "61602.22",
-        //                 "market" => "BTCUSDT",
-        //                 "max_funding_rate" => "0.00375",
-        //                 "min_funding_rate" => "-0.00375",
-        //                 "next_funding_rate" => "0.00021074",
-        //                 "next_funding_time" => 1715760000000
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4845,14 +4848,14 @@ class coinex extends Exchange {
         // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
-        //         "latest_funding_rate" => "0",
-        //         "latest_funding_time" => 1715731200000,
-        //         "mark_price" => "61602.22",
-        //         "market" => "BTCUSDT",
-        //         "max_funding_rate" => "0.00375",
-        //         "min_funding_rate" => "-0.00375",
-        //         "next_funding_rate" => "0.00021074",
-        //         "next_funding_time" => 1715760000000
+        //         "latest_funding_rate": "0",
+        //         "latest_funding_time": 1715731200000,
+        //         "mark_price": "61602.22",
+        //         "market": "BTCUSDT",
+        //         "max_funding_rate": "0.00375",
+        //         "min_funding_rate": "-0.00375",
+        //         "next_funding_rate": "0.00021074",
+        //         "next_funding_time": 1715760000000
         //     }
         //
         $currentFundingTimestamp = $this->safe_integer($contract, 'latest_funding_time');
@@ -4883,7 +4886,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -4911,7 +4914,7 @@ class coinex extends Exchange {
         $request = array();
         $market = null;
         if ($symbols !== null) {
-            $symbol = $this->safe_value($symbols, 0);
+            $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
             if ($market['swap'] !== true) {
                 throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
@@ -4922,20 +4925,20 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetFuturesFundingRate($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "latest_funding_rate" => "0",
-        //                 "latest_funding_time" => 1715731200000,
-        //                 "mark_price" => "61602.22",
-        //                 "market" => "BTCUSDT",
-        //                 "max_funding_rate" => "0.00375",
-        //                 "min_funding_rate" => "-0.00375",
-        //                 "next_funding_rate" => "0.00021074",
-        //                 "next_funding_time" => 1715760000000
+        //                 "latest_funding_rate": "0",
+        //                 "latest_funding_time": 1715731200000,
+        //                 "mark_price": "61602.22",
+        //                 "market": "BTCUSDT",
+        //                 "max_funding_rate": "0.00375",
+        //                 "min_funding_rate": "-0.00375",
+        //                 "next_funding_rate": "0.00021074",
+        //                 "next_funding_time": 1715760000000
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4964,8 +4967,8 @@ class coinex extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'ccy' => $currency['id'],
-            'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-            'amount' => $this->currency_to_precision($code, $amount), // the actual $amount without fees, https://www.coinex.com/fees
+            'to_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'amount' => $this->currency_to_precision($code, $amount), // the actual amount without fees, https://www.coinex.com/fees
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
@@ -4978,28 +4981,28 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostAssetsWithdraw($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "withdraw_id" => 31193755,
-        //             "created_at" => 1716874165038,
-        //             "withdraw_method" => "ON_CHAIN",
-        //             "ccy" => "USDT",
-        //             "amount" => "17.3",
-        //             "actual_amount" => "15",
-        //             "chain" => "TRC20",
-        //             "tx_fee" => "2.3",
-        //             "fee_asset" => "USDT",
-        //             "fee_amount" => "2.3",
-        //             "to_address" => "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
-        //             "memo" => "",
-        //             "tx_id" => "",
-        //             "confirmations" => 0,
-        //             "explorer_address_url" => "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
-        //             "explorer_tx_url" => "https://tronscan.org/#/transaction/",
-        //             "remark" => "",
-        //             "status" => "audit_required"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "withdraw_id": 31193755,
+        //             "created_at": 1716874165038,
+        //             "withdraw_method": "ON_CHAIN",
+        //             "ccy": "USDT",
+        //             "amount": "17.3",
+        //             "actual_amount": "15",
+        //             "chain": "TRC20",
+        //             "tx_fee": "2.3",
+        //             "fee_asset": "USDT",
+        //             "fee_amount": "2.3",
+        //             "to_address": "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "memo": "",
+        //             "tx_id": "",
+        //             "confirmations": 0,
+        //             "explorer_address_url": "https://tronscan.org/#/address/TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
+        //             "explorer_tx_url": "https://tronscan.org/#/transaction/",
+        //             "remark": "",
+        //             "status": "audit_required"
+        //         },
+        //         "message": "OK"
         //     }
         //
         $transaction = $this->safe_dict($response, 'data', array());
@@ -5022,7 +5025,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -5061,18 +5064,18 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetFuturesFundingRateHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "actual_funding_rate" => "0",
-        //                 "funding_time" => 1715731221761,
-        //                 "market" => "BTCUSDT",
-        //                 "theoretical_funding_rate" => "0"
-        //             ),
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => true
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "actual_funding_rate": "0",
+        //                 "funding_time": 1715731221761,
+        //                 "market": "BTCUSDT",
+        //                 "theoretical_funding_rate": "0"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
         //         }
         //     }
         //
@@ -5100,44 +5103,44 @@ class coinex extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "deposit_id" => 5173806,
-        //         "created_at" => 1714021652557,
-        //         "tx_id" => "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
-        //         "tx_id_display" => "",
-        //         "ccy" => "USDT",
-        //         "chain" => "TRC20",
-        //         "deposit_method" => "ON_CHAIN",
-        //         "amount" => "30",
-        //         "actual_amount" => "",
-        //         "to_address" => "TYewD2pVWDUwfNr9A",
-        //         "confirmations" => 20,
-        //         "status" => "FINISHED",
-        //         "tx_explorer_url" => "https://tronscan.org/#/transaction",
-        //         "to_addr_explorer_url" => "https://tronscan.org/#/address",
-        //         "remark" => ""
+        //         "deposit_id": 5173806,
+        //         "created_at": 1714021652557,
+        //         "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //         "tx_id_display": "",
+        //         "ccy": "USDT",
+        //         "chain": "TRC20",
+        //         "deposit_method": "ON_CHAIN",
+        //         "amount": "30",
+        //         "actual_amount": "",
+        //         "to_address": "TYewD2pVWDUwfNr9A",
+        //         "confirmations": 20,
+        //         "status": "FINISHED",
+        //         "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //         "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //         "remark": ""
         //     }
         //
         // fetchWithdrawals and withdraw
         //
         //     {
-        //         "withdraw_id" => 259364,
-        //         "created_at" => 1701323541548,
-        //         "withdraw_method" => "ON_CHAIN",
-        //         "ccy" => "USDT",
-        //         "amount" => "23.845744",
-        //         "actual_amount" => "22.445744",
-        //         "chain" => "TRC20",
-        //         "tx_fee" => "1.4",
-        //         "fee_asset" => "USDT",
-        //         "fee_amount" => "1.4",
-        //         "to_address" => "T8t5i2454dhdhnnnGdi49vMbihvY",
-        //         "memo" => "",
-        //         "tx_id" => "1237623941964de9954ed2e36640228d78765c1026",
-        //         "confirmations" => 18,
-        //         "explorer_address_url" => "https://tronscan.org/#/address",
-        //         "explorer_tx_url" => "https://tronscan.org/#/transaction",
-        //         "remark" => "",
-        //         "status" => "finished"
+        //         "withdraw_id": 259364,
+        //         "created_at": 1701323541548,
+        //         "withdraw_method": "ON_CHAIN",
+        //         "ccy": "USDT",
+        //         "amount": "23.845744",
+        //         "actual_amount": "22.445744",
+        //         "chain": "TRC20",
+        //         "tx_fee": "1.4",
+        //         "fee_asset": "USDT",
+        //         "fee_amount": "1.4",
+        //         "to_address": "T8t5i2454dhdhnnnGdi49vMbihvY",
+        //         "memo": "",
+        //         "tx_id": "1237623941964de9954ed2e36640228d78765c1026",
+        //         "confirmations": 18,
+        //         "explorer_address_url": "https://tronscan.org/#/address",
+        //         "explorer_tx_url": "https://tronscan.org/#/transaction",
+        //         "remark": "",
+        //         "status": "finished"
         //     }
         //
         $address = $this->safe_string($transaction, 'to_address');
@@ -5245,9 +5248,9 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostAssetsTransfer($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
         //     }
         //
         return $this->extend($this->parse_transfer($response, $currency), array(
@@ -5273,7 +5276,7 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transfer, 'ccy');
         $fromId = $this->safe_string($transfer, 'from_account_type');
         $toId = $this->safe_string($transfer, 'to_account_type');
-        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $accountsById = $this->safe_dict($this->options, 'accountsById', array());
         return array(
             'id' => null,
             'timestamp' => $timestamp,
@@ -5326,22 +5329,22 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsTransferHistory($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "created_at" => 1715848480646,
-        //                 "from_account_type" => "SPOT",
-        //                 "to_account_type" => "FUTURES",
-        //                 "ccy" => "USDT",
-        //                 "amount" => "10",
-        //                 "status" => "finished"
-        //             ),
-        //         ),
-        //         "pagination" => array(
-        //             "total" => 8,
-        //             "has_next" => false
-        //         ),
-        //         "code" => 0,
-        //         "message" => "OK"
+        //         "data": [
+        //             {
+        //                 "created_at": 1715848480646,
+        //                 "from_account_type": "SPOT",
+        //                 "to_account_type": "FUTURES",
+        //                 "ccy": "USDT",
+        //                 "amount": "10",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 8,
+        //             "has_next": false
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5375,34 +5378,34 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsWithdraw($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "withdraw_id" => 259364,
-        //                 "created_at" => 1701323541548,
-        //                 "withdraw_method" => "ON_CHAIN",
-        //                 "ccy" => "USDT",
-        //                 "amount" => "23.845744",
-        //                 "actual_amount" => "22.445744",
-        //                 "chain" => "TRC20",
-        //                 "tx_fee" => "1.4",
-        //                 "fee_asset" => "USDT",
-        //                 "fee_amount" => "1.4",
-        //                 "to_address" => "T8t5i2454dhdhnnnGdi49vMbihvY",
-        //                 "memo" => "",
-        //                 "tx_id" => "1237623941964de9954ed2e36640228d78765c1026",
-        //                 "confirmations" => 18,
-        //                 "explorer_address_url" => "https://tronscan.org/#/address",
-        //                 "explorer_tx_url" => "https://tronscan.org/#/transaction",
-        //                 "remark" => "",
-        //                 "status" => "finished"
-        //             ),
-        //         ),
-        //         "pagination" => array(
-        //             "total" => 9,
-        //             "has_next" => true
-        //         ),
-        //         "code" => 0,
-        //         "message" => "OK"
+        //         "data": [
+        //             {
+        //                 "withdraw_id": 259364,
+        //                 "created_at": 1701323541548,
+        //                 "withdraw_method": "ON_CHAIN",
+        //                 "ccy": "USDT",
+        //                 "amount": "23.845744",
+        //                 "actual_amount": "22.445744",
+        //                 "chain": "TRC20",
+        //                 "tx_fee": "1.4",
+        //                 "fee_asset": "USDT",
+        //                 "fee_amount": "1.4",
+        //                 "to_address": "T8t5i2454dhdhnnnGdi49vMbihvY",
+        //                 "memo": "",
+        //                 "tx_id": "1237623941964de9954ed2e36640228d78765c1026",
+        //                 "confirmations": 18,
+        //                 "explorer_address_url": "https://tronscan.org/#/address",
+        //                 "explorer_tx_url": "https://tronscan.org/#/transaction",
+        //                 "remark": "",
+        //                 "status": "finished"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 9,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5436,31 +5439,31 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsDepositHistory($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "deposit_id" => 5173806,
-        //                 "created_at" => 1714021652557,
-        //                 "tx_id" => "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
-        //                 "tx_id_display" => "",
-        //                 "ccy" => "USDT",
-        //                 "chain" => "TRC20",
-        //                 "deposit_method" => "ON_CHAIN",
-        //                 "amount" => "30",
-        //                 "actual_amount" => "",
-        //                 "to_address" => "TYewD2pVWDUwfNr9A",
-        //                 "confirmations" => 20,
-        //                 "status" => "FINISHED",
-        //                 "tx_explorer_url" => "https://tronscan.org/#/transaction",
-        //                 "to_addr_explorer_url" => "https://tronscan.org/#/address",
-        //                 "remark" => ""
-        //             ),
-        //         ),
-        //         "paginatation" => array(
-        //             "total" => 8,
-        //             "has_next" => true
-        //         ),
-        //         "code" => 0,
-        //         "message" => "OK"
+        //         "data": [
+        //             {
+        //                 "deposit_id": 5173806,
+        //                 "created_at": 1714021652557,
+        //                 "tx_id": "d9f47d2550397c635cb89a8963118f8fe78ef048bc8b6f0caaeaa7dc6",
+        //                 "tx_id_display": "",
+        //                 "ccy": "USDT",
+        //                 "chain": "TRC20",
+        //                 "deposit_method": "ON_CHAIN",
+        //                 "amount": "30",
+        //                 "actual_amount": "",
+        //                 "to_address": "TYewD2pVWDUwfNr9A",
+        //                 "confirmations": 20,
+        //                 "status": "FINISHED",
+        //                 "tx_explorer_url": "https://tronscan.org/#/transaction",
+        //                 "to_addr_explorer_url": "https://tronscan.org/#/address",
+        //                 "remark": ""
+        //             },
+        //         ],
+        //         "paginatation": {
+        //             "total": 8,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5470,12 +5473,12 @@ class coinex extends Exchange {
     public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
-        //         "market" => "BTCUSDT",
-        //         "ccy" => "USDT",
-        //         "leverage" => 10,
-        //         "min_amount" => "60",
-        //         "max_amount" => "500000",
-        //         "daily_interest_rate" => "0.001"
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "60",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
         //     }
         //
         $marketId = $this->safe_string($info, 'market');
@@ -5530,16 +5533,16 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsMarginInterestLimit($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "market" => "BTCUSDT",
-        //             "ccy" => "USDT",
-        //             "leverage" => 10,
-        //             "min_amount" => "60",
-        //             "max_amount" => "500000",
-        //             "daily_interest_rate" => "0.001"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "60",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -5574,29 +5577,29 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsMarginBorrowHistory($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "borrow_id" => 2642934,
-        //                 "created_at" => 1654761016000,
-        //                 "market" => "BTCUSDT",
-        //                 "ccy" => "USDT",
-        //                 "daily_interest_rate" => "0.001",
-        //                 "expired_at" => 1655625016000,
-        //                 "borrow_amount" => "100",
-        //                 "to_repaied_amount" => "0",
-        //                 "is_auto_renew" => false,
-        //                 "status" => "finish"
-        //             ),
-        //         ),
-        //         "pagination" => array(
-        //             "total" => 4,
-        //             "has_next" => true
-        //         ),
-        //         "code" => 0,
-        //         "message" => "OK"
+        //         "data": [
+        //             {
+        //                 "borrow_id": 2642934,
+        //                 "created_at": 1654761016000,
+        //                 "market": "BTCUSDT",
+        //                 "ccy": "USDT",
+        //                 "daily_interest_rate": "0.001",
+        //                 "expired_at": 1655625016000,
+        //                 "borrow_amount": "100",
+        //                 "to_repaied_amount": "0",
+        //                 "is_auto_renew": false,
+        //                 "status": "finish"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "total": 4,
+        //             "has_next": true
+        //         },
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        $rows = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_list($response, 'data', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -5604,16 +5607,16 @@ class coinex extends Exchange {
     public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
-        //         "borrow_id" => 2642934,
-        //         "created_at" => 1654761016000,
-        //         "market" => "BTCUSDT",
-        //         "ccy" => "USDT",
-        //         "daily_interest_rate" => "0.001",
-        //         "expired_at" => 1655625016000,
-        //         "borrow_amount" => "100",
-        //         "to_repaied_amount" => "0",
-        //         "is_auto_renew" => false,
-        //         "status" => "finish"
+        //         "borrow_id": 2642934,
+        //         "created_at": 1654761016000,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1655625016000,
+        //         "borrow_amount": "100",
+        //         "to_repaied_amount": "0",
+        //         "is_auto_renew": false,
+        //         "status": "finish"
         //     }
         //
         $marketId = $this->safe_string($info, 'market');
@@ -5661,18 +5664,18 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostAssetsMarginBorrow($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "borrow_id" => 13784021,
-        //             "market" => "BTCUSDT",
-        //             "ccy" => "USDT",
-        //             "daily_interest_rate" => "0.001",
-        //             "expired_at" => 1717299948340,
-        //             "borrow_amount" => "60",
-        //             "to_repaied_amount" => "60.0025",
-        //             "status" => "loan"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "borrow_id": 13784021,
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "daily_interest_rate": "0.001",
+        //             "expired_at": 1717299948340,
+        //             "borrow_amount": "60",
+        //             "to_repaied_amount": "60.0025",
+        //             "status": "loan"
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -5709,9 +5712,9 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostAssetsMarginRepay($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {},
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -5722,17 +5725,17 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
+    public function parse_margin_loan(array $info, ?array $currency = null): array {
         //
         //     {
-        //         "borrow_id" => 13784021,
-        //         "market" => "BTCUSDT",
-        //         "ccy" => "USDT",
-        //         "daily_interest_rate" => "0.001",
-        //         "expired_at" => 1717299948340,
-        //         "borrow_amount" => "60",
-        //         "to_repaied_amount" => "60.0025",
-        //         "status" => "loan"
+        //         "borrow_id": 13784021,
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "daily_interest_rate": "0.001",
+        //         "expired_at": 1717299948340,
+        //         "borrow_amount": "60",
+        //         "to_repaied_amount": "60.0025",
+        //         "status": "loan"
         //     }
         //
         $currencyId = $this->safe_string($info, 'ccy');
@@ -5769,35 +5772,35 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetAssetsDepositWithdrawConfig($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "asset" => array(
-        //                 "ccy" => "USDT",
-        //                 "deposit_enabled" => true,
-        //                 "withdraw_enabled" => true,
-        //                 "inter_transfer_enabled" => true,
-        //                 "is_st" => false
-        //             ),
-        //             "chains" => array(
-        //                 array(
-        //                     "chain" => "TRC20",
-        //                     "min_deposit_amount" => "2.4",
-        //                     "min_withdraw_amount" => "2.4",
-        //                     "deposit_enabled" => true,
-        //                     "withdraw_enabled" => true,
-        //                     "deposit_delay_minutes" => 0,
-        //                     "safe_confirmations" => 10,
-        //                     "irreversible_confirmations" => 20,
-        //                     "deflation_rate" => "0",
-        //                     "withdrawal_fee" => "2.4",
-        //                     "withdrawal_precision" => 6,
-        //                     "memo" => "",
-        //                     "is_memo_required_for_deposit" => false,
-        //                     "explorer_asset_url" => "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-        //                 ),
-        //             )
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "asset": {
+        //                 "ccy": "USDT",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "inter_transfer_enabled": true,
+        //                 "is_st": false
+        //             },
+        //             "chains": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "min_deposit_amount": "2.4",
+        //                     "min_withdraw_amount": "2.4",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "deposit_delay_minutes": 0,
+        //                     "safe_confirmations": 10,
+        //                     "irreversible_confirmations": 20,
+        //                     "deflation_rate": "0",
+        //                     "withdrawal_fee": "2.4",
+        //                     "withdrawal_precision": 6,
+        //                     "memo": "",
+        //                     "is_memo_required_for_deposit": false,
+        //                     "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //             ]
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -5820,37 +5823,37 @@ class coinex extends Exchange {
         $response = $this->v2PublicGetAssetsAllDepositWithdrawConfig($params);
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "asset" => array(
-        //                     "ccy" => "CET",
-        //                     "deposit_enabled" => true,
-        //                     "withdraw_enabled" => true,
-        //                     "inter_transfer_enabled" => true,
-        //                     "is_st" => false
-        //                 ),
-        //                 "chains" => array(
-        //                     array(
-        //                         "chain" => "CSC",
-        //                         "min_deposit_amount" => "0.8",
-        //                         "min_withdraw_amount" => "8",
-        //                         "deposit_enabled" => true,
-        //                         "withdraw_enabled" => true,
-        //                         "deposit_delay_minutes" => 0,
-        //                         "safe_confirmations" => 10,
-        //                         "irreversible_confirmations" => 20,
-        //                         "deflation_rate" => "0",
-        //                         "withdrawal_fee" => "0.026",
-        //                         "withdrawal_precision" => 8,
-        //                         "memo" => "",
-        //                         "is_memo_required_for_deposit" => false,
-        //                         "explorer_asset_url" => ""
-        //                     ),
-        //                 )
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
         //             }
-        //         ),
-        //         "message" => "OK"
+        //         ],
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5872,34 +5875,34 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //     {
-        //         "asset" => array(
-        //             "ccy" => "USDT",
-        //             "deposit_enabled" => true,
-        //             "withdraw_enabled" => true,
-        //             "inter_transfer_enabled" => true,
-        //             "is_st" => false
-        //         ),
-        //         "chains" => array(
-        //             array(
-        //                 "chain" => "TRC20",
-        //                 "min_deposit_amount" => "2.4",
-        //                 "min_withdraw_amount" => "2.4",
-        //                 "deposit_enabled" => true,
-        //                 "withdraw_enabled" => true,
-        //                 "deposit_delay_minutes" => 0,
-        //                 "safe_confirmations" => 10,
-        //                 "irreversible_confirmations" => 20,
-        //                 "deflation_rate" => "0",
-        //                 "withdrawal_fee" => "2.4",
-        //                 "withdrawal_precision" => 6,
-        //                 "memo" => "",
-        //                 "is_memo_required_for_deposit" => false,
-        //                 "explorer_asset_url" => "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-        //             ),
-        //         )
+        //         "asset": {
+        //             "ccy": "USDT",
+        //             "deposit_enabled": true,
+        //             "withdraw_enabled": true,
+        //             "inter_transfer_enabled": true,
+        //             "is_st": false
+        //         },
+        //         "chains": [
+        //             {
+        //                 "chain": "TRC20",
+        //                 "min_deposit_amount": "2.4",
+        //                 "min_withdraw_amount": "2.4",
+        //                 "deposit_enabled": true,
+        //                 "withdraw_enabled": true,
+        //                 "deposit_delay_minutes": 0,
+        //                 "safe_confirmations": 10,
+        //                 "irreversible_confirmations": 20,
+        //                 "deflation_rate": "0",
+        //                 "withdrawal_fee": "2.4",
+        //                 "withdrawal_precision": 6,
+        //                 "memo": "",
+        //                 "is_memo_required_for_deposit": false,
+        //                 "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //             },
+        //         ]
         //     }
         //
         $result = array(
@@ -5973,16 +5976,16 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetAssetsMarginInterestLimit($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "market" => "BTCUSDT",
-        //             "ccy" => "USDT",
-        //             "leverage" => 10,
-        //             "min_amount" => "50",
-        //             "max_amount" => "500000",
-        //             "daily_interest_rate" => "0.001"
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "ccy": "USDT",
+        //             "leverage": 10,
+        //             "min_amount": "50",
+        //             "max_amount": "500000",
+        //             "daily_interest_rate": "0.001"
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -5992,12 +5995,12 @@ class coinex extends Exchange {
     public function parse_leverage(array $leverage, ?array $market = null): array {
         //
         //     {
-        //         "market" => "BTCUSDT",
-        //         "ccy" => "USDT",
-        //         "leverage" => 10,
-        //         "min_amount" => "50",
-        //         "max_amount" => "500000",
-        //         "daily_interest_rate" => "0.001"
+        //         "market": "BTCUSDT",
+        //         "ccy": "USDT",
+        //         "leverage": 10,
+        //         "min_amount": "50",
+        //         "max_amount": "500000",
+        //         "daily_interest_rate": "0.001"
         //     }
         //
         $marketId = $this->safe_string($leverage, 'market');
@@ -6042,44 +6045,44 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetFuturesFinishedPosition($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "position_id" => 305891033,
-        //                 "market" => "BTCUSDT",
-        //                 "market_type" => "FUTURES",
-        //                 "side" => "long",
-        //                 "margin_mode" => "cross",
-        //                 "open_interest" => "0.0001",
-        //                 "close_avbl" => "0.0001",
-        //                 "ath_position_amount" => "0.0001",
-        //                 "unrealized_pnl" => "0",
-        //                 "realized_pnl" => "-0.00311684",
-        //                 "avg_entry_price" => "62336.8",
-        //                 "cml_position_value" => "6.23368",
-        //                 "max_position_value" => "6.23368",
-        //                 "created_at" => 1715152208041,
-        //                 "updated_at" => 1715152208041,
-        //                 "take_profit_price" => "0",
-        //                 "stop_loss_price" => "0",
-        //                 "take_profit_type" => "",
-        //                 "stop_loss_type" => "",
-        //                 "settle_price" => "62336.8",
-        //                 "settle_value" => "6.23368",
-        //                 "leverage" => "3",
-        //                 "margin_avbl" => "2.07789333",
-        //                 "ath_margin_size" => "2.07789333",
-        //                 "position_margin_rate" => "2.40545879023305655728",
-        //                 "maintenance_margin_rate" => "0.005",
-        //                 "maintenance_margin_value" => "0.03118094",
-        //                 "liq_price" => "0",
-        //                 "bkr_price" => "0",
-        //                 "adl_level" => 1
+        //                 "position_id": 305891033,
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "side": "long",
+        //                 "margin_mode": "cross",
+        //                 "open_interest": "0.0001",
+        //                 "close_avbl": "0.0001",
+        //                 "ath_position_amount": "0.0001",
+        //                 "unrealized_pnl": "0",
+        //                 "realized_pnl": "-0.00311684",
+        //                 "avg_entry_price": "62336.8",
+        //                 "cml_position_value": "6.23368",
+        //                 "max_position_value": "6.23368",
+        //                 "created_at": 1715152208041,
+        //                 "updated_at": 1715152208041,
+        //                 "take_profit_price": "0",
+        //                 "stop_loss_price": "0",
+        //                 "take_profit_type": "",
+        //                 "stop_loss_type": "",
+        //                 "settle_price": "62336.8",
+        //                 "settle_value": "6.23368",
+        //                 "leverage": "3",
+        //                 "margin_avbl": "2.07789333",
+        //                 "ath_margin_size": "2.07789333",
+        //                 "position_margin_rate": "2.40545879023305655728",
+        //                 "maintenance_margin_rate": "0.005",
+        //                 "maintenance_margin_value": "0.03118094",
+        //                 "liq_price": "0",
+        //                 "bkr_price": "0",
+        //                 "adl_level": 1
         //             }
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => false
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": false
         //         }
         //     }
         //
@@ -6121,30 +6124,30 @@ class coinex extends Exchange {
         $response = $this->v2PrivatePostFuturesClosePosition($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "amount" => "0.0001",
-        //             "client_id" => "",
-        //             "created_at" => 1729666043969,
-        //             "fee" => "0.00335858",
-        //             "fee_ccy" => "USDT",
-        //             "filled_amount" => "0.0001",
-        //             "filled_value" => "6.717179",
-        //             "last_filled_amount" => "0.0001",
-        //             "last_filled_price" => "67171.79",
-        //             "maker_fee_rate" => "0",
-        //             "market" => "BTCUSDT",
-        //             "market_type" => "FUTURES",
-        //             "order_id" => 155477479761,
-        //             "price" => "0",
-        //             "realized_pnl" => "-0.001823",
-        //             "side" => "sell",
-        //             "taker_fee_rate" => "0.0005",
-        //             "type" => "market",
-        //             "unfilled_amount" => "0",
-        //             "updated_at" => 1729666043969
-        //         ),
-        //         "message" => "OK"
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0001",
+        //             "client_id": "",
+        //             "created_at": 1729666043969,
+        //             "fee": "0.00335858",
+        //             "fee_ccy": "USDT",
+        //             "filled_amount": "0.0001",
+        //             "filled_value": "6.717179",
+        //             "last_filled_amount": "0.0001",
+        //             "last_filled_price": "67171.79",
+        //             "maker_fee_rate": "0",
+        //             "market": "BTCUSDT",
+        //             "market_type": "FUTURES",
+        //             "order_id": 155477479761,
+        //             "price": "0",
+        //             "realized_pnl": "-0.001823",
+        //             "side": "sell",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "market",
+        //             "unfilled_amount": "0",
+        //             "updated_at": 1729666043969
+        //         },
+        //         "message": "OK"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -6170,11 +6173,11 @@ class coinex extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];
@@ -6337,26 +6340,26 @@ class coinex extends Exchange {
         $response = $this->v2PrivateGetFuturesPositionMarginHistory($this->extend($request, $params));
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "bkr_pirce" => "24698.56000000000000005224",
-        //                 "created_at" => 1715489978697,
-        //                 "leverage" => "3",
-        //                 "liq_price" => "24822.67336683417085432386",
-        //                 "margin_avbl" => "3.634928",
-        //                 "margin_change" => "-1.5",
-        //                 "margin_mode" => "isolated",
-        //                 "market" => "BTCUSDT",
-        //                 "market_type" => "FUTURES",
-        //                 "open_interest" => "0.0001",
-        //                 "position_id" => 306458800,
-        //                 "settle_price" => "61047.84"
-        //             ),
-        //         ),
-        //         "message" => "OK",
-        //         "pagination" => {
-        //             "has_next" => true
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "bkr_pirce": "24698.56000000000000005224",
+        //                 "created_at": 1715489978697,
+        //                 "leverage": "3",
+        //                 "liq_price": "24822.67336683417085432386",
+        //                 "margin_avbl": "3.634928",
+        //                 "margin_change": "-1.5",
+        //                 "margin_mode": "isolated",
+        //                 "market": "BTCUSDT",
+        //                 "market_type": "FUTURES",
+        //                 "open_interest": "0.0001",
+        //                 "position_id": 306458800,
+        //                 "settle_price": "61047.84"
+        //             },
+        //         ],
+        //         "message": "OK",
+        //         "pagination": {
+        //             "has_next": true
         //         }
         //     }
         //

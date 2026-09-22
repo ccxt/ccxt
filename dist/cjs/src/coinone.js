@@ -215,6 +215,8 @@ class coinone extends coinone$1["default"] {
                         'transaction/krw/history': { 'cost': 1 },
                         'transaction/coin/history': { 'cost': 1 },
                         'transaction/coin/withdrawal/limit': { 'cost': 1 },
+                        'event/order-reward/programs': { 'cost': 1 },
+                        'event/order-reward/history': { 'cost': 1 },
                     },
                 },
             },
@@ -409,7 +411,7 @@ class coinone extends coinone$1["default"] {
         const tickers = this.safeList(response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = this.safeValue(tickers, i);
+            const entry = this.safeDict(tickers, i);
             const id = this.safeString(entry, 'id');
             const baseId = this.safeStringUpper(entry, 'target_currency');
             const quoteId = this.safeStringUpper(entry, 'quote_currency');
@@ -1229,10 +1231,10 @@ class coinone extends coinone$1["default"] {
                 continue;
             }
             const parts = key.split('_');
-            const currencyId = this.safeValue(parts, 0);
-            const secondPart = this.safeValue(parts, 1);
+            const currencyId = this.safeString(parts, 0);
+            const secondPart = this.safeString(parts, 1);
             const code = this.safeCurrencyCode(currencyId);
-            let depositAddress = this.safeValue(result, code);
+            let depositAddress = this.safeDict(result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
                     'info': value,

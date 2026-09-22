@@ -244,7 +244,7 @@ export default class kucoin extends kucoinRest {
     }
     async authenticateUta() {
         this.checkRequiredCredentials();
-        const utaToken = this.safeValue(this.options, 'utaToken');
+        const utaToken = this.safeString(this.options, 'utaToken');
         const lastUpdate = this.safeInteger(this.options, 'utaTokenLastUpdate', 0);
         let refreshInterval = 1000 * 60 * 60 * 24; // 24 hours
         refreshInterval = this.safeInteger(this.options, 'utaTokenRefreshInterval', refreshInterval);
@@ -1023,7 +1023,7 @@ export default class kucoin extends kucoinRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1070,7 +1070,7 @@ export default class kucoin extends kucoinRest {
         const interval = this.safeString(data, 'i');
         const timeframe = this.findTimeframe(interval);
         const messageHash = 'uta:candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1113,7 +1113,7 @@ export default class kucoin extends kucoinRest {
             const channel = 'trade';
             const trades = await this.subscribePublicUta(messageHash, channel, symbol, params);
             if (this.newUpdates) {
-                const first = this.safeValue(trades, 0);
+                const first = this.safeDict(trades, 0);
                 const tradeSymbol = this.safeString(first, 'symbol');
                 limit = trades.getLimit(tradeSymbol, limit);
             }
@@ -1161,7 +1161,7 @@ export default class kucoin extends kucoinRest {
         }
         const trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1386,18 +1386,8 @@ export default class kucoin extends kucoinRest {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         //
         // https://docs.kucoin.com/#level-2-market-data
-        //
-        // 1. After receiving the websocket Level 2 data flow, cache the data.
-        // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-        // 3. Playback the cached Level 2 data flow.
-        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 data. Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        // 5. Update the level2 full data based on sequence according to the
-        // size. If the price is 0, ignore the messages and update the sequence.
-        // If the size=0, update the sequence and remove the price of which the
-        // size is 0 out of level 2. Fr other cases, please update the price.
+        // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
+        // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
         //
         let uta = false;
         [uta, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'uta', uta);
@@ -1726,7 +1716,7 @@ export default class kucoin extends kucoinRest {
             const deltaEnd = this.safeInteger(data, 'C');
             if (nonce === undefined) {
                 const cacheLength = orderbook.cache.length;
-                const subscription = this.safeValue(client.subscriptions, messageHash, {});
+                const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
                 const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
                 const utaParams = {
@@ -1746,9 +1736,12 @@ export default class kucoin extends kucoinRest {
         client.resolve(this.orderbooks[symbol], messageHash);
     }
     getCacheIndex(orderbook, cache) {
-        const firstDelta = this.safeValue(cache, 0);
+        const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN(firstDelta, ['sequenceStart', 'sequence', 'O']);
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return -1;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -1756,6 +1749,9 @@ export default class kucoin extends kucoinRest {
             const delta = cache[i];
             const deltaStart = this.safeIntegerN(delta, ['sequenceStart', 'sequence', 'O']);
             const deltaEnd = this.safeIntegerN(delta, ['sequenceEnd', 'sequence', 'C']); // todo check
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                continue;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1845,7 +1841,7 @@ export default class kucoin extends kucoinRest {
             return;
         }
         const subscriptionHash = this.safeString(client.subscriptions, id);
-        const subscription = this.safeValue(client.subscriptions, subscriptionHash);
+        const subscription = this.safeDict(client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
@@ -2217,8 +2213,8 @@ export default class kucoin extends kucoinRest {
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
         const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
-        const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-        const order = this.safeValue(orders, orderId);
+        const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+        const order = this.safeDict(orders, orderId);
         if (order !== undefined) {
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
@@ -2639,7 +2635,7 @@ export default class kucoin extends kucoinRest {
             'uta': uta,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -2881,9 +2877,9 @@ export default class kucoin extends kucoinRest {
             return undefined;
         }
         const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue(cache, symbol, {});
+        const symbolCache = this.safeDict(cache, symbol, {});
         const values = Object.values(symbolCache);
-        return this.safeValue(values, 0);
+        return this.safeDict(values, 0);
     }
     setPositionsCache(client, uta) {
         if (!(this.isEmpty(this.positions))) {
@@ -3436,6 +3432,10 @@ export default class kucoin extends kucoinRest {
             let type = 'public';
             if (client.url.indexOf('connectId=private') >= 0) {
                 type = 'private';
+            }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if (client.url.indexOf('connectId=' + type + 'Futures') >= 0) {
+                type += 'Futures';
             }
             this.options['urls'][type] = undefined;
         }

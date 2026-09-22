@@ -10,29 +10,29 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOHLCV".to_string());
+    let mut method: Value = Value::Str("watchOHLCV".into());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = add(&now, &Value::Int(15000));
-    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".to_string())));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&timeframeKeys), &Value::Int(0))))));
+    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
+    assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
-    let mut chosenTimeframeKey: Value = Value::Str("1m".to_string());
+    let mut chosenTimeframeKey: Value = Value::Str("1m".into());
     if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
-        chosenTimeframeKey = get_value(&timeframeKeys, &Value::Int(0));
+        chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
     let mut limit: Value = Value::Int(10);
     let mut duration: Value = exchange.parse_timeframe(chosenTimeframeKey.clone());
-    let mut since: Value = subtract(&subtract(&exchange.milliseconds(), &multiply(&multiply(&duration, &limit), &Value::Int(1000))), &Value::Int(1000));
+    let mut since: Value = (match (&((match (&(exchange.milliseconds()), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), since.clone(), limit.clone()]).await;
-            if is_equal(&response, &Value::Null) {
-                panic!("{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" watch returned undefined response".to_string())));
+            if (response == Value::Null) {
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -42,16 +42,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if is_true(&(is_equal(&success, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
+        if (success.as_bool() == Some(true)) && (response != Value::Null) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1474: bool = true;
-                while { if !__for_first_1474 { i = add(&i, &Value::Int(1)); } __for_first_1474 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1520: bool = true;
+                while { if !__for_first_1520 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone(), now.clone());
             }
             }
-            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+            if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
                 idle = Value::Bool(true);
             }
         }

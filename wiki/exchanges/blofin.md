@@ -22,6 +22,7 @@
 * [fetchMyTrades](#fetchmytrades)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [withdraw](#withdraw)
 * [fetchLedger](#fetchledger)
 * [cancelOrders](#cancelorders)
 * [transfer](#transfer)
@@ -477,6 +478,35 @@ fetch all withdrawals made from an account
 
 ```javascript
 blofin.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="withdraw" id="withdraw"></a>
+
+### withdraw{docsify-ignore}
+make a withdrawal
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#withdrawal  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw, the withdrawal fee is not included and must be reserved on top |
+| address | <code>string</code> | Yes | the address to withdraw to, or a UID / email / phone number for an internal transfer |
+| tag | <code>string</code> | Yes | additional identifier (memo / payment id) required by certain networks |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | the unified network code for on-chain withdrawals, mapped to the exchange's chain name |
+| params.dest | <code>string</code> | No | 'onchain' (default) or 'internal' for an internal transfer |
+| params.addrType | <code>string</code> | No | address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone |
+| params.areaCode | <code>string</code> | No | area code for the phone number, required when address is a phone number |
+| params.clientId | <code>string</code> | No | a client-supplied id of up to 32 case-sensitive alphanumerics |
+
+
+```javascript
+blofin.withdraw (code, amount, address, tag, params?)
 ```
 
 

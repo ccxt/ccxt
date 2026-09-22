@@ -5,7 +5,7 @@ import { gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'About Us — CCXT',
+  title: { absolute: 'About Us — CCXT' },
   description: 'How CCXT started, its open-source foundations, and the community of thousands behind it.',
 };
 

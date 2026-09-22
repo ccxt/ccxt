@@ -88,6 +88,13 @@ public partial class tokocrypto : Exchange
         return await this.callAsync<Dictionary<string, object>> ("binanceGetExchangeInfo",parameters);
     }
 
+    /// <summary>Calls the binanceGetExecutionRules endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> binanceGetExecutionRules (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("binanceGetExecutionRules",parameters);
+    }
+
     /// <summary>Calls the binancePutUserDataStream endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> binancePutUserDataStream (object parameters = null)
@@ -240,6 +247,13 @@ public partial class tokocrypto : Exchange
     public async Task<Dictionary<string, object>> privatePostOpenV1UserDataStream (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostOpenV1UserDataStream",parameters);
+    }
+
+    /// <summary>Calls the privatePostOpenV1UserListenToken endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOpenV1UserListenToken (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOpenV1UserListenToken",parameters);
     }
 
 }

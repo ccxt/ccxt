@@ -60,7 +60,6 @@ const sort = (array: string[]| any) => {
     return newArray;
 }
 
-
 /*
     Accepts a map/array of objects and a key name to be used as an index:
     array = [
@@ -115,7 +114,7 @@ const filterBy = (x: Dictionary<any> | undefined, k: string, value: any = undefi
     return out;
 };
 
-const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -127,7 +126,7 @@ const sortBy = (array: any[], key: IndexType, descending = false, defaultValue:a
     }
 });
 
-const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.sort ((a: Dictionary<any>, b: Dictionary<any>) => {
+const sortBy2 = (array: any[], key1: IndexType, key2: IndexType, descending = false, direction = descending ? -1 : 1) => array.slice().sort ((a: Dictionary<any>, b: Dictionary<any>) => {
     if (a[key1] < b[key1]) {
         return -direction;
     } else if (a[key1] > b[key1]) {

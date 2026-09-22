@@ -56,7 +56,7 @@ class bullish(ccxt.async_support.bullish):
         self.options['requestId'] = requestId
         return requestId
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> dict:
         # bullish does not support built-in ws protocol-level ping-pong
         # https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         id = str(self.request_id())
@@ -68,7 +68,7 @@ class bullish(ccxt.async_support.bullish):
             'id': id,
         }
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "id": "7",
@@ -113,7 +113,7 @@ class bullish(ccxt.async_support.bullish):
         result = await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash)
         return result
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -139,7 +139,7 @@ class bullish(ccxt.async_support.bullish):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "type": "snapshot",
@@ -148,7 +148,7 @@ class bullish(ccxt.async_support.bullish):
         #             "trades": [
         #                 {
         #                     "tradeId": "100086000000609304",
-        #                     "isTaker": True,
+        #                     "isTaker": true,
         #                     "price": "104889.2063",
         #                     "createdAtTimestamp": "1749124509118",
         #                     "quantity": "0.01000000",
@@ -181,7 +181,7 @@ class bullish(ccxt.async_support.bullish):
         messageHash = 'trades::' + market['symbol']
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -199,7 +199,7 @@ class bullish(ccxt.async_support.bullish):
         messageHash = 'ticker::' + symbol
         return await self.watch(url, messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "type": "update",
@@ -259,7 +259,7 @@ class bullish(ccxt.async_support.bullish):
         messageHash = 'ticker::' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -282,7 +282,7 @@ class bullish(ccxt.async_support.bullish):
         orderbook = await self.watch_public(url, messageHash, request, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "type": "snapshot",
@@ -299,7 +299,7 @@ class bullish(ccxt.async_support.bullish):
         #             ],
         #             "publishedAtTimestamp": "1749372632073",
         #             "datetime": "2025-06-08T08:50:32.028Z",
-        #             "sequenceNumberRange": [1967862061, 1967862062],
+        #             "sequenceNumberRange": [ 1967862061, 1967862062 ],
         #             "symbol": "BTCUSDC"
         #         }
         #     }
@@ -328,7 +328,7 @@ class bullish(ccxt.async_support.bullish):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def separate_bids_or_asks(self, entry: object):
+    def separate_bids_or_asks(self, entry: list[object]) -> list:
         result = []
         # 300 = '54885.0000000'
         # 301 = '0.06141566'
@@ -341,7 +341,7 @@ class bullish(ccxt.async_support.bullish):
             result.append([price, amount])
         return result
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -373,13 +373,13 @@ class bullish(ccxt.async_support.bullish):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         # snapshot
         #     {
         #         "type": "snapshot",
         #         "tradingAccountId": "111309424211255",
         #         "dataType": "V1TAOrder",
-        #         "data": [...]  # could be an empty list or a list of orders
+        #         "data": [ ... ] // could be an empty list or a list of orders
         #     }
         #
         # update
@@ -396,10 +396,10 @@ class bullish(ccxt.async_support.bullish):
         #             "handle": null,
         #             "clientOrderId": null,
         #             "quantity": "0.10000000",
-        #             "margin": False,
+        #             "margin": false,
         #             "side": "BUY",
         #             "createdAtDatetime": "2025-07-07T13:03:47.971Z",
-        #             "isLiquidation": False,
+        #             "isLiquidation": false,
         #             "borrowedQuoteQuantity": null,
         #             "borrowedBaseQuantity": null,
         #             "timeInForce": "GTC",
@@ -410,7 +410,7 @@ class bullish(ccxt.async_support.bullish):
         #             "statusReason": "Order accepted",
         #             "type": "MKT",
         #             "statusReasonCode": 6014,
-        #             "allowBorrow": False,
+        #             "allowBorrow": false,
         #             "orderId": "862317981870850049",
         #             "publishedAtTimestamp": "1751893427975",
         #             "symbol": "ETHUSDT",
@@ -447,7 +447,7 @@ class bullish(ccxt.async_support.bullish):
                 symbolMessageHash = messageHash + '::' + hashSymbol
                 client.resolve(self.orders, symbolMessageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -479,14 +479,14 @@ class bullish(ccxt.async_support.bullish):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         # snapshot
         #     {
         #         "type": "snapshot",
         #         "tradingAccountId": "111309424211255",
         #         "dataType": "V1TATrade",
-        #         "data": [...]  # could be an empty list or a list of trades
+        #         "data": [ ... ] // could be an empty list or a list of trades
         #     }
         #
         # update
@@ -498,7 +498,7 @@ class bullish(ccxt.async_support.bullish):
         #             "clientOtcTradeId": null,
         #             "tradeId": "100203000003940164",
         #             "baseFee": "0.00000000",
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "quoteAmount": "253.6012195",
         #             "price": "2536.0121950",
         #             "createdAtTimestamp": "1751914859840",
@@ -546,7 +546,7 @@ class bullish(ccxt.async_support.bullish):
                 symbolMessageHash = messageHash + '::' + hashSymbol
                 client.resolve(self.myTrades, symbolMessageHash)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -569,7 +569,7 @@ class bullish(ccxt.async_support.bullish):
             messageHash += '::' + tradingAccountId
         return await self.watch_private(messageHash, messageHash, request, params)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         # snapshot
         #     {
@@ -636,7 +636,7 @@ class bullish(ccxt.async_support.bullish):
         client.resolve(self.balance[tradingAccountId], messageHash)
         client.resolve(self.balance[tradingAccountId], messageHash + tradingAccountIdHash)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
         https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
@@ -663,10 +663,10 @@ class bullish(ccxt.async_support.bullish):
             return positions
         return self.filter_by_symbols_since_limit(positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Client, message: object):
+    def handle_positions(self, client: Client, message: dict):
         # exchange does not return messages for sandbox mode
         # current method is implemented blindly
-        # todo: check if self works with not-sandbox mode
+        # todo: check if this works with not-sandbox mode
         messageType = self.safe_string(message, 'type')
         rawPositions = []
         if messageType == 'update':
@@ -694,7 +694,7 @@ class bullish(ccxt.async_support.bullish):
                 client.resolve(symbolPositions, messageHash)
         client.resolve(positions, 'positions')
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: dict):
         #
         #     {
         #         "data": {

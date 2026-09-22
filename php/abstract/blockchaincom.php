@@ -50,6 +50,12 @@ abstract class blockchaincom extends \ccxt\Exchange {
         return $this->request('fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_get_internal_orders($params = array()) {
+        return $this->request('internal/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_get_orders($params = array()) {
@@ -192,6 +198,12 @@ abstract class blockchaincom extends \ccxt\Exchange {
      */
     public function privateGetFees($params = array()) {
         return $this->request('fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetInternalOrders($params = array()) {
+        return $this->request('internal/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>

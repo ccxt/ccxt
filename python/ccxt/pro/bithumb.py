@@ -58,7 +58,7 @@ class bithumb(ccxt.async_support.bithumb):
     def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -98,7 +98,7 @@ class bithumb(ccxt.async_support.bithumb):
             return await self.watch(url, messageHash, request, messageHash)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -160,29 +160,29 @@ class bithumb(ccxt.async_support.bithumb):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         # generation 1
         #
         #    {
         #        "type" : "ticker",
         #        "content" : {
-        #            "symbol" : "BTC_KRW",           # 통화코드
-        #            "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #            "date" : "20200129",                # 일자
-        #            "time" : "121844",                  # 시간
-        #            "openPrice" : "2302",               # 시가
-        #            "closePrice" : "2317",              # 종가
-        #            "lowPrice" : "2272",                # 저가
-        #            "highPrice" : "2344",               # 고가
-        #            "value" : "2831915078.07065789",    # 누적거래금액
-        #            "volume" : "1222314.51355788",  # 누적거래량
-        #            "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #            "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #            "prevClosePrice" : "2326",          # 전일종가
-        #            "chgRate" : "0.65",                 # 변동률
-        #            "chgAmt" : "15",                    # 변동금액
-        #            "volumePower" : "60.80"         # 체결강도
+        #            "symbol" : "BTC_KRW",           // 통화코드
+        #            "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #            "date" : "20200129",                // 일자
+        #            "time" : "121844",                  // 시간
+        #            "openPrice" : "2302",               // 시가
+        #            "closePrice" : "2317",              // 종가
+        #            "lowPrice" : "2272",                // 저가
+        #            "highPrice" : "2344",               // 고가
+        #            "value" : "2831915078.07065789",    // 누적거래금액
+        #            "volume" : "1222314.51355788",  // 누적거래량
+        #            "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #            "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #            "prevClosePrice" : "2326",          // 전일종가
+        #            "chgRate" : "0.65",                 // 변동률
+        #            "chgAmt" : "15",                    // 변동금액
+        #            "volumePower" : "60.80"         // 체결강도
         #        }
         #    }
         #
@@ -217,7 +217,7 @@ class bithumb(ccxt.async_support.bithumb):
         #         "lowest_52_week_price": 81110000,
         #         "lowest_52_week_date": "2026-02-06",
         #         "market_state": "ACTIVE",
-        #         "is_trading_suspended": False,
+        #         "is_trading_suspended": false,
         #         "delisting_date": "",
         #         "market_warning": "NONE",
         #         "timestamp": 1783655148485,
@@ -249,22 +249,22 @@ class bithumb(ccxt.async_support.bithumb):
     def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #    {
-        #        "symbol" : "BTC_KRW",           # 통화코드
-        #        "tickType" : "24H",                 # 변동 기준시간- 30M, 1H, 12H, 24H, MID
-        #        "date" : "20200129",                # 일자
-        #        "time" : "121844",                  # 시간
-        #        "openPrice" : "2302",               # 시가
-        #        "closePrice" : "2317",              # 종가
-        #        "lowPrice" : "2272",                # 저가
-        #        "highPrice" : "2344",               # 고가
-        #        "value" : "2831915078.07065789",    # 누적거래금액
-        #        "volume" : "1222314.51355788",  # 누적거래량
-        #        "sellVolume" : "760129.34079004",   # 매도누적거래량
-        #        "buyVolume" : "462185.17276784",    # 매수누적거래량
-        #        "prevClosePrice" : "2326",          # 전일종가
-        #        "chgRate" : "0.65",                 # 변동률
-        #        "chgAmt" : "15",                    # 변동금액
-        #        "volumePower" : "60.80"         # 체결강도
+        #        "symbol" : "BTC_KRW",           // 통화코드
+        #        "tickType" : "24H",                 // 변동 기준시간- 30M, 1H, 12H, 24H, MID
+        #        "date" : "20200129",                // 일자
+        #        "time" : "121844",                  // 시간
+        #        "openPrice" : "2302",               // 시가
+        #        "closePrice" : "2317",              // 종가
+        #        "lowPrice" : "2272",                // 저가
+        #        "highPrice" : "2344",               // 고가
+        #        "value" : "2831915078.07065789",    // 누적거래금액
+        #        "volume" : "1222314.51355788",  // 누적거래량
+        #        "sellVolume" : "760129.34079004",   // 매도누적거래량
+        #        "buyVolume" : "462185.17276784",    // 매수누적거래량
+        #        "prevClosePrice" : "2326",          // 전일종가
+        #        "chgRate" : "0.65",                 // 변동률
+        #        "chgAmt" : "15",                    // 변동금액
+        #        "volumePower" : "60.80"         // 체결강도
         #    }
         #
         # generation 2
@@ -298,7 +298,7 @@ class bithumb(ccxt.async_support.bithumb):
         #         "lowest_52_week_price": 81110000,
         #         "lowest_52_week_date": "2026-02-06",
         #         "market_state": "ACTIVE",
-        #         "is_trading_suspended": False,
+        #         "is_trading_suspended": false,
         #         "delisting_date": "",
         #         "market_warning": "NONE",
         #         "timestamp": 1783655148485,
@@ -340,7 +340,7 @@ class bithumb(ccxt.async_support.bithumb):
             'info': ticker,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -380,7 +380,7 @@ class bithumb(ccxt.async_support.bithumb):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # generation 1
         #
@@ -390,10 +390,10 @@ class bithumb(ccxt.async_support.bithumb):
         #            "list" : [
         #                {
         #                    "symbol" : "BTC_KRW",
-        #                    "orderType" : "ask",        # 주문타입 – bid / ask
-        #                    "price" : "10593000",       # 호가
-        #                    "quantity" : "1.11223318",  # 잔량
-        #                    "total" : "3"               # 건수
+        #                    "orderType" : "ask",        // 주문타입 – bid / ask
+        #                    "price" : "10593000",       // 호가
+        #                    "quantity" : "1.11223318",  // 잔량
+        #                    "total" : "3"               // 건수
         #                },
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10596000", "quantity" : "0.5495", "total" : "8"},
         #                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10598000", "quantity" : "18.2085", "total" : "10"},
@@ -402,7 +402,7 @@ class bithumb(ccxt.async_support.bithumb):
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10571000", "quantity" : "1.469", "total" : "3"},
         #                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10569000", "quantity" : "0.5152", "total" : "2"}
         #            ],
-        #            "datetime":1580268255864325     # 일시
+        #            "datetime":1580268255864325     // 일시
         #        }
         #    }
         #
@@ -454,7 +454,7 @@ class bithumb(ccxt.async_support.bithumb):
         if symbol is None:
             return
         streamType = self.safe_string(message, 'stream_type')
-        options = self.safe_value(self.options, 'watchOrderBook', {})
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
         obLimit = self.safe_integer(options, 'limit', 1000)
         if not (symbol in self.orderbooks) or (streamType == 'SNAPSHOT'):
             self.orderbooks[symbol] = self.order_book({}, obLimit)
@@ -505,7 +505,7 @@ class bithumb(ccxt.async_support.bithumb):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -548,7 +548,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # generation 1
         #
@@ -615,7 +615,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # generation 1
         #
@@ -677,7 +677,7 @@ class bithumb(ccxt.async_support.bithumb):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        "status" : "5100",
@@ -709,7 +709,7 @@ class bithumb(ccxt.async_support.bithumb):
             client.reject(e)
             return False
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -732,7 +732,7 @@ class bithumb(ccxt.async_support.bithumb):
         balance = await self.watch(url, messageHash, request, messageHash)
         return balance
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myAsset",
@@ -792,7 +792,7 @@ class bithumb(ccxt.async_support.bithumb):
             request.append(subscriptions[keys[i]])
         return request
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}) -> Client:
         self.check_required_credentials()
         wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
@@ -814,7 +814,7 @@ class bithumb(ccxt.async_support.bithumb):
         client = self.client(url)
         return client
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -848,7 +848,7 @@ class bithumb(ccxt.async_support.bithumb):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #    {
         #        "type": "myOrder",
@@ -876,7 +876,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'myOrder'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
-        # orderId = self.safe_string(parsed, 'id')
+        # const orderId = this.safeString (parsed, 'id');
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -886,7 +886,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "type": "myOrder",

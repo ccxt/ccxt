@@ -7,7 +7,6 @@ const { index, aggregate, unCamelCase } = functions;
 
 const equal = strictEqual;
 
-
 function testLegacyHas () {
 
     const exchange = new Exchange ({

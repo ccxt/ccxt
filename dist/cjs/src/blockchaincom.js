@@ -108,6 +108,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'private': {
                     'get': {
                         'fees': { 'cost': 1 }, // fetchFees
+                        'internal/orders': { 'cost': 1 }, // getOrdersInternal
                         'orders': { 'cost': 1 }, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1 }, // fetchOrder(id)
                         'trades': { 'cost': 1 },
@@ -330,7 +331,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(markets, marketId);
             const baseId = this.safeString(market, 'base_currency');
             const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
@@ -1189,7 +1190,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         //         ]
         //     }
         //
-        const balances = this.safeValue(response, accountName);
+        const balances = this.safeList(response, accountName);
         if (balances === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchBalance() could not find the "' + accountName + '" account');
         }

@@ -13,48 +13,48 @@ public partial class testMainClass : BaseTest
         object currencies = await invokeExchangeDynamically(exchange, "fetchCurrencies");
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
-        object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
+        Int64? maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
         List<object> requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         object features = exchange.features;
-        object featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
-        object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
+        IDictionary<string, object> featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
+        IDictionary<string, object> fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (isTrue(!isEqual(isFetchCurrenciesPrivate, true)))
+        if (!isEqual(isFetchCurrenciesPrivate, true))
         {
             List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
-            int currenciesLength = getArrayLength(values);
+            int currenciesLength = values.Count;
             // ensure exchange returns enough length of currencies
             bool skipAmount = (inOp(skippedProperties, "amountOfCurrencies"));
-            assert(isTrue(skipAmount) || isTrue(isGreaterThan(currenciesLength, 5)), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
+            assert(skipAmount || currenciesLength > 5, add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
             // allow skipped exchanges
             bool skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
             bool skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
             // loop
-            for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
+            for (int i = 0; i < currenciesLength; i++)
             {
                 object currency = getValue(values, i);
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
-                object active = exchange.safeBool(currency, "active");
-                if (isTrue(isEqual(active, false)))
+                bool? active = exchange.safeBool(currency, "active");
+                if ((active == false))
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                object code = exchange.safeString(currency, "code");
-                object withdraw = exchange.safeBool(currency, "withdraw");
-                object deposit = exchange.safeBool(currency, "deposit");
-                object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = isTrue((isEqual(isMicaCompliant, true))) && isTrue((isEqual(code, "USDT")));
-                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && isTrue((!isEqual(skipUsdtForMica, true)))))
+                string? code = exchange.safeString(currency, "code");
+                bool? withdraw = exchange.safeBool(currency, "withdraw");
+                bool? deposit = exchange.safeBool(currency, "deposit");
+                bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
+                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
+                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
-                    assert(isTrue((isEqual(withdraw, true))) && isTrue((isEqual(deposit, true))), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
-            assert(isTrue(skipActive) || isTrue((isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage))), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
+            assert(skipActive || (isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + ((object)inactiveCurrenciesPercentage).ToString()) + "% that is more than the allowed maximum of ") + ((object)maxInactiveCurrenciesPercentage).ToString()) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }
         return true;
@@ -64,18 +64,18 @@ public partial class testMainClass : BaseTest
         // detect if there are currencies with different ids for the same code
         Dictionary<string, object> ids = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
-            object key = getValue(keys, i);
+            string? key = ((string)keys[i]);
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
-            if (!isTrue((inOp(ids, code))))
+            if (!(inOp(ids, code)))
             {
                 ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
-                assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
+                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
             }
         }
         return true;

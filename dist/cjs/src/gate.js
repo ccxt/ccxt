@@ -247,6 +247,10 @@ class gate extends gate$1["default"] {
                             '{settle}/index_constituents/{index}': { 'cost': 1 },
                             '{settle}/liq_orders': { 'cost': 1 },
                             '{settle}/risk_limit_tiers': { 'cost': 1 },
+                            '{settle}/adl_risk_states': { 'cost': 1 },
+                        },
+                        'post': {
+                            '{settle}/funding_rates': { 'cost': 1 },
                         },
                     },
                     'delivery': {
@@ -283,6 +287,9 @@ class gate extends gate$1["default"] {
                             'uni/currencies/{currency}': { 'cost': 1 },
                             'dual/investment_plan': { 'cost': 1 },
                             'structured/products': { 'cost': 1 },
+                            'dual/project-recommend': { 'cost': 1 },
+                            'fixed-term/product': { 'cost': 1 },
+                            'fixed-term/product/{asset}/list': { 'cost': 1 },
                         },
                     },
                     'loan': {
@@ -325,6 +332,7 @@ class gate extends gate$1["default"] {
                             'small_balance_history': { 'cost': 1 },
                             'push': { 'cost': 1 },
                             'getLowCapExchangeList': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
                         },
                         'post': {
                             'transfers': { 'cost': 2.5 }, // 8r/s cost = 20 / 8 = 2.5
@@ -370,6 +378,8 @@ class gate extends gate$1["default"] {
                             'loan_margin_tiers': { 'cost': 20 / 15 },
                             'leverage/user_currency_config': { 'cost': 20 / 15 },
                             'leverage/user_currency_setting': { 'cost': 20 / 15 },
+                            'delta_neutral': { 'cost': 20 / 15 },
+                            'estimated_quick_repayment': { 'cost': 20 / 15 },
                             'account_mode': { 'cost': 20 / 15 }, // deprecated
                         },
                         'post': {
@@ -377,6 +387,9 @@ class gate extends gate$1["default"] {
                             'portfolio_calculator': { 'cost': 20 / 15 },
                             'leverage/user_currency_setting': { 'cost': 20 / 15 },
                             'collateral_currencies': { 'cost': 20 / 15 },
+                            'delta_neutral': { 'cost': 20 / 15 },
+                            'leverage/user_setting': { 'cost': 20 / 15 },
+                            'quick_repayment': { 'cost': 20 / 15 },
                             'account_mode': { 'cost': 20 / 15 }, // deprecated
                         },
                         'put': {
@@ -396,6 +409,8 @@ class gate extends gate$1["default"] {
                             'my_trades': { 'cost': 1 },
                             'price_orders': { 'cost': 1 },
                             'price_orders/{order_id}': { 'cost': 1 },
+                            'pov_orders': { 'cost': 1 },
+                            'pov_orders/{order_id}': { 'cost': 1 },
                         },
                         'post': {
                             'batch_orders': { 'cost': 0.4 },
@@ -405,12 +420,15 @@ class gate extends gate$1["default"] {
                             'countdown_cancel_all': { 'cost': 20 / 75 },
                             'amend_batch_orders': { 'cost': 0.4 },
                             'price_orders': { 'cost': 0.4 },
+                            'pov_orders': { 'cost': 0.4 },
                         },
                         'delete': {
                             'orders': { 'cost': 20 / 75 },
                             'orders/{order_id}': { 'cost': 20 / 75 },
                             'price_orders': { 'cost': 20 / 75 },
                             'price_orders/{order_id}': { 'cost': 20 / 75 },
+                            'pov_orders': { 'cost': 20 / 75 },
+                            'pov_orders/{order_id}': { 'cost': 20 / 75 },
                         },
                         'patch': {
                             'orders/{order_id}': { 'cost': 0.4 },
@@ -494,6 +512,11 @@ class gate extends gate$1["default"] {
                             '{settle}/risk_limit_table': { 'cost': 1 },
                             '{settle}/price_orders': { 'cost': 1 },
                             '{settle}/price_orders/{order_id}': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/list': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/detail': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/change_log': { 'cost': 1 },
+                            '{settle}/autoorder/v1/chase/list': { 'cost': 1 },
+                            '{settle}/autoorder/v1/chase/detail': { 'cost': 1 },
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': { 'cost': 1 },
@@ -514,6 +537,13 @@ class gate extends gate$1["default"] {
                             '{settle}/batch_amend_orders': { 'cost': 0.4 },
                             '{settle}/bbo_orders': { 'cost': 0.4 },
                             '{settle}/price_orders': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/create': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/stop': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/stop_all': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/update': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/create': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/stop': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/stop_all': { 'cost': 0.4 },
                         },
                         'put': {
                             '{settle}/orders/{order_id}': { 'cost': 1 },
@@ -574,6 +604,9 @@ class gate extends gate$1["default"] {
                             'mmp': { 'cost': 20 / 15 },
                             'mmp/reset': { 'cost': 20 / 15 },
                         },
+                        'put': {
+                            'orders/{order_id}': { 'cost': 20 / 15 },
+                        },
                         'delete': {
                             'orders': { 'cost': 20 / 15 },
                             'orders/{order_id}': { 'cost': 20 / 15 },
@@ -596,6 +629,15 @@ class gate extends gate$1["default"] {
                             'staking/order_list': { 'cost': 20 / 15 },
                             'staking/award_list': { 'cost': 20 / 15 },
                             'staking/assets': { 'cost': 20 / 15 },
+                            'dual/order-refund-preview': { 'cost': 20 / 15 },
+                            'fixed-term/user/lend': { 'cost': 20 / 15 },
+                            'fixed-term/user/history': { 'cost': 20 / 15 },
+                            'autoinvest/coins': { 'cost': 20 / 15 },
+                            'autoinvest/config': { 'cost': 20 / 15 },
+                            'autoinvest/orders': { 'cost': 20 / 15 },
+                            'autoinvest/plans/detail': { 'cost': 20 / 15 },
+                            'autoinvest/plans/list_info': { 'cost': 20 / 15 },
+                            'autoinvest/plans/records': { 'cost': 20 / 15 },
                             'uni/currencies': { 'cost': 20 / 15 }, // deprecated
                             'uni/currencies/{currency}': { 'cost': 20 / 15 }, // deprecated
                         },
@@ -605,6 +647,15 @@ class gate extends gate$1["default"] {
                             'dual/orders': { 'cost': 20 / 15 },
                             'structured/orders': { 'cost': 20 / 15 },
                             'staking/swap': { 'cost': 20 / 15 },
+                            'dual/order-refund': { 'cost': 20 / 15 },
+                            'dual/modify-order-reinvest': { 'cost': 20 / 15 },
+                            'fixed-term/user/lend': { 'cost': 20 / 15 },
+                            'fixed-term/user/pre-redeem': { 'cost': 20 / 15 },
+                            'autoinvest/min_invest_amount': { 'cost': 20 / 15 },
+                            'autoinvest/plans/add_position': { 'cost': 20 / 15 },
+                            'autoinvest/plans/create': { 'cost': 20 / 15 },
+                            'autoinvest/plans/stop': { 'cost': 20 / 15 },
+                            'autoinvest/plans/update': { 'cost': 20 / 15 },
                         },
                         'put': {
                             'uni/interest_reinvest': { 'cost': 20 / 15 }, // deprecated
@@ -671,6 +722,7 @@ class gate extends gate$1["default"] {
                             'broker/transaction_history': { 'cost': 20 / 15 },
                             'user/info': { 'cost': 20 / 15 },
                             'user/sub_relation': { 'cost': 20 / 15 },
+                            'partner/data/aggregated': { 'cost': 20 / 15 },
                         },
                     },
                     'otc': {
@@ -679,6 +731,8 @@ class gate extends gate$1["default"] {
                             'order/list': { 'cost': 1 },
                             'stable_coin/order/list': { 'cost': 1 },
                             'order/detail': { 'cost': 1 },
+                            'bank/list': { 'cost': 1 },
+                            'bank/bank_supplement_checklist': { 'cost': 1 },
                         },
                         'post': {
                             'quote': { 'cost': 1 },
@@ -686,6 +740,12 @@ class gate extends gate$1["default"] {
                             'stable_coin/order/create': { 'cost': 1 },
                             'order/paid': { 'cost': 1 },
                             'order/cancel': { 'cost': 1 },
+                            'bank/create': { 'cost': 1 },
+                            'bank/delete': { 'cost': 1 },
+                            'bank/set_default': { 'cost': 1 },
+                            'bank/personal/bank_supplement': { 'cost': 1 },
+                            'bank/enterprise/bank_supplement': { 'cost': 1 },
+                            'upload/pre_upload': { 'cost': 1 },
                         },
                     },
                 },
@@ -741,6 +801,9 @@ class gate extends gate$1["default"] {
                 'unifiedAccount': undefined,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
+                },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 1000, // the spot depth cap accepted by the venue, overriden in gateeu
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
@@ -1391,7 +1454,7 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = this.safeDict(spotMarketsResponse, i, {});
             const id = this.safeString(spotMarket, 'id');
-            const marginMarket = this.safeValue(marginMarkets, id);
+            const marginMarket = this.safeDict(marginMarkets, id);
             const market = this.deepExtend(marginMarket, spotMarket);
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
@@ -1745,7 +1808,7 @@ class gate extends gate$1["default"] {
                 let symbol = base + '/' + quote;
                 const expiry = this.safeTimestamp(market, 'expiration_time');
                 const strike = this.safeString(market, 'strike_price');
-                const isCall = this.safeValue(market, 'is_call');
+                const isCall = this.safeBool(market, 'is_call');
                 const optionLetter = (isCall === true) ? 'C' : 'P';
                 const optionType = (isCall === true) ? 'call' : 'put';
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter;
@@ -1958,10 +2021,10 @@ class gate extends gate$1["default"] {
         return [marginMode, params];
     }
     getSettlementCurrencies(type, method) {
-        const options = this.safeValue(this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-        const fetchMarketsContractOptions = this.safeValue(options, method, {});
+        const options = this.safeDict(this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeDict(options, method, {});
         const defaultSettle = (type === 'swap') ? ['usdt'] : ['btc'];
-        return this.safeValue(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
+        return this.safeList(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
     /**
      * @method
@@ -1973,7 +2036,7 @@ class gate extends gate$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         // sandbox/testnet only supports future markets
-        const apiBackup = this.safeValue(this.urls, 'apiBackup');
+        const apiBackup = this.safeDict(this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return {};
         }
@@ -2340,7 +2403,7 @@ class gate extends gate$1["default"] {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
-        const chains = this.safeValue(response, 'multichain_addresses', []);
+        const chains = this.safeList(response, 'multichain_addresses', []);
         const currencyId = this.safeString(response, 'currency');
         currency = this.safeCurrency(currencyId, currency);
         const parsed = this.parseDepositAddresses(chains, undefined, false);
@@ -2476,10 +2539,10 @@ class gate extends gate$1["default"] {
         //        "futures_maker_fee": "0"
         //    }
         //
-        const gtDiscount = this.safeValue(info, 'gt_discount');
+        const gtDiscount = this.safeBool(info, 'gt_discount');
         const taker = (gtDiscount === true) ? 'gt_taker_fee' : 'taker_fee';
         const maker = (gtDiscount === true) ? 'gt_maker_fee' : 'maker_fee';
-        const contract = this.safeValue(market, 'contract');
+        const contract = this.safeBool(market, 'contract');
         const takerKey = (contract === true) ? 'futures_taker_fee' : taker;
         const makerKey = (contract === true) ? 'futures_maker_fee' : maker;
         return {
@@ -2533,7 +2596,7 @@ class gate extends gate$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            const withdrawFixOnChains = this.safeValue(entry, 'withdraw_fix_on_chains');
+            const withdrawFixOnChains = this.safeDict(entry, 'withdraw_fix_on_chains');
             if (withdrawFixOnChains === undefined) {
                 withdrawFees = this.safeNumber(entry, 'withdraw_fix');
             }
@@ -2608,7 +2671,7 @@ class gate extends gate$1["default"] {
         //        }
         //    }
         //
-        const withdrawFixOnChains = this.safeValue(fee, 'withdraw_fix_on_chains');
+        const withdrawFixOnChains = this.safeDict(fee, 'withdraw_fix_on_chains');
         const result = {
             'info': fee,
             'withdraw': {
@@ -2762,7 +2825,9 @@ class gate extends gate$1["default"] {
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
             if (market['spot'] === true) {
-                limit = Math.min(limit, 1000);
+                // gateeu returns an empty book for a spot limit above 100
+                const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+                limit = Math.min(limit, maxSpotLimit);
             }
             else {
                 limit = Math.min(limit, 300);
@@ -2912,7 +2977,7 @@ class gate extends gate$1["default"] {
             }
         }
         else {
-            ticker = this.safeValue(response, 0);
+            ticker = this.safeDict(response, 0);
         }
         if (ticker === undefined) {
             throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
@@ -3375,8 +3440,8 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (isolated) {
-                const base = this.safeValue(entry, 'base', {});
-                const quote = this.safeValue(entry, 'quote', {});
+                const base = this.safeDict(entry, 'base', {});
+                const quote = this.safeDict(entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'currency'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'currency'));
                 result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -4494,7 +4559,7 @@ class gate extends gate$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
             if (triggerValue !== undefined) {
@@ -4765,7 +4830,7 @@ class gate extends gate$1["default"] {
             }
             else {
                 // spot conditional order
-                const options = this.safeValue(this.options, 'createOrder', {});
+                const options = this.safeDict(this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [marginMode, params] = this.getMarginMode(true, params);
                 if (timeInForce === undefined) {
@@ -5163,8 +5228,8 @@ class gate extends gate$1["default"] {
                 'id': this.safeString(order, 'id'),
             });
         }
-        const put = this.safeValue2(order, 'put', 'initial', {});
-        const trigger = this.safeValue(order, 'trigger', {});
+        const put = this.safeDict2(order, 'put', 'initial', {});
+        const trigger = this.safeDict(order, 'trigger', {});
         let contract = this.safeString(put, 'contract');
         let type = this.safeString(put, 'type');
         let timeInForce = this.safeStringUpper2(put, 'time_in_force', 'tif');
@@ -5307,7 +5372,7 @@ class gate extends gate$1["default"] {
             'cost': Precise["default"].stringAbs(cost),
             'filled': undefined,
             'remaining': remaining,
-            'fee': multipleFeeCurrencies ? undefined : this.safeValue(fees, 0),
+            'fee': multipleFeeCurrencies ? undefined : this.safeDict(fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
             'trades': undefined,
             'info': order,
@@ -7135,7 +7200,7 @@ class gate extends gate$1["default"] {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            const first = this.safeValue(params, 0, {});
+            const first = this.safeDict(params, 0, {});
             path = this.implodeParams(path, first);
         }
         else {
@@ -7169,8 +7234,10 @@ class gate extends gate$1["default"] {
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys(query).length > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
                         queryString = queryString.replaceAll('%2C', ',');
@@ -7182,7 +7249,7 @@ class gate extends gate$1["default"] {
                 }
             }
             else {
-                const urlQueryParams = this.safeValue(query, 'query', {});
+                const urlQueryParams = this.safeDict(query, 'query', {});
                 if (Object.keys(urlQueryParams).length > 0) {
                     queryString = this.urlencode(urlQueryParams);
                     url += '?' + queryString;
@@ -7266,7 +7333,7 @@ class gate extends gate$1["default"] {
             'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
-            'code': this.safeValue(market, 'quote'),
+            'code': this.safeString(market, 'quote'),
             'status': 'ok',
             'timestamp': undefined,
             'datetime': undefined,
@@ -7525,13 +7592,13 @@ class gate extends gate$1["default"] {
             //
             response = await this.privateOptionsGetMySettlements(this.extend(request, params));
         }
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    parseSettlement(settlement, market) {
+    parseSettlement(settlement, market = undefined) {
         //
         // fetchSettlementHistory
         //
@@ -7581,7 +7648,7 @@ class gate extends gate$1["default"] {
             'datetime': this.iso8601(timestamp),
         };
     }
-    parseSettlements(settlements, market) {
+    parseSettlements(settlements, market = undefined) {
         //
         // fetchSettlementHistory
         //

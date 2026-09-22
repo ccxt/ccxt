@@ -200,7 +200,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const name = 'matches';
         const trades = await this.subscribeMultiple(name, symbols, name, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -253,7 +253,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const authentication = this.authenticate();
         const trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -279,7 +279,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const authentication = this.authenticate();
         const orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue(orders, 0);
+            const first = this.safeDict(orders, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = orders.getLimit(tradeSymbol, limit);
         }
@@ -638,8 +638,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             if (orders === undefined) {
                 return;
             }
-            const previousOrders = this.safeValue(orders.hashmap, symbol, {});
-            let previousOrder = this.safeValue(previousOrders, orderId);
+            const previousOrders = this.safeDict(orders.hashmap, symbol, {});
+            let previousOrder = this.safeDict(previousOrders, orderId);
             if (previousOrder === undefined) {
                 previousOrder = this.safeValue2(previousOrders, makerOrderId, takerOrderId);
             }
@@ -653,7 +653,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 if (sequence === undefined) {
                     return;
                 }
-                const previousInfo = this.safeValue(previousOrder, 'info', {});
+                const previousInfo = this.safeDict(previousOrder, 'info', {});
                 const previousSequence = this.safeInteger(previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
@@ -899,13 +899,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const symbol = market['symbol'];
         const name = 'level2';
         const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
+        const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         if (type === 'snapshot') {
             this.orderbooks[symbol] = this.orderBook({}, limit);
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas(orderbook['asks'], this.safeValue(message, 'asks', []));
-            this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
+            this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
+            this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
@@ -914,7 +914,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601(this.safeString(message, 'time'));
-            const changes = this.safeValue(message, 'changes', []);
+            const changes = this.safeList(message, 'changes', []);
             const sides = {
                 'sell': 'asks',
                 'buy': 'bids',

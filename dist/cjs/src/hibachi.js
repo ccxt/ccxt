@@ -711,7 +711,7 @@ class hibachi extends hibachi$1["default"] {
             remainingString = Precise["default"].stringSub(totalQuantity, filled);
         }
         let timeInForce = 'GTC';
-        const orderFlags = this.safeValue(order, 'orderFlags');
+        const orderFlags = this.safeString(order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
         if (orderFlags === 'POST_ONLY') {
@@ -978,8 +978,8 @@ class hibachi extends hibachi$1["default"] {
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
@@ -1082,8 +1082,8 @@ class hibachi extends hibachi$1["default"] {
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest(nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
@@ -1471,7 +1471,7 @@ class hibachi extends hibachi$1["default"] {
      * @description fetches all current open orders
      * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
      * @param {string} [symbol] unified market symbol to filter by
-     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [since] millisecond timestamp of the earliest order
      * @param {int} [limit] the maximum number of open orders to return
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

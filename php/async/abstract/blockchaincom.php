@@ -50,6 +50,12 @@ abstract class blockchaincom extends \ccxt\async\Exchange {
         return $this->request('fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_internal_orders($params = array()) {
+        return $this->request('internal/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_orders($params = array()) {
@@ -192,6 +198,12 @@ abstract class blockchaincom extends \ccxt\async\Exchange {
      */
     public function privateGetFees($params = array()) {
         return $this->request('fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetInternalOrders($params = array()) {
+        return $this->request('internal/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>

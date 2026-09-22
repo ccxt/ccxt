@@ -51,6 +51,7 @@ interface Exchange {
     v1PrivatePostPrivateGetDepositHistory (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateGetFeeRate (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateGetInstrumentFeeRate (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateGetFeeCreditBalances (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateFiatFiatDepositInfo (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateFiatFiatDepositHistory (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateFiatFiatWithdrawHistory (params?: {}): Promise<Dict>;
@@ -70,6 +71,13 @@ interface Exchange {
     v1PrivatePostPrivateStakingGetConvertHistory (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateCreateIsolatedMarginTransfer (params?: {}): Promise<Dict>;
     v1PrivatePostPrivateChangeIsolatedMarginLeverage (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotCreateTradingBot (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotUpdateTradingBot (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotTerminateTradingBot (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotPauseTradingBot (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotResumeTradingBot (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotGetTradingBots (params?: {}): Promise<Dict>;
+    v1PrivatePostPrivateBotGetTradingBotExecutions (params?: {}): Promise<Dict>;
     v2PublicGetPublicAuth (params?: {}): Promise<Dict>;
     v2PublicGetPublicGetInstruments (params?: {}): Promise<Dict>;
     v2PublicGetPublicGetBook (params?: {}): Promise<Dict>;

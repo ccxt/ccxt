@@ -182,6 +182,7 @@ class bittrade extends bittrade$1["default"] {
                         'common/timestamp': { 'cost': 1 }, // 查询系统当前时间
                         'common/exchange': { 'cost': 1 }, // order limits
                         'settings/currencys': { 'cost': 1 }, // ?language=en-US
+                        'retail/maintain/time': { 'cost': 1 }, // 零售维护时间
                     },
                 },
                 'private': {
@@ -212,6 +213,7 @@ class bittrade extends bittrade$1["default"] {
                         'subuser/aggregate-balance': { 'cost': 10 },
                         'stable-coin/exchange_rate': { 'cost': 1 },
                         'stable-coin/quote': { 'cost': 1 },
+                        'retail/order/list': { 'cost': 1 }, // 零售订单历史
                     },
                     'post': {
                         'account/transfer': { 'cost': 1 }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -239,6 +241,7 @@ class bittrade extends bittrade$1["default"] {
                         'cross-margin/orders/{id}/repay': { 'cost': 1 }, // 归还借币
                         'stable-coin/exchange': { 'cost': 1 },
                         'subuser/transfer': { 'cost': 10 },
+                        'retail/order/place': { 'cost': 1 }, // 零售下单
                     },
                 },
             },
@@ -473,7 +476,7 @@ class bittrade extends bittrade$1["default"] {
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return this.parseTradingLimits(this.safeValue(response, 'data', {}));
+        return this.parseTradingLimits(this.safeDict(response, 'data', {}));
     }
     parseTradingLimits(limits, symbol = undefined, params = {}) {
         //
@@ -552,7 +555,7 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //    }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new errors.NetworkError(this.id + ' fetchMarkets() returned empty response: ' + this.json(markets));
@@ -762,7 +765,7 @@ class bittrade extends bittrade$1["default"] {
             if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeValue(response, 'tick');
+            const tick = this.safeDict(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');
@@ -828,7 +831,7 @@ class bittrade extends bittrade$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1023,10 +1026,10 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue(data[i], 'data', []);
+            const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade(trades[j], market);
                 result.push(trade);
@@ -1162,15 +1165,15 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //     }
         //
-        const currencies = this.safeValue(response, 'data', []);
+        const currencies = this.safeList(response, 'data', []);
         return this.parseCurrencies(currencies);
     }
     parseCurrency(currency) {
-        const id = this.safeValue(currency, 'name');
+        const id = this.safeString(currency, 'name');
         const code = this.safeCurrencyCode(id);
-        const depositEnabled = this.safeValue(currency, 'deposit-enabled');
-        const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
-        const countryDisabled = this.safeValue(currency, 'country-disabled');
+        const depositEnabled = this.safeBool(currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeBool(currency, 'withdraw-enabled');
+        const countryDisabled = this.safeBool(currency, 'country-disabled');
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
         const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
@@ -1208,7 +1211,7 @@ class bittrade extends bittrade$1["default"] {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response['data'], 'list', []);
+        const balances = this.safeList(response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1564,7 +1567,7 @@ class bittrade extends bittrade$1["default"] {
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker', {});
+            const broker = this.safeDict(this.options, 'broker', {});
             const brokerId = this.safeString(broker, 'id');
             request['client-order-id'] = brokerId + this.uuid();
         }
@@ -1832,7 +1835,7 @@ class bittrade extends bittrade$1["default"] {
         currency = this.safeCurrency(currencyId, currency);
         const code = this.safeCurrencyCode(currencyId, currency);
         const networkId = this.safeString(depositAddress, 'chain');
-        const networks = this.safeValue(currency, 'networks', {});
+        const networks = this.safeDict(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
         const networkValue = this.safeValue(networksById, networkId, networkId);
         const network = this.safeString(networkValue, 'network');
@@ -2046,7 +2049,7 @@ class bittrade extends bittrade$1["default"] {
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
         }
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {

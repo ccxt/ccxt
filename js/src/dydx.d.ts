@@ -14,7 +14,7 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -24,7 +24,7 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -37,7 +37,7 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -52,7 +52,7 @@ export default class dydx extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name dydx#fetchFundingRateHistory
@@ -65,7 +65,7 @@ export default class dydx extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     handlePublicAddress(methodName: Str, params: Dict): [Str, Dict];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
@@ -80,7 +80,7 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name dydx#fetchOrders
@@ -94,7 +94,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name dydx#fetchOpenOrders
@@ -108,7 +108,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name dydx#fetchClosedOrders
@@ -122,7 +122,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -135,7 +135,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name dydx#fetchPositions
@@ -147,7 +147,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     hashMessage(message: any): any;
     signHash(hash: any, privateKey: any): {
         r: string;
@@ -189,7 +189,7 @@ export default class dydx extends Exchange {
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name dydx#cancelOrder
@@ -206,7 +206,7 @@ export default class dydx extends Exchange {
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name dydx#cancelOrders
@@ -218,7 +218,7 @@ export default class dydx extends Exchange {
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name dydx#fetchOrderBook
@@ -229,9 +229,9 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: Str): Str;
     /**
      * @method
      * @name dydx#fetchLedger
@@ -245,7 +245,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     estimateTxFee(message: any, memo: Str, account: any): Promise<any>;
     /**
      * @method
@@ -259,7 +259,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -274,7 +274,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -287,7 +287,7 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name dydx#fetchWithdrawals
@@ -301,7 +301,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name dydx#fetchDeposits
@@ -315,7 +315,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name dydx#fetchDepositsWithdrawals
@@ -329,7 +329,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
      * @method
@@ -340,7 +340,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.address] wallet address that made trades
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    fetchAccounts(params?: {}): Promise<Account[]>;
+    fetchAccounts(params?: Dict): Promise<Account[]>;
     /**
      * @method
      * @name dydx#fetchBalance
@@ -349,16 +349,11 @@ export default class dydx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
     nonce(): number;
     getWalletAddress(): string;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: any;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     setSandboxMode(enable: boolean): void;
 }

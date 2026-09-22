@@ -1,4 +1,11 @@
 #!/usr/bin/env tsx
+// The runtime `Value::Str` payload is a `Cow<'static, str>`: emitted string
+// literals borrow (`"lit".into()`) instead of allocating.
+const RUST_LITERAL_BOX_ALLOC = /Value::Str\(("(?:[^"\\]|\\.)*")\.to_string\(\)\)/g;
+function borrowLiteralBoxes(content: string): string {
+    return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
+}
+
 /**
  * Rust Typed Wrapper Generator for CCXT
  *
@@ -280,7 +287,7 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
         if (elem === 'string') {
             return {
                 rustReturn: 'Vec<String>',
-                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().filter_map(|x| match x { Value::Str(s) => Some(s.clone()), _ => None }).collect(), _ => Vec::new() }`,
+                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().filter_map(|x| match x { Value::Str(s) => Some(s.to_string()), _ => None }).collect(), _ => Vec::new() }`,
             };
         }
         return null;
@@ -294,7 +301,7 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
 
     // Scalar fallbacks
     if (isStringType(inner)) {
-        return { rustReturn: 'Option<String>', decode: v => `match ${v} { Value::Str(s) => Some(s), _ => None }` };
+        return { rustReturn: 'Option<String>', decode: v => `match ${v} { Value::Str(s) => Some(s.to_string()), _ => None }` };
     }
     if (isBooleanType(inner)) {
         return { rustReturn: 'Option<bool>', decode: v => `match ${v} { Value::Bool(b) => Some(b), _ => None }` };
@@ -338,13 +345,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<&str>`,
-                toValueExpr: `${name}.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null)`,
+                toValueExpr: `${name}.map(Value::from).unwrap_or(Value::Null)`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `&str`,
-            toValueExpr: `Value::Str(${name}.to_string())`,
+            toValueExpr: `Value::from(${name})`,
         };
     }
     if (isIntegerType(tsType ?? '')) {
@@ -394,13 +401,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<Vec<String>>`,
-                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }`,
+                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `Vec<String>`,
-            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(Value::Str).collect()))`,
+            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(|s| Value::Str(s.into())).collect()))`,
         };
     }
     // Unknown / object — pass through as `Value`. Honour the TS optionality
@@ -754,7 +761,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    /// One loaded market, typed. Call after `load_markets`.',
         '    /// `Err(BadSymbol)` when the symbol is not listed on this venue.',
         '    pub fn market(&self, symbol: &str) -> crate::Result<Market> {',
-        '        let sym = Value::Str(symbol.to_string());',
+        '        let sym = Value::from(symbol);',
         '        crate::runtime::catch_typed(|| Market::from_value(ExchangeBase::market(&*self.core, sym)))',
         '    }',
         '',
@@ -814,53 +821,53 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '',
         '    /// Credentials, settable after construction.',
         '    pub fn set_api_key(&mut self, v: &str) -> &mut Self {',
-        '        self.core.apiKey = Value::Str(v.to_string());',
+        '        self.core.apiKey = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_secret(&mut self, v: &str) -> &mut Self {',
-        '        self.core.secret = Value::Str(v.to_string());',
+        '        self.core.secret = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_password(&mut self, v: &str) -> &mut Self {',
-        '        self.core.password = Value::Str(v.to_string());',
+        '        self.core.password = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_uid(&mut self, v: &str) -> &mut Self {',
-        '        self.core.uid = Value::Str(v.to_string());',
+        '        self.core.uid = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self {',
-        '        self.core.walletAddress = Value::Str(v.to_string());',
+        '        self.core.walletAddress = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_private_key(&mut self, v: &str) -> &mut Self {',
-        '        self.core.privateKey = Value::Str(v.to_string());',
+        '        self.core.privateKey = Value::from(v);',
         '        self',
         '    }',
         '    pub fn set_token(&mut self, v: &str) -> &mut Self {',
-        '        self.core.token = Value::Str(v.to_string());',
+        '        self.core.token = Value::from(v);',
         '        self',
         '    }',
         '',
         '    /// Proxies. Set at most ONE of these — the request path rejects',
         '    /// conflicting proxy settings.',
         '    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.httpProxy = Value::Str(url.to_string());',
+        '        self.core.httpProxy = Value::from(url);',
         '        self',
         '    }',
         '    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.httpsProxy = Value::Str(url.to_string());',
+        '        self.core.httpsProxy = Value::from(url);',
         '        self',
         '    }',
         '    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.socksProxy = Value::Str(url.to_string());',
+        '        self.core.socksProxy = Value::from(url);',
         '        self',
         '    }',
         '    /// WebSocket proxy. The `watch*` transport dials it with an HTTP',
         '    /// CONNECT tunnel — separate from the REST proxies above, which',
         '    /// only apply to `fetch*`.',
         '    pub fn set_ws_proxy(&mut self, url: &str) -> &mut Self {',
-        '        self.core.wsProxy = Value::Str(url.to_string());',
+        '        self.core.wsProxy = Value::from(url);',
         '        self',
         '    }',
         '',
@@ -911,7 +918,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    /// The ccxt id of this exchange, e.g. binance.',
         '    pub fn id(&self) -> String {',
         '        match &self.core.id {',
-        '            Value::Str(s) => s.clone(),',
+        '            Value::Str(s) => s.to_string(),',
         '            _ => String::new(),',
         '        }',
         '    }',
@@ -1148,7 +1155,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
         ]);
         const out = path.join(cfg.outFolder, `${id}_typed.rs`);
         const content = generateTypedWrapper(id, exchangeMethods, directlyCallable, cfg.coreModule);
-        fs.writeFileSync(out, content, 'utf-8');
+        fs.writeFileSync(out, borrowLiteralBoxes(content), 'utf-8');
         generatedIds.push(id);
     }
     const generated = generatedIds.length;

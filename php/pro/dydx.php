@@ -100,26 +100,26 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
-        //     "type" => "subscribed",
-        //     "connection_id" => "9011edff-d8f7-47fc-bbc6-0c7b5ba7dfae",
-        //     "message_id" => 3,
-        //     "channel" => "v4_trades",
-        //     "id" => "BTC-USD",
-        //     "contents" => {
-        //         "trades" => array(
+        //     "type": "subscribed",
+        //     "connection_id": "9011edff-d8f7-47fc-bbc6-0c7b5ba7dfae",
+        //     "message_id": 3,
+        //     "channel": "v4_trades",
+        //     "id": "BTC-USD",
+        //     "contents": {
+        //         "trades": [
         //             {
-        //                 "id" => "02b6148d0000000200000005",
-        //                 "side" => "BUY",
-        //                 "size" => "0.024",
-        //                 "price" => "114581",
-        //                 "type" => "LIMIT",
-        //                 "createdAt" => "2025-08-04T00:42:07.119Z",
-        //                 "createdAtHeight" => "45487245"
+        //                 "id": "02b6148d0000000200000005",
+        //                 "side": "BUY",
+        //                 "size": "0.024",
+        //                 "price": "114581",
+        //                 "type": "LIMIT",
+        //                 "createdAt": "2025-08-04T00:42:07.119Z",
+        //                 "createdAtHeight": "45487245"
         //             }
-        //         )
+        //         ]
         //     }
         // }
         //
@@ -143,16 +143,16 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // {
-        //     "id" => "02b6148d0000000200000003",
-        //     "side" => "BUY",
-        //     "size" => "0.024",
-        //     "price" => "114581",
-        //     "type" => "LIMIT",
-        //     "createdAt" => "2025-08-04T00:42:07.118Z",
-        //     "createdAtHeight" => "45487244"
+        //     "id": "02b6148d0000000200000003",
+        //     "side": "BUY",
+        //     "size": "0.024",
+        //     "price": "114581",
+        //     "type": "LIMIT",
+        //     "createdAt": "2025-08-04T00:42:07.118Z",
+        //     "createdAtHeight": "45487244"
         // }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'createdAt'));
@@ -231,27 +231,27 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
-        //     "type" => "subscribed",
-        //     "connection_id" => "7af140fb-b33d-4f0e-8f4c-30f16337b360",
-        //     "message_id" => 1,
-        //     "channel" => "v4_orderbook",
-        //     "id" => "BTC-USD",
-        //     "contents" => {
-        //         "bids" => array(
+        //     "type": "subscribed",
+        //     "connection_id": "7af140fb-b33d-4f0e-8f4c-30f16337b360",
+        //     "message_id": 1,
+        //     "channel": "v4_orderbook",
+        //     "id": "BTC-USD",
+        //     "contents": {
+        //         "bids": [
         //             {
-        //                 "price" => "114623",
-        //                 "size" => "0.1112"
+        //                 "price": "114623",
+        //                 "size": "0.1112"
         //             }
-        //         ),
-        //         "asks" => array(
+        //         ],
+        //         "asks": [
         //             {
-        //                 "price" => "114624",
-        //                 "size" => "0.0872"
+        //                 "price": "114624",
+        //                 "size": "0.0872"
         //             }
-        //         )
+        //         ]
         //     }
         // }
         //
@@ -300,7 +300,7 @@ class dydx extends \ccxt\async\dydx {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -335,7 +335,7 @@ class dydx extends \ccxt\async\dydx {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -352,55 +352,55 @@ class dydx extends \ccxt\async\dydx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
-        //     "type" => "subscribed",
-        //     "connection_id" => "e00b6e27-590c-4e91-a24d-b0645289434b",
-        //     "message_id" => 1,
-        //     "channel" => "v4_candles",
-        //     "id" => "BTC-USD/1MIN",
-        //     "contents" => {
-        //         "candles" => array(
+        //     "type": "subscribed",
+        //     "connection_id": "e00b6e27-590c-4e91-a24d-b0645289434b",
+        //     "message_id": 1,
+        //     "channel": "v4_candles",
+        //     "id": "BTC-USD/1MIN",
+        //     "contents": {
+        //         "candles": [
         //             {
-        //                 "startedAt" => "2025-08-05T03:40:00.000Z",
-        //                 "ticker" => "BTC-USD",
-        //                 "resolution" => "1MIN",
-        //                 "low" => "114249",
-        //                 "high" => "114256",
-        //                 "open" => "114256",
-        //                 "close" => "114249",
-        //                 "baseTokenVolume" => "0.4726",
-        //                 "usdVolume" => "53996.1818",
-        //                 "trades" => 7,
-        //                 "startingOpenInterest" => "501.7424",
-        //                 "orderbookMidPriceOpen" => "114255.5",
-        //                 "orderbookMidPriceClose" => "114255.5"
+        //                 "startedAt": "2025-08-05T03:40:00.000Z",
+        //                 "ticker": "BTC-USD",
+        //                 "resolution": "1MIN",
+        //                 "low": "114249",
+        //                 "high": "114256",
+        //                 "open": "114256",
+        //                 "close": "114249",
+        //                 "baseTokenVolume": "0.4726",
+        //                 "usdVolume": "53996.1818",
+        //                 "trades": 7,
+        //                 "startingOpenInterest": "501.7424",
+        //                 "orderbookMidPriceOpen": "114255.5",
+        //                 "orderbookMidPriceClose": "114255.5"
         //             }
-        //         )
+        //         ]
         //     }
         // }
         // {
-        //     "type" => "channel_data",
-        //     "connection_id" => "e00b6e27-590c-4e91-a24d-b0645289434b",
-        //     "message_id" => 3,
-        //     "id" => "BTC-USD/1MIN",
-        //     "channel" => "v4_candles",
-        //     "version" => "1.0.0",
-        //     "contents" => {
-        //         "startedAt" => "2025-08-05T03:40:00.000Z",
-        //         "ticker" => "BTC-USD",
-        //         "resolution" => "1MIN",
-        //         "low" => "114249",
-        //         "high" => "114262",
-        //         "open" => "114256",
-        //         "close" => "114261",
-        //         "baseTokenVolume" => "0.4753",
-        //         "usdVolume" => "54304.6873",
-        //         "trades" => 9,
-        //         "startingOpenInterest" => "501.7424",
-        //         "orderbookMidPriceOpen" => "114255.5",
-        //         "orderbookMidPriceClose" => "114255.5"
+        //     "type": "channel_data",
+        //     "connection_id": "e00b6e27-590c-4e91-a24d-b0645289434b",
+        //     "message_id": 3,
+        //     "id": "BTC-USD/1MIN",
+        //     "channel": "v4_candles",
+        //     "version": "1.0.0",
+        //     "contents": {
+        //         "startedAt": "2025-08-05T03:40:00.000Z",
+        //         "ticker": "BTC-USD",
+        //         "resolution": "1MIN",
+        //         "low": "114249",
+        //         "high": "114262",
+        //         "open": "114256",
+        //         "close": "114261",
+        //         "baseTokenVolume": "0.4753",
+        //         "usdVolume": "54304.6873",
+        //         "trades": 9,
+        //         "startingOpenInterest": "501.7424",
+        //         "orderbookMidPriceOpen": "114255.5",
+        //         "orderbookMidPriceClose": "114255.5"
         //     }
         // }
         //
@@ -416,7 +416,7 @@ class dydx extends \ccxt\async\dydx {
         $messageHash = 'ohlcv:' . $symbol;
         $ohlcv = $this->safe_dict($candles, 0, $content);
         $parsed = $this->parse_ohlcv($ohlcv, $market);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -427,13 +427,13 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         // {
-        //     "type" => "error",
-        //     "message" => "....",
-        //     "connection_id" => "9011edff-d8f7-47fc-bbc6-0c7b5ba7dfae",
-        //     "message_id" => 4
+        //     "type": "error",
+        //     "message": "....",
+        //     "connection_id": "9011edff-d8f7-47fc-bbc6-0c7b5ba7dfae",
+        //     "message_id": 4
         // }
         //
         try {
@@ -445,7 +445,7 @@ class dydx extends \ccxt\async\dydx {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $this->handle_error_message($client, $message);

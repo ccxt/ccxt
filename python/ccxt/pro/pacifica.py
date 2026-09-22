@@ -80,7 +80,7 @@ class pacifica(ccxt.async_support.pacifica):
                 headers['PF-API-KEY'] = self.options['apiKey']
         self.options['ws']['options']['headers'] = headers
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -101,7 +101,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use.
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -162,7 +162,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -178,7 +178,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'edit_order'
@@ -218,7 +218,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -231,7 +231,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param string|str[] [params.clientOrderId]: client order ids,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'batch_orders'
@@ -253,13 +253,13 @@ class pacifica(ccxt.async_support.pacifica):
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645953,
         #         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
         #         "symbol": "BTC"
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645954,
         #         "symbol": "ETH"
         #       }
@@ -289,7 +289,7 @@ class pacifica(ccxt.async_support.pacifica):
             ordersToReturn.append(self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': market['symbol']}))
         return ordersToReturn
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -302,7 +302,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         operationType = 'cancel_order'
@@ -345,7 +345,7 @@ class pacifica(ccxt.async_support.pacifica):
         clientOrderId = self.safe_string(order, 'I')
         return self.safe_order({'id': orderId, 'clientOrderId': clientOrderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -356,7 +356,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param boolean|None [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -386,7 +386,7 @@ class pacifica(ccxt.async_support.pacifica):
             }),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -452,7 +452,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # {
         #   "channel": "book",
@@ -464,7 +464,7 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 4,
         #           "p": "157.47"
         #         },
-        #         # ... other aggegated bid levels
+        #         // ... other aggegated bid levels
         #       ],
         #       [
         #         {
@@ -477,12 +477,12 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 3,
         #           "p": "157.5"
         #         },
-        #         # ... other aggregated ask levels
+        #         // ... other aggregated ask levels
         #       ]
         #     ],
         #     "s": "SOL",
         #     "t": 1749051881187,
-        #     "li": 1559885104  # sequence id - last order id
+        #     "li": 1559885104 // sequence id - last order id
         #   }
         # }
         #
@@ -508,7 +508,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
         https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices
@@ -521,7 +521,7 @@ class pacifica(ccxt.async_support.pacifica):
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -576,7 +576,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -644,7 +644,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: dict) -> bool:
         #
         # {
         #     "channel": "prices",
@@ -661,7 +661,7 @@ class pacifica(ccxt.async_support.pacifica):
         #             "volume_24h": "63265.87522",
         #             "yesterday_price": "955476"
         #         }
-        #         # ... other symbol prices
+        #         // ... other symbol prices
         #     ],
         # }
         #
@@ -679,28 +679,28 @@ class pacifica(ccxt.async_support.pacifica):
         client.resolve(tickers, 'tickers')
         return True
 
-    def parse_ws_ticker(self, rawTicker: object, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, rawTicker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(rawTicker, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         # {
         #   "channel": "account_trades",
         #   "data": [
         #     {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -731,7 +731,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -793,7 +793,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # {
         #   "channel": "trades",
@@ -833,19 +833,19 @@ class pacifica(ccxt.async_support.pacifica):
         # fetchMyTrades
         #
         #    {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -904,7 +904,7 @@ class pacifica(ccxt.async_support.pacifica):
             'fee': {'cost': fee, 'currency': 'USDC'},
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -915,7 +915,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -949,7 +949,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -971,7 +971,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messagehash, message, messagehash)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         # {
         #   "channel": "candle",
@@ -998,7 +998,7 @@ class pacifica(ccxt.async_support.pacifica):
             return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        symbolOhlcvs = self.safe_value(self.ohlcvs, symbol, {})
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
         ohlcv = self.safe_value(symbolOhlcvs, timeframe)
         if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -1009,7 +1009,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -1079,7 +1079,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         # not snapshot, only updates
         # {
         #   "channel": "account_order_updates",
@@ -1100,7 +1100,7 @@ class pacifica(ccxt.async_support.pacifica):
         #       "ot": "limit",
         #       "sp": null,
         #       "si": null,
-        #       "r": False,
+        #       "r": false,
         #       "ct": 1765017049008,
         #       "ut": 1765017219639,
         #       "li": 1559696133
@@ -1131,7 +1131,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1210,7 +1210,7 @@ class pacifica(ccxt.async_support.pacifica):
         }
         self.clean_cache(topicStructure)
 
-    def handle_subscription_response(self, client: Client, message: object):
+    def handle_subscription_response(self, client: Client, message: dict):
         #  {
         #      "channel": "subscribe",
         #      "data": {
@@ -1297,7 +1297,7 @@ class pacifica(ccxt.async_support.pacifica):
             'method': 'ping',
         }
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         #
         #   {
         #       "channel": "pong"

@@ -52,6 +52,18 @@ abstract class foxbit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v3_public_get_markets_sparkline_window($params = array()) {
+        return $this->request('markets/sparkline/{window}', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v3_public_get_travel_rule_operation_reasons($params = array()) {
+        return $this->request('travel_rule/operation_reasons', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v3_private_get_accounts($params = array()) {
         return $this->request('accounts', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -106,6 +118,12 @@ abstract class foxbit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v3_private_get_prime_desk_executions_quote_id($params = array()) {
+        return $this->request('prime_desk/executions/{quote_id}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v3_private_post_orders($params = array()) {
         return $this->request('orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -126,6 +144,12 @@ abstract class foxbit extends \ccxt\async\Exchange {
      */
     public function v3_private_post_withdrawals($params = array()) {
         return $this->request('withdrawals', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v3_private_post_deposits_deposit_sn_travel_rule($params = array()) {
+        return $this->request('deposits/{deposit_sn}/travel_rule', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -184,6 +208,18 @@ abstract class foxbit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v3PublicGetMarketsSparklineWindow($params = array()) {
+        return $this->request('markets/sparkline/{window}', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v3PublicGetTravelRuleOperationReasons($params = array()) {
+        return $this->request('travel_rule/operation_reasons', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v3PrivateGetAccounts($params = array()) {
         return $this->request('accounts', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -238,6 +274,12 @@ abstract class foxbit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function v3PrivateGetPrimeDeskExecutionsQuoteId($params = array()) {
+        return $this->request('prime_desk/executions/{quote_id}', array('v3', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function v3PrivatePostOrders($params = array()) {
         return $this->request('orders', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -258,6 +300,12 @@ abstract class foxbit extends \ccxt\async\Exchange {
      */
     public function v3PrivatePostWithdrawals($params = array()) {
         return $this->request('withdrawals', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function v3PrivatePostDepositsDepositSnTravelRule($params = array()) {
+        return $this->request('deposits/{deposit_sn}/travel_rule', array('v3', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

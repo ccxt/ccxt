@@ -129,7 +129,10 @@ const parse8601 = (x) => {
     }
     // last line of defence
     try {
-        const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
+        // a zone is a trailing Z or an offset, matched at the tail since a date's
+        // own separators rule out a bare minus. two digit offsets need the plus
+        const zoned = (x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z') || (/-\d\d:?\d\d$/.test (x));
+        const candidate = Date.parse (zoned ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
         if (Number.isNaN (candidate)) {
             return undefined;
         }
@@ -192,7 +195,6 @@ const ymdhms = (timestamp, infix = ' ') => {
     return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S;
 };
 const sleep = (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms));
-
 
 const timeout = async (ms, promise) => {
     let clear = () => {};

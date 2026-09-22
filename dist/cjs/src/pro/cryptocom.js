@@ -266,7 +266,7 @@ class cryptocom extends cryptocom$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let data = this.safeValue(message, 'data');
-        data = this.safeValue(data, 0);
+        data = this.safeDict(data, 0);
         const timestamp = this.safeInteger(data, 't');
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(message, 'depth');
@@ -284,7 +284,7 @@ class cryptocom extends cryptocom$1["default"] {
             orderbook['nonce'] = nonce;
         }
         else {
-            books = this.safeValue(data, 'update', {});
+            books = this.safeDict(data, 'update', {});
             const previousNonce = this.safeInteger(data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
@@ -294,8 +294,8 @@ class cryptocom extends cryptocom$1["default"] {
                 }
             }
         }
-        this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
-        this.handleDeltas(orderbook['bids'], this.safeValue(books, 'bids', []));
+        this.handleDeltas(orderbook['asks'], this.safeList(books, 'asks', []));
+        this.handleDeltas(orderbook['bids'], this.safeList(books, 'bids', []));
         orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
@@ -352,7 +352,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const trades = await this.watchPublicMultiple(topics, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -420,7 +420,7 @@ class cryptocom extends cryptocom$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -587,7 +587,7 @@ class cryptocom extends cryptocom$1["default"] {
         const messageHash = this.safeString(message, 'subscription');
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker, market);
@@ -777,7 +777,7 @@ class cryptocom extends cryptocom$1["default"] {
         const symbol = market['symbol'];
         const interval = this.safeString(message, 'interval');
         const timeframe = this.findTimeframe(interval);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -855,7 +855,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const channel = this.safeString(message, 'channel');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
-        const orders = this.safeValue(message, 'data', []);
+        const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             if (this.orders === undefined) {
@@ -978,9 +978,9 @@ class cryptocom extends cryptocom$1["default"] {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const data = this.safeValue(message, 'data', []);
-        const firstData = this.safeValue(data, 0, {});
-        const rawPositions = this.safeValue(firstData, 'positions', []);
+        const data = this.safeList(message, 'data', []);
+        const firstData = this.safeDict(data, 0, {});
+        const rawPositions = this.safeList(firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
@@ -1064,8 +1064,8 @@ class cryptocom extends cryptocom$1["default"] {
         //     }
         //
         const messageHash = this.safeString(message, 'subscription');
-        const data = this.safeValue(message, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const data = this.safeList(message, 'data', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
@@ -1150,7 +1150,7 @@ class cryptocom extends cryptocom$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const rawOrder = this.safeValue(message, 'result', {});
+        const rawOrder = this.safeDict(message, 'result', {});
         const order = this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
@@ -1300,7 +1300,7 @@ class cryptocom extends cryptocom$1["default"] {
             if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-                const messageString = this.safeValue(message, 'message');
+                const messageString = this.safeString(message, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }

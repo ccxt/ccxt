@@ -347,6 +347,13 @@ public partial class bequant : hitbtc
         return await this.callAsync<List<object>> ("privateGetMarginHistoryClearing",parameters);
     }
 
+    /// <summary>Calls the privateGetMarginSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetMarginSettings (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetMarginSettings",parameters);
+    }
+
     /// <summary>Calls the privateGetFuturesBalance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetFuturesBalance (object parameters = null)
@@ -438,6 +445,13 @@ public partial class bequant : hitbtc
         return await this.callAsync<List<object>> ("privateGetFuturesHistoryClearing",parameters);
     }
 
+    /// <summary>Calls the privateGetUserApiKeys endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetUserApiKeys (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetUserApiKeys",parameters);
+    }
+
     /// <summary>Calls the privateGetWalletBalance endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetWalletBalance (object parameters = null)
@@ -450,6 +464,13 @@ public partial class bequant : hitbtc
     public async Task<Dictionary<string, object>> privateGetWalletBalanceCurrency (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetWalletBalanceCurrency",parameters);
+    }
+
+    /// <summary>Calls the privateGetWalletCryptoAddressWhiteList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetWalletCryptoAddressWhiteList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetWalletCryptoAddressWhiteList",parameters);
     }
 
     /// <summary>Calls the privateGetWalletCryptoAddress endpoint.</summary>
@@ -499,6 +520,13 @@ public partial class bequant : hitbtc
     public async Task<Dictionary<string, object>> privateGetWalletCryptoFeeEstimate (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetWalletCryptoFeeEstimate",parameters);
+    }
+
+    /// <summary>Calls the privateGetWalletCryptoFeeWithdrawHash endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetWalletCryptoFeeWithdrawHash (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetWalletCryptoFeeWithdrawHash",parameters);
     }
 
     /// <summary>Calls the privateGetWalletAirdrops endpoint.</summary>
@@ -634,6 +662,13 @@ public partial class bequant : hitbtc
         return await this.callAsync<List<object>> ("privatePostWalletCryptoFeesEstimate",parameters);
     }
 
+    /// <summary>Calls the privatePostWalletCryptoFeeEstimateBulk endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostWalletCryptoFeeEstimateBulk (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostWalletCryptoFeeEstimateBulk",parameters);
+    }
+
     /// <summary>Calls the privatePostWalletAirdropsIdClaim endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostWalletAirdropsIdClaim (object parameters = null)
@@ -660,6 +695,20 @@ public partial class bequant : hitbtc
     public async Task<Dictionary<string, object>> privatePostSubAccountTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostSubAccountTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostSubAccountTransferSubToSuper endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSubAccountTransferSubToSuper (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSubAccountTransferSubToSuper",parameters);
+    }
+
+    /// <summary>Calls the privatePostSubAccountTransferSubToSub endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSubAccountTransferSubToSub (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSubAccountTransferSubToSub",parameters);
     }
 
     /// <summary>Calls the privatePostSubAccountAcl endpoint.</summary>
@@ -774,11 +823,32 @@ public partial class bequant : hitbtc
         return await this.callAsync<Dictionary<string, object>> ("privatePutMarginAccountIsolatedSymbol",parameters);
     }
 
+    /// <summary>Calls the privatePutMarginSettingsAmm endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutMarginSettingsAmm (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutMarginSettingsAmm",parameters);
+    }
+
+    /// <summary>Calls the privatePutMarginMarginSettingsAmr endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutMarginMarginSettingsAmr (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutMarginMarginSettingsAmr",parameters);
+    }
+
     /// <summary>Calls the privatePutFuturesAccountIsolatedSymbol endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePutFuturesAccountIsolatedSymbol (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePutFuturesAccountIsolatedSymbol",parameters);
+    }
+
+    /// <summary>Calls the privatePutFuturesMarginSettingsAmr endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutFuturesMarginSettingsAmr (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutFuturesMarginSettingsAmr",parameters);
     }
 
     /// <summary>Calls the privatePutWalletCryptoWithdrawId endpoint.</summary>

@@ -156,11 +156,30 @@ class gemini extends gemini$1["default"] {
                         'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 },
                         'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 },
                         'v1/riskstats/{symbol}': { 'cost': 5 },
+                        'v1/prediction-markets/events': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 },
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 },
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 },
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 },
+                        'v1/prediction-markets/categories': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 },
+                        'v1/prediction-markets/terms': { 'cost': 5 },
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
                         'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 },
+                        'v1/prediction-markets/terms/status': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 },
+                        'v2/network/{token}': { 'cost': 1 },
+                        'v2/networks/{network}/assets': { 'cost': 1 },
                     },
                     'post': {
                         'v1/staking/unstake': { 'cost': 1 },
@@ -223,6 +242,20 @@ class gemini extends gemini$1["default"] {
                         'v1/perpetuals/fundingPayment': { 'cost': 1 },
                         'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 },
                         'v1/positions': { 'cost': 1 },
+                        'v1/prediction-markets/order': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch': { 'cost': 1 },
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/orders/active': { 'cost': 1 },
+                        'v1/prediction-markets/orders/history': { 'cost': 1 },
+                        'v1/prediction-markets/positions': { 'cost': 1 },
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 },
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 },
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 },
+                        'v2/transfers': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 },
                     },
                 },
             },
@@ -446,7 +479,7 @@ class gemini extends gemini$1["default"] {
         //    }
         //
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
-        const currenciesArray = this.safeValue(data, 'currencies', []);
+        const currenciesArray = this.safeList(data, 'currencies', []);
         return this.parseCurrencies(currenciesArray);
     }
     parseCurrency(rawCurrency) {
@@ -517,7 +550,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        const method = this.safeString(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
             promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
@@ -643,7 +676,7 @@ class gemini extends gemini$1["default"] {
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeValue(this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets = this.safeList(this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
@@ -985,7 +1018,7 @@ class gemini extends gemini$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        const method = this.safeString(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
         }
@@ -1031,7 +1064,7 @@ class gemini extends gemini$1["default"] {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeValue(ticker, 'volume', {});
+        const volume = this.safeDict(ticker, 'volume', {});
         const timestamp = this.safeInteger(volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower(ticker, 'pair');
@@ -1444,7 +1477,7 @@ class gemini extends gemini$1["default"] {
         const id = this.safeString(order, 'order_id');
         const side = this.safeStringLower(order, 'side');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const optionsArray = this.safeValue(order, 'options', []);
+        const optionsArray = this.safeList(order, 'options', []);
         const option = this.safeString(optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;

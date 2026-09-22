@@ -55,6 +55,7 @@ from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa
 from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
 from ccxt.test.base.test_fetch_history import test_fetch_history  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
+from ccxt.test.base.test_handle_http_status_code import test_handle_http_status_code  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
@@ -72,6 +73,7 @@ from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E
 from ccxt.test.base.test_clone import test_clone  # noqa E402
 from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
+from ccxt.test.base.test_incrementing_nonce import test_incrementing_nonce  # noqa E402
 from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
 from ccxt.test.base.test_constants import test_constants  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
@@ -95,6 +97,7 @@ async def base_tests_init():
     test_number_to_be()
     test_decimal_to_precision()
     test_capitalize()
+    test_incrementing_nonce()
     test_is_dictionary()
     test_number_to_string()
     test_precise()
@@ -117,6 +120,7 @@ async def base_tests_init():
     test_in_array()
     test_filter_by()
     test_handle_methods()
+    test_handle_http_status_code()
     test_network_methods()
     test_remove_repeated_elements_from_array()
     test_is_empty()

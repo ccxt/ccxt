@@ -194,6 +194,18 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('wallet/assets', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function public_get_wallet_currencies($params = array()) {
+        return $this->request('wallet/currencies', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_get_wallet_haircuts($params = array()) {
+        return $this->request('wallet/haircuts', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function public_get_wallet_networks($params = array()) {
@@ -206,10 +218,22 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('address', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_get_addressconfig($params = array()) {
+        return $this->request('addressConfig', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_get_apikey($params = array()) {
         return $this->request('apiKey', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_apikey_self($params = array()) {
+        return $this->request('apiKey/self', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -238,6 +262,24 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function private_get_leagueoftrader_myrankings($params = array()) {
+        return $this->request('leagueoftrader/myRankings', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_managedsubaccountbinding_investor($params = array()) {
+        return $this->request('managedSubAccountBinding/investor', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_managedsubaccountbinding_tradingteam($params = array()) {
+        return $this->request('managedSubAccountBinding/tradingTeam', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_order($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -252,6 +294,30 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_get_position($params = array()) {
         return $this->request('position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_referralcode($params = array()) {
+        return $this->request('referralCode', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_referralcode_check_code($params = array()) {
+        return $this->request('referralCode/check/{code}', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_referralcode_code_code($params = array()) {
+        return $this->request('referralCode/code/{code}', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_referralcode_id($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -290,6 +356,12 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('user/depositAddress', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_get_user_depositaddressinformation($params = array()) {
+        return $this->request('user/depositAddressInformation', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_get_user_executionhistory($params = array()) {
@@ -306,6 +378,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_get_user_margin($params = array()) {
         return $this->request('user/margin', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_user_marginingmode($params = array()) {
+        return $this->request('user/marginingMode', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -336,6 +414,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_get_user_staking_tiers($params = array()) {
         return $this->request('user/staking/tiers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_user_tradingsettings($params = array()) {
+        return $this->request('user/tradingSettings', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -378,6 +462,18 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_get_userevent($params = array()) {
         return $this->request('userEvent', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_userpricealert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_userstats_volumerank($params = array()) {
+        return $this->request('userStats/volumeRank', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -430,6 +526,42 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_managedsubaccountbinding_approve($params = array()) {
+        return $this->request('managedSubAccountBinding/approve', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_managedsubaccountbinding_cancel($params = array()) {
+        return $this->request('managedSubAccountBinding/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_managedsubaccountbinding_createmsa($params = array()) {
+        return $this->request('managedSubAccountBinding/createMSA', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_managedsubaccountbinding_reject($params = array()) {
+        return $this->request('managedSubAccountBinding/reject', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_managedsubaccountbinding_toggletradehistory($params = array()) {
+        return $this->request('managedSubAccountBinding/toggleTradeHistory', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_managedsubaccountbinding_unbind($params = array()) {
+        return $this->request('managedSubAccountBinding/unbind', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -444,6 +576,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_post_order_closeposition($params = array()) {
         return $this->request('order/closePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_position_crossleverage($params = array()) {
+        return $this->request('position/crossLeverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -468,6 +606,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_post_position_transfermargin($params = array()) {
         return $this->request('position/transferMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_referralcode($params = array()) {
+        return $this->request('referralCode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -500,10 +644,28 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('user/confirmWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_post_user_createindependentsubaccount($params = array()) {
+        return $this->request('user/createIndependentSubaccount', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return string
      */
     public function private_post_user_logout($params = array()) {
         return $this->request('user/logout', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_user_marginingmode($params = array()) {
+        return $this->request('user/marginingMode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_user_positionmode($params = array()) {
+        return $this->request('user/positionMode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -538,6 +700,18 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_userpricealert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_address($params = array()) {
+        return $this->request('address', 'private', 'PUT', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_put_guild($params = array()) {
         return $this->request('guild', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
@@ -546,6 +720,18 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function private_put_order($params = array()) {
         return $this->request('order', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_referralcode_id($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'PUT', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_put_userpricealert_id($params = array()) {
+        return $this->request('userPriceAlert/{id}', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -562,8 +748,32 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_delete_referralcode_id($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_delete_user_unstakingrequests($params = array()) {
         return $this->request('user/unstakingRequests', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_user_withdrawal($params = array()) {
+        return $this->request('user/withdrawal', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_userpricealert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_delete_userpricealert_id($params = array()) {
+        return $this->request('userPriceAlert/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -752,6 +962,18 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('wallet/assets', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function publicGetWalletCurrencies($params = array()) {
+        return $this->request('wallet/currencies', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicGetWalletHaircuts($params = array()) {
+        return $this->request('wallet/haircuts', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function publicGetWalletNetworks($params = array()) {
@@ -764,10 +986,22 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('address', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAddressConfig($params = array()) {
+        return $this->request('addressConfig', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateGetApiKey($params = array()) {
         return $this->request('apiKey', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetApiKeySelf($params = array()) {
+        return $this->request('apiKey/self', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -796,6 +1030,24 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function privateGetLeagueoftraderMyRankings($params = array()) {
+        return $this->request('leagueoftrader/myRankings', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetManagedSubAccountBindingInvestor($params = array()) {
+        return $this->request('managedSubAccountBinding/investor', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetManagedSubAccountBindingTradingTeam($params = array()) {
+        return $this->request('managedSubAccountBinding/tradingTeam', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetOrder($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -810,6 +1062,30 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privateGetPosition($params = array()) {
         return $this->request('position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetReferralCode($params = array()) {
+        return $this->request('referralCode', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetReferralCodeCheckCode($params = array()) {
+        return $this->request('referralCode/check/{code}', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetReferralCodeCodeCode($params = array()) {
+        return $this->request('referralCode/code/{code}', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetReferralCodeId($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -848,6 +1124,12 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('user/depositAddress', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUserDepositAddressInformation($params = array()) {
+        return $this->request('user/depositAddressInformation', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateGetUserExecutionHistory($params = array()) {
@@ -864,6 +1146,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privateGetUserMargin($params = array()) {
         return $this->request('user/margin', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUserMarginingMode($params = array()) {
+        return $this->request('user/marginingMode', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -894,6 +1182,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privateGetUserStakingTiers($params = array()) {
         return $this->request('user/staking/tiers', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUserTradingSettings($params = array()) {
+        return $this->request('user/tradingSettings', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -936,6 +1230,18 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privateGetUserEvent($params = array()) {
         return $this->request('userEvent', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetUserPriceAlert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUserStatsVolumeRank($params = array()) {
+        return $this->request('userStats/volumeRank', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -988,6 +1294,42 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostManagedSubAccountBindingApprove($params = array()) {
+        return $this->request('managedSubAccountBinding/approve', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostManagedSubAccountBindingCancel($params = array()) {
+        return $this->request('managedSubAccountBinding/cancel', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostManagedSubAccountBindingCreateMSA($params = array()) {
+        return $this->request('managedSubAccountBinding/createMSA', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostManagedSubAccountBindingReject($params = array()) {
+        return $this->request('managedSubAccountBinding/reject', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostManagedSubAccountBindingToggleTradeHistory($params = array()) {
+        return $this->request('managedSubAccountBinding/toggleTradeHistory', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostManagedSubAccountBindingUnbind($params = array()) {
+        return $this->request('managedSubAccountBinding/unbind', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1002,6 +1344,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privatePostOrderClosePosition($params = array()) {
         return $this->request('order/closePosition', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostPositionCrossLeverage($params = array()) {
+        return $this->request('position/crossLeverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -1026,6 +1374,12 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privatePostPositionTransferMargin($params = array()) {
         return $this->request('position/transferMargin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostReferralCode($params = array()) {
+        return $this->request('referralCode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -1058,10 +1412,28 @@ abstract class bitmex extends \ccxt\Exchange {
         return $this->request('user/confirmWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUserCreateIndependentSubaccount($params = array()) {
+        return $this->request('user/createIndependentSubaccount', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
      * @return string
      */
     public function privatePostUserLogout($params = array()) {
         return $this->request('user/logout', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUserMarginingMode($params = array()) {
+        return $this->request('user/marginingMode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostUserPositionMode($params = array()) {
+        return $this->request('user/positionMode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -1096,6 +1468,18 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostUserPriceAlert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutAddress($params = array()) {
+        return $this->request('address', 'private', 'PUT', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePutGuild($params = array()) {
         return $this->request('guild', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
@@ -1104,6 +1488,18 @@ abstract class bitmex extends \ccxt\Exchange {
      */
     public function privatePutOrder($params = array()) {
         return $this->request('order', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutReferralCodeId($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'PUT', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePutUserPriceAlertId($params = array()) {
+        return $this->request('userPriceAlert/{id}', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
     /**
      * @return list<mixed>
@@ -1120,7 +1516,31 @@ abstract class bitmex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateDeleteReferralCodeId($params = array()) {
+        return $this->request('referralCode/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateDeleteUserUnstakingRequests($params = array()) {
         return $this->request('user/unstakingRequests', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteUserWithdrawal($params = array()) {
+        return $this->request('user/withdrawal', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteUserPriceAlert($params = array()) {
+        return $this->request('userPriceAlert', 'private', 'DELETE', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateDeleteUserPriceAlertId($params = array()) {
+        return $this->request('userPriceAlert/{id}', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
 }

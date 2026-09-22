@@ -699,7 +699,7 @@ export default class myriad extends Exchange {
      * @ignore
      * @method
      * @name myriad#sign
-     * @description builds the request url and attaches the x-api-key header for private endpoints
+     * @description builds the request url and attaches the apiKey header for private endpoints
      * @param {string} path the endpoint path
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method

@@ -140,6 +140,7 @@ class btcturk extends Exchange {
                     'get' => array(
                         'orderbook' => array( 'cost' => 1 ),
                         'ticker' => array( 'cost' => 0.1 ),
+                        'ticker/currency' => array( 'cost' => 0.1 ),
                         'trades' => array( 'cost' => 1 ),   // ?last=COUNT (max 50)
                         'ohlc' => array( 'cost' => 1 ),
                         'server/exchangeinfo' => array( 'cost' => 1 ),
@@ -150,13 +151,18 @@ class btcturk extends Exchange {
                         'users/balances' => array( 'cost' => 1 ),
                         'openOrders' => array( 'cost' => 1 ),
                         'allOrders' => array( 'cost' => 1 ),
+                        'order/{orderId}' => array( 'cost' => 1 ),
                         'users/transactions/trade' => array( 'cost' => 1 ),
+                        'users/transactions/crypto' => array( 'cost' => 1 ),
+                        'users/transactions/fiat' => array( 'cost' => 1 ),
+                        'crypto-deposit-declarations' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'users/transactions/crypto' => array( 'cost' => 1 ),
                         'users/transactions/fiat' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                         'cancelOrder' => array( 'cost' => 1 ),
+                        'crypto-deposit-declarations/confirm' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 1 ),
@@ -266,45 +272,45 @@ class btcturk extends Exchange {
         $response = Async\await($this->publicGetServerExchangeinfo($params));
         //
         //    {
-        //        "data" => {
-        //            "timeZone" => "UTC",
-        //            "serverTime" => "1618826678404",
-        //            "symbols" => array(
-        //                array(
-        //                    "id" => "1",
-        //                    "name" => "BTCTRY",
-        //                    "nameNormalized" => "BTC_TRY",
-        //                    "status" => "TRADING",
-        //                    "numerator" => "BTC",
-        //                    "denominator" => "TRY",
-        //                    "numeratorScale" => "8",
-        //                    "denominatorScale" => "2",
-        //                    "hasFraction" => false,
-        //                    "filters" => array(
-        //                        array(
-        //                            "filterType" => "PRICE_FILTER",
-        //                            "minPrice" => "0.0000000000001",
-        //                            "maxPrice" => "10000000",
-        //                            "tickSize" => "10",
-        //                            "minExchangeValue" => "99.92",
-        //                            "minAmount" => null,
-        //                            "maxAmount" => null
+        //        "data": {
+        //            "timeZone": "UTC",
+        //            "serverTime": "1618826678404",
+        //            "symbols": [
+        //                {
+        //                    "id": "1",
+        //                    "name": "BTCTRY",
+        //                    "nameNormalized": "BTC_TRY",
+        //                    "status": "TRADING",
+        //                    "numerator": "BTC",
+        //                    "denominator": "TRY",
+        //                    "numeratorScale": "8",
+        //                    "denominatorScale": "2",
+        //                    "hasFraction": false,
+        //                    "filters": [
+        //                        {
+        //                            "filterType": "PRICE_FILTER",
+        //                            "minPrice": "0.0000000000001",
+        //                            "maxPrice": "10000000",
+        //                            "tickSize": "10",
+        //                            "minExchangeValue": "99.92",
+        //                            "minAmount": null,
+        //                            "maxAmount": null
         //                        }
-        //                    ),
-        //                    "orderMethods" => array(
+        //                    ],
+        //                    "orderMethods": [
         //                        "MARKET",
         //                        "LIMIT",
         //                        "STOP_MARKET",
         //                        "STOP_LIMIT"
-        //                    ),
-        //                    "displayFormat" => "#,###",
-        //                    "commissionFromNumerator" => false,
-        //                    "order" => "1000",
-        //                    "priceRounding" => false
-        //                ),
+        //                    ],
+        //                    "displayFormat": "#,###",
+        //                    "commissionFromNumerator": false,
+        //                    "order": "1000",
+        //                    "priceRounding": false
+        //                },
         //                ...
-        //            ),
-        //        ),
+        //            },
+        //        ],
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -312,7 +318,7 @@ class btcturk extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market(mixed $entry): array {
+    public function parse_market(array $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'numerator');
         $quoteId = $this->safe_string($entry, 'denominator');
@@ -428,18 +434,18 @@ class btcturk extends Exchange {
         $response = Async\await($this->privateGetUsersBalances($params));
         //
         //     {
-        //       "data" => array(
+        //       "data": [
         //         {
-        //           "asset" => "TRY",
-        //           "assetname" => "Türk Lirası",
-        //           "balance" => "0",
-        //           "locked" => "0",
-        //           "free" => "0",
-        //           "orderFund" => "0",
-        //           "requestFund" => "0",
-        //           "precision" => 2
+        //           "asset": "TRY",
+        //           "assetname": "Türk Lirası",
+        //           "balance": "0",
+        //           "locked": "0",
+        //           "free": "0",
+        //           "orderFund": "0",
+        //           "requestFund": "0",
+        //           "precision": 2
         //         }
-        //       )
+        //       ]
         //     }
         //
         return $this->parse_balance($response);
@@ -469,14 +475,14 @@ class btcturk extends Exchange {
         );
         $response = Async\await($this->publicGetOrderbook($this->extend($request, $params)));
         //     {
-        //       "data" => {
-        //         "timestamp" => 1618827901241,
-        //         "bids" => array(
-        //           array(
+        //       "data": {
+        //         "timestamp": 1618827901241,
+        //         "bids": [
+        //           [
         //             "460263.00",
         //             "0.04244000"
-        //           )
-        //         )
+        //           ]
+        //         ]
         //       }
         //     }
         $data = $this->safe_dict($response, 'data', array());
@@ -487,22 +493,22 @@ class btcturk extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //   {
-        //     "pair" => "BTCTRY",
-        //     "pairNormalized" => "BTC_TRY",
-        //     "timestamp" => 1618826361234,
-        //     "last" => 462485,
-        //     "high" => 473976,
-        //     "low" => 444201,
-        //     "bid" => 461928,
-        //     "ask" => 462485,
-        //     "open" => 456915,
-        //     "volume" => 917.41368645,
-        //     "average" => 462868.29574589,
-        //     "daily" => 5570,
-        //     "dailyPercent" => 1.22,
-        //     "denominatorSymbol" => "TRY",
-        //     "numeratorSymbol" => "BTC",
-        //     "order" => 1000
+        //     "pair": "BTCTRY",
+        //     "pairNormalized": "BTC_TRY",
+        //     "timestamp": 1618826361234,
+        //     "last": 462485,
+        //     "high": 473976,
+        //     "low": 444201,
+        //     "bid": 461928,
+        //     "ask": 462485,
+        //     "open": 456915,
+        //     "volume": 917.41368645,
+        //     "average": 462868.29574589,
+        //     "daily": 5570,
+        //     "dailyPercent": 1.22,
+        //     "denominatorSymbol": "TRY",
+        //     "numeratorSymbol": "BTC",
+        //     "order": 1000
         //   }
         //
         $marketId = $this->safe_string($ticker, 'pair');
@@ -574,36 +580,36 @@ class btcturk extends Exchange {
             Async\await($this->load_markets());
         }
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
-        return $this->safe_value($tickers, $symbol);
+        return $this->safe_dict($tickers, $symbol);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
-        //       "pair" => "BTCUSDT",
-        //       "pairNormalized" => "BTC_USDT",
-        //       "numerator" => "BTC",
-        //       "denominator" => "USDT",
-        //       "date" => "1618916879083",
-        //       "tid" => "637545136790672520",
-        //       "price" => "55774",
-        //       "amount" => "0.27917100",
-        //       "side" => "buy"
+        //       "pair": "BTCUSDT",
+        //       "pairNormalized": "BTC_USDT",
+        //       "numerator": "BTC",
+        //       "denominator": "USDT",
+        //       "date": "1618916879083",
+        //       "tid": "637545136790672520",
+        //       "price": "55774",
+        //       "amount": "0.27917100",
+        //       "side": "buy"
         //     }
         //
         // fetchMyTrades
         //     {
-        //       "price" => "56000",
-        //       "numeratorSymbol" => "BTC",
-        //       "denominatorSymbol" => "USDT",
-        //       "orderType" => "buy",
-        //       "orderId" => "2606935102",
-        //       "id" => "320874372",
-        //       "timestamp" => "1618916479593",
-        //       "amount" => "0.00020000",
-        //       "fee" => "0",
-        //       "tax" => "0"
+        //       "price": "56000",
+        //       "numeratorSymbol": "BTC",
+        //       "denominatorSymbol": "USDT",
+        //       "orderType": "buy",
+        //       "orderId": "2606935102",
+        //       "id": "320874372",
+        //       "timestamp": "1618916479593",
+        //       "amount": "0.00020000",
+        //       "fee": "0",
+        //       "tax": "0"
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'date', 'timestamp');
@@ -660,7 +666,7 @@ class btcturk extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        // $maxCount = 50;
+        // let maxCount = 50;
         $request = array(
             'pairSymbol' => $market['id'],
         );
@@ -670,19 +676,19 @@ class btcturk extends Exchange {
         $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
         //
         //     {
-        //       "data" => array(
+        //       "data": [
         //         {
-        //           "pair" => "BTCTRY",
-        //           "pairNormalized" => "BTC_TRY",
-        //           "numerator" => "BTC",
-        //           "denominator" => "TRY",
-        //           "date" => 1618828421497,
-        //           "tid" => "637544252214980918",
-        //           "price" => "462585.00",
-        //           "amount" => "0.01618411",
-        //           "side" => "sell"
+        //           "pair": "BTCTRY",
+        //           "pairNormalized": "BTC_TRY",
+        //           "numerator": "BTC",
+        //           "denominator": "TRY",
+        //           "date": 1618828421497,
+        //           "tid": "637544252214980918",
+        //           "price": "462585.00",
+        //           "amount": "0.01618411",
+        //           "side": "sell"
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data');
@@ -696,12 +702,12 @@ class btcturk extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "timestamp" => 1661990400,
-        //        "high" => 368388.0,
-        //        "open" => 368388.0,
-        //        "low" => 368388.0,
-        //        "close" => 368388.0,
-        //        "volume" => 0.00035208,
+        //        "timestamp": 1661990400,
+        //        "high": 368388.0,
+        //        "open": 368388.0,
+        //        "low": 368388.0,
+        //        "close": 368388.0,
+        //        "volume": 0.00035208,
         //    }
         //
         return array(
@@ -730,7 +736,7 @@ class btcturk extends Exchange {
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -738,13 +744,13 @@ class btcturk extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->safe_value($this->timeframes, $timeframe, $timeframe), // allows the user $to pass custom timeframes if needed
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         $request['to'] = $this->parse_to_int(($until / 1000));
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
-        } elseif ($limit === null) { // $since will also be null
+        } elseif ($limit === null) { // since will also be undefined
             $limit = 100; // default value
         }
         if ($limit !== null) {
@@ -764,37 +770,37 @@ class btcturk extends Exchange {
         $response = Async\await($this->graphGetKlinesHistory($this->extend($request, $params)));
         //
         //    {
-        //        "s" => "ok",
-        //        "t" => array(
+        //        "s": "ok",
+        //        "t": [
         //          1661990400,
         //          1661990520,
         //          ...
-        //        ),
-        //        "h" => array(
+        //        ],
+        //        "h": [
         //          368388.0,
         //          369090.0,
         //          ...
-        //        ),
-        //        "o" => array(
+        //        ],
+        //        "o": [
         //          368388.0,
         //          368467.0,
         //          ...
-        //        ),
-        //        "l" => array(
+        //        ],
+        //        "l": [
         //          368388.0,
         //          368467.0,
         //          ...
-        //        ),
-        //        "c" => array(
+        //        ],
+        //        "c": [
         //          368388.0,
         //          369090.0,
         //          ...
-        //        ),
-        //        "v" => array(
+        //        ],
+        //        "v": [
         //          0.00035208,
         //          0.2972395,
         //          ...
-        //        )
+        //        ]
         //    }
         //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -823,7 +829,7 @@ class btcturk extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -864,7 +870,7 @@ class btcturk extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -885,9 +891,9 @@ class btcturk extends Exchange {
         $response = Async\await($this->privateDeleteOrder($this->extend($request, $params)));
         //
         //    {
-        //        "success" => true,
-        //        "message" => "SUCCESS",
-        //        "code" => 0
+        //        "success": true,
+        //        "message": "SUCCESS",
+        //        "code": 0
         //    }
         //
         return $this->safe_order(array(
@@ -959,24 +965,24 @@ class btcturk extends Exchange {
         }
         $response = Async\await($this->privateGetAllOrders($this->extend($request, $params)));
         // {
-        //   "data" => array(
+        //   "data": [
         //     {
-        //       "id" => "2606012912",
-        //       "price" => "55000",
-        //       "amount" => "0.0003",
-        //       "quantity" => "0.0003",
-        //       "stopPrice" => "0",
-        //       "pairSymbol" => "BTCUSDT",
-        //       "pairSymbolNormalized" => "BTC_USDT",
-        //       "type" => "buy",
-        //       "method" => "limit",
-        //       "orderClientId" => "2ed187bd-59a8-4875-a212-1b793963b85c",
-        //       "time" => "1618913189253",
-        //       "updateTime" => "1618913189253",
-        //       "status" => "Untouched",
-        //       "leftAmount" => "0.0003000000000000"
+        //       "id": "2606012912",
+        //       "price": "55000",
+        //       "amount": "0.0003",
+        //       "quantity": "0.0003",
+        //       "stopPrice": "0",
+        //       "pairSymbol": "BTCUSDT",
+        //       "pairSymbolNormalized": "BTC_USDT",
+        //       "type": "buy",
+        //       "method": "limit",
+        //       "orderClientId": "2ed187bd-59a8-4875-a212-1b793963b85c",
+        //       "time": "1618913189253",
+        //       "updateTime": "1618913189253",
+        //       "status": "Untouched",
+        //       "leftAmount": "0.0003000000000000"
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($response, 'data');
         return $this->parse_orders($data, $market, $since, $limit);
@@ -996,34 +1002,34 @@ class btcturk extends Exchange {
         //
         // fetchOrders / fetchOpenOrders
         //     {
-        //       "id" => 2605984008,
-        //       "price" => "55000",
-        //       "amount" => "0.00050000",
-        //       "quantity" => "0.00050000",
-        //       "stopPrice" => "0",
-        //       "pairSymbol" => "BTCUSDT",
-        //       "pairSymbolNormalized" => "BTC_USDT",
-        //       "type" => "buy",
-        //       "method" => "limit",
-        //       "orderClientId" => "f479bdb6-0965-4f03-95b5-daeb7aa5a3a5",
-        //       "time" => 0,
-        //       "updateTime" => 1618913083543,
-        //       "status" => "Untouched",
-        //       "leftAmount" => "0.00050000"
+        //       "id": 2605984008,
+        //       "price": "55000",
+        //       "amount": "0.00050000",
+        //       "quantity": "0.00050000",
+        //       "stopPrice": "0",
+        //       "pairSymbol": "BTCUSDT",
+        //       "pairSymbolNormalized": "BTC_USDT",
+        //       "type": "buy",
+        //       "method": "limit",
+        //       "orderClientId": "f479bdb6-0965-4f03-95b5-daeb7aa5a3a5",
+        //       "time": 0,
+        //       "updateTime": 1618913083543,
+        //       "status": "Untouched",
+        //       "leftAmount": "0.00050000"
         //     }
         //
         // createOrder
         //     {
-        //       "id" => "2606935102",
-        //       "quantity" => "0.0002",
-        //       "price" => "56000",
-        //       "stopPrice" => null,
-        //       "newOrderClientId" => "98e5c491-7ed9-462b-9666-93553180fb28",
-        //       "type" => "buy",
-        //       "method" => "limit",
-        //       "pairSymbol" => "BTCUSDT",
-        //       "pairSymbolNormalized" => "BTC_USDT",
-        //       "datetime" => "1618916479523"
+        //       "id": "2606935102",
+        //       "quantity": "0.0002",
+        //       "price": "56000",
+        //       "stopPrice": null,
+        //       "newOrderClientId": "98e5c491-7ed9-462b-9666-93553180fb28",
+        //       "type": "buy",
+        //       "method": "limit",
+        //       "pairSymbol": "BTCUSDT",
+        //       "pairSymbolNormalized": "BTC_USDT",
+        //       "datetime": "1618916479523"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -1059,7 +1065,7 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1085,23 +1091,23 @@ class btcturk extends Exchange {
         $response = Async\await($this->privateGetUsersTransactionsTrade());
         //
         //     {
-        //       "data" => array(
+        //       "data": [
         //         {
-        //           "price" => "56000",
-        //           "numeratorSymbol" => "BTC",
-        //           "denominatorSymbol" => "USDT",
-        //           "orderType" => "buy",
-        //           "orderId" => "2606935102",
-        //           "id" => "320874372",
-        //           "timestamp" => "1618916479593",
-        //           "amount" => "0.00020000",
-        //           "fee" => "0",
-        //           "tax" => "0"
+        //           "price": "56000",
+        //           "numeratorSymbol": "BTC",
+        //           "denominatorSymbol": "USDT",
+        //           "orderType": "buy",
+        //           "orderId": "2606935102",
+        //           "id": "320874372",
+        //           "timestamp": "1618916479593",
+        //           "amount": "0.00020000",
+        //           "fee": "0",
+        //           "tax": "0"
         //         }
-        //       ),
-        //       "success" => true,
-        //       "message" => "SUCCESS",
-        //       "code" => "0"
+        //       ],
+        //       "success": true,
+        //       "message": "SUCCESS",
+        //       "code": "0"
         //     }
         //
         $data = $this->safe_list($response, 'data');
@@ -1112,11 +1118,11 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }

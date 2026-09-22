@@ -138,6 +138,7 @@ export default class btcbox extends Exchange {
                 'private': {
                     'post': {
                         'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_history': { 'cost': 1 } as Endpoint<List>,
                         'trade_add': { 'cost': 1 } as Endpoint<Dict>,
                         'trade_cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'trade_list': { 'cost': 1 } as Endpoint<List>,
@@ -241,7 +242,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promise1 = this.publicGetTickers ();
         const promise2 = this.fetchWebEndpoint ('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
         const [ response1, response2 ] = await Promise.all ([ promise1, promise2 ]);
@@ -402,7 +403,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -420,7 +421,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -470,7 +471,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -492,7 +493,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -547,7 +548,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -585,7 +586,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -616,7 +617,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -719,7 +720,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -748,7 +749,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrdersByType (type: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByType (type: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -796,7 +797,7 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
@@ -811,15 +812,15 @@ export default class btcbox extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
@@ -853,17 +854,17 @@ export default class btcbox extends Exchange {
         if (httpCode >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
-        const result = this.safeValue (response, 'result');
+        const result = this.safeBool (response, 'result');
         if (result === undefined || result === true) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeValue (response, 'code');
+        const code = this.safeString (response, 'code');
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException (this.exceptions, code, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override async request (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    override async request (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}) {
         let response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
