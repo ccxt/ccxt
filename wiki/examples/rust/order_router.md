@@ -35,7 +35,7 @@ async fn main() {
     // until the money runs out, amountOut until the size is reached.
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(20.0));
-    params.insert("strategy".to_string(), Value::Str("split_optimal".to_string()));
+    params.insert("strategy".to_string(), Value::Str("split_optimal".to_string().into()));
 
     let route = match router.fetch_route("USDT", "BTC", &Value::Map(params)).await {
         Ok(found) => found,
