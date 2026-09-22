@@ -1984,7 +1984,8 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
                 "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
-                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
+                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664",
+                "maxIncrease": "delisted-but-enabled contracts (e.g. KOKUSAISTOCK_USDT: state 0, isHidden true, probed 2026-09-21) return all-zero tickers - change is 0 while every price field is 0 and omitted, so the change-vs-price bound compares against undefined and fails; recheck 2026-12-01"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
