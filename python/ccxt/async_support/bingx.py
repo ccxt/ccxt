@@ -1548,7 +1548,7 @@ class bingx(Exchange, ImplicitAPI):
                 amount = lastAmount
                 price = lastPrice
         return self.safe_trade({
-            'id': self.safe_string_n(trade, ['id', 't', 'fillId']),
+            'id': self.safe_string_n(trade, ['id', 't', 'fillId', 'tradeId']),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
