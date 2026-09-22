@@ -1579,21 +1579,27 @@ export default class kraken extends krakenRest {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict (this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList (message, 'data', []) as List;
-        const result: Dict = { 'info': message };
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString (data[i], 'asset');
             const code = this.safeCurrencyCode (currencyId) as string;
             const account = this.account ();
             const eq = this.safeString (data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance (result);
-        const oldBalance = this.safeDict (this.balance, type, {});
-        const newBalance = this.deepExtend (oldBalance, balance);
-        this.balance[type] = this.safeBalance (newBalance);
+        this.balance[type] = this.safeBalance (this.balance[type]);
         const channel = this.safeString (message, 'channel');
         client.resolve (this.balance[type], channel);
     }
