@@ -81,6 +81,10 @@ public:
                   ccxt::dict{
                       {std::string("types"), ccxt::list{std::string("spot")}},
                   }},
+                 {std::string("fetchOrderBook"),
+                  ccxt::dict{
+                      {std::string("maxSpotLimit"), 100},
+                  }},
                  {std::string("mica"), true},
              }},
         });

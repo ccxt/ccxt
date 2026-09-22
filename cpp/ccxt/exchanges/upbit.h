@@ -591,20 +591,20 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any memberInfo = this->safeValue(
+                 ccxt::any memberInfo = this->safeDict(
                      response, std::string("member_level"), ccxt::dict{});
-                 ccxt::any currencyInfo = this->safeValue(
+                 ccxt::any currencyInfo = this->safeDict(
                      response, std::string("currency"), ccxt::dict{});
-                 ccxt::any withdrawLimits = this->safeValue(
+                 ccxt::any withdrawLimits = this->safeDict(
                      response, std::string("withdraw_limit"), ccxt::dict{});
-                 ccxt::any canWithdraw = this->safeValue(
+                 ccxt::any canWithdraw = this->safeBool(
                      withdrawLimits, std::string("can_withdraw"));
                  ccxt::any walletState = this->safeString(
                      currencyInfo, std::string("wallet_state"));
                  ccxt::any walletLocked =
-                     this->safeValue(memberInfo, std::string("wallet_locked"));
+                     this->safeBool(memberInfo, std::string("wallet_locked"));
                  ccxt::any locked =
-                     this->safeValue(memberInfo, std::string("locked"));
+                     this->safeBool(memberInfo, std::string("locked"));
                  ccxt::any active = true;
                  if (isTrue(isTrue((!isEqual(canWithdraw, ccxt::any{}))) &&
                             isTrue((!isEqual(canWithdraw, true))))) {
@@ -683,136 +683,138 @@ public:
 
   virtual std::shared_future<ccxt::any>
   fetchMarketById(ccxt::any id, ccxt::any params = ccxt::dict{}) {
-    return std::
-        async(std::launch::deferred,
-              [=]() mutable -> ccxt::any {
-                // this method is for retrieving trading fees and limits per
-                // market it requires private access and API keys properly set
-                // up
-                ccxt::any request = ccxt::dict{
-                    {std::string("market"), id},
-                };
-                ccxt::any response = awaitValue(this->privateGetOrdersChance(
-                    this->extend(request, params)));
-                //
-                //     {
-                //         "bid_fee": "0.0015",
-                //         "ask_fee": "0.0015",
-                //         "market": {
-                //             "id": "KRW-BTC",
-                //             "name": "BTC/KRW",
-                //             "order_types": [ "limit" ],
-                //             "order_sides": [ "ask", "bid" ],
-                //             "bid": { "currency": "KRW", "price_unit": null,
-                //             "min_total": 1000 }, "ask": { "currency": "BTC",
-                //             "price_unit": null, "min_total": 1000 },
-                //             "max_total": "100000000.0",
-                //             "state": "active",
-                //         },
-                //         "bid_account": {
-                //             "currency": "KRW",
-                //             "balance": "0.0",
-                //             "locked": "0.0",
-                //             "avg_buy_price": "0",
-                //             "avg_buy_price_modified": false,
-                //             "unit_currency": "KRW",
-                //         },
-                //         "ask_account": {
-                //             "currency": "BTC",
-                //             "balance": "10.0",
-                //             "locked": "0.0",
-                //             "avg_buy_price": "8042000",
-                //             "avg_buy_price_modified": false,
-                //             "unit_currency": "KRW",
-                //         }
-                //     }
-                //
-                ccxt::any marketInfo =
-                    this->safeValue(response, std::string("market"));
-                ccxt::any bid = this->safeValue(marketInfo, std::string("bid"));
-                ccxt::any ask = this->safeValue(marketInfo, std::string("ask"));
-                ccxt::any marketId =
-                    this->safeString(marketInfo, std::string("id"));
-                ccxt::any baseId =
-                    this->safeString(ask, std::string("currency"));
-                ccxt::any quoteId =
-                    this->safeString(bid, std::string("currency"));
-                ccxt::any base = this->safeCurrencyCode(baseId);
-                ccxt::any quote = this->safeCurrencyCode(quoteId);
-                ccxt::any state =
-                    this->safeString(marketInfo, std::string("state"));
-                ccxt::any bidFee =
-                    this->safeString(response, std::string("bid_fee"));
-                ccxt::any askFee =
-                    this->safeString(response, std::string("ask_fee"));
-                ccxt::any fee =
-                    this->parseNumber(ccxt::Precise::stringMax(bidFee, askFee));
-                return this->safeMarketStructure(ccxt::dict{
-                    {std::string("id"), marketId},
-                    {std::string("symbol"),
-                     add(add(base, std::string("/")), quote)},
-                    {std::string("base"), base},
-                    {std::string("quote"), quote},
-                    {std::string("settle"), ccxt::any{}},
-                    {std::string("baseId"), baseId},
-                    {std::string("quoteId"), quoteId},
-                    {std::string("settleId"), ccxt::any{}},
-                    {std::string("type"), std::string("spot")},
-                    {std::string("spot"), true},
-                    {std::string("margin"), false},
-                    {std::string("swap"), false},
-                    {std::string("future"), false},
-                    {std::string("option"), false},
-                    {std::string("active"),
-                     (isEqual(state, std::string("active")))},
-                    {std::string("contract"), false},
-                    {std::string("linear"), ccxt::any{}},
-                    {std::string("inverse"), ccxt::any{}},
-                    {std::string("taker"), fee},
-                    {std::string("maker"), fee},
-                    {std::string("contractSize"), ccxt::any{}},
-                    {std::string("expiry"), ccxt::any{}},
-                    {std::string("expiryDatetime"), ccxt::any{}},
-                    {std::string("strike"), ccxt::any{}},
-                    {std::string("optionType"), ccxt::any{}},
-                    {std::string("precision"),
-                     ccxt::dict{
-                         {std::string("amount"),
-                          this->parseNumber(std::string("1e-8"))},
-                         {std::string("price"),
-                          this->parseNumber(std::string("1e-8"))},
-                     }},
-                    {std::string("limits"),
-                     ccxt::dict{
-                         {std::string("leverage"),
-                          ccxt::dict{
-                              {std::string("min"), ccxt::any{}},
-                              {std::string("max"), ccxt::any{}},
-                          }},
-                         {std::string("amount"),
-                          ccxt::dict{
-                              {std::string("min"),
-                               this->safeNumber(ask, std::string("min_total"))},
-                              {std::string("max"), ccxt::any{}},
-                          }},
-                         {std::string("price"),
-                          ccxt::dict{
-                              {std::string("min"), ccxt::any{}},
-                              {std::string("max"), ccxt::any{}},
-                          }},
-                         {std::string("cost"),
-                          ccxt::dict{
-                              {std::string("min"),
-                               this->safeNumber(bid, std::string("min_total"))},
-                              {std::string("max"),
-                               this->safeNumber(marketInfo,
-                                                std::string("max_total"))},
-                          }},
-                         {std::string("info"), response},
-                     }},
-                });
-              })
-            .share();
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 // this method is for retrieving trading fees and limits per
+                 // market it requires private access and API keys properly set
+                 // up
+                 ccxt::any request = ccxt::dict{
+                     {std::string("market"), id},
+                 };
+                 ccxt::any response = awaitValue(this->privateGetOrdersChance(
+                     this->extend(request, params)));
+                 //
+                 //     {
+                 //         "bid_fee": "0.0015",
+                 //         "ask_fee": "0.0015",
+                 //         "market": {
+                 //             "id": "KRW-BTC",
+                 //             "name": "BTC/KRW",
+                 //             "order_types": [ "limit" ],
+                 //             "order_sides": [ "ask", "bid" ],
+                 //             "bid": { "currency": "KRW", "price_unit": null,
+                 //             "min_total": 1000 }, "ask": { "currency": "BTC",
+                 //             "price_unit": null, "min_total": 1000 },
+                 //             "max_total": "100000000.0",
+                 //             "state": "active",
+                 //         },
+                 //         "bid_account": {
+                 //             "currency": "KRW",
+                 //             "balance": "0.0",
+                 //             "locked": "0.0",
+                 //             "avg_buy_price": "0",
+                 //             "avg_buy_price_modified": false,
+                 //             "unit_currency": "KRW",
+                 //         },
+                 //         "ask_account": {
+                 //             "currency": "BTC",
+                 //             "balance": "10.0",
+                 //             "locked": "0.0",
+                 //             "avg_buy_price": "8042000",
+                 //             "avg_buy_price_modified": false,
+                 //             "unit_currency": "KRW",
+                 //         }
+                 //     }
+                 //
+                 ccxt::any marketInfo =
+                     this->safeDict(response, std::string("market"));
+                 ccxt::any bid = this->safeDict(marketInfo, std::string("bid"));
+                 ccxt::any ask = this->safeDict(marketInfo, std::string("ask"));
+                 ccxt::any marketId =
+                     this->safeString(marketInfo, std::string("id"));
+                 ccxt::any baseId =
+                     this->safeString(ask, std::string("currency"));
+                 ccxt::any quoteId =
+                     this->safeString(bid, std::string("currency"));
+                 ccxt::any base = this->safeCurrencyCode(baseId);
+                 ccxt::any quote = this->safeCurrencyCode(quoteId);
+                 ccxt::any state =
+                     this->safeString(marketInfo, std::string("state"));
+                 ccxt::any bidFee =
+                     this->safeString(response, std::string("bid_fee"));
+                 ccxt::any askFee =
+                     this->safeString(response, std::string("ask_fee"));
+                 ccxt::any fee = this->parseNumber(
+                     ccxt::Precise::stringMax(bidFee, askFee));
+                 return this->safeMarketStructure(ccxt::dict{
+                     {std::string("id"), marketId},
+                     {std::string("symbol"),
+                      add(add(base, std::string("/")), quote)},
+                     {std::string("base"), base},
+                     {std::string("quote"), quote},
+                     {std::string("settle"), ccxt::any{}},
+                     {std::string("baseId"), baseId},
+                     {std::string("quoteId"), quoteId},
+                     {std::string("settleId"), ccxt::any{}},
+                     {std::string("type"), std::string("spot")},
+                     {std::string("spot"), true},
+                     {std::string("margin"), false},
+                     {std::string("swap"), false},
+                     {std::string("future"), false},
+                     {std::string("option"), false},
+                     {std::string("active"),
+                      (isEqual(state, std::string("active")))},
+                     {std::string("contract"), false},
+                     {std::string("linear"), ccxt::any{}},
+                     {std::string("inverse"), ccxt::any{}},
+                     {std::string("taker"), fee},
+                     {std::string("maker"), fee},
+                     {std::string("contractSize"), ccxt::any{}},
+                     {std::string("expiry"), ccxt::any{}},
+                     {std::string("expiryDatetime"), ccxt::any{}},
+                     {std::string("strike"), ccxt::any{}},
+                     {std::string("optionType"), ccxt::any{}},
+                     {std::string("precision"),
+                      ccxt::dict{
+                          {std::string("amount"),
+                           this->parseNumber(std::string("1e-8"))},
+                          {std::string("price"),
+                           this->parseNumber(std::string("1e-8"))},
+                      }},
+                     {std::string("limits"),
+                      ccxt::dict{
+                          {std::string("leverage"),
+                           ccxt::dict{
+                               {std::string("min"), ccxt::any{}},
+                               {std::string("max"), ccxt::any{}},
+                           }},
+                          {std::string("amount"),
+                           ccxt::dict{
+                               {std::string("min"),
+                                this->safeNumber(ask,
+                                                 std::string("min_total"))},
+                               {std::string("max"), ccxt::any{}},
+                           }},
+                          {std::string("price"),
+                           ccxt::dict{
+                               {std::string("min"), ccxt::any{}},
+                               {std::string("max"), ccxt::any{}},
+                           }},
+                          {std::string("cost"),
+                           ccxt::dict{
+                               {std::string("min"),
+                                this->safeNumber(bid,
+                                                 std::string("min_total"))},
+                               {std::string("max"),
+                                this->safeNumber(marketInfo,
+                                                 std::string("max_total"))},
+                           }},
+                          {std::string("info"), response},
+                      }},
+                 });
+               })
+        .share();
   }
 
   /**
@@ -1775,7 +1777,7 @@ public:
                                    ccxt::any price = ccxt::any{},
                                    ccxt::any params = ccxt::dict{}) {
     ccxt::any quoteAmount = ccxt::any{};
-    ccxt::any createMarketBuyOrderRequiresPrice = this->safeValue(
+    ccxt::any createMarketBuyOrderRequiresPrice = this->safeBool(
         this->options, std::string("createMarketBuyOrderRequiresPrice"));
     ccxt::any cost = this->safeString(params, std::string("cost"));
     if (isTrue(!isEqual(cost, ccxt::any{}))) {
@@ -2785,8 +2787,8 @@ public:
         cost = ccxt::Precise::stringAdd(
             cost, this->safeString(trade, std::string("cost")));
         if (isTrue(getFeesFromTrades)) {
-          ccxt::any tradeFee = this->safeValue(
-              ::getValue(trades, i), std::string("fee"), ccxt::dict{});
+          ccxt::any tradeFee = this->safeDict(::getValue(trades, i),
+                                              std::string("fee"), ccxt::dict{});
           ccxt::any tradeFeeCost =
               this->safeString(tradeFee, std::string("cost"));
           if (isTrue(!isEqual(tradeFeeCost, ccxt::any{}))) {
@@ -3489,7 +3491,7 @@ public:
     //   키입니다.", 'name': "invalid_access_key" } }, { 'error': { 'message':
     //   "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
     //
-    ccxt::any error = this->safeValue(response, std::string("error"));
+    ccxt::any error = this->safeDict(response, std::string("error"));
     if (isTrue(!isEqual(error, ccxt::any{}))) {
       ccxt::any message = this->safeString(error, std::string("message"));
       ccxt::any name = this->safeString(error, std::string("name"));

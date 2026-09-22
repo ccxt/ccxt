@@ -1082,8 +1082,8 @@ public:
                                {std::string("type"), std::string("spot")},
                                {std::string("spot"), true},
                                {std::string("margin"),
-                                this->safeValue(market,
-                                                std::string("margin_enabled"))},
+                                this->safeBool(market,
+                                               std::string("margin_enabled"))},
                                {std::string("swap"), false},
                                {std::string("future"), false},
                                {std::string("option"), false},
@@ -1370,7 +1370,8 @@ public:
     if (isTrue(isArray(ticker))) {
       last = this->safeString(ticker, 4);
     } else {
-      timestamp = this->parse8601(this->safeValue(ticker, std::string("time")));
+      timestamp =
+          this->parse8601(this->safeString(ticker, std::string("time")));
       bid = this->safeString(ticker, std::string("bid"));
       ask = this->safeString(ticker, std::string("ask"));
       high = this->safeString(ticker, std::string("high"));
@@ -1461,8 +1462,8 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any marketId = ::getValue(marketIds, i);
                    ccxt::any entry =
-                       this->safeValue(response, marketId, ccxt::list{});
-                   ccxt::any first = this->safeValue(entry, 0, ccxt::list{});
+                       this->safeList(response, marketId, ccxt::list{});
+                   ccxt::any first = this->safeList(entry, 0, ccxt::list{});
                    ccxt::any market =
                        this->safeMarket(marketId, ccxt::any{}, delimiter);
                    ccxt::any symbol = ::getValue(market, std::string("symbol"));
@@ -2019,7 +2020,7 @@ public:
     ccxt::any side = this->safeString(order, std::string("side"));
     ccxt::any timeInForce =
         this->safeString(order, std::string("time_in_force"));
-    ccxt::any postOnly = this->safeValue(order, std::string("post_only"));
+    ccxt::any postOnly = this->safeBool(order, std::string("post_only"));
     ccxt::any triggerPrice = this->safeNumber(order, std::string("stop_price"));
     ccxt::any clientOrderId =
         this->safeString(order, std::string("client_oid"));
@@ -2324,8 +2325,8 @@ public:
                               timeInForce);
                  }
                  ccxt::any postOnly =
-                     this->safeValue2(params, std::string("postOnly"),
-                                      std::string("post_only"), false);
+                     this->safeBool2(params, std::string("postOnly"),
+                                     std::string("post_only"), false);
                  if (isTrue(isEqual(postOnly, true))) {
                    ::setValue(request, std::string("post_only"), true);
                  }
@@ -2624,12 +2625,12 @@ public:
     ccxt::any after = this->parseNumber(afterString);
     ccxt::any before = this->parseNumber(beforeString);
     ccxt::any timestamp =
-        this->parse8601(this->safeValue(item, std::string("created_at")));
+        this->parse8601(this->safeString(item, std::string("created_at")));
     ccxt::any type =
         this->parseLedgerEntryType(this->safeString(item, std::string("type")));
     ccxt::any code = this->safeCurrencyCode(ccxt::any{}, currency);
     ccxt::any details =
-        this->safeValue(item, std::string("details"), ccxt::dict{});
+        this->safeDict(item, std::string("details"), ccxt::dict{});
     ccxt::any account = ccxt::any{};
     ccxt::any referenceAccount = ccxt::any{};
     ccxt::any referenceId = ccxt::any{};
@@ -2702,7 +2703,7 @@ public:
                 ccxt::any accountsByCurrencyCode =
                     this->indexBy(this->accounts, std::string("code"));
                 ccxt::any account =
-                    this->safeValue(accountsByCurrencyCode, code);
+                    this->safeDict(accountsByCurrencyCode, code);
                 if (isTrue(isEqual(account, ccxt::any{}))) {
                   throw ExchangeError(toString(add(
                       add(this->id,
@@ -2783,7 +2784,7 @@ public:
                      ccxt::any accountsByCurrencyCode =
                          this->indexBy(this->accounts, std::string("code"));
                      ccxt::any account =
-                         this->safeValue(accountsByCurrencyCode, code);
+                         this->safeDict(accountsByCurrencyCode, code);
                      if (isTrue(isEqual(account, ccxt::any{}))) {
                        throw ExchangeError(toString(add(
                            add(this->id,
@@ -2846,7 +2847,7 @@ public:
                      ccxt::any account_id = this->safeString(
                          ::getValue(response, i), std::string("account_id"));
                      ccxt::any account =
-                         this->safeValue(this->accountsById, account_id);
+                         this->safeDict(this->accountsById, account_id);
                      ccxt::any codeInner =
                          this->safeString(account, std::string("code"));
                      ::setValue(::getValue(response, i),
@@ -3029,7 +3030,7 @@ public:
     //    ]
     //
     ccxt::any details =
-        this->safeValue(transaction, std::string("details"), ccxt::dict{});
+        this->safeDict(transaction, std::string("details"), ccxt::dict{});
     ccxt::any timestamp = this->parse8601(
         this->safeString(transaction, std::string("created_at")));
     ccxt::any currencyId =
@@ -3123,7 +3124,7 @@ public:
                               this->indexBy(accounts, std::string("currency")));
                  }
                  ccxt::any currencyId = ::getValue(currency, std::string("id"));
-                 ccxt::any account = this->safeValue(
+                 ccxt::any account = this->safeDict(
                      ::getValue(this->options,
                                 std::string("coinbaseAccountsByCurrencyId")),
                      currencyId);

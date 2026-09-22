@@ -744,7 +744,7 @@ public:
                         }
                         ccxt::any tickers = awaitValue(
                             this->fetchTickers(ccxt::list{symbol}, params));
-                        return this->safeValue(tickers, symbol);
+                        return this->safeDict(tickers, symbol);
                       })
         .share();
   }
@@ -932,7 +932,7 @@ public:
                      {std::string("symbol"),
                       ::getValue(market, std::string("id"))},
                      {std::string("resolution"),
-                      this->safeValue(this->timeframes, timeframe, timeframe)},
+                      this->safeString(this->timeframes, timeframe, timeframe)},
                  };
                  ccxt::any until = this->safeInteger(
                      params, std::string("until"), this->milliseconds());

@@ -2029,7 +2029,7 @@ public:
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any data =
                      this->safeList(result, std::string("data"), ccxt::list{});
-                 ccxt::any orderBook = this->safeValue(data, 0);
+                 ccxt::any orderBook = this->safeDict(data, 0);
                  ccxt::any timestamp =
                      this->safeInteger(orderBook, std::string("t"));
                  return this->parseOrderBook(orderBook, symbol, timestamp);
@@ -3827,7 +3827,7 @@ public:
     ccxt::any marketId =
         this->safeString(order, std::string("instrument_name"));
     ccxt::any symbol = this->safeSymbol(marketId, market);
-    ccxt::any execInst = this->safeValue(order, std::string("exec_inst"));
+    ccxt::any execInst = this->safeList(order, std::string("exec_inst"));
     ccxt::any postOnly = ccxt::any{};
     if (isTrue(!isEqual(execInst, ccxt::any{}))) {
       postOnly = false;
@@ -4147,7 +4147,7 @@ public:
                  ccxt::any response = awaitValue(
                      this->v1PrivatePostPrivateGetCurrencyNetworks(params));
                  ccxt::any data =
-                     this->safeValue(response, std::string("result"));
+                     this->safeDict(response, std::string("result"));
                  ccxt::any currencyMap =
                      this->safeList(data, std::string("currency_map"));
                  return this->parseDepositWithdrawFees(
@@ -4512,7 +4512,8 @@ public:
         .share();
   }
 
-  virtual ccxt::any parseSettlement(ccxt::any settlement, ccxt::any market) {
+  virtual ccxt::any parseSettlement(ccxt::any settlement,
+                                    ccxt::any market = ccxt::any{}) {
     //
     //     {
     //         "i": "BTCUSD-230526",
@@ -4532,7 +4533,8 @@ public:
     };
   }
 
-  virtual ccxt::any parseSettlements(ccxt::any settlements, ccxt::any market) {
+  virtual ccxt::any parseSettlements(ccxt::any settlements,
+                                     ccxt::any market = ccxt::any{}) {
     //
     //     [
     //         {
@@ -5791,11 +5793,15 @@ public:
             ::getValue(args, 3)));
     }
     if (which == "parseSettlement") {
-      if (true)
+      if (count <= 1)
+        return this->parseSettlement(::getValue(args, 0));
+      if (count >= 2)
         return this->parseSettlement(::getValue(args, 0), ::getValue(args, 1));
     }
     if (which == "parseSettlements") {
-      if (true)
+      if (count <= 1)
+        return this->parseSettlements(::getValue(args, 0));
+      if (count >= 2)
         return this->parseSettlements(::getValue(args, 0), ::getValue(args, 1));
     }
     if (which == "fetchFundingRate") {

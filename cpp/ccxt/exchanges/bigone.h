@@ -1475,8 +1475,8 @@ public:
   virtual ccxt::any parseContractOrderBook(ccxt::any orderbook,
                                            ccxt::any symbol,
                                            ccxt::any limit = ccxt::any{}) {
-    ccxt::any responseBids = this->safeValue(orderbook, std::string("bids"));
-    ccxt::any responseAsks = this->safeValue(orderbook, std::string("asks"));
+    ccxt::any responseBids = this->safeDict(orderbook, std::string("bids"));
+    ccxt::any responseAsks = this->safeDict(orderbook, std::string("asks"));
     ccxt::any bids = this->parseContractBidsAsks(responseBids);
     ccxt::any asks = this->parseContractBidsAsks(responseAsks);
     return ccxt::dict{

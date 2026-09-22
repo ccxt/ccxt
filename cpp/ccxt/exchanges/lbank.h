@@ -1107,7 +1107,7 @@ public:
     ccxt::any marketId = this->safeString(ticker, std::string("symbol"));
     ccxt::any symbol = this->safeSymbol(marketId, market);
     ccxt::any tickerData =
-        this->safeValue(ticker, std::string("ticker"), ccxt::dict{});
+        this->safeDict(ticker, std::string("ticker"), ccxt::dict{});
     market = this->safeMarket(marketId, market);
     ccxt::any data =
         (isTrue((isEqual(::getValue(market, std::string("contract")), true)))
@@ -1206,8 +1206,8 @@ public:
                  //         "ts": :1692064276872
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any first = this->safeDict(data, 0, ccxt::dict{});
                  return this->parseTicker(first, market);
                })
@@ -1414,7 +1414,7 @@ public:
                  //         "success": true
                  //     }
                  //
-                 ccxt::any orderbook = this->safeValue(
+                 ccxt::any orderbook = this->safeDict(
                      response, std::string("data"), ccxt::dict{});
                  ccxt::any timestamp = this->milliseconds();
                  if (isTrue(isEqual(::getValue(market, std::string("swap")),
@@ -1585,7 +1585,7 @@ public:
                  } else {
                    ::setValue(request, std::string("size"), 600); // max
                  }
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchTrades"), ccxt::dict{});
                  ccxt::any defaultMethod =
                      this->safeString(options, std::string("method"),
@@ -1813,7 +1813,7 @@ public:
     ccxt::any toBtc = this->safeValue(data, std::string("toBtc"));
     if (isTrue(!isEqual(toBtc, ccxt::any{}))) {
       ccxt::any used =
-          this->safeValue(data, std::string("freeze"), ccxt::dict{});
+          this->safeDict(data, std::string("freeze"), ccxt::dict{});
       ccxt::any free = this->safeDict(data, std::string("free"), ccxt::dict{});
       ccxt::any currencies = getObjectKeys(free);
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(currencies));
@@ -1832,7 +1832,7 @@ public:
       return this->safeBalance(result);
     }
     // from spotPrivatePostSupplementUserInfoAccount
-    ccxt::any balances = this->safeValue(data, std::string("balances"));
+    ccxt::any balances = this->safeList(data, std::string("balances"));
     if (isTrue(!isEqual(balances, ccxt::any{}))) {
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(balances));
            postFixIncrement(i)) {
@@ -2036,7 +2036,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchBalance"), ccxt::dict{});
                  ccxt::any defaultMethod = this->safeString(
                      options, std::string("method"),
@@ -2367,7 +2367,7 @@ public:
                 if (isTrue(!isEqual(clientOrderId, ccxt::any{}))) {
                   ::setValue(request, std::string("custom_id"), clientOrderId);
                 }
-                ccxt::any options = this->safeValue(
+                ccxt::any options = this->safeDict(
                     this->options, std::string("createOrder"), ccxt::dict{});
                 ccxt::any defaultMethod = this->safeString(
                     options, std::string("method"),
@@ -2396,8 +2396,8 @@ public:
                 //          "ts":1648162321043
                 //      }
                 //
-                ccxt::any result = this->safeValue(
-                    response, std::string("data"), ccxt::dict{});
+                ccxt::any result =
+                    this->safeDict(response, std::string("data"), ccxt::dict{});
                 return this->safeOrder(
                     ccxt::dict{
                         {std::string("id"),
@@ -2607,7 +2607,7 @@ public:
                  ccxt::any method =
                      this->safeString(params, std::string("method"));
                  if (isTrue(isEqual(method, ccxt::any{}))) {
-                   ccxt::any options = this->safeValue(
+                   ccxt::any options = this->safeDict(
                        this->options, std::string("fetchOrder"), ccxt::dict{});
                    method =
                        this->safeString(options, std::string("method"),
@@ -2886,7 +2886,7 @@ public:
                  //          "ts":1648505706348
                  //      }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("data"), ccxt::dict{});
                  ccxt::any orders = this->safeList(
                      result, std::string("orders"), ccxt::list{});
@@ -2965,7 +2965,7 @@ public:
                  //         "ts":1648506110196
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("data"), ccxt::dict{});
                  ccxt::any orders = this->safeList(
                      result, std::string("orders"), ccxt::list{});
@@ -3103,11 +3103,11 @@ public:
   virtual ccxt::any getNetworkCodeForCurrency(ccxt::any currencyCode,
                                               ccxt::any params) {
     ccxt::any defaultNetworks =
-        this->safeValue(this->options, std::string("defaultNetworks"));
+        this->safeDict(this->options, std::string("defaultNetworks"));
     ccxt::any defaultNetwork =
         this->safeStringUpper(defaultNetworks, currencyCode);
     ccxt::any networks =
-        this->safeValue(this->options, std::string("networks"), ccxt::dict{});
+        this->safeDict(this->options, std::string("networks"), ccxt::dict{});
     ccxt::any network =
         this->safeStringUpper(params, std::string("network"),
                               defaultNetwork); // this line allows the user to
@@ -3140,7 +3140,7 @@ public:
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchDepositAddress"),
                      ccxt::dict{});
                  ccxt::any defaultMethod = this->safeString(
@@ -3201,7 +3201,7 @@ public:
                  //      }
                  //
                  ccxt::any result =
-                     this->safeValue(response, std::string("data"));
+                     this->safeDict(response, std::string("data"));
                  ccxt::any address =
                      this->safeString(result, std::string("address"));
                  ccxt::any tag = this->safeString(result, std::string("memo"));
@@ -3235,7 +3235,7 @@ public:
                       ::getValue(currency, std::string("id"))},
                  };
                  ccxt::any networks =
-                     this->safeValue(this->options, std::string("networks"));
+                     this->safeDict(this->options, std::string("networks"));
                  ccxt::any network =
                      this->safeStringUpper(params, std::string("network"));
                  network = this->safeString(networks, network, network);
@@ -3259,7 +3259,7 @@ public:
                  //     }
                  //
                  ccxt::any result =
-                     this->safeValue(response, std::string("data"));
+                     this->safeDict(response, std::string("data"));
                  ccxt::any address =
                      this->safeString(result, std::string("address"));
                  ccxt::any tag = this->safeString(result, std::string("memo"));
@@ -3329,7 +3329,7 @@ public:
                      this->omit(params, ccxt::list{std::string("network"),
                                                    std::string("networkName")});
                  ccxt::any networks =
-                     this->safeValue(this->options, std::string("networks"));
+                     this->safeDict(this->options, std::string("networks"));
                  ccxt::any networkId =
                      this->safeString(networks, network, network);
                  if (isTrue(!isEqual(networkId, ccxt::any{}))) {
@@ -3349,7 +3349,7 @@ public:
                  //          "ts":1648992501414
                  //      }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("data"), ccxt::dict{});
                  return ccxt::dict{
                      {std::string("info"), result},
@@ -3378,7 +3378,7 @@ public:
              {std::string("4"), std::string("ok")},
          }},
     };
-    return this->safeString(this->safeValue(statuses, type, ccxt::dict{}),
+    return this->safeString(this->safeDict(statuses, type, ccxt::dict{}),
                             status, status);
   }
 
@@ -3531,7 +3531,7 @@ public:
                         //          "ts":1649719721758
                         //      }
                         //
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         ccxt::any deposits = this->safeList(
                             data, std::string("depositOrders"), ccxt::list{});
@@ -3603,7 +3603,7 @@ public:
                         //          "ts":1649720362362
                         //      }
                         //
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         ccxt::any withdraws = this->safeList(
                             data, std::string("withdraws"), ccxt::list{});
@@ -3638,7 +3638,7 @@ public:
                  ccxt::any isAuthorized = this->checkRequiredCredentials(false);
                  ccxt::any result = ccxt::any{};
                  if (isTrue(isEqual(isAuthorized, true))) {
-                   ccxt::any options = this->safeValue(
+                   ccxt::any options = this->safeDict(
                        this->options, std::string("fetchTransactionFees"),
                        ccxt::dict{});
                    ccxt::any defaultMethod = this->safeString(
@@ -3803,7 +3803,7 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any item = ::getValue(result, i);
                    ccxt::any canWithdraw =
-                       this->safeValue(item, std::string("canWithDraw"));
+                       this->safeString(item, std::string("canWithDraw"));
                    if (isTrue(isEqual(canWithdraw, std::string("true")))) {
                      ccxt::any currencyId =
                          this->safeString(item, std::string("assetCode"));
@@ -3866,7 +3866,7 @@ public:
                  ccxt::any isAuthorized = this->checkRequiredCredentials(false);
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isEqual(isAuthorized, true))) {
-                   ccxt::any options = this->safeValue(
+                   ccxt::any options = this->safeDict(
                        this->options, std::string("fetchDepositWithdrawFees"),
                        ccxt::dict{});
                    ccxt::any defaultMethod = this->safeString(
@@ -3978,7 +3978,7 @@ public:
                         //        "ts": "1663364435973"
                         //    }
                         //
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeList(
                             response, std::string("data"), ccxt::list{});
                         return this->parsePublicDepositWithdrawFees(data,
                                                                     codes);
@@ -4009,7 +4009,7 @@ public:
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(response));
          postFixIncrement(i)) {
       ccxt::any fee = ::getValue(response, i);
-      ccxt::any canWithdraw = this->safeValue(fee, std::string("canWithDraw"));
+      ccxt::any canWithdraw = this->safeBool(fee, std::string("canWithDraw"));
       if (isTrue(isEqual(canWithdraw, true))) {
         ccxt::any currencyId = this->safeString(fee, std::string("assetCode"));
         ccxt::any code = this->safeCurrencyCode(currencyId);
@@ -4018,7 +4018,7 @@ public:
                            isTrue(this->inArray(code, codes)))))) {
           ccxt::any withdrawFee = this->safeNumber(fee, std::string("fee"));
           if (isTrue(!isEqual(withdrawFee, ccxt::any{}))) {
-            ccxt::any resultValue = this->safeValue(result, code);
+            ccxt::any resultValue = this->safeDict(result, code);
             if (isTrue(isEqual(resultValue, ccxt::any{}))) {
               ::setValue(result, code,
                          this->depositWithdrawFee(ccxt::list{fee}));
@@ -4099,7 +4099,7 @@ public:
       ccxt::any withdrawFee =
           this->safeNumber(networkEntry, std::string("withdrawFee"));
       ccxt::any isDefault =
-          this->safeValue(networkEntry, std::string("isDefault"));
+          this->safeBool(networkEntry, std::string("isDefault"));
       if (isTrue(!isEqual(withdrawFee, ccxt::any{}))) {
         if (isTrue(isEqual(isDefault, true))) {
           ::setValue(result, std::string("withdraw"),
@@ -4187,7 +4187,7 @@ public:
             this->options, std::string("cacheSecretAsPem"), true);
         ccxt::any pem = ccxt::any{};
         if (isTrue(isEqual(cacheSecretAsPem, true))) {
-          pem = this->safeValue(this->options, std::string("pem"));
+          pem = this->safeString(this->options, std::string("pem"));
           if (isTrue(isEqual(pem, ccxt::any{}))) {
             pem = this->convertSecretToPem(this->encode(this->secret));
             ::setValue(this->options, std::string("pem"), pem);

@@ -494,8 +494,8 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(response, std::string("return"), ccxt::dict{});
-    ccxt::any deposit = this->safeValue(balances, std::string("deposit"));
+        this->safeDict(response, std::string("return"), ccxt::dict{});
+    ccxt::any deposit = this->safeDict(balances, std::string("deposit"));
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
         {std::string("timestamp"), ccxt::any{}},
@@ -1114,7 +1114,7 @@ public:
     //
     currency = this->safeCurrency(ccxt::any{}, currency);
     ccxt::any fee = ccxt::any{};
-    ccxt::any feeCost = this->safeValue(transaction, std::string("fee"));
+    ccxt::any feeCost = this->safeNumber(transaction, std::string("fee"));
     if (isTrue(!isEqual(feeCost, ccxt::any{}))) {
       fee = ccxt::dict{
           {std::string("cost"), feeCost},

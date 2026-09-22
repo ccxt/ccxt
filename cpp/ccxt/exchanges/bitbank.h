@@ -434,8 +434,8 @@ public:
                         //     }
                         //
                         ccxt::any data =
-                            this->safeValue(response, std::string("data"));
-                        ccxt::any pairs = this->safeValue(
+                            this->safeDict(response, std::string("data"));
+                        ccxt::any pairs = this->safeList(
                             data, std::string("pairs"), ccxt::list{});
                         return this->parseMarkets(pairs);
                       })
@@ -464,7 +464,7 @@ public:
         {std::string("future"), false},
         {std::string("option"), false},
         {std::string("active"),
-         this->safeValue(entry, std::string("is_enabled"))},
+         this->safeBool(entry, std::string("is_enabled"))},
         {std::string("contract"), false},
         {std::string("linear"), ccxt::any{}},
         {std::string("inverse"), ccxt::any{}},
@@ -615,7 +615,7 @@ public:
                  };
                  ccxt::any response = awaitValue(
                      this->publicGetPairDepth(this->extend(request, params)));
-                 ccxt::any orderbook = this->safeValue(
+                 ccxt::any orderbook = this->safeDict(
                      response, std::string("data"), ccxt::dict{});
                  ccxt::any timestamp =
                      this->safeInteger(orderbook, std::string("timestamp"));
@@ -709,7 +709,7 @@ public:
                         ccxt::any response =
                             awaitValue(this->publicGetPairTransactions(
                                 this->extend(request, params)));
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         ccxt::any trades = this->safeList(
                             data, std::string("transactions"), ccxt::list{});
@@ -767,8 +767,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any pairs =
                      this->safeList(data, std::string("pairs"), ccxt::list{});
                  ccxt::any result = ccxt::dict{};
@@ -883,11 +883,11 @@ public:
                 //         }
                 //     }
                 //
-                ccxt::any data = this->safeValue(response, std::string("data"),
-                                                 ccxt::dict{});
-                ccxt::any candlestick = this->safeValue(
+                ccxt::any data =
+                    this->safeDict(response, std::string("data"), ccxt::dict{});
+                ccxt::any candlestick = this->safeList(
                     data, std::string("candlestick"), ccxt::list{});
-                ccxt::any first = this->safeValue(candlestick, 0, ccxt::dict{});
+                ccxt::any first = this->safeDict(candlestick, 0, ccxt::dict{});
                 ccxt::any ohlcv =
                     this->safeList(first, std::string("ohlcv"), ccxt::list{});
                 return this->parseOHLCVs(ohlcv, market, timeframe, since,
@@ -903,7 +903,7 @@ public:
         {std::string("datetime"), ccxt::any{}},
     };
     ccxt::any data =
-        this->safeValue(response, std::string("data"), ccxt::dict{});
+        this->safeDict(response, std::string("data"), ccxt::dict{});
     ccxt::any assets =
         this->safeList(data, std::string("assets"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(assets));
@@ -1246,7 +1246,7 @@ public:
                         ccxt::any response =
                             awaitValue(this->privateGetUserSpotActiveOrders(
                                 this->extend(request, params)));
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         ccxt::any orders = this->safeList(
                             data, std::string("orders"), ccxt::list{});
@@ -1295,7 +1295,7 @@ public:
                         ccxt::any response =
                             awaitValue(this->privateGetUserSpotTradeHistory(
                                 this->extend(request, params)));
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         ccxt::any trades = this->safeList(
                             data, std::string("trades"), ccxt::list{});
@@ -1333,14 +1333,14 @@ public:
                         ccxt::any response =
                             awaitValue(this->privateGetUserWithdrawalAccount(
                                 this->extend(request, params)));
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         // Not sure about this if there could be more than one
                         // account...
-                        ccxt::any accounts = this->safeValue(
+                        ccxt::any accounts = this->safeList(
                             data, std::string("accounts"), ccxt::list{});
                         ccxt::any firstAccount =
-                            this->safeValue(accounts, 0, ccxt::dict{});
+                            this->safeDict(accounts, 0, ccxt::dict{});
                         ccxt::any address = this->safeString(
                             firstAccount, std::string("address"));
                         return ccxt::dict{

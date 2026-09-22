@@ -1048,9 +1048,9 @@ public:
                    : ccxt::any(quoteId));
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
-    ccxt::any active = this->safeValue(market, std::string("tradesEnabled"));
+    ccxt::any active = this->safeBool(market, std::string("tradesEnabled"));
     ccxt::any isCollateral =
-        this->safeValue(market, std::string("isCollateral"));
+        this->safeBool(market, std::string("isCollateral"));
     ccxt::any typeId = this->safeString(market, std::string("type"));
     ccxt::any type = ccxt::any{};
     ccxt::any settle = ccxt::any{};
@@ -1400,14 +1400,14 @@ public:
                           ccxt::any data =
                               this->safeDict(response, currency, ccxt::dict{});
                           ccxt::any code = this->safeCurrencyCode(currency);
-                          ccxt::any withdraw = this->safeValue(
+                          ccxt::any withdraw = this->safeDict(
                               data, std::string("withdraw"), ccxt::dict{});
                           if (isTrue(!isEqual(code, ccxt::any{}))) {
                             ::setValue(withdrawFees, code,
                                        this->safeString(withdraw,
                                                         std::string("fixed")));
                           }
-                          ccxt::any deposit = this->safeValue(
+                          ccxt::any deposit = this->safeDict(
                               data, std::string("deposit"), ccxt::dict{});
                           if (isTrue(!isEqual(code, ccxt::any{}))) {
                             ::setValue(depositFees, code,
@@ -1557,7 +1557,7 @@ public:
                  isTrue((isTrue((isEqual(codes, ccxt::any{}))) ||
                          isTrue((this->inArray(code, codes))))))) {
         ccxt::any depositWithdrawFee =
-            this->safeValue(depositWithdrawFees, code);
+            this->safeDict(depositWithdrawFees, code);
         if (isTrue(isEqual(depositWithdrawFee, ccxt::any{}))) {
           ::setValue(depositWithdrawFees, code,
                      this->depositWithdrawFee(ccxt::dict{}));
@@ -1566,8 +1566,8 @@ public:
                               std::string("info")),
                    entry, feeInfo);
         ccxt::any networkId = this->safeString(splitEntry, 1);
-        ccxt::any withdraw = this->safeValue(feeInfo, std::string("withdraw"));
-        ccxt::any deposit = this->safeValue(feeInfo, std::string("deposit"));
+        ccxt::any withdraw = this->safeDict(feeInfo, std::string("withdraw"));
+        ccxt::any deposit = this->safeDict(feeInfo, std::string("deposit"));
         ccxt::any withdrawFee =
             this->safeNumber(withdraw, std::string("fixed"));
         ccxt::any depositFee = this->safeNumber(deposit, std::string("fixed"));
@@ -1661,7 +1661,7 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any symbol = ::getValue(symbols, i);
                    ccxt::any market = this->market(symbol);
-                   ccxt::any fee = this->safeValue(
+                   ccxt::any fee = this->safeDict(
                        response, ::getValue(market, std::string("baseId")),
                        ccxt::dict{});
                    ccxt::any makerFee =
@@ -2772,7 +2772,7 @@ public:
                      ccxt::any marketNew = this->safeMarket(
                          marketId, ccxt::any{}, std::string("_"));
                      ccxt::any rawTrades =
-                         this->safeValue(response, marketId, ccxt::list{});
+                         this->safeList(response, marketId, ccxt::list{});
                      ccxt::any parsed =
                          this->parseTrades(rawTrades, marketNew, since, limit);
                      results = this->arrayConcat(results, parsed);
@@ -3725,7 +3725,7 @@ public:
                    response = awaitValue(
                        this->v4PrivatePostCollateralAccountBalance(params));
                  } else {
-                   ccxt::any options = this->safeValue(
+                   ccxt::any options = this->safeDict(
                        this->options, std::string("fetchBalance"),
                        ccxt::dict{});
                    ccxt::any defaultAccount =
@@ -4395,7 +4395,7 @@ public:
                  //     }
                  //
                  ccxt::any url = this->safeString(response, std::string("url"));
-                 ccxt::any account = this->safeValue(
+                 ccxt::any account = this->safeDict(
                      response, std::string("account"), ccxt::dict{});
                  ccxt::any address =
                      this->safeString(account, std::string("address"), url);
@@ -4627,7 +4627,7 @@ public:
                           awaitValue(this->loadMarkets());
                         }
                         ccxt::any currency = this->currency(code);
-                        ccxt::any accountsByType = this->safeValue(
+                        ccxt::any accountsByType = this->safeDict(
                             this->options, std::string("accountsByType"));
                         ccxt::any fromAccountId = this->safeString(
                             accountsByType, fromAccount, fromAccount);
@@ -4941,7 +4941,7 @@ public:
                         //         use this for calculating ‘limit’ and ‘offset'
                         //     }
                         //
-                        ccxt::any records = this->safeValue(
+                        ccxt::any records = this->safeList(
                             response, std::string("records"), ccxt::list{});
                         ccxt::any first =
                             this->safeDict(records, 0, ccxt::dict{});
@@ -6086,7 +6086,7 @@ public:
   }
 
   virtual ccxt::any isFiat(ccxt::any currency) {
-    ccxt::any fiatCurrencies = this->safeValue(
+    ccxt::any fiatCurrencies = this->safeList(
         this->options, std::string("fiatCurrencies"), ccxt::list{});
     return this->inArray(currency, fiatCurrencies);
   }
@@ -6276,7 +6276,7 @@ public:
       // account"]},"notification":null,"warning":"Finished order id
       // 435453454535 not found on your account","_token":null}
       ccxt::any status = this->safeString(response, std::string("status"));
-      ccxt::any errors = this->safeValue(response, std::string("errors"));
+      ccxt::any errors = this->safeDict(response, std::string("errors"));
       // {"code":10,"message":"Unauthorized request."}
       ccxt::any message = this->safeString(response, std::string("message"));
       // For these cases where we have a generic code variable error key

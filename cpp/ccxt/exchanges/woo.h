@@ -2938,8 +2938,8 @@ public:
                    response = awaitValue(this->v3PrivateGetTradeOrders(
                        this->extend(request, params)));
                  }
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any orders =
                      this->safeList(data, std::string("rows"), ccxt::list{});
                  return this->parseOrders(orders, market, since, limit);
@@ -3157,8 +3157,8 @@ public:
     ccxt::any cost =
         this->safeString(order, std::string("amount")); // This is quote amount
     ccxt::any orderType = this->safeStringLower(order, std::string("type"));
-    ccxt::any status = this->safeValue2(order, std::string("status"),
-                                        std::string("algoStatus"));
+    ccxt::any status = this->safeString2(order, std::string("status"),
+                                         std::string("algoStatus"));
     ccxt::any side = this->safeStringLower(order, std::string("side"));
     ccxt::any filled = this->safeString2(order, std::string("executed"),
                                          std::string("totalExecutedQuantity"));
@@ -6570,7 +6570,7 @@ public:
     }
     // if it was not returned according to above options, then return the first
     // network of currency
-    return this->safeValue(networkKeys, 0);
+    return this->safeString(networkKeys, 0);
   }
 
   void setSandboxMode(ccxt::any enable) override {

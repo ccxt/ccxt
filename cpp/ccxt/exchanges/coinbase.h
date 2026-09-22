@@ -2476,8 +2476,8 @@ public:
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
                       postFixIncrement(i)) {
                    ccxt::any market = ::getValue(result, i);
-                   ccxt::any info = this->safeValue(market, std::string("info"),
-                                                    ccxt::dict{});
+                   ccxt::any info = this->safeDict(market, std::string("info"),
+                                                   ccxt::dict{});
                    ccxt::any realMarketIds = this->safeList(
                        info, std::string("alias_to"), ccxt::list{});
                    ccxt::any length = getArrayLength(realMarketIds);

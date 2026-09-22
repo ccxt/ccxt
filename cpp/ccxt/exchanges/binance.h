@@ -5988,7 +5988,7 @@ public:
         for (ccxt::any i = 0; isLessThan(i, getArrayLength(markets));
              postFixIncrement(i)) {
           ccxt::any market = ::getValue(markets, i);
-          if (isTrue(isEqual(this->safeValue(market, defaultType), true))) {
+          if (isTrue(isEqual(this->safeBool(market, defaultType), true))) {
             return market;
           }
         }
@@ -7922,7 +7922,7 @@ public:
                                ::getValue(market, std::string("linear")),
                                true))) {
                   ccxt::any rpi =
-                      this->safeValue(params, std::string("rpi"), false);
+                      this->safeBool(params, std::string("rpi"), false);
                   params = this->omit(params, std::string("rpi"));
                   if (isTrue(isEqual(rpi, true))) {
                     // rpi limit only supports 1000
@@ -9913,7 +9913,7 @@ public:
     }
     ::setValue(
         request, std::string("newOrderRespType"),
-        this->safeValue(
+        this->safeString(
             ::getValue(this->options, std::string("newOrderRespType")), type,
             std::string("RESULT"))); // 'ACK' for order id, 'RESULT' for full
                                      // order or 'FULL' for order with fills
@@ -11855,8 +11855,8 @@ public:
       if (isTrue(isEqual(stock, true))) {
         if (isTrue(isEqual(upperCaseSide, std::string("BUY")))) {
           ccxt::any precision =
-              this->safeValue(::getValue(market, std::string("precision")),
-                              std::string("price"));
+              this->safeNumber(::getValue(market, std::string("precision")),
+                               std::string("price"));
           ccxt::any quoteOrderQtyNew = this->safeString2(
               params, std::string("quoteOrderQty"), std::string("cost"));
           ccxt::any notional = ccxt::any{};
@@ -11902,8 +11902,8 @@ public:
           ccxt::any quoteOrderQtyNew = this->safeString2(
               params, std::string("quoteOrderQty"), std::string("cost"));
           ccxt::any precision =
-              this->safeValue(::getValue(market, std::string("precision")),
-                              std::string("price"));
+              this->safeNumber(::getValue(market, std::string("precision")),
+                               std::string("price"));
           if (isTrue(!isEqual(quoteOrderQtyNew, ccxt::any{}))) {
             ::setValue(request, std::string("quoteOrderQty"),
                        this->decimalToPrecision(quoteOrderQtyNew, TRUNCATE,
@@ -15276,8 +15276,8 @@ public:
         this->options, std::string("accountsById"), ccxt::dict{});
     if (isTrue(!isEqual(type, ccxt::any{}))) {
       ccxt::any parts = split(type, std::string("_"));
-      fromAccount = this->safeValue(parts, 0);
-      toAccount = this->safeValue(parts, 1);
+      fromAccount = this->safeString(parts, 0);
+      toAccount = this->safeString(parts, 1);
       fromAccount = this->safeString(accountsById, fromAccount, fromAccount);
       toAccount = this->safeString(accountsById, toAccount, toAccount);
     }
@@ -17161,7 +17161,7 @@ public:
     ccxt::any liquidationPriceStringRaw = ccxt::any{};
     ccxt::any liquidationPrice = ccxt::any{};
     ccxt::any contractSize =
-        this->safeValue(market, std::string("contractSize"));
+        this->safeNumber(market, std::string("contractSize"));
     ccxt::any contractSizeString = this->numberToString(contractSize);
     if (isTrue(ccxt::Precise::stringEquals(notionalString, std::string("0")))) {
       entryPrice = ccxt::any{};
@@ -17430,7 +17430,7 @@ public:
         this->safeString(position, std::string("entryPrice"));
     ccxt::any entryPrice = this->parseNumber(entryPriceString);
     ccxt::any contractSize =
-        this->safeValue(market, std::string("contractSize"));
+        this->safeNumber(market, std::string("contractSize"));
     ccxt::any contractSizeString = this->numberToString(contractSize);
     // as oppose to notionalValue
     ccxt::any linear = (inOp(position, std::string("notional")));
@@ -20138,7 +20138,7 @@ public:
         }
       }
     }
-    return this->safeValue(config, std::string("cost"), 1);
+    return this->safeNumber(config, std::string("cost"), 1);
   }
 
   std::shared_future<ccxt::any>

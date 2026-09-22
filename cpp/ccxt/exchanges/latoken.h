@@ -947,7 +947,7 @@ public:
                      std::string("defaultType"), std::string("spot"));
                  ccxt::any type =
                      this->safeString(params, std::string("type"), defaultType);
-                 ccxt::any types = this->safeValue(
+                 ccxt::any types = this->safeDict(
                      this->options, std::string("types"), ccxt::dict{});
                  ccxt::any accountType = this->safeString(types, type, type);
                  ccxt::any balancesByType =
@@ -1300,7 +1300,7 @@ public:
     ccxt::any priceString = this->safeString(trade, std::string("price"));
     ccxt::any amountString = this->safeString(trade, std::string("quantity"));
     ccxt::any costString = this->safeString(trade, std::string("cost"));
-    ccxt::any makerBuyer = this->safeValue(trade, std::string("makerBuyer"));
+    ccxt::any makerBuyer = this->safeBool(trade, std::string("makerBuyer"));
     ccxt::any side = this->safeString(trade, std::string("direction"));
     if (isTrue(isEqual(side, ccxt::any{}))) {
       side =
@@ -1422,7 +1422,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchTradingFee"),
                      ccxt::dict{});
                  ccxt::any defaultMethod =
@@ -1780,7 +1780,7 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  ccxt::any response = ccxt::any{};
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params = this->omit(params, std::string("stop"));
                  // privateGetAuthOrderActive doesn't work even though its
@@ -1863,7 +1863,7 @@ public:
                  }
                  ccxt::any request = ccxt::dict{};
                  ccxt::any market = ccxt::any{};
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params =
                      this->omit(params, ccxt::list{std::string("stop"),
@@ -1951,7 +1951,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("id"), id},
                  };
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params =
                      this->omit(params, ccxt::list{std::string("stop"),
@@ -2112,7 +2112,7 @@ public:
                  ccxt::any request = ccxt::dict{
                      {std::string("id"), id},
                  };
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params =
                      this->omit(params, ccxt::list{std::string("stop"),
@@ -2164,7 +2164,7 @@ public:
                  }
                  ccxt::any request = ccxt::dict{};
                  ccxt::any market = ccxt::any{};
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params =
                      this->omit(params, ccxt::list{std::string("stop"),

@@ -1070,7 +1070,7 @@ public:
                      this->publicGetProvisioningLimitationsAndFees(params));
                  ccxt::any tradingFeeRate = this->safeDict(
                      response, std::string("tradingFeeRate"), ccxt::dict{});
-                 ccxt::any first = this->safeValue(tradingFeeRate, 0);
+                 ccxt::any first = this->safeDict(tradingFeeRate, 0);
                  //
                  //     {
                  //         "tradingFeeRate":[
@@ -1537,8 +1537,8 @@ public:
                    ::setValue(request, std::string("price"),
                               this->priceToPrecision(symbol, price));
                    ccxt::any triggerPrice =
-                       this->safeValue2(params, std::string("triggerPrice"),
-                                        std::string("stopPrice"));
+                       this->safeString2(params, std::string("triggerPrice"),
+                                         std::string("stopPrice"));
                    params = this->omit(params,
                                        ccxt::list{std::string("triggerPrice"),
                                                   std::string("stopPrice")});

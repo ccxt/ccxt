@@ -592,9 +592,9 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
-                        ccxt::any markets = this->safeValue(
+                        ccxt::any markets = this->safeList(
                             result, std::string("pairs"), ccxt::list{});
                         return this->parseMarkets(markets);
                       })
@@ -609,7 +609,7 @@ public:
     ccxt::any quoteId = this->safeString(parts, 1);
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
-    ccxt::any active = this->safeValue(market, std::string("active"));
+    ccxt::any active = this->safeBool(market, std::string("active"));
     ccxt::any timeStart = this->safeString(market, std::string("timeStart"));
     ccxt::any created = this->parse8601(timeStart);
     ccxt::any minCost = ccxt::any{};
@@ -619,7 +619,7 @@ public:
     ccxt::any quoteInUsd = this->safeBool(currenciesValuedInUsd, quote, false);
     if (isTrue(isEqual(quoteInUsd, true))) {
       ccxt::any settings =
-          this->safeValue(market, std::string("settings"), ccxt::dict{});
+          this->safeDict(market, std::string("settings"), ccxt::dict{});
       minCost = this->safeNumber(settings, std::string("limit_usd"));
     }
     return this->safeMarketStructure(ccxt::dict{
@@ -800,9 +800,9 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any responseResult = this->safeValue(
+                 ccxt::any responseResult = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
-                 ccxt::any currencies = this->safeValue(
+                 ccxt::any currencies = this->safeList(
                      responseResult, std::string("currencies"), ccxt::list{});
                  // using another endpoint to fetch statuses of deposits and
                  // withdrawals
@@ -842,7 +842,7 @@ public:
   }
 
   ccxt::any parseCurrency(ccxt::any currency) override {
-    ccxt::any statusesResponse = this->safeValue(
+    ccxt::any statusesResponse = this->safeDict(
         this->options, std::string("_temp_currencies_statuses"), ccxt::dict{});
     ccxt::any id = this->safeString(currency, std::string("symbol"));
     ccxt::any numericId = this->safeInteger(currency, std::string("id"));
@@ -851,7 +851,7 @@ public:
     ccxt::any precision = this->parseNumber(this->parsePrecision(
         this->safeString(currency, std::string("precision"))));
     ccxt::any txLimits =
-        this->safeValue(currency, std::string("txLimits"), ccxt::dict{});
+        this->safeDict(currency, std::string("txLimits"), ccxt::dict{});
     ccxt::any minWithdraw =
         this->safeString(txLimits, std::string("minWithdraw"));
     ccxt::any maxWithdraw =
@@ -859,7 +859,7 @@ public:
     ccxt::any minDeposit =
         this->safeString(txLimits, std::string("minDeposit"));
     ccxt::any fee = ccxt::any{};
-    ccxt::any withdrawCommissionFixed = this->safeValue(
+    ccxt::any withdrawCommissionFixed = this->safeDict(
         txLimits, std::string("withdrawCommissionFixed"), ccxt::dict{});
     ccxt::any feesByNetworkId = ccxt::dict{};
     ccxt::any blockChain =
@@ -873,10 +873,10 @@ public:
       feesByNetworkId = withdrawCommissionFixed;
     }
     ccxt::any statuses =
-        this->safeValue(statusesResponse, numericId, ccxt::dict{});
-    ccxt::any deposit = this->safeValue(statuses, std::string("depositStatus"));
+        this->safeDict(statusesResponse, numericId, ccxt::dict{});
+    ccxt::any deposit = this->safeBool(statuses, std::string("depositStatus"));
     ccxt::any withdraw =
-        this->safeValue(statuses, std::string("withdrawStatus"));
+        this->safeBool(statuses, std::string("withdrawStatus"));
     ccxt::any networkIds = getObjectKeys(feesByNetworkId);
     ccxt::any networks = ccxt::dict{};
     ccxt::any networkPrecision = this->parseNumber(this->parsePrecision(
@@ -1016,7 +1016,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any data =
                      this->safeList(result, std::string("data"), ccxt::list{});
@@ -1246,7 +1246,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any orders = this->safeList(
                             result, std::string("orders"), ccxt::list{});
@@ -1602,7 +1602,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any orders = ccxt::list{result};
                         return this->parseOrders(orders, market);
@@ -1715,7 +1715,7 @@ public:
     ccxt::any type =
         this->parseOrderType(this->safeString(order, std::string("type")));
     ccxt::any side = this->safeString(order, std::string("side"));
-    ccxt::any feeRaw = this->safeValue(order, std::string("fee"));
+    ccxt::any feeRaw = this->safeDict(order, std::string("fee"));
     ccxt::any price = this->safeString(order, std::string("price"));
     ccxt::any amount = this->safeString(order, std::string("quantity"));
     ccxt::any filled = this->safeString(order, std::string("executed"));
@@ -2106,7 +2106,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any pair = this->safeDict(
                             result, std::string("pair"), ccxt::dict{});
@@ -2203,16 +2203,16 @@ public:
     ccxt::any bestAskPrice = ccxt::any{};
     ccxt::any bestBidVolume = ccxt::any{};
     ccxt::any bestAskVolume = ccxt::any{};
-    ccxt::any bids = this->safeValue(ticker, std::string("bids"));
-    ccxt::any asks = this->safeValue(ticker, std::string("asks"));
+    ccxt::any bids = this->safeList(ticker, std::string("bids"));
+    ccxt::any asks = this->safeList(ticker, std::string("asks"));
     if (isTrue(isTrue(isTrue(isTrue((!isEqual(bids, ccxt::any{}))) &&
                              isTrue((isArray(bids)))) &&
                       isTrue((!isEqual(asks, ccxt::any{})))) &&
                isTrue((isArray(asks))))) {
-      ccxt::any bestBid = this->safeValue(bids, 0, ccxt::dict{});
+      ccxt::any bestBid = this->safeDict(bids, 0, ccxt::dict{});
       bestBidPrice = this->safeString(bestBid, std::string("price"));
       bestBidVolume = this->safeString(bestBid, std::string("quantity"));
-      ccxt::any bestAsk = this->safeValue(asks, 0, ccxt::dict{});
+      ccxt::any bestAsk = this->safeDict(asks, 0, ccxt::dict{});
       bestAskPrice = this->safeString(bestAsk, std::string("price"));
       bestAskVolume = this->safeString(bestAsk, std::string("quantity"));
     } else {
@@ -2491,7 +2491,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any trades = this->safeList(
                             result, std::string("trades"), ccxt::list{});
@@ -2583,10 +2583,10 @@ public:
         side = std::string("sell");
       }
       order = this->safeString(trade, std::string("makerOrderId"));
-      feeInfo = this->safeValue(trade, std::string("feeMaker"), ccxt::dict{});
+      feeInfo = this->safeDict(trade, std::string("feeMaker"), ccxt::dict{});
     } else if (isTrue(isEqual(takerOrMaker, std::string("taker")))) {
       order = this->safeString(trade, std::string("takerOrderId"));
-      feeInfo = this->safeValue(trade, std::string("feeTaker"), ccxt::dict{});
+      feeInfo = this->safeDict(trade, std::string("feeTaker"), ccxt::dict{});
     }
     ccxt::any feeCurrencyId = this->safeString(feeInfo, std::string("symbol"));
     ccxt::any feeCost = this->safeString(feeInfo, std::string("amount"));
@@ -2688,7 +2688,7 @@ public:
         {std::string("datetime"), ccxt::any{}},
     };
     ccxt::any result =
-        this->safeValue(response, std::string("result"), ccxt::dict{});
+        this->safeDict(response, std::string("result"), ccxt::dict{});
     ccxt::any balanceByCurrencies =
         this->omit(result, ccxt::list{std::string("free"), std::string("used"),
                                       std::string("total")});
@@ -2696,7 +2696,7 @@ public:
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(rawCurrencyIds));
          postFixIncrement(i)) {
       ccxt::any rawCurrencyId = ::getValue(rawCurrencyIds, i);
-      ccxt::any currencyBalance = this->safeValue(result, rawCurrencyId);
+      ccxt::any currencyBalance = this->safeDict(result, rawCurrencyId);
       ccxt::any free = this->safeString(currencyBalance, std::string("free"));
       ccxt::any used = this->safeString(currencyBalance, std::string("used"));
       ccxt::any total = this->safeString(currencyBalance, std::string("total"));
@@ -2854,7 +2854,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any transactions = this->safeList(
                      result, std::string("transactions"), ccxt::list{});
@@ -2917,12 +2917,12 @@ public:
     //     }
     //
     ccxt::any currencyObject =
-        this->safeValue(transaction, std::string("currency"));
+        this->safeDict(transaction, std::string("currency"));
     ccxt::any currencyId =
         this->safeString(currencyObject, std::string("symbol"));
     ccxt::any code = this->safeCurrencyCode(currencyId, currency);
     ccxt::any id = this->safeString(transaction, std::string("id"));
-    ccxt::any params = this->safeValue(transaction, std::string("params"));
+    ccxt::any params = this->safeDict(transaction, std::string("params"));
     ccxt::any txid = this->safeString(params, std::string("tx_id"));
     ccxt::any timestamp =
         this->safeInteger(transaction, std::string("timestamp"));
@@ -2930,8 +2930,8 @@ public:
         this->safeString(transaction, std::string("blockChain"));
     if (isTrue(isEqual(networkId, ccxt::any{}))) {
       ccxt::any links =
-          this->safeValue(currencyObject, std::string("links"), ccxt::list{});
-      ccxt::any blockChain = this->safeValue(links, 0, ccxt::dict{});
+          this->safeList(currencyObject, std::string("links"), ccxt::list{});
+      ccxt::any blockChain = this->safeDict(links, 0, ccxt::dict{});
       networkId = this->safeString(blockChain, std::string("blockChain"));
     }
     ccxt::any addressFrom =
@@ -2945,7 +2945,7 @@ public:
         this->parseValueToPricision(transaction, std::string("amount"),
                                     currencyObject, std::string("decimals"));
     ccxt::any status = this->parseTransactionStatus(
-        this->safeValue(transaction, std::string("status")));
+        this->safeString(transaction, std::string("status")));
     return ccxt::dict{
         {std::string("info"), transaction},
         {std::string("id"), id},

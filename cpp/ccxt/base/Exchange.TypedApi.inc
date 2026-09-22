@@ -690,6 +690,11 @@
         return Order (awaitValue (ccxt::any (this->createMarketBuyOrderWs (typedAny (symbol), typedAny (amount), typedAny (params)))));
     }
 
+    // typed facade over createMarketOrderWithCostWs
+    Order CreateMarketOrderWithCostWs (const std::string& symbol, const std::string& side, double cost, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createMarketOrderWithCostWs (typedAny (symbol), typedAny (side), typedAny (cost), typedAny (params)))));
+    }
+
     // typed facade over createMarketOrderWs
     Order CreateMarketOrderWs (const std::string& symbol, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
         return Order (awaitValue (ccxt::any (this->createMarketOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
@@ -715,9 +720,34 @@
         return typedVector<Order> (awaitValue (ccxt::any (this->createOrdersWs (typedAnyList (orders), typedAny (params)))));
     }
 
+    // typed facade over createPostOnlyOrderWs
+    Order CreatePostOnlyOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createPostOnlyOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over createReduceOnlyOrderWs
+    Order CreateReduceOnlyOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createReduceOnlyOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over createStopLimitOrderWs
+    Order CreateStopLimitOrderWs (const std::string& symbol, const std::string& side, double amount, double price, double triggerPrice, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopLimitOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
+    }
+
     // typed facade over createStopLossOrderWs
     Order CreateStopLossOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> stopLossPrice = std::nullopt, const dict& params = dict {}) {
         return Order (awaitValue (ccxt::any (this->createStopLossOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (stopLossPrice), typedAny (params)))));
+    }
+
+    // typed facade over createStopMarketOrderWs
+    Order CreateStopMarketOrderWs (const std::string& symbol, const std::string& side, double amount, double triggerPrice, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopMarketOrderWs (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (triggerPrice), typedAny (params)))));
+    }
+
+    // typed facade over createStopOrderWs
+    Order CreateStopOrderWs (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> triggerPrice = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopOrderWs (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
     }
 
     // typed facade over createTakeProfitOrderWs
@@ -825,6 +855,21 @@
         return OpenInterest (awaitValue (ccxt::any (this->fetchOpenInterest (typedAny (symbol), typedAny (params)))));
     }
 
+    // typed facade over editLimitBuyOrder
+    Order EditLimitBuyOrder (const std::string& id, const std::string& symbol, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->editLimitBuyOrder (typedAny (id), typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over editLimitSellOrder
+    Order EditLimitSellOrder (const std::string& id, const std::string& symbol, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->editLimitSellOrder (typedAny (id), typedAny (symbol), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over editLimitOrder
+    Order EditLimitOrder (const std::string& id, const std::string& symbol, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->editLimitOrder (typedAny (id), typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
     // typed facade over editOrder
     Order EditOrder (const std::string& id, const std::string& symbol, const std::string& type, const std::string& side, std::optional<double> amount = std::nullopt, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
         return Order (awaitValue (ccxt::any (this->editOrder (typedAny (id), typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
@@ -880,6 +925,11 @@
         return Order (awaitValue (ccxt::any (this->fetchOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
+    // typed facade over fetchOrderWithClientOrderId
+    Order FetchOrderWithClientOrderId (const std::string& clientOrderId, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->fetchOrderWithClientOrderId (typedAny (clientOrderId), typedAny (symbol), typedAny (params)))));
+    }
+
     // typed facade over fetchOrderStatus
     std::optional<std::string> FetchOrderStatus (const std::string& id, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
         return typedsupport::anyStr (awaitValue (ccxt::any (this->fetchOrderStatus (typedAny (id), typedAny (symbol), typedAny (params)))));
@@ -898,6 +948,11 @@
     // typed facade over createTrailingPercentOrder
     Order CreateTrailingPercentOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> trailingPercent = std::nullopt, std::optional<double> trailingTriggerPrice = std::nullopt, const dict& params = dict {}) {
         return Order (awaitValue (ccxt::any (this->createTrailingPercentOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (trailingPercent), typedAny (trailingTriggerPrice), typedAny (params)))));
+    }
+
+    // typed facade over createMarketOrderWithCost
+    Order CreateMarketOrderWithCost (const std::string& symbol, const std::string& side, double cost, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createMarketOrderWithCost (typedAny (symbol), typedAny (side), typedAny (cost), typedAny (params)))));
     }
 
     // typed facade over createMarketBuyOrderWithCost
@@ -940,9 +995,19 @@
         return Order (awaitValue (ccxt::any (this->cancelOrder (typedAny (id), typedAny (symbol), typedAny (params)))));
     }
 
+    // typed facade over cancelOrderWithClientOrderId
+    Order CancelOrderWithClientOrderId (const std::string& clientOrderId, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->cancelOrderWithClientOrderId (typedAny (clientOrderId), typedAny (symbol), typedAny (params)))));
+    }
+
     // typed facade over cancelOrders
     std::vector<Order> CancelOrders (const std::vector<std::string>& ids, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
         return typedVector<Order> (awaitValue (ccxt::any (this->cancelOrders (typedAny (ids), typedAny (symbol), typedAny (params)))));
+    }
+
+    // typed facade over cancelOrdersWithClientOrderIds
+    std::vector<Order> CancelOrdersWithClientOrderIds (const std::vector<std::string>& clientOrderIds, const std::optional<std::string>& symbol = std::nullopt, const dict& params = dict {}) {
+        return typedVector<Order> (awaitValue (ccxt::any (this->cancelOrdersWithClientOrderIds (typedAny (clientOrderIds), typedAny (symbol), typedAny (params)))));
     }
 
     // typed facade over cancelAllOrders
@@ -1018,6 +1083,31 @@
     // typed facade over createMarketSellOrder
     Order CreateMarketSellOrder (const std::string& symbol, double amount, const dict& params = dict {}) {
         return Order (awaitValue (ccxt::any (this->createMarketSellOrder (typedAny (symbol), typedAny (amount), typedAny (params)))));
+    }
+
+    // typed facade over createPostOnlyOrder
+    Order CreatePostOnlyOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createPostOnlyOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over createReduceOnlyOrder
+    Order CreateReduceOnlyOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createReduceOnlyOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (params)))));
+    }
+
+    // typed facade over createStopOrder
+    Order CreateStopOrder (const std::string& symbol, const std::string& type, const std::string& side, double amount, std::optional<double> price = std::nullopt, std::optional<double> triggerPrice = std::nullopt, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopOrder (typedAny (symbol), typedAny (type), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
+    }
+
+    // typed facade over createStopLimitOrder
+    Order CreateStopLimitOrder (const std::string& symbol, const std::string& side, double amount, double price, double triggerPrice, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopLimitOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (price), typedAny (triggerPrice), typedAny (params)))));
+    }
+
+    // typed facade over createStopMarketOrder
+    Order CreateStopMarketOrder (const std::string& symbol, const std::string& side, double amount, double triggerPrice, const dict& params = dict {}) {
+        return Order (awaitValue (ccxt::any (this->createStopMarketOrder (typedAny (symbol), typedAny (side), typedAny (amount), typedAny (triggerPrice), typedAny (params)))));
     }
 
     // typed facade over fetchTradingFee
