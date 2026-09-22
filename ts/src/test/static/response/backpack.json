@@ -3587,8 +3587,7 @@
                         "symbol": "ETH/USDC:USDC",
                         "fundingRate": 0.000006196,
                         "timestamp": 1757584800000,
-                        "datetime": "2025-09-11T10:00:00"
-                    },
+                        "datetime": "2025-09-11T10:00:00.000Z"},
                     {
                         "info": {
                             "fundingRate": "0.0000125",
@@ -3598,8 +3597,7 @@
                         "symbol": "ETH/USDC:USDC",
                         "fundingRate": 0.0000125,
                         "timestamp": 1757588400000,
-                        "datetime": "2025-09-11T11:00:00"
-                    },
+                        "datetime": "2025-09-11T11:00:00.000Z"},
                     {
                         "info": {
                             "fundingRate": "0.0000125",
@@ -3609,8 +3607,7 @@
                         "symbol": "ETH/USDC:USDC",
                         "fundingRate": 0.0000125,
                         "timestamp": 1757592000000,
-                        "datetime": "2025-09-11T12:00:00"
-                    }
+                        "datetime": "2025-09-11T12:00:00.000Z"}
                 ]
             }
         ],
