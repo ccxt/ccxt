@@ -5,7 +5,6 @@ import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Bool, Dict, Num, Order, Str } from '../../../base/types.js';
-import { TICK_SIZE } from '../../../base/functions/number.js';
 
 function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -718,7 +717,7 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
     // if exact calculation is correct
     if (!Precise.stringEq (compareResult, '0')) {
         // todo: only tick precision for now
-        if (!isTickSizePrecision (exchange)) {
+        if (exchange.isSignificantPrecision ()) {
             return;
         }
         // else we need to know the amountPrecision, so we would pass the test if the remainder is less than amountPrecision
@@ -731,10 +730,6 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
         const isValid = Precise.stringLt (compareResult, amountPrecisionHalf);
         assert (isValid, 'cost & amount & price math is not correct' + logText);
     }
-}
-
-function isTickSizePrecision (exchange: Exchange) {
-    return exchange.precisionMode === TICK_SIZE;
 }
 
 export default {
@@ -771,7 +766,6 @@ export default {
     assertDictionaryResponse,
     assertRoundMinuteTimestamp,
     concat,
-    isTickSizePrecision,
     getActiveMarkets,
     assertAmountPriceCost,
     tickerExceptionNeedsOhlcv,
