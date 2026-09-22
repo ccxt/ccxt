@@ -143,11 +143,11 @@ fn load_credentials(id: &str) -> HashMap<String, String> {
             let path = dir.join(fname);
             if path.is_file() {
                 if let Ok(text) = std::fs::read_to_string(&path) {
-                    let parsed = ccxt::runtime::json_parse(&Value::Str(text));
+                    let parsed = ccxt::runtime::json_parse(&Value::Str(text.into()));
                     if let Value::Dict(top) = &parsed {
                         if let Some(Value::Dict(ex_obj)) = top.get(id) {
                             for (k, v) in ex_obj.iter() {
-                                if let Value::Str(s) = v { creds.insert(k.clone(), s.clone()); }
+                                if let Value::Str(s) = v { creds.insert(k.clone(), s.to_string()); }
                             }
                         }
                     }
@@ -206,10 +206,10 @@ async fn main() {
     // configured entirely at construction.
     let mut config: HashMap<String, Value> = HashMap::new();
     if !no_keys {
-        for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v)); }
+        for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v.into())); }
     }
     for (flag, key) in [("httpProxy", "httpProxy"), ("httpsProxy", "httpsProxy"), ("socksProxy", "socksProxy"), ("proxy", "proxy")] {
-        if let Some(s) = flag_value(&flags, flag) { config.insert(key.to_string(), Value::Str(s)); }
+        if let Some(s) = flag_value(&flags, flag) { config.insert(key.to_string(), Value::Str(s.into())); }
     }
     if verbose { config.insert("verbose".to_string(), Value::Bool(true)); }
 

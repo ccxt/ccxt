@@ -118,7 +118,7 @@ fn min_amount_at(m: &Market, price: f64) -> f64 {
 fn api_host(ex: &Binance) -> String {
     let api = ccxt::runtime::get_value(&ex.urls, &ccxt::Value::Str("api".to_string().into()));
     match ccxt::runtime::get_value(&api, &ccxt::Value::Str("public".to_string().into())) {
-        ccxt::Value::Str(s) => s,
+        ccxt::Value::Str(s) => s.into_owned(),
         _ => "?".to_string(),
     }
 }

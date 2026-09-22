@@ -25,7 +25,7 @@ fn main() {
 
     // text -> Value (one-shot cost, reported separately)
     let json_t0 = Instant::now();
-    let parsed = ccxt::runtime::json_parse(&Value::Str(text));
+    let parsed = ccxt::runtime::json_parse(&Value::Str(text.into()));
     let json_ms = json_t0.elapsed().as_secs_f64() * 1000.0;
 
     // Accept either a top-level array or an object wrapping one under a common key.
