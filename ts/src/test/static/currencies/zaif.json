@@ -1,0 +1,12 @@
+{
+    "BTC": {
+        "id": "btc",
+        "code": "BTC",
+        "info": {}
+    },
+    "JPY": {
+        "id": "jpy",
+        "code": "JPY",
+        "info": {}
+    }
+}

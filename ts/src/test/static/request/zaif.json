@@ -1,0 +1,33 @@
+{
+    "exchange": "zaif",
+    "skipKeys": [
+        "nonce"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders with since and limit",
+                "method": "fetchClosedOrders",
+                "url": "https://api.zaif.jp/tapi",
+                "input": [
+                    "BTC/JPY",
+                    1700000000000,
+                    5
+                ],
+                "output": "method=trade_history&nonce=0&currency_pair=btc_jpy&since=1700000000&count=5"
+            },
+            {
+                "description": "closed orders limit is capped at Zaif maximum",
+                "method": "fetchClosedOrders",
+                "url": "https://api.zaif.jp/tapi",
+                "input": [
+                    "BTC/JPY",
+                    null,
+                    2000
+                ],
+                "output": "method=trade_history&nonce=0&currency_pair=btc_jpy&count=1000"
+            }
+        ]
+    }
+}
