@@ -2223,7 +2223,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 				"cost":     this.SafeString(trade, "fee"),
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
-			var isTaker bool = (IsEqual(this.SafeBool(trade, "taker"), true))
+			var isTaker bool = (IsEqual(this.SafeBool2(trade, "isTaker", "taker"), true))
 			takerOrMaker = func() string {
 				if isTaker {
 					return "taker"
