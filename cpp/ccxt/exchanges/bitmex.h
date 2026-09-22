@@ -1020,7 +1020,7 @@ public:
       }
     }
     ccxt::any currencyEnabled =
-        this->safeValue(currency, std::string("enabled"));
+        this->safeBool(currency, std::string("enabled"));
     ccxt::any currencyActive =
         isTrue((isEqual(currencyEnabled, true))) ||
         isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
@@ -1097,7 +1097,7 @@ public:
     symbol = this->safeSymbol(symbol);
     ccxt::any market = this->market(symbol);
     ccxt::any oldPrecision =
-        this->safeValue(this->options, std::string("oldPrecision"));
+        this->safeBool(this->options, std::string("oldPrecision"));
     if (isTrue(
             isTrue((isEqual(::getValue(market, std::string("spot")), true))) &&
             isTrue((!isEqual(oldPrecision, true))))) {
@@ -1111,7 +1111,7 @@ public:
   convertFromRawQuantity(ccxt::any symbol, ccxt::any rawQuantity,
                          ccxt::any currencySide = std::string("base")) {
     if (isTrue(
-            isEqual(this->safeValue(this->options, std::string("oldPrecision")),
+            isEqual(this->safeBool(this->options, std::string("oldPrecision")),
                     true))) {
       return this->parseNumber(rawQuantity);
     }
@@ -2426,7 +2426,7 @@ public:
                  };
                  ccxt::any response = awaitValue(
                      this->publicGetInstrument(this->extend(request, params)));
-                 ccxt::any ticker = this->safeValue(response, 0);
+                 ccxt::any ticker = this->safeDict(response, 0);
                  if (isTrue(isEqual(ticker, ccxt::any{}))) {
                    throw BadSymbol(toString(add(
                        add(add(this->id, std::string(" fetchTicker() symbol ")),
@@ -3422,7 +3422,7 @@ public:
                  }
                  ccxt::any response = awaitValue(
                      this->privateDeleteOrder(this->extend(request, params)));
-                 ccxt::any order = this->safeValue(response, 0, ccxt::dict{});
+                 ccxt::any order = this->safeDict(response, 0, ccxt::dict{});
                  ccxt::any error =
                      this->safeString(order, std::string("error"));
                  if (isTrue(!isEqual(error, ccxt::any{}))) {
@@ -3871,7 +3871,7 @@ public:
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
     ccxt::any datetime = this->safeString(position, std::string("timestamp"));
     ccxt::any crossMargin =
-        this->safeValue(position, std::string("crossMargin"));
+        this->safeBool(position, std::string("crossMargin"));
     ccxt::any marginMode = (isTrue((isEqual(crossMargin, true)))
                                 ? ccxt::any(std::string("cross"))
                                 : ccxt::any(std::string("isolated")));
@@ -5208,7 +5208,7 @@ public:
     }
     if (isTrue(isGreaterThanOrEqual(code, 400))) {
       ccxt::any error =
-          this->safeValue(response, std::string("error"), ccxt::dict{});
+          this->safeDict(response, std::string("error"), ccxt::dict{});
       ccxt::any message = this->safeString(error, std::string("message"));
       ccxt::any feedback = add(add(this->id, std::string(" ")), body);
       this->throwExactlyMatchedException(

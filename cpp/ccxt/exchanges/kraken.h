@@ -1127,7 +1127,7 @@ public:
                    if (isTrue(isTrue(spot) &&
                               isTrue((inOp(cachedCurrencies, base))))) {
                      ccxt::any currency =
-                         this->safeValue(cachedCurrencies, base);
+                         this->safeDict(cachedCurrencies, base);
                      ccxt::any currencyPrecision =
                          this->safeNumber(currency, std::string("precision"));
                      // if currency precision is greater (e.g. 0.01) than market
@@ -1514,7 +1514,7 @@ public:
                         //        }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         return this->parseTradingFee(result, market);
                       })
@@ -1523,12 +1523,12 @@ public:
 
   virtual ccxt::any parseTradingFee(ccxt::any response, ccxt::any market) {
     ccxt::any makerFees =
-        this->safeValue(response, std::string("fees_maker"), ccxt::dict{});
+        this->safeDict(response, std::string("fees_maker"), ccxt::dict{});
     ccxt::any takerFees =
-        this->safeValue(response, std::string("fees"), ccxt::dict{});
-    ccxt::any symbolMakerFee = this->safeValue(
+        this->safeDict(response, std::string("fees"), ccxt::dict{});
+    ccxt::any symbolMakerFee = this->safeDict(
         makerFees, ::getValue(market, std::string("id")), ccxt::dict{});
-    ccxt::any symbolTakerFee = this->safeValue(
+    ccxt::any symbolTakerFee = this->safeDict(
         takerFees, ::getValue(market, std::string("id")), ccxt::dict{});
     return ccxt::dict{
         {std::string("info"), response},
@@ -1607,16 +1607,16 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any orderbook = this->safeValue(
                      result, ::getValue(market, std::string("id")));
                  // sometimes kraken returns wsname instead of market id
                  // https://github.com/ccxt/ccxt/issues/8662
                  ccxt::any marketInfo =
-                     this->safeValue(market, std::string("info"), ccxt::dict{});
+                     this->safeDict(market, std::string("info"), ccxt::dict{});
                  ccxt::any wsName =
-                     this->safeValue(marketInfo, std::string("wsname"));
+                     this->safeString(marketInfo, std::string("wsname"));
                  if (isTrue(!isEqual(wsName, ccxt::any{}))) {
                    orderbook = this->safeValue(result, wsName, orderbook);
                  }
@@ -1641,17 +1641,17 @@ public:
     //     }
     //
     ccxt::any symbol = this->safeSymbol(ccxt::any{}, market);
-    ccxt::any v = this->safeValue(ticker, std::string("v"), ccxt::list{});
+    ccxt::any v = this->safeList(ticker, std::string("v"), ccxt::list{});
     ccxt::any baseVolume = this->safeString(v, 1);
-    ccxt::any p = this->safeValue(ticker, std::string("p"), ccxt::list{});
+    ccxt::any p = this->safeList(ticker, std::string("p"), ccxt::list{});
     ccxt::any vwap = this->safeString(p, 1);
     ccxt::any quoteVolume = ccxt::Precise::stringMul(baseVolume, vwap);
-    ccxt::any c = this->safeValue(ticker, std::string("c"), ccxt::list{});
+    ccxt::any c = this->safeList(ticker, std::string("c"), ccxt::list{});
     ccxt::any last = this->safeString(c, 0);
-    ccxt::any high = this->safeValue(ticker, std::string("h"), ccxt::list{});
-    ccxt::any low = this->safeValue(ticker, std::string("l"), ccxt::list{});
-    ccxt::any bid = this->safeValue(ticker, std::string("b"), ccxt::list{});
-    ccxt::any ask = this->safeValue(ticker, std::string("a"), ccxt::list{});
+    ccxt::any high = this->safeList(ticker, std::string("h"), ccxt::list{});
+    ccxt::any low = this->safeList(ticker, std::string("l"), ccxt::list{});
+    ccxt::any bid = this->safeList(ticker, std::string("b"), ccxt::list{});
+    ccxt::any ask = this->safeList(ticker, std::string("a"), ccxt::list{});
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
@@ -1881,7 +1881,7 @@ public:
                  //             "last":1591517580
                  //         }
                  //     }
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any ohlcvs = this->safeList(
                      result, ::getValue(market, std::string("id")),
@@ -2037,7 +2037,7 @@ public:
                  //                                                "balance":
                  //                                                "0.0000051000"
                  //                                                },
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any ledger = this->safeDict(
                      result, std::string("ledger"), ccxt::dict{});
@@ -2361,7 +2361,7 @@ public:
          postFixIncrement(i)) {
       ccxt::any currencyId = ::getValue(currencyIds, i);
       ccxt::any code = this->safeCurrencyCode(currencyId);
-      ccxt::any balance = this->safeValue(balances, currencyId, ccxt::dict{});
+      ccxt::any balance = this->safeDict(balances, currencyId, ccxt::dict{});
       ccxt::any account = this->account();
       ::setValue(account, std::string("used"),
                  this->safeString(balance, std::string("hold_trade")));
@@ -3475,7 +3475,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::list{});
                  if (!isTrue((inOp(result, id)))) {
                    throw OrderNotFound(toString(
@@ -3543,7 +3543,7 @@ public:
                  if (isTrue(!isEqual(symbol, ccxt::any{}))) {
                    symbol = this->symbol(symbol);
                  }
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchOrderTrades"),
                      ccxt::dict{});
                  ccxt::any batchSize =
@@ -4186,7 +4186,7 @@ public:
   }
 
   virtual ccxt::any parseNetwork(ccxt::any network) {
-    ccxt::any withdrawMethods = this->safeValue(
+    ccxt::any withdrawMethods = this->safeDict(
         this->options, std::string("withdrawMethods"), ccxt::dict{});
     return this->safeString(withdrawMethods, network, network);
   }
@@ -4436,7 +4436,7 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  return this->safeTimestamp(result, std::string("unixtime"));
                })
@@ -4687,7 +4687,7 @@ public:
                  ccxt::any currency = this->currency(code);
                  ccxt::any network =
                      this->safeStringUpper(params, std::string("network"));
-                 ccxt::any networks = this->safeValue(
+                 ccxt::any networks = this->safeDict(
                      this->options, std::string("networks"), ccxt::dict{});
                  network = this->safeString(
                      networks, network, network); // support ETH > ERC20 aliases
@@ -4696,7 +4696,7 @@ public:
                             isTrue((isEqual(network, std::string("TRC20")))))) {
                    code = add(add(code, std::string("-")), network);
                  }
-                 ccxt::any defaultDepositMethods = this->safeValue(
+                 ccxt::any defaultDepositMethods = this->safeDict(
                      this->options, std::string("depositMethods"),
                      ccxt::dict{});
                  ccxt::any defaultDepositMethod =
@@ -4735,7 +4735,7 @@ public:
                    // available deposit method
                    if (isTrue(isEqual(depositMethod, ccxt::any{}))) {
                      ccxt::any firstDepositMethod =
-                         this->safeValue(depositMethods, 0, ccxt::dict{});
+                         this->safeDict(depositMethods, 0, ccxt::dict{});
                      depositMethod = this->safeString(firstDepositMethod,
                                                       std::string("method"));
                    }
@@ -4756,10 +4756,10 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      response, std::string("result"), ccxt::list{});
                  ccxt::any firstResult =
-                     this->safeValue(result, 0, ccxt::dict{});
+                     this->safeDict(result, 0, ccxt::dict{});
                  if (isTrue(isEqual(firstResult, ccxt::any{}))) {
                    throw InvalidAddress(toString(
                        add(add(this->id,
@@ -5114,7 +5114,7 @@ public:
     //    }
     //
     ccxt::any result =
-        this->safeValue(transfer, std::string("result"), ccxt::dict{});
+        this->safeDict(transfer, std::string("result"), ccxt::dict{});
     ccxt::any refid = this->safeString(result, std::string("refid"));
     return ccxt::dict{
         {std::string("info"), transfer},

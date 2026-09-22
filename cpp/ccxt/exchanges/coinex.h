@@ -2182,7 +2182,7 @@ public:
                  symbols = this->marketSymbols(symbols);
                  ccxt::any market = ccxt::any{};
                  if (isTrue(!isEqual(symbols, ccxt::any{}))) {
-                   ccxt::any symbol = this->safeValue(symbols, 0);
+                   ccxt::any symbol = this->safeString(symbols, 0);
                    market = this->market(symbol);
                  }
                  ccxt::any marketTypequeryVariable =
@@ -2581,7 +2581,7 @@ public:
 
   virtual ccxt::any parseTradingFee(ccxt::any fee,
                                     ccxt::any market = ccxt::any{}) {
-    ccxt::any marketId = this->safeValue(fee, std::string("market"));
+    ccxt::any marketId = this->safeString(fee, std::string("market"));
     ccxt::any symbol = this->safeSymbol(marketId, market);
     return ccxt::dict{
         {std::string("info"), fee},
@@ -3649,10 +3649,10 @@ public:
                    ccxt::any side =
                        this->safeString(rawOrder, std::string("side"));
                    ccxt::any amount =
-                       this->safeValue(rawOrder, std::string("amount"));
+                       this->safeNumber(rawOrder, std::string("amount"));
                    ccxt::any price =
-                       this->safeValue(rawOrder, std::string("price"));
-                   ccxt::any orderParams = this->safeValue(
+                       this->safeNumber(rawOrder, std::string("price"));
+                   ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    if (isTrue(!isEqual(type, std::string("limit")))) {
                      throw NotSupported(toString(
@@ -3998,9 +3998,9 @@ public:
                    }
                    ccxt::any id = this->safeString(rawOrder, std::string("id"));
                    ccxt::any amount =
-                       this->safeValue(rawOrder, std::string("amount"));
+                       this->safeNumber(rawOrder, std::string("amount"));
                    ccxt::any price =
-                       this->safeValue(rawOrder, std::string("price"));
+                       this->safeNumber(rawOrder, std::string("price"));
                    ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any marginMode = ccxt::any{};
@@ -5844,7 +5844,7 @@ public:
                  ccxt::any request = ccxt::dict{};
                  ccxt::any market = ccxt::any{};
                  if (isTrue(!isEqual(symbols, ccxt::any{}))) {
-                   ccxt::any symbol = this->safeValue(symbols, 0);
+                   ccxt::any symbol = this->safeString(symbols, 0);
                    market = this->market(symbol);
                    if (isTrue(!isEqual(::getValue(market, std::string("swap")),
                                        true))) {
@@ -6341,7 +6341,7 @@ public:
     ccxt::any fromId =
         this->safeString(transfer, std::string("from_account_type"));
     ccxt::any toId = this->safeString(transfer, std::string("to_account_type"));
-    ccxt::any accountsById = this->safeValue(
+    ccxt::any accountsById = this->safeDict(
         this->options, std::string("accountsById"), ccxt::dict{});
     return ccxt::dict{
         {std::string("id"), ccxt::any{}},
@@ -6771,8 +6771,8 @@ public:
                  //         "message": "OK"
                  //     }
                  //
-                 ccxt::any rows = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any rows = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any interest = this->parseBorrowInterests(rows, market);
                  return this->filterByCurrencySinceLimit(interest, code, since,
                                                          limit);

@@ -1805,7 +1805,7 @@ public:
                [=]() mutable -> ccxt::any {
                  // this method is now redundant
                  // currencies are now fetched before markets
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("fetchMarkets"), ccxt::dict{});
                  ccxt::any timestamp =
                      this->safeInteger(options, std::string("timestamp"));
@@ -2572,8 +2572,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any ohlc =
                      this->safeList(data, std::string("ohlc"), ccxt::list{});
                  return this->parseOHLCVs(ohlc, market, timeframe, since,
@@ -2815,7 +2815,7 @@ public:
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(ids));
          postFixIncrement(i)) {
       ccxt::any id = ::getValue(ids, i);
-      ccxt::any fees = this->safeValue(response, i, ccxt::dict{});
+      ccxt::any fees = this->safeDict(response, i, ccxt::dict{});
       ccxt::any code = this->safeCurrencyCode(id);
       if (isTrue(isTrue((!isEqual(codes, ccxt::any{}))) &&
                  !isTrue(this->inArray(code, codes)))) {
@@ -3387,7 +3387,7 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any values = this->safeValue(
+                 ccxt::any values = this->safeList(
                      response, std::string("funding_rate_history"),
                      ccxt::list{});
                  return this->parseFundingRateHistories(values, market, since,
@@ -3788,7 +3788,7 @@ public:
         this->parseOrderStatus(this->safeString(order, std::string("status")));
     ccxt::any amount = this->safeString(order, std::string("amount"));
     ccxt::any transactions =
-        this->safeValue(order, std::string("transactions"), ccxt::list{});
+        this->safeList(order, std::string("transactions"), ccxt::list{});
     ccxt::any price = this->safeString(order, std::string("price"));
     return this->safeOrder(
         ccxt::dict{

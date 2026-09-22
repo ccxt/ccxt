@@ -1365,8 +1365,8 @@ public:
                  }
                  ccxt::any promises = awaitValue(promiseAll(promisesRaw));
                  ccxt::any spotMarkets =
-                     this->safeValue(this->safeValue(promises, 0),
-                                     std::string("symbols"), ccxt::list{});
+                     this->safeList(this->safeDict(promises, 0),
+                                    std::string("symbols"), ccxt::list{});
                  ccxt::any futureMarkets = this->safeValue(promises, 1);
                  ccxt::any deliveryMarkets = this->safeValue(promises, 2);
                  ccxt::any markets = spotMarkets;
@@ -2905,8 +2905,8 @@ public:
                    }
                    ::setValue(request, std::string("positionType"), 1);
                    ccxt::any reduceOnly =
-                       this->safeValue2(params, std::string("reduceOnly"),
-                                        std::string("reduce_only"));
+                       this->safeBool2(params, std::string("reduceOnly"),
+                                       std::string("reduce_only"));
                    ::setValue(request, std::string("open"),
                               (isTrue((isEqual(reduceOnly, true)))
                                    ? ccxt::any(std::string("CLOSE"))
@@ -2960,8 +2960,8 @@ public:
                                 clientOrderId);
                    }
                    ccxt::any triggerPrice =
-                       this->safeValue2(params, std::string("triggerPrice"),
-                                        std::string("stopPrice"));
+                       this->safeNumber2(params, std::string("triggerPrice"),
+                                         std::string("stopPrice"));
                    if (isTrue(!isEqual(triggerPrice, ccxt::any{}))) {
                      params = this->omit(params,
                                          ccxt::list{std::string("triggerPrice"),
@@ -3036,8 +3036,8 @@ public:
                  }
                  ccxt::any market = this->market(symbol);
                  ccxt::any origClientOrderId =
-                     this->safeValue2(params, std::string("origClientOrderId"),
-                                      std::string("clientOrderId"));
+                     this->safeString2(params, std::string("origClientOrderId"),
+                                       std::string("clientOrderId"));
                  params = this->omit(
                      params, ccxt::list{std::string("origClientOrderId"),
                                         std::string("clientOrderId")});
@@ -3364,8 +3364,8 @@ public:
                  }
                  ccxt::any market = this->market(symbol);
                  ccxt::any origClientOrderId =
-                     this->safeValue2(params, std::string("origClientOrderId"),
-                                      std::string("clientOrderId"));
+                     this->safeString2(params, std::string("origClientOrderId"),
+                                       std::string("clientOrderId"));
                  params = this->omit(
                      params, ccxt::list{std::string("origClientOrderId"),
                                         std::string("clientOrderId")});
@@ -4695,7 +4695,7 @@ public:
         }
       }
     }
-    return this->safeValue(config, std::string("cost"), 1);
+    return this->safeNumber(config, std::string("cost"), 1);
   }
   // GENERATED dispatch table - see createDispatchTable in
   // build/cppTranspiler.ts

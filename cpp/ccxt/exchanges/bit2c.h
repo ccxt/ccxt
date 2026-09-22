@@ -846,7 +846,7 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any marketId = ::getValue(keys, i);
                    ccxt::any symbol = this->safeSymbol(marketId);
-                   ccxt::any fee = this->safeValue(fees, marketId);
+                   ccxt::any fee = this->safeDict(fees, marketId);
                    ccxt::any makerString =
                        this->safeString(fee, std::string("FeeMaker"));
                    ccxt::any takerString =
@@ -996,11 +996,11 @@ public:
                  };
                  ccxt::any response = awaitValue(this->privateGetOrderMyOrders(
                      this->extend(request, params)));
-                 ccxt::any orders = this->safeValue(
+                 ccxt::any orders = this->safeDict(
                      response, ::getValue(market, std::string("id")),
                      ccxt::dict{});
                  ccxt::any asks =
-                     this->safeValue(orders, std::string("ask"), ccxt::list{});
+                     this->safeList(orders, std::string("ask"), ccxt::list{});
                  ccxt::any bids =
                      this->safeList(orders, std::string("bid"), ccxt::list{});
                  return this->parseOrders(this->arrayConcat(asks, bids), market,
@@ -1337,7 +1337,7 @@ public:
       ccxt::any marketId = this->safeString(trade, std::string("pair"));
       market = this->safeMarket(marketId, market);
       market = this->safeMarket(::getValue(reference_parts, 0), market);
-      ccxt::any isMaker = this->safeValue(trade, std::string("isMaker"));
+      ccxt::any isMaker = this->safeBool(trade, std::string("isMaker"));
       makerOrTaker =
           (isTrue((isEqual(isMaker, true))) ? ccxt::any(std::string("maker"))
                                             : ccxt::any(std::string("taker")));

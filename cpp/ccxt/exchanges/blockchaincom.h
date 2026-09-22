@@ -492,7 +492,7 @@ public:
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(marketIds));
                       postFixIncrement(i)) {
                    ccxt::any marketId = ::getValue(marketIds, i);
-                   ccxt::any market = this->safeValue(markets, marketId);
+                   ccxt::any market = this->safeDict(markets, marketId);
                    ccxt::any baseId =
                        this->safeString(market, std::string("base_currency"));
                    ccxt::any quoteId = this->safeString(
@@ -1710,7 +1710,7 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any balances = this->safeValue(response, accountName);
+                 ccxt::any balances = this->safeList(response, accountName);
                  if (isTrue(isEqual(balances, ccxt::any{}))) {
                    throw ExchangeError(toString(add(
                        add(add(this->id,

@@ -783,7 +783,7 @@ public:
          postFixIncrement(i)) {
       ccxt::any currencyId = ::getValue(currencyIds, i);
       ccxt::any code = this->safeCurrencyCode(currencyId);
-      ccxt::any balance = this->safeValue(balances, currencyId);
+      ccxt::any balance = this->safeDict(balances, currencyId);
       ccxt::any account = this->account();
       ::setValue(account, std::string("free"),
                  this->safeString(balance, std::string("available")));
@@ -1217,7 +1217,7 @@ public:
                   awaitValue(this->loadMarkets());
                 }
                 ccxt::any currency = this->currency(code);
-                ccxt::any withdrawOptions = this->safeValue(
+                ccxt::any withdrawOptions = this->safeDict(
                     this->options, std::string("withdraw"), ccxt::dict{});
                 ccxt::any methods = this->safeDict(
                     withdrawOptions, std::string("methods"), ccxt::dict{});
@@ -1301,7 +1301,8 @@ public:
                 //         }
                 //     }
                 //
-                ccxt::any data = this->safeValue(response, std::string("data"));
+                ccxt::any data =
+                    this->safeDict(response, std::string("data"), ccxt::dict{});
                 ccxt::any transaction = this->parseTransaction(data, currency);
                 ccxt::any fillResponseFromRequest = this->safeBool(
                     withdrawOptions, std::string("fillResponseFromRequest"),
@@ -1529,8 +1530,8 @@ public:
                  //         "1646253217815" }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any makerString =
                      this->safeString(data, std::string("maker"));
                  ccxt::any takerString =

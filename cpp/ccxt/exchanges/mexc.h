@@ -2097,14 +2097,14 @@ public:
                    ccxt::any quote = this->safeCurrencyCode(quoteId);
                    ccxt::any status =
                        this->safeString(market, std::string("status"));
-                   ccxt::any isSpotTradingAllowed = this->safeValue(
+                   ccxt::any isSpotTradingAllowed = this->safeBool(
                        market, std::string("isSpotTradingAllowed"));
                    ccxt::any active = false;
                    if (isTrue(isTrue((isEqual(status, std::string("1")))) &&
                               isTrue((isEqual(isSpotTradingAllowed, true))))) {
                      active = true;
                    }
-                   ccxt::any isMarginTradingAllowed = this->safeValue(
+                   ccxt::any isMarginTradingAllowed = this->safeBool(
                        market, std::string("isMarginTradingAllowed"));
                    ccxt::any makerCommission =
                        this->safeNumber(market, std::string("makerCommission"));
@@ -2455,7 +2455,7 @@ public:
                    //     }
                    //
                    ccxt::any data =
-                       this->safeValue(response, std::string("data"));
+                       this->safeDict(response, std::string("data"));
                    ccxt::any timestamp =
                        this->safeInteger(data, std::string("timestamp"));
                    orderbook = this->parseOrderBook(data, symbol, timestamp);
@@ -2707,7 +2707,9 @@ public:
                                           trade, std::string("feeCurrency")))},
         };
         ccxt::any isTaker =
-            (isEqual(this->safeBool(trade, std::string("taker")), true));
+            (isEqual(this->safeBool2(trade, std::string("isTaker"),
+                                     std::string("taker")),
+                     true));
         takerOrMaker = (isTrue(isTaker) ? ccxt::any(std::string("taker"))
                                         : ccxt::any(std::string("maker")));
       } else {
@@ -2716,9 +2718,9 @@ public:
         amountString =
             this->safeString2(trade, std::string("qty"), std::string("q"));
         costString = this->safeString(trade, std::string("quoteQty"));
-        ccxt::any isBuyer = this->safeValue(trade, std::string("isBuyer"));
-        ccxt::any isMaker = this->safeValue(trade, std::string("isMaker"));
-        ccxt::any buyerMaker = this->safeValue2(
+        ccxt::any isBuyer = this->safeBool(trade, std::string("isBuyer"));
+        ccxt::any isMaker = this->safeBool(trade, std::string("isMaker"));
+        ccxt::any buyerMaker = this->safeBool2(
             trade, std::string("isBuyerMaker"), std::string("m"));
         if (isTrue(!isEqual(isMaker, ccxt::any{}))) {
           takerOrMaker = (isTrue((isEqual(isMaker, true)))
@@ -2831,9 +2833,9 @@ public:
                        std::string("fetchOHLCV"), symbol, since, limit,
                        timeframe, params, maxLimit));
                  }
-                 ccxt::any options = this->safeValue(
+                 ccxt::any options = this->safeDict(
                      this->options, std::string("timeframes"), ccxt::dict{});
-                 ccxt::any timeframes = this->safeValue(
+                 ccxt::any timeframes = this->safeDict(
                      options, ::getValue(market, std::string("type")),
                      ccxt::dict{});
                  ccxt::any timeframeValue =
@@ -3054,8 +3056,8 @@ public:
                    //         ]
                    //     }
                    //
-                   tickers = this->safeValue(response, std::string("data"),
-                                             ccxt::list{});
+                   tickers = this->safeList(response, std::string("data"),
+                                            ccxt::list{});
                  }
                  // when it's single symbol request, the returned structure is
                  // different (singular object) for both spot & swap, thus we
@@ -3136,8 +3138,8 @@ public:
                    //         }
                    //     }
                    //
-                   ticker = this->safeValue(response, std::string("data"),
-                                            ccxt::dict{});
+                   ticker = this->safeDict(response, std::string("data"),
+                                           ccxt::dict{});
                  }
                  // when it's single symbol request, the returned structure is
                  // different (singular object) for both spot & swap, thus we
@@ -3164,7 +3166,7 @@ public:
     ccxt::any changePcnt = ccxt::any{};
     ccxt::any changeValue = ccxt::any{};
     ccxt::any prevClose = ccxt::any{};
-    ccxt::any isSwap = this->safeValue(market, std::string("swap"));
+    ccxt::any isSwap = this->safeBool(market, std::string("swap"));
     // if swap
     if (isTrue(isTrue((isEqual(isSwap, true))) ||
                isTrue((inOp(ticker, std::string("timestamp")))))) {
@@ -3933,7 +3935,7 @@ public:
                        this->safeValue(rawOrder, std::string("amount"));
                    ccxt::any price =
                        this->safeValue(rawOrder, std::string("price"));
-                   ccxt::any orderParams = this->safeValue(
+                   ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any marginMode = ccxt::any{};
                    ccxt::any marginModeparamsVariable =
@@ -4821,8 +4823,8 @@ public:
                   //     }
                   //
                   data = this->safeValue(response, std::string("data"));
-                  ccxt::any order = this->safeValue(data, 0);
-                  ccxt::any errorMsg = this->safeValue(
+                  ccxt::any order = this->safeDict(data, 0);
+                  ccxt::any errorMsg = this->safeString(
                       order, std::string("errorMsg"), std::string(""));
                   if (isTrue(!isEqual(errorMsg, std::string("success")))) {
                     throw InvalidOrder(toString(add(
@@ -5359,8 +5361,8 @@ public:
                           // fetchAccounts reads response['balances']
                           return ccxt::dict{
                               {std::string("balances"),
-                               this->safeValue(response, std::string("data"),
-                                               ccxt::list{})},
+                               this->safeList(response, std::string("data"),
+                                              ccxt::list{})},
                           };
                         }
                         return ccxt::any{};
@@ -5563,9 +5565,9 @@ public:
            postFixIncrement(i)) {
         ccxt::any entry = ::getValue(wallet, i);
         ccxt::any base =
-            this->safeValue(entry, std::string("baseAsset"), ccxt::dict{});
+            this->safeDict(entry, std::string("baseAsset"), ccxt::dict{});
         ccxt::any quote =
-            this->safeValue(entry, std::string("quoteAsset"), ccxt::dict{});
+            this->safeDict(entry, std::string("quoteAsset"), ccxt::dict{});
         ccxt::any baseCode = this->safeCurrencyCode(
             this->safeString(base, std::string("asset")));
         ccxt::any quoteCode = this->safeCurrencyCode(
@@ -5682,7 +5684,7 @@ public:
                        this->safeString(params, std::string("symbol"));
                    if (isTrue(isEqual(symbol, ccxt::any{}))) {
                      ccxt::any symbols =
-                         this->safeValue(params, std::string("symbols"));
+                         this->safeList(params, std::string("symbols"));
                      if (isTrue(!isEqual(symbols, ccxt::any{}))) {
                        ccxt::any symbolIds = this->marketIds(symbols);
                        if (isTrue(!isEqual(symbolIds, ccxt::any{}))) {
@@ -6219,8 +6221,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any resultList = this->safeList(
                      data, std::string("resultList"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
@@ -6371,7 +6373,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
                         return this->parseFundingRate(result, market);
                       })
@@ -6442,8 +6444,7 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any data =
-                     this->safeValue(response, std::string("data"));
+                 ccxt::any data = this->safeDict(response, std::string("data"));
                  ccxt::any result = this->safeList(
                      data, std::string("resultList"), ccxt::list{});
                  ccxt::any rates = ccxt::list{};
@@ -6725,7 +6726,7 @@ public:
                               ? ccxt::any(ccxt::dict{})
                               : ccxt::any(this->safeDict(
                                     networks, networkUnified, ccxt::dict{})));
-                     ccxt::any networkInfo = this->safeValue(
+                     ccxt::any networkInfo = this->safeDict(
                          network, std::string("info"), ccxt::dict{});
                      networkId =
                          this->safeString(networkInfo, std::string("network"));
@@ -6809,7 +6810,7 @@ public:
                             ? ccxt::any(ccxt::dict{})
                             : ccxt::any(this->safeDict(networks, networkUnified,
                                                        ccxt::dict{})));
-                   ccxt::any networkInfo = this->safeValue(
+                   ccxt::any networkInfo = this->safeDict(
                        network, std::string("info"), ccxt::dict{});
                    networkId =
                        this->safeString(networkInfo, std::string("network"));
@@ -7219,7 +7220,7 @@ public:
              {std::string("10"), std::string("pending")},
          }},
     };
-    ccxt::any statuses = this->safeValue(statusesByType, type, ccxt::dict{});
+    ccxt::any statuses = this->safeDict(statusesByType, type, ccxt::dict{});
     return this->safeString(statuses, status, status);
   }
 
@@ -7284,7 +7285,7 @@ public:
                         };
                         ccxt::any response = awaitValue(this->fetchPositions(
                             ccxt::any{}, this->extend(request, params)));
-                        return this->safeValue(response, 0);
+                        return this->safeDict(response, 0);
                       })
         .share();
   }
@@ -7658,7 +7659,7 @@ public:
                        awaitValue(this->contractPrivateGetAccountTransferRecord(
                            this->extend(request, params)));
                    ccxt::any data =
-                       this->safeValue(response, std::string("data"));
+                       this->safeDict(response, std::string("data"));
                    resultList =
                        this->safeValue(data, std::string("resultList"));
                  }

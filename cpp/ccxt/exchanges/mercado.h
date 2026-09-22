@@ -433,7 +433,7 @@ public:
                  //     ]
                  //
                  ccxt::any result = ccxt::list{};
-                 ccxt::any amountLimits = this->safeValue(
+                 ccxt::any amountLimits = this->safeDict(
                      this->options, std::string("limits"), ccxt::dict{});
                  ccxt::any coins = this->toArray(response);
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(coins));
@@ -622,7 +622,7 @@ public:
                         ccxt::any response =
                             awaitValue(this->publicGetCoinTicker(
                                 this->extend(request, params)));
-                        ccxt::any ticker = this->safeValue(
+                        ccxt::any ticker = this->safeDict(
                             response, std::string("ticker"), ccxt::dict{});
                         //
                         //     {
@@ -733,7 +733,7 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any data =
-        this->safeValue(response, std::string("response_data"), ccxt::dict{});
+        this->safeDict(response, std::string("response_data"), ccxt::dict{});
     ccxt::any balances =
         this->safeDict(data, std::string("balance"), ccxt::dict{});
     ccxt::any result = ccxt::dict{
@@ -745,7 +745,7 @@ public:
       ccxt::any currencyId = ::getValue(currencyIds, i);
       ccxt::any code = this->safeCurrencyCode(currencyId);
       if (isTrue(inOp(balances, currencyId))) {
-        ccxt::any balance = this->safeValue(balances, currencyId, ccxt::dict{});
+        ccxt::any balance = this->safeDict(balances, currencyId, ccxt::dict{});
         ccxt::any account = this->account();
         ::setValue(account, std::string("free"),
                    this->safeString(balance, std::string("available")));
@@ -938,7 +938,7 @@ public:
                  //         "server_unix_timestamp": "1536956499"
                  //     }
                  //
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
                  ccxt::any order = this->safeDict(
                      responseData, std::string("order"), ccxt::dict{});
@@ -1011,7 +1011,7 @@ public:
     ccxt::any lastTradeTimestamp =
         this->safeTimestamp(order, std::string("updated_timestamp"));
     ccxt::any rawTrades =
-        this->safeValue(order, std::string("operations"), ccxt::list{});
+        this->safeList(order, std::string("operations"), ccxt::list{});
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
     return this->safeOrder(
         ccxt::dict{
@@ -1074,7 +1074,7 @@ public:
                  };
                  ccxt::any response = awaitValue(
                      this->privatePostGetOrder(this->extend(request, params)));
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
                  ccxt::any order =
                      this->safeDict(responseData, std::string("order"));
@@ -1174,7 +1174,7 @@ public:
                  //         "server_unix_timestamp": "1453912088"
                  //     }
                  //
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
                  ccxt::any withdrawal =
                      this->safeDict(responseData, std::string("withdrawal"));
@@ -1332,7 +1332,7 @@ public:
                  };
                  ccxt::any response = awaitValue(this->privatePostListOrders(
                      this->extend(request, params)));
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
                  ccxt::any orders = this->safeList(
                      responseData, std::string("orders"), ccxt::list{});
@@ -1378,7 +1378,7 @@ public:
                  };
                  ccxt::any response = awaitValue(this->privatePostListOrders(
                      this->extend(request, params)));
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
                  ccxt::any orders = this->safeList(
                      responseData, std::string("orders"), ccxt::list{});
@@ -1423,9 +1423,9 @@ public:
                  };
                  ccxt::any response = awaitValue(this->privatePostListOrders(
                      this->extend(request, params)));
-                 ccxt::any responseData = this->safeValue(
+                 ccxt::any responseData = this->safeDict(
                      response, std::string("response_data"), ccxt::dict{});
-                 ccxt::any ordersRaw = this->safeValue(
+                 ccxt::any ordersRaw = this->safeList(
                      responseData, std::string("orders"), ccxt::list{});
                  ccxt::any orders =
                      this->parseOrders(ordersRaw, market, since, limit);

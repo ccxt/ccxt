@@ -1166,7 +1166,7 @@ public:
                       [=]() mutable -> ccxt::any {
                         ccxt::any markets =
                             awaitValue(Exchange::loadMarkets(reload, params));
-                        ccxt::any currenciesByNumericId = this->safeValue(
+                        ccxt::any currenciesByNumericId = this->safeDict(
                             this->options,
                             std::string("currenciesByNumericId"));
                         if (isTrue(isTrue((isEqual(currenciesByNumericId,
@@ -1314,7 +1314,7 @@ public:
     ccxt::any state = this->safeString(market, std::string("state"));
     ccxt::any active = isEqual(state, std::string("NORMAL"));
     ccxt::any symbolTradeLimit =
-        this->safeValue(market, std::string("symbolTradeLimit"));
+        this->safeDict(market, std::string("symbolTradeLimit"));
     // these are known defaults
     return this->safeMarketStructure(ccxt::dict{
         {std::string("id"), id},
@@ -2586,7 +2586,7 @@ public:
                    ::setValue(request, std::string("limit"),
                               mathMax(limit, max));
                  }
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params = this->omit(params, ccxt::list{std::string("trigger"),
                                                         std::string("stop")});
@@ -3137,7 +3137,7 @@ public:
                    id = clientOrderId;
                  }
                  ::setValue(request, std::string("id"), id);
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params =
                      this->omit(params, ccxt::list{std::string("clientOrderId"),
@@ -3231,7 +3231,7 @@ public:
                        this->safeList(raw, std::string("data"), ccxt::list{});
                    return this->parseOrders(response, market);
                  }
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params = this->omit(params, ccxt::list{std::string("trigger"),
                                                         std::string("stop")});
@@ -3310,7 +3310,7 @@ public:
                                marketType),
                            std::string(" markets yet"))));
                  }
-                 ccxt::any isTrigger = this->safeValue2(
+                 ccxt::any isTrigger = this->safeBool2(
                      params, std::string("trigger"), std::string("stop"));
                  params = this->omit(params, ccxt::list{std::string("trigger"),
                                                         std::string("stop")});
@@ -3454,11 +3454,11 @@ public:
     // for spot
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(response));
          postFixIncrement(i)) {
-      ccxt::any account = this->safeValue(response, i, ccxt::dict{});
+      ccxt::any account = this->safeDict(response, i, ccxt::dict{});
       ccxt::any balances = this->safeValue(account, std::string("balances"));
       for (ccxt::any j = 0; isLessThan(j, getArrayLength(balances));
            postFixIncrement(j)) {
-        ccxt::any balance = this->safeValue(balances, j);
+        ccxt::any balance = this->safeDict(balances, j);
         ccxt::any currencyId =
             this->safeString(balance, std::string("currency"));
         ccxt::any code = this->safeCurrencyCode(currencyId);
@@ -3937,7 +3937,7 @@ public:
                       [=]() mutable -> ccxt::any {
                         awaitValue(this->loadMarkets());
                         ccxt::any currency = this->currency(code);
-                        ccxt::any accountsByType = this->safeValue(
+                        ccxt::any accountsByType = this->safeDict(
                             this->options, std::string("accountsByType"),
                             ccxt::dict{});
                         ccxt::any fromId = this->safeString(
@@ -4193,9 +4193,9 @@ public:
                  if (isTrue(!isEqual(code, ccxt::any{}))) {
                    currency = this->currency(code);
                  }
-                 ccxt::any withdrawals = this->safeValue(
+                 ccxt::any withdrawals = this->safeList(
                      response, std::string("withdrawals"), ccxt::list{});
-                 ccxt::any deposits = this->safeValue(
+                 ccxt::any deposits = this->safeList(
                      response, std::string("deposits"), ccxt::list{});
                  ccxt::any withdrawalTransactions = this->parseTransactions(
                      withdrawals, currency, since, limit);
@@ -4238,7 +4238,7 @@ public:
                  if (isTrue(!isEqual(code, ccxt::any{}))) {
                    currency = this->currency(code);
                  }
-                 ccxt::any withdrawals = this->safeValue(
+                 ccxt::any withdrawals = this->safeList(
                      response, std::string("withdrawals"), ccxt::list{});
                  ccxt::any transactions = this->parseTransactions(
                      withdrawals, currency, since, limit);
@@ -4361,7 +4361,7 @@ public:
             networkId = replace(networkId, code, std::string(""));
             ccxt::any networkCode = this->networkIdToCode(
                 networkId, ::getValue(currency, std::string("code")));
-            ccxt::any networkInfo = this->safeValue(response, networkId);
+            ccxt::any networkInfo = this->safeDict(response, networkId);
             ccxt::any networkObject = ccxt::dict{};
             ccxt::any withdrawFee =
                 this->safeNumber(networkInfo, std::string("withdrawalFee"));
@@ -4456,7 +4456,7 @@ public:
                  if (isTrue(!isEqual(code, ccxt::any{}))) {
                    currency = this->currency(code);
                  }
-                 ccxt::any deposits = this->safeValue(
+                 ccxt::any deposits = this->safeList(
                      response, std::string("deposits"), ccxt::list{});
                  ccxt::any transactions =
                      this->parseTransactions(deposits, currency, since, limit);

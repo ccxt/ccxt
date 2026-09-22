@@ -568,7 +568,7 @@ public:
                  }
                  ccxt::any response =
                      awaitValue(this->privateGetExchangeOrdersOpens(params));
-                 ccxt::any rawOrders = this->safeValue(
+                 ccxt::any rawOrders = this->safeList(
                      response, std::string("orders"), ccxt::list{});
                  ccxt::any parsedOrders =
                      this->parseOrders(rawOrders, market, since, limit);
@@ -826,7 +826,7 @@ public:
         takerOrMaker = std::string("maker");
       }
       ccxt::any funds =
-          this->safeValue(trade, std::string("funds"), ccxt::dict{});
+          this->safeDict(trade, std::string("funds"), ccxt::dict{});
       amountString = this->safeString(funds, baseId);
       costString = this->safeString(funds, quoteId);
       fee = ccxt::dict{
@@ -1010,7 +1010,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any fees = this->safeValue(
+                 ccxt::any fees = this->safeDict(
                      response, std::string("exchange_fees"), ccxt::dict{});
                  ccxt::any result = ccxt::dict{};
                  ccxt::any symbols = this->symbols;
@@ -1021,7 +1021,7 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any symbol = ::getValue(symbols, i);
                    ccxt::any market = this->market(symbol);
-                   ccxt::any fee = this->safeValue(
+                   ccxt::any fee = this->safeDict(
                        fees, ::getValue(market, std::string("id")),
                        ccxt::dict{});
                    ::setValue(

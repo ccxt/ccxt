@@ -933,7 +933,7 @@ public:
       remainingString = ccxt::Precise::stringSub(totalQuantity, filled);
     }
     ccxt::any timeInForce = std::string("GTC");
-    ccxt::any orderFlags = this->safeValue(order, std::string("orderFlags"));
+    ccxt::any orderFlags = this->safeString(order, std::string("orderFlags"));
     ccxt::any postOnly = false;
     ccxt::any reduceOnly = false;
     if (isTrue(isEqual(orderFlags, std::string("POST_ONLY")))) {
@@ -1311,9 +1311,9 @@ public:
                    ccxt::any side =
                        this->safeString(rawOrder, std::string("side"));
                    ccxt::any amount =
-                       this->safeValue(rawOrder, std::string("amount"));
+                       this->safeNumber(rawOrder, std::string("amount"));
                    ccxt::any price =
-                       this->safeValue(rawOrder, std::string("price"));
+                       this->safeNumber(rawOrder, std::string("price"));
                    ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any orderRequest = this->createOrderRequest(
@@ -1476,9 +1476,9 @@ public:
                    ccxt::any side =
                        this->safeString(rawOrder, std::string("side"));
                    ccxt::any amount =
-                       this->safeValue(rawOrder, std::string("amount"));
+                       this->safeNumber(rawOrder, std::string("amount"));
                    ccxt::any price =
-                       this->safeValue(rawOrder, std::string("price"));
+                       this->safeNumber(rawOrder, std::string("price"));
                    ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any orderRequest =
@@ -1804,7 +1804,7 @@ public:
   ccxt::any nonce() override { return this->milliseconds(); }
 
   virtual ccxt::any signMessage(ccxt::any message, ccxt::any privateKey) {
-    if (isTrue(isEqual(getArrayLength(privateKey), 44))) {
+    if (isTrue(isEqual(getStringLength(privateKey), 44))) {
       // For Exchange Managed account, the key length is 44 and we use HMAC to
       // sign the message
       return this->hmac(message, this->encode(privateKey), sha256,

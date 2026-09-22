@@ -1287,13 +1287,13 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any symbol = ::getValue(symbols, i);
                    ccxt::any market = this->market(symbol);
-                   ccxt::any fee = this->safeValue(
+                   ccxt::any fee = this->safeDict(
                        fees, ::getValue(market, std::string("base")),
                        ccxt::dict{});
                    ::setValue(result, symbol,
                               ccxt::dict{
                                   {std::string("info"),
-                                   this->safeValue(fee, std::string("info"))},
+                                   this->safeDict(fee, std::string("info"))},
                                   {std::string("symbol"), symbol},
                                   {std::string("maker"),
                                    this->safeNumber(fee, std::string("fee"))},

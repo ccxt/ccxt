@@ -1057,7 +1057,7 @@ public:
         this->safeString(market, std::string("Product2Symbol")));
     ccxt::any sessionStatus =
         this->safeString(market, std::string("SessionStatus"));
-    ccxt::any isDisable = this->safeValue(market, std::string("IsDisable"));
+    ccxt::any isDisable = this->safeBool(market, std::string("IsDisable"));
     ccxt::any sessionRunning = (isEqual(sessionStatus, std::string("Running")));
     return this->safeMarketStructure(ccxt::dict{
         {std::string("id"), id},
@@ -3434,7 +3434,7 @@ public:
     ccxt::any statuses =
         (isTrue((isEqual(type, ccxt::any{})))
              ? ccxt::any(ccxt::dict{})
-             : ccxt::any(this->safeValue(statusesByType, type, ccxt::dict{})));
+             : ccxt::any(this->safeDict(statusesByType, type, ccxt::dict{})));
     if (isTrue(isEqual(status, ccxt::any{}))) {
       return ccxt::any{};
     }
@@ -3643,9 +3643,9 @@ public:
                 //     }
                 //
                 ccxt::any templateTypes =
-                    this->safeValue(withdrawTemplateTypesResponse,
-                                    std::string("TemplateTypes"), ccxt::list{});
-                ccxt::any firstTemplateType = this->safeValue(templateTypes, 0);
+                    this->safeList(withdrawTemplateTypesResponse,
+                                   std::string("TemplateTypes"), ccxt::list{});
+                ccxt::any firstTemplateType = this->safeDict(templateTypes, 0);
                 if (isTrue(isEqual(firstTemplateType, ccxt::any{}))) {
                   throw ExchangeError(toString(add(
                       add(this->id, std::string(" withdraw() could not find a "

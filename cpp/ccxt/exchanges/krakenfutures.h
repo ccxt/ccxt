@@ -1752,9 +1752,9 @@ public:
     ccxt::any marketId = this->safeString(trade, std::string("symbol"));
     ccxt::any side = this->safeString(trade, std::string("side"));
     ccxt::any type = ccxt::any{};
-    ccxt::any priorEdit = this->safeValue(trade, std::string("orderPriorEdit"));
+    ccxt::any priorEdit = this->safeDict(trade, std::string("orderPriorEdit"));
     ccxt::any priorExecution =
-        this->safeValue(trade, std::string("orderPriorExecution"));
+        this->safeDict(trade, std::string("orderPriorExecution"));
     if (isTrue(!isEqual(priorExecution, ccxt::any{}))) {
       order = this->safeString(priorExecution, std::string("orderId"));
       marketId = this->safeString(priorExecution, std::string("symbol"));
@@ -2125,7 +2125,7 @@ public:
                        this->safeValue(rawOrder, std::string("amount"));
                    ccxt::any price =
                        this->safeValue(rawOrder, std::string("price"));
-                   ccxt::any orderParams = this->safeValue(
+                   ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any extendedParams = this->extend(
                        orderParams,
@@ -2251,8 +2251,8 @@ public:
                          },
                          params)));
                  ccxt::any status = this->safeString(
-                     this->safeValue(response, std::string("cancelStatus"),
-                                     ccxt::dict{}),
+                     this->safeDict(response, std::string("cancelStatus"),
+                                    ccxt::dict{}),
                      std::string("status"));
                  this->verifyOrderActionSuccess(status,
                                                 std::string("cancelOrder"));
@@ -3271,7 +3271,7 @@ public:
             ccxt::any executedPrice =
                 this->safeString(item, std::string("price"));
             ccxt::any orderPriorExecution =
-                this->safeValue(item, std::string("orderPriorExecution"));
+                this->safeDict(item, std::string("orderPriorExecution"));
             details = this->safeValue2(item, std::string("orderPriorExecution"),
                                        std::string("orderPriorEdit"));
             if (isTrue(isEqual(executedPrice, ccxt::any{}))) {
@@ -3975,8 +3975,8 @@ public:
                  }
                  ccxt::any accountName = this->parseAccount(type);
                  ccxt::any accounts =
-                     this->safeValue(response, std::string("accounts"));
-                 ccxt::any account = this->safeValue(accounts, accountName);
+                     this->safeDict(response, std::string("accounts"));
+                 ccxt::any account = this->safeDict(accounts, accountName);
                  if (isTrue(isEqual(account, ccxt::any{}))) {
                    type = (isTrue((isEqual(type, ccxt::any{})))
                                ? ccxt::any(std::string(""))
@@ -4096,7 +4096,7 @@ public:
         ::setValue(account, std::string("total"), balance);
       } else {
         ccxt::any auxiliary =
-            this->safeValue(response, std::string("auxiliary"));
+            this->safeDict(response, std::string("auxiliary"));
         ::setValue(account, std::string("free"),
                    this->safeString(auxiliary, std::string("af")));
         ::setValue(account, std::string("total"),
@@ -4139,7 +4139,7 @@ public:
                       postFixIncrement(i)) {
                    ccxt::any entry = ::getValue(tickers, i);
                    ccxt::any entry_symbol =
-                       this->safeValue(entry, std::string("symbol"));
+                       this->safeString(entry, std::string("symbol"));
                    if (isTrue(!isEqual(marketIds, ccxt::any{}))) {
                      if (!isTrue(this->inArray(entry_symbol, marketIds))) {
                        continue;
@@ -4749,7 +4749,7 @@ public:
     //        "tags": [],
     //    }
     //
-    ccxt::any marginLevels = this->safeValue(info, std::string("marginLevels"));
+    ccxt::any marginLevels = this->safeList(info, std::string("marginLevels"));
     ccxt::any marketId = this->safeString(info, std::string("symbol"));
     market = this->safeMarket(marketId, market);
     ccxt::any tiers = ccxt::list{};
@@ -5112,8 +5112,8 @@ public:
       throw DDoSProtection(
           toString(add(add(this->id, std::string(" ")), body)));
     }
-    ccxt::any errors = this->safeValue(response, std::string("errors"));
-    ccxt::any firstError = this->safeValue(errors, 0);
+    ccxt::any errors = this->safeList(response, std::string("errors"));
+    ccxt::any firstError = this->safeDict(errors, 0);
     ccxt::any firtErrorMessage =
         this->safeString(firstError, std::string("message"));
     ccxt::any message =
@@ -5137,18 +5137,18 @@ public:
                  ccxt::any params = ccxt::dict{},
                  ccxt::any headers = ccxt::any{},
                  ccxt::any body = ccxt::any{}) override {
-    ccxt::any apiVersions = this->safeValue(
+    ccxt::any apiVersions = this->safeDict(
         ::getValue(this->options, std::string("versions")), api, ccxt::dict{});
     ccxt::any methodVersions =
-        this->safeValue(apiVersions, method, ccxt::dict{});
+        this->safeDict(apiVersions, method, ccxt::dict{});
     ccxt::any defaultVersion =
         this->safeString(methodVersions, path, this->version);
     ccxt::any version =
         this->safeString(params, std::string("version"), defaultVersion);
     params = this->omit(params, std::string("version"));
-    ccxt::any apiAccess = this->safeValue(
+    ccxt::any apiAccess = this->safeDict(
         ::getValue(this->options, std::string("access")), api, ccxt::dict{});
-    ccxt::any methodAccess = this->safeValue(apiAccess, method, ccxt::dict{});
+    ccxt::any methodAccess = this->safeDict(apiAccess, method, ccxt::dict{});
     ccxt::any access =
         this->safeString(methodAccess, path, std::string("public"));
     ccxt::any endpoint =

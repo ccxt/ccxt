@@ -890,9 +890,9 @@ public:
     ccxt::any updatedAt = this->safeString(transfer, std::string("updated_at"));
     ccxt::any timetstamp = this->parseDate(updatedAt);
     ccxt::any accountOperations =
-        this->safeValue(transfer, std::string("account_operations"));
+        this->safeList(transfer, std::string("account_operations"));
     ccxt::any firstOperation =
-        this->safeValue(accountOperations, 0, ccxt::dict{});
+        this->safeDict(accountOperations, 0, ccxt::dict{});
     ccxt::any status = this->safeString(transfer, std::string("state"));
     return ccxt::dict{
         {std::string("info"), transfer},

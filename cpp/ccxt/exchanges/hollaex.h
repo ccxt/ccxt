@@ -541,7 +541,7 @@ public:
                            {std::string("future"), false},
                            {std::string("option"), false},
                            {std::string("active"),
-                            this->safeValue(market, std::string("active"))},
+                            this->safeBool(market, std::string("active"))},
                            {std::string("contract"), false},
                            {std::string("linear"), ccxt::any{}},
                            {std::string("inverse"), ccxt::any{}},
@@ -775,7 +775,7 @@ public:
              {std::string("withdraw"),
               ccxt::dict{
                   {std::string("min"), ccxt::any{}},
-                  {std::string("max"), this->safeValue(withdrawalLimits, 0)},
+                  {std::string("max"), this->safeNumber(withdrawalLimits, 0)},
               }},
          }},
         {std::string("networks"), networks},
@@ -877,7 +877,7 @@ public:
                  //         // ...
                  //     }
                  //
-                 ccxt::any orderbook = this->safeValue(
+                 ccxt::any orderbook = this->safeDict(
                      response, ::getValue(market, std::string("id")));
                  ccxt::any timestamp = this->parse8601(
                      this->safeString(orderbook, std::string("timestamp")));
@@ -1219,13 +1219,13 @@ public:
                  //     }
                  //
                  ccxt::any firstTier =
-                     this->safeValue(response, std::string("1"), ccxt::dict{});
-                 ccxt::any fees = this->safeValue(
-                     firstTier, std::string("fees"), ccxt::dict{});
+                     this->safeDict(response, std::string("1"), ccxt::dict{});
+                 ccxt::any fees = this->safeDict(firstTier, std::string("fees"),
+                                                 ccxt::dict{});
                  ccxt::any makerFees =
-                     this->safeValue(fees, std::string("maker"), ccxt::dict{});
+                     this->safeDict(fees, std::string("maker"), ccxt::dict{});
                  ccxt::any takerFees =
-                     this->safeValue(fees, std::string("taker"), ccxt::dict{});
+                     this->safeDict(fees, std::string("taker"), ccxt::dict{});
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0;
                       isLessThan(i, getArrayLength(this->symbols));
@@ -1737,7 +1737,7 @@ public:
     ccxt::any filled = this->safeString(order, std::string("filled"));
     ccxt::any status =
         this->parseOrderStatus(this->safeString(order, std::string("status")));
-    ccxt::any meta = this->safeValue(order, std::string("meta"), ccxt::dict{});
+    ccxt::any meta = this->safeDict(order, std::string("meta"), ccxt::dict{});
     ccxt::any postOnly = this->safeBool(meta, std::string("post_only"), false);
     return this->safeOrder(
         ccxt::dict{
@@ -1812,7 +1812,7 @@ public:
                      ccxt::list{std::string("triggerPrice"),
                                 std::string("stopPrice"), std::string("stop")});
                  ccxt::any meta =
-                     this->safeValue(params, std::string("meta"), ccxt::dict{});
+                     this->safeDict(params, std::string("meta"), ccxt::dict{});
                  ccxt::any exchangeSpecificParam =
                      this->safeBool(meta, std::string("post_only"), false);
                  ccxt::any isMarketOrder = isEqual(type, std::string("market"));
@@ -2134,7 +2134,7 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any wallet = this->safeValue(
+                 ccxt::any wallet = this->safeList(
                      response, std::string("wallet"), ccxt::list{});
                  ccxt::any addresses =
                      (isTrue((isEqual(network, ccxt::any{})))
@@ -2278,7 +2278,7 @@ public:
                         //         ]
                         //     }
                         //
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeList(
                             response, std::string("data"), ccxt::list{});
                         ccxt::any transaction =
                             this->safeDict(data, 0, ccxt::dict{});
@@ -2423,9 +2423,8 @@ public:
         this->safeString(transaction, std::string("currency"));
     currency = this->safeCurrency(currencyId, currency);
     ccxt::any status = this->safeValue(transaction, std::string("status"));
-    ccxt::any dismissed =
-        this->safeValue(transaction, std::string("dismissed"));
-    ccxt::any rejected = this->safeValue(transaction, std::string("rejected"));
+    ccxt::any dismissed = this->safeBool(transaction, std::string("dismissed"));
+    ccxt::any rejected = this->safeBool(transaction, std::string("rejected"));
     if (isTrue(isEqual(status, true))) {
       status = std::string("ok");
     } else if (isTrue(isEqual(dismissed, true))) {
@@ -2586,7 +2585,7 @@ public:
         {std::string("networks"), ccxt::dict{}},
     };
     ccxt::any allowWithdrawal =
-        this->safeValue(fee, std::string("allow_withdrawal"));
+        this->safeBool(fee, std::string("allow_withdrawal"));
     if (isTrue(isEqual(allowWithdrawal, true))) {
       ::setValue(result, std::string("withdraw"),
                  ccxt::dict{
@@ -2596,7 +2595,7 @@ public:
                  });
     }
     ccxt::any withdrawalFees =
-        this->safeValue(fee, std::string("withdrawal_fees"));
+        this->safeDict(fee, std::string("withdrawal_fees"));
     if (isTrue(!isEqual(withdrawalFees, ccxt::any{}))) {
       ccxt::any keys = getObjectKeys(withdrawalFees);
       ccxt::any keysLength = getArrayLength(keys);

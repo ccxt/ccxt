@@ -1233,12 +1233,12 @@ public:
 
   virtual ccxt::any codeFromOptions(ccxt::any methodName,
                                     ccxt::any params = ccxt::dict{}) {
-    ccxt::any defaultCode =
-        this->safeValue(this->options, std::string("code"), std::string("BTC"));
-    ccxt::any options =
-        this->safeValue(this->options, methodName, ccxt::dict{});
-    ccxt::any code = this->safeValue(options, std::string("code"), defaultCode);
-    return this->safeValue(params, std::string("code"), code);
+    ccxt::any defaultCode = this->safeString(this->options, std::string("code"),
+                                             std::string("BTC"));
+    ccxt::any options = this->safeDict(this->options, methodName, ccxt::dict{});
+    ccxt::any code =
+        this->safeString(options, std::string("code"), defaultCode);
+    return this->safeString(params, std::string("code"), code);
   }
 
   /**
@@ -1271,7 +1271,7 @@ public:
                         //     }
                         //
                         ccxt::any result =
-                            this->safeValue(response, std::string("result"));
+                            this->safeDict(response, std::string("result"));
                         ccxt::any locked =
                             this->safeString(result, std::string("locked"));
                         ccxt::any updateTime = this->safeIntegerProduct(
@@ -1344,7 +1344,7 @@ public:
                         //         "testnet": false
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeList(
                             response, std::string("result"), ccxt::list{});
                         return this->parseAccounts(result);
                       })
@@ -1544,7 +1544,7 @@ public:
                      ccxt::any base = this->safeCurrencyCode(baseId);
                      ccxt::any quote = this->safeCurrencyCode(quoteId);
                      ccxt::any settle = this->safeCurrencyCode(settleId);
-                     ccxt::any settlementPeriod = this->safeValue(
+                     ccxt::any settlementPeriod = this->safeString(
                          market, std::string("settlement_period"));
                      ccxt::any swap =
                          (isEqual(settlementPeriod, std::string("perpetual")));
@@ -1641,8 +1641,7 @@ public:
                              {std::string("future"), future},
                              {std::string("option"), option},
                              {std::string("active"),
-                              this->safeValue(market,
-                                              std::string("is_active"))},
+                              this->safeBool(market, std::string("is_active"))},
                              {std::string("contract"), !isTrue(isSpot)},
                              {std::string("linear"), linear},
                              {std::string("inverse"), inverse},
@@ -1859,7 +1858,7 @@ public:
                         //         }
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any address =
                             this->safeString(result, std::string("address"));
@@ -1921,7 +1920,7 @@ public:
                         //         "testnet": false
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any address =
                             this->safeString(result, std::string("address"));
@@ -1992,7 +1991,7 @@ public:
     ccxt::any symbol = this->safeSymbol(marketId, market);
     ccxt::any last = this->safeString2(ticker, std::string("last_price"),
                                        std::string("last"));
-    ccxt::any stats = this->safeValue(ticker, std::string("stats"), ticker);
+    ccxt::any stats = this->safeDict(ticker, std::string("stats"), ticker);
     return this->safeTicker(
         ccxt::dict{
             {std::string("symbol"), symbol},
@@ -2522,7 +2521,7 @@ public:
                  //          "testnet":false
                  //      }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any trades = this->safeList(
                      result, std::string("trades"), ccxt::list{});
@@ -2610,7 +2609,7 @@ public:
                  //         "testnet": false
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any fees =
                      this->safeList(result, std::string("fees"), ccxt::list{});
@@ -2757,7 +2756,7 @@ public:
                         //         "testnet": false
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any timestamp =
                             this->safeInteger(result, std::string("timestamp"));
@@ -2881,10 +2880,10 @@ public:
     ccxt::any rawType = this->safeString(order, std::string("order_type"));
     ccxt::any type = this->parseOrderType(rawType);
     // injected in createOrder
-    ccxt::any trades = this->safeValue(order, std::string("trades"));
+    ccxt::any trades = this->safeList(order, std::string("trades"));
     ccxt::any timeInForce = this->parseTimeInForce(
         this->safeString(order, std::string("time_in_force")));
-    ccxt::any postOnly = this->safeValue(order, std::string("post_only"));
+    ccxt::any postOnly = this->safeBool(order, std::string("post_only"));
     return this->safeOrder(
         ccxt::dict{
             {std::string("info"), order},
@@ -3209,11 +3208,11 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any order =
                      this->safeValue(result, std::string("order"));
-                 ccxt::any trades = this->safeValue(
+                 ccxt::any trades = this->safeList(
                      result, std::string("trades"), ccxt::list{});
                  ::setValue(order, std::string("trades"), trades);
                  return this->parseOrder(order, market);
@@ -3279,11 +3278,11 @@ public:
                  }
                  ccxt::any response = awaitValue(
                      this->privateGetEdit(this->extend(request, params)));
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any order =
                      this->safeValue(result, std::string("order"));
-                 ccxt::any trades = this->safeValue(
+                 ccxt::any trades = this->safeList(
                      result, std::string("trades"), ccxt::list{});
                  ::setValue(order, std::string("trades"), trades);
                  return this->parseOrder(order);
@@ -3652,7 +3651,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any trades = this->safeList(
                      result, std::string("trades"), ccxt::list{});
@@ -3721,7 +3720,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any data =
                      this->safeList(result, std::string("data"), ccxt::list{});
@@ -3795,7 +3794,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any data =
                      this->safeList(result, std::string("data"), ccxt::list{});
@@ -4271,7 +4270,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any transfers =
                      this->safeList(result, std::string("data"), ccxt::list{});
@@ -4317,7 +4316,7 @@ public:
                      this->safeString(params, std::string("method"));
                  params = this->omit(params, std::string("method"));
                  if (isTrue(isEqual(method, ccxt::any{}))) {
-                   ccxt::any transferOptions = this->safeValue(
+                   ccxt::any transferOptions = this->safeDict(
                        this->options, std::string("transfer"), ccxt::dict{});
                    method = this->safeString(
                        transferOptions, std::string("method"),
@@ -4850,11 +4849,11 @@ public:
                  //         "testnet": false
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any cursor =
                      this->safeString(result, std::string("continuation"));
-                 ccxt::any settlements = this->safeValue(
+                 ccxt::any settlements = this->safeList(
                      result, std::string("settlements"), ccxt::list{});
                  ccxt::any settlementsWithCursor =
                      this->addPaginationCursorToResult(cursor, settlements);
@@ -4958,7 +4957,7 @@ public:
                  //         "testnet": false
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any settlements = this->safeList(
                      result, std::string("settlements"), ccxt::list{});
@@ -5071,7 +5070,7 @@ public:
                         //         "testnet": false
                         //     }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         return this->parseGreeks(result, market);
                       })
@@ -5124,7 +5123,7 @@ public:
         this->safeString(greeks, std::string("instrument_name"));
     ccxt::any symbol = this->safeSymbol(marketId, market);
     ccxt::any stats =
-        this->safeValue(greeks, std::string("greeks"), ccxt::dict{});
+        this->safeDict(greeks, std::string("greeks"), ccxt::dict{});
     return ccxt::dict{
         {std::string("symbol"), symbol},
         {std::string("timestamp"), timestamp},
@@ -5568,7 +5567,7 @@ public:
     //         "usDiff": 36
     //     }
     //
-    ccxt::any error = this->safeValue(response, std::string("error"));
+    ccxt::any error = this->safeDict(response, std::string("error"));
     if (isTrue(!isEqual(error, ccxt::any{}))) {
       ccxt::any errorCode = this->safeString(error, std::string("code"));
       ccxt::any feedback = add(add(this->id, std::string(" ")), body);

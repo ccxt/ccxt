@@ -4798,7 +4798,7 @@ public:
   }
 
   virtual ccxt::any handleUntilOptionString(ccxt::any key, ccxt::any request,
-                                            ccxt::any params,
+                                            ccxt::any params = ccxt::any{},
                                             ccxt::any multiplier = 1) {
     ccxt::any until =
         this->safeInteger2(params, std::string("until"), std::string("till"));
@@ -5454,7 +5454,10 @@ public:
         return this->defaultSignature();
     }
     if (which == "handleUntilOptionString") {
-      if (count <= 3)
+      if (count <= 2)
+        return this->handleUntilOptionString(::getValue(args, 0),
+                                             ::getValue(args, 1));
+      if (count == 3)
         return this->handleUntilOptionString(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
       if (count >= 4)

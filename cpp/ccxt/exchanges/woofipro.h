@@ -2652,8 +2652,8 @@ public:
                           std::string("amount")); // This is quote amount
     ccxt::any orderType = this->safeStringLower2(
         order, std::string("order_type"), std::string("type"));
-    ccxt::any status = this->safeValue2(order, std::string("status"),
-                                        std::string("algoStatus"));
+    ccxt::any status = this->safeString2(order, std::string("status"),
+                                         std::string("algoStatus"));
     ccxt::any success = this->safeBool(order, std::string("success"));
     if (isTrue(!isEqual(success, ccxt::any{}))) {
       status = (isTrue((success)) ? ccxt::any(std::string("NEW"))
@@ -2679,15 +2679,15 @@ public:
         this->safeNumber(order, std::string("triggerPrice"));
     ccxt::any takeProfitPrice = ccxt::any{};
     ccxt::any stopLossPrice = ccxt::any{};
-    ccxt::any childOrders = this->safeValue(order, std::string("childOrders"));
+    ccxt::any childOrders = this->safeList(order, std::string("childOrders"));
     if (isTrue(!isEqual(childOrders, ccxt::any{}))) {
-      ccxt::any first = this->safeValue(childOrders, 0);
+      ccxt::any first = this->safeDict(childOrders, 0);
       ccxt::any innerChildOrders =
           this->safeList(first, std::string("childOrders"), ccxt::list{});
       ccxt::any innerChildOrdersLength = getArrayLength(innerChildOrders);
       if (isTrue(isGreaterThan(innerChildOrdersLength, 0))) {
-        ccxt::any takeProfitOrder = this->safeValue(innerChildOrders, 0);
-        ccxt::any stopLossOrder = this->safeValue(innerChildOrders, 1);
+        ccxt::any takeProfitOrder = this->safeDict(innerChildOrders, 0);
+        ccxt::any stopLossOrder = this->safeDict(innerChildOrders, 1);
         takeProfitPrice =
             this->safeNumber(takeProfitOrder, std::string("triggerPrice"));
         stopLossPrice =
@@ -2812,8 +2812,8 @@ public:
     };
     ccxt::any triggerPrice = this->safeString2(
         params, std::string("triggerPrice"), std::string("stopPrice"));
-    ccxt::any stopLoss = this->safeValue(params, std::string("stopLoss"));
-    ccxt::any takeProfit = this->safeValue(params, std::string("takeProfit"));
+    ccxt::any stopLoss = this->safeDict(params, std::string("stopLoss"));
+    ccxt::any takeProfit = this->safeDict(params, std::string("takeProfit"));
     ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
     ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
     ccxt::any algoType = this->safeString(params, std::string("algoType"));
@@ -2973,16 +2973,16 @@ public:
                      this->safeString2(params, std::string("triggerPrice"),
                                        std::string("stopPrice"));
                  ccxt::any stopLoss =
-                     this->safeValue(params, std::string("stopLoss"));
+                     this->safeDict(params, std::string("stopLoss"));
                  ccxt::any takeProfit =
-                     this->safeValue(params, std::string("takeProfit"));
+                     this->safeDict(params, std::string("takeProfit"));
                  ccxt::any isConditional =
                      isTrue(
                          isTrue(isTrue(!isEqual(triggerPrice, ccxt::any{})) ||
                                 isTrue(!isEqual(stopLoss, ccxt::any{}))) ||
                          isTrue(!isEqual(takeProfit, ccxt::any{}))) ||
                      isTrue((!isEqual(
-                         this->safeValue(params, std::string("childOrders")),
+                         this->safeList(params, std::string("childOrders")),
                          ccxt::any{})));
                  ccxt::any response = ccxt::any{};
                  if (isTrue(isConditional)) {
@@ -3044,18 +3044,18 @@ public:
                        orderParams, std::string("triggerPrice"),
                        std::string("stopPrice"));
                    ccxt::any stopLoss =
-                       this->safeValue(orderParams, std::string("stopLoss"));
+                       this->safeDict(orderParams, std::string("stopLoss"));
                    ccxt::any takeProfit =
-                       this->safeValue(orderParams, std::string("takeProfit"));
+                       this->safeDict(orderParams, std::string("takeProfit"));
                    ccxt::any isConditional =
                        isTrue(
                            isTrue(isTrue(!isEqual(triggerPrice, ccxt::any{})) ||
                                   isTrue(!isEqual(stopLoss, ccxt::any{}))) ||
                            isTrue(!isEqual(takeProfit, ccxt::any{}))) ||
-                       isTrue((
-                           !isEqual(this->safeValue(orderParams,
+                       isTrue(
+                           (!isEqual(this->safeList(orderParams,
                                                     std::string("childOrders")),
-                                    ccxt::any{})));
+                                     ccxt::any{})));
                    if (isTrue(isConditional)) {
                      throw NotSupported(toString(add(
                          this->id,
@@ -3740,7 +3740,7 @@ public:
                  //     }
                  //
                  ccxt::any data =
-                     this->safeValue(response, std::string("data"), response);
+                     this->safeDict(response, std::string("data"), response);
                  ccxt::any orders = this->safeList(data, std::string("rows"));
                  return this->parseOrders(orders, market, since, limit);
                })

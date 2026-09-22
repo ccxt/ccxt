@@ -1025,9 +1025,10 @@ public:
         type = std::string("swap");
       }
     }
-    ccxt::any fees = this->safeValue(this->fees, std::string("contract"));
+    ccxt::any fees =
+        this->safeDict(this->fees, std::string("contract"), ccxt::dict{});
     if (isTrue(isSpot)) {
-      fees = this->safeValue(this->fees, std::string("spot"));
+      fees = this->safeDict(this->fees, std::string("spot"), ccxt::dict{});
     }
     return this->safeMarketStructure(ccxt::dict{
         {std::string("id"), id},

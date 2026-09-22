@@ -909,7 +909,7 @@ public:
                      this->safeString(params, std::string("method"));
                  params = this->omit(params, std::string("method"));
                  if (isTrue(isEqual(method, ccxt::any{}))) {
-                   ccxt::any options = this->safeValue(
+                   ccxt::any options = this->safeDict(
                        this->options, std::string("fetchTradingFees"),
                        ccxt::dict{});
                    method =
@@ -1441,7 +1441,7 @@ public:
     //         "last_sequence":461123
     //     }
     //
-    ccxt::any granularity = this->safeValue(ohlcv, std::string("granularity"));
+    ccxt::any granularity = this->safeDict(ohlcv, std::string("granularity"));
     ccxt::any unit = this->safeString(granularity, std::string("unit"));
     ccxt::any period = this->safeString(granularity, std::string("period"));
     ccxt::any units = ccxt::dict{
@@ -1469,7 +1469,7 @@ public:
     ccxt::any alignedTimestamp =
         multiply(duration, this->parseToInt(divide(timestamp, duration)));
     ccxt::any options =
-        this->safeValue(this->options, std::string("fetchOHLCV"), ccxt::dict{});
+        this->safeDict(this->options, std::string("fetchOHLCV"), ccxt::dict{});
     ccxt::any volumeField = this->safeString(options, std::string("volume"),
                                              std::string("total_amount"));
     return ccxt::list{alignedTimestamp,
@@ -1600,8 +1600,7 @@ public:
     //         }
     //     }
     //
-    ccxt::any feeInfo =
-        this->safeValue(trade, std::string("fee"), ccxt::dict{});
+    ccxt::any feeInfo = this->safeDict(trade, std::string("fee"), ccxt::dict{});
     trade = this->safeValue(trade, std::string("trade"), trade);
     ccxt::any timestamp =
         this->safeInteger(trade, std::string("trade_timestamp"));
@@ -1823,9 +1822,9 @@ public:
     ccxt::any type = this->safeStringLower(rawOrder, std::string("type"));
     ccxt::any timeInForce = this->parseTimeInForce(
         this->safeString(rawOrder, std::string("time_in_force")));
-    ccxt::any postOnly = this->safeValue(rawOrder, std::string("is_post_only"));
+    ccxt::any postOnly = this->safeBool(rawOrder, std::string("is_post_only"));
     ccxt::any rawTrades =
-        this->safeValue(order, std::string("trades"), ccxt::list{});
+        this->safeList(order, std::string("trades"), ccxt::list{});
     return this->safeOrder(
         ccxt::dict{
             {std::string("id"), id},
@@ -2442,7 +2441,7 @@ public:
                  //         "cursor": "string"
                  //     }
                  //
-                 ccxt::any tradeHistory = this->safeValue(
+                 ccxt::any tradeHistory = this->safeList(
                      response, std::string("trade_history"), ccxt::list{});
                  ccxt::any market = ccxt::any{};
                  if (isTrue(!isEqual(symbol, ccxt::any{}))) {

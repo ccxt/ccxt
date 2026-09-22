@@ -1293,11 +1293,11 @@ public:
                       this->safeList(market, std::string("filters"),
                                      ccxt::list{}),
                       std::string("filterType"));
-                  ccxt::any amountLimits = this->safeValue(
+                  ccxt::any amountLimits = this->safeDict(
                       limits, std::string("LOT_SIZE"), ccxt::dict{});
-                  ccxt::any priceLimits = this->safeValue(
+                  ccxt::any priceLimits = this->safeDict(
                       limits, std::string("PRICE_FILTER"), ccxt::dict{});
-                  ccxt::any costLimits = this->safeValue(
+                  ccxt::any costLimits = this->safeDict(
                       limits, std::string("NOTIONAL"), ccxt::dict{});
                   arrayPush(
                       result,
@@ -2118,7 +2118,7 @@ public:
                     {std::string("type"), orderType},
                     {std::string("side"), orderSide},
                 };
-                ccxt::any options = this->safeValue(
+                ccxt::any options = this->safeDict(
                     this->options, std::string("createOrder"), ccxt::dict{});
                 ccxt::any newOrderRespType = this->safeValue(
                     options, std::string("newOrderRespType"), ccxt::dict{});
@@ -2834,7 +2834,7 @@ public:
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  ccxt::any options =
-                     this->safeValue(this->options, std::string("withdraw"));
+                     this->safeDict(this->options, std::string("withdraw"));
                  ccxt::any warning =
                      this->safeBool(options, std::string("warning"), true);
                  if (isTrue(isEqual(warning, true))) {

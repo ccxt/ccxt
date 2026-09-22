@@ -949,7 +949,7 @@ public:
                  //
                  ::setValue(this->options, std::string("tradingPairs"),
                             this->safeList(data, std::string("tradingPairs")));
-                 ccxt::any currenciesArray = this->safeValue(
+                 ccxt::any currenciesArray = this->safeList(
                      data, std::string("currencies"), ccxt::list{});
                  return this->parseCurrencies(currenciesArray);
                })
@@ -1040,7 +1040,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any method = this->safeValue(
+                 ccxt::any method = this->safeString(
                      this->options, std::string("fetchMarketsMethod"),
                      std::string("fetch_markets_from_api"));
                  if (isTrue(isEqual(method,
@@ -1684,7 +1684,7 @@ public:
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
-                 ccxt::any method = this->safeValue(
+                 ccxt::any method = this->safeString(
                      this->options, std::string("fetchTickerMethod"),
                      std::string("fetchTickerV1"));
                  if (isTrue(isEqual(method, std::string("fetchTickerV1")))) {
@@ -1737,7 +1737,7 @@ public:
     //     }
     //
     ccxt::any volume =
-        this->safeValue(ticker, std::string("volume"), ccxt::dict{});
+        this->safeDict(ticker, std::string("volume"), ccxt::dict{});
     ccxt::any timestamp = this->safeInteger(volume, std::string("timestamp"));
     ccxt::any symbol = ccxt::any{};
     ccxt::any marketId = this->safeStringLower(ticker, std::string("pair"));
@@ -2227,7 +2227,7 @@ public:
     ccxt::any clientOrderId =
         this->safeString(order, std::string("client_order_id"));
     ccxt::any optionsArray =
-        this->safeValue(order, std::string("options"), ccxt::list{});
+        this->safeList(order, std::string("options"), ccxt::list{});
     ccxt::any option = this->safeString(optionsArray, 0);
     ccxt::any timeInForce = std::string("GTC");
     ccxt::any postOnly = false;

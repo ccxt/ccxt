@@ -933,7 +933,7 @@ public:
                         //                  "market-buy-order-rate-must-less-than":
                         //                  0.1        } }
                         //
-                        return this->parseTradingLimits(this->safeValue(
+                        return this->parseTradingLimits(this->safeDict(
                             response, std::string("data"), ccxt::dict{}));
                       })
         .share();
@@ -1338,7 +1338,7 @@ public:
                         this->json(response))));
                   }
                   ccxt::any tick =
-                      this->safeValue(response, std::string("tick"));
+                      this->safeDict(response, std::string("tick"));
                   ccxt::any timestamp = this->safeInteger(
                       tick, std::string("ts"),
                       this->safeInteger(response, std::string("ts")));
@@ -1911,7 +1911,7 @@ public:
                         //         ]
                         //     }
                         //
-                        ccxt::any currencies = this->safeValue(
+                        ccxt::any currencies = this->safeList(
                             response, std::string("data"), ccxt::list{});
                         return this->parseCurrencies(currencies);
                       })
@@ -1919,14 +1919,14 @@ public:
   }
 
   ccxt::any parseCurrency(ccxt::any currency) override {
-    ccxt::any id = this->safeValue(currency, std::string("name"));
+    ccxt::any id = this->safeString(currency, std::string("name"));
     ccxt::any code = this->safeCurrencyCode(id);
     ccxt::any depositEnabled =
-        this->safeValue(currency, std::string("deposit-enabled"));
+        this->safeBool(currency, std::string("deposit-enabled"));
     ccxt::any withdrawEnabled =
-        this->safeValue(currency, std::string("withdraw-enabled"));
+        this->safeBool(currency, std::string("withdraw-enabled"));
     ccxt::any countryDisabled =
-        this->safeValue(currency, std::string("country-disabled"));
+        this->safeBool(currency, std::string("country-disabled"));
     ccxt::any visible = this->safeBool(currency, std::string("visible"), false);
     ccxt::any state = this->safeString(currency, std::string("state"));
     ccxt::any active =
@@ -2543,7 +2543,7 @@ public:
                          "client-order-id")); // must be 64 chars max and unique
                                               // within 24 hours
                  if (isTrue(isEqual(clientOrderId, ccxt::any{}))) {
-                   ccxt::any broker = this->safeValue(
+                   ccxt::any broker = this->safeDict(
                        this->options, std::string("broker"), ccxt::dict{});
                    ccxt::any brokerId =
                        this->safeString(broker, std::string("id"));
@@ -2909,7 +2909,7 @@ public:
     ccxt::any networkId =
         this->safeString(depositAddress, std::string("chain"));
     ccxt::any networks =
-        this->safeValue(currency, std::string("networks"), ccxt::dict{});
+        this->safeDict(currency, std::string("networks"), ccxt::dict{});
     ccxt::any networksById = this->indexBy(networks, std::string("id"));
     ccxt::any networkValue =
         this->safeValue(networksById, networkId, networkId);
@@ -3184,7 +3184,7 @@ public:
                    ::setValue(request, std::string("addr-tag"),
                               tag); // only for XRP?
                  }
-                 ccxt::any networks = this->safeValue(
+                 ccxt::any networks = this->safeDict(
                      this->options, std::string("networks"), ccxt::dict{});
                  ccxt::any network = this->safeStringUpper(
                      params,
