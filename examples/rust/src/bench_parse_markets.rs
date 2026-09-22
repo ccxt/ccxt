@@ -34,7 +34,7 @@ fn main() {
         _ => {
             let mut v = Value::Null;
             for k in ["markets", "symbols", "result", "data"] {
-                let candidate = ccxt::get_value(&parsed, &Value::Str(k.to_string()));
+                let candidate = ccxt::get_value(&parsed, &Value::Str(k.to_string().into()));
                 if matches!(candidate, Value::Arr(_)) { v = candidate; break; }
             }
             v

@@ -104,9 +104,9 @@ fn parse_arg(s: &str) -> Value {
     if let Ok(n) = s.parse::<i64>() { return Value::Int(n); }
     if let Ok(f) = s.parse::<f64>() { return Value::Float(f); }
     if s.starts_with('{') || s.starts_with('[') {
-        return ccxt::runtime::json_parse(&Value::Str(s.to_string()));
+        return ccxt::runtime::json_parse(&Value::Str(s.to_string().into()));
     }
-    Value::Str(s.to_string())
+    Value::Str(s.to_string().into())
 }
 
 // Camel → snake matching the transpiler's `toSnakeCase` (fetchOHLCV → fetch_ohlcv).
