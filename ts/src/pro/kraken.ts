@@ -1303,7 +1303,7 @@ export default class kraken extends krakenRest {
                 'currency': this.safeString (firstFee, 'asset'),
             };
         }
-        const datetime = this.safeString (trade, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const liquidityIndicator = this.safeString (trade, 'liquidity_ind');
         let takerOrMaker: Str = 'maker';
         if (liquidityIndicator === 't') {
@@ -1313,8 +1313,8 @@ export default class kraken extends krakenRest {
             'info': trade,
             'id': this.safeString (trade, 'exec_id'),
             'order': this.safeString (trade, 'order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': this.safeString (trade, 'order_type'),
             'side': this.safeString (trade, 'side'),
@@ -1458,13 +1458,13 @@ export default class kraken extends krakenRest {
             'currency': 'USD',
         };
         const stopPrice = this.safeString (order, 'stop_price');
-        const datetime = this.safeString (order, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         return this.safeOrder ({
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'order_userref'),
             'info': order,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'order_status')),
             'symbol': this.safeString (order, 'symbol'),
