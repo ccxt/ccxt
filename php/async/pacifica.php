@@ -2629,8 +2629,8 @@ class pacifica extends Exchange {
         // }
         //
         $data = $this->safe_list($response, 'data', array());
-        // return last state
-        $sorted = $this->sort_by($data, 'created_at', true);
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2786,6 +2786,12 @@ class pacifica extends Exchange {
         $totalAmount = $this->safe_string_2($order, 'initial_amount', 'a');
         $filledAmount = $this->safe_string_2($order, 'filled_amount', 'f');
         $remaining = Precise::string_sub($totalAmount, $filledAmount);
+        $average = $this->safe_string_2($order, 'average_filled_price', 'p');
+        $eventType = $this->safe_string($order, 'event_type');
+        $isFillEvent = $this->in_array($eventType, array( 'fulfill_market', 'fulfill_limit' ));
+        if (($average === null) && $isFillEvent) {
+            $average = $this->safe_string($order, 'price'); // on a matching event price is the fill price
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_2($order, 'order_id', 'i'),
@@ -2804,7 +2810,7 @@ class pacifica extends Exchange {
             'triggerPrice' => $this->safe_number_2($order, 'stop_price', 'sp'),
             'amount' => $totalAmount,
             'cost' => null,
-            'average' => $this->safe_string_2($order, 'average_filled_price', 'p'),
+            'average' => $average,
             'filled' => $filledAmount,
             'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
