@@ -1988,7 +1988,7 @@
                             "feeCurrency": "USDT",
                             "fee": "0.225",
                             "timestamp": "1760942212000",
-                            "isTaker": false,
+                            "isTaker": true,
                             "category": "1",
                             "orderId": "123456789",
                             "positionMode": "1"
@@ -2004,7 +2004,7 @@
                         "symbol": "BTC/USDT:USDT",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": "maker",
+                        "takerOrMaker": "taker",
                         "price": 45000.5,
                         "amount": 10,
                         "cost": 45.0005,
@@ -2021,7 +2021,7 @@
                             "feeCurrency": "USDT",
                             "fee": "0.225",
                             "timestamp": "1760942212000",
-                            "isTaker": false,
+                            "isTaker": true,
                             "category": "1",
                             "orderId": "123456789",
                             "positionMode": "1"
