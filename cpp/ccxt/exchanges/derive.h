@@ -2812,7 +2812,7 @@ public:
                  // }
                  //
                  ccxt::any data =
-                     this->safeValue(response, std::string("result"));
+                     this->safeDict(response, std::string("result"));
                  ccxt::any page =
                      this->safeInteger(params, std::string("page"));
                  if (isTrue(!isEqual(page, ccxt::any{}))) {

@@ -5393,8 +5393,8 @@ public:
         params, std::string("slTriggerPxType"), std::string("last"));
     ccxt::any clientOrderId = this->safeString2(params, std::string("clOrdId"),
                                                 std::string("clientOrderId"));
-    ccxt::any stopLoss = this->safeValue(params, std::string("stopLoss"));
-    ccxt::any takeProfit = this->safeValue(params, std::string("takeProfit"));
+    ccxt::any stopLoss = this->safeDict(params, std::string("stopLoss"));
+    ccxt::any takeProfit = this->safeDict(params, std::string("takeProfit"));
     ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
     ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
     ccxt::any trailingPercent = this->safeString2(
@@ -6023,9 +6023,9 @@ public:
                    ccxt::any side =
                        this->safeString(rawOrder, std::string("side"));
                    ccxt::any amount =
-                       this->safeValue(rawOrder, std::string("amount"));
+                       this->safeNumber(rawOrder, std::string("amount"));
                    ccxt::any price =
-                       this->safeValue(rawOrder, std::string("price"));
+                       this->safeNumber(rawOrder, std::string("price"));
                    ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any extendedParams = this->extend(
@@ -6118,8 +6118,8 @@ public:
         this->safeNumber(params, std::string("newTpOrdPx"));
     ccxt::any takeProfitTriggerPriceType = this->safeString(
         params, std::string("newTpTriggerPxType"), std::string("last"));
-    ccxt::any stopLoss = this->safeValue(params, std::string("stopLoss"));
-    ccxt::any takeProfit = this->safeValue(params, std::string("takeProfit"));
+    ccxt::any stopLoss = this->safeDict(params, std::string("stopLoss"));
+    ccxt::any takeProfit = this->safeDict(params, std::string("takeProfit"));
     ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
     ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
     if (isTrue(isAlgoOrder)) {

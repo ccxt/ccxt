@@ -1577,7 +1577,7 @@ public:
                      ::getValue(v2Productsv1ProductsVariable, 0);
                  ccxt::any v1Products =
                      ::getValue(v2Productsv1ProductsVariable, 1);
-                 ccxt::any v1ProductsData = this->safeValue(
+                 ccxt::any v1ProductsData = this->safeList(
                      v1Products, std::string("data"), ccxt::list{});
                  //
                  //     {
@@ -1709,9 +1709,9 @@ public:
                         //             ...
                         //         }
                         //     }
-                        ccxt::any data = this->safeValue(
+                        ccxt::any data = this->safeDict(
                             response, std::string("data"), ccxt::dict{});
-                        ccxt::any currencies = this->safeValue(
+                        ccxt::any currencies = this->safeList(
                             data, std::string("currencies"), ccxt::list{});
                         return this->parseCurrencies(currencies);
                       })
@@ -1894,11 +1894,11 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any book =
-                     this->safeValue2(result, std::string("book"),
-                                      std::string("orderbook_p"), ccxt::dict{});
+                     this->safeDict2(result, std::string("book"),
+                                     std::string("orderbook_p"), ccxt::dict{});
                  ccxt::any timestamp = this->safeIntegerProduct(
                      result, std::string("timestamp"), 0.000001);
                  ccxt::any orderbook = this->customParseOrderBook(
@@ -2146,8 +2146,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any rows =
                      this->safeList(data, std::string("rows"), ccxt::list{});
                  return this->parseOHLCVs(rows, market, timeframe, since,
@@ -2394,7 +2394,7 @@ public:
                  }
                  ccxt::any market = ccxt::any{};
                  if (isTrue(!isEqual(symbols, ccxt::any{}))) {
-                   ccxt::any first = this->safeValue(symbols, 0);
+                   ccxt::any first = this->safeString(symbols, 0);
                    market = this->market(first);
                  }
                  ccxt::any type = ccxt::any{};
@@ -2491,11 +2491,11 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any trades =
-                     this->safeValue2(result, std::string("trades"),
-                                      std::string("trades_p"), ccxt::list{});
+                     this->safeList2(result, std::string("trades"),
+                                     std::string("trades_p"), ccxt::list{});
                  return this->parseTrades(trades, market, since, limit);
                })
         .share();
@@ -2788,7 +2788,7 @@ public:
             feeCurrencyCode = this->safeCurrencyCode(
                 this->safeString(trade, std::string("feeCurrency")));
           } else {
-            ccxt::any info = this->safeValue(market, std::string("info"));
+            ccxt::any info = this->safeDict(market, std::string("info"));
             if (isTrue(!isEqual(info, ccxt::any{}))) {
               ccxt::any settlementCurrencyId =
                   this->safeString(info, std::string("settlementCurrency"));
@@ -2863,8 +2863,7 @@ public:
       ccxt::any balance = ::getValue(data, i);
       ccxt::any currencyId = this->safeString(balance, std::string("currency"));
       ccxt::any code = this->safeCurrencyCode(currencyId);
-      ccxt::any currency =
-          this->safeValue(this->currencies, code, ccxt::dict{});
+      ccxt::any currency = this->safeDict(this->currencies, code, ccxt::dict{});
       ccxt::any scale =
           this->safeInteger(currency, std::string("valueScale"), 8);
       ccxt::any account = this->account();
@@ -2928,9 +2927,9 @@ public:
         {std::string("info"), response},
     };
     ccxt::any data =
-        this->safeValue(response, std::string("data"), ccxt::dict{});
+        this->safeDict(response, std::string("data"), ccxt::dict{});
     ccxt::any balance =
-        this->safeValue(data, std::string("account"), ccxt::dict{});
+        this->safeDict(data, std::string("account"), ccxt::dict{});
     ccxt::any currencyId = this->safeString(balance, std::string("currency"));
     ccxt::any code = this->safeCurrencyCode(currencyId);
     ccxt::any currency = this->currency(code);
@@ -3629,9 +3628,9 @@ public:
                      this->safeString2(params, std::string("clOrdID"),
                                        std::string("clientOrderId"));
                  ccxt::any stopLoss =
-                     this->safeValue(params, std::string("stopLoss"));
+                     this->safeDict(params, std::string("stopLoss"));
                  ccxt::any takeProfit =
-                     this->safeValue(params, std::string("takeProfit"));
+                     this->safeDict(params, std::string("takeProfit"));
                  ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
                  ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
                  ccxt::any isStableSettled =
@@ -3674,7 +3673,7 @@ public:
                                                 std::string("triggerPrice")});
                  if (isTrue(isEqual(::getValue(market, std::string("spot")),
                                     true))) {
-                   ccxt::any qtyType = this->safeValue(
+                   ccxt::any qtyType = this->safeString(
                        params, std::string("qtyType"), std::string("ByBase"));
                    if (isTrue(
                            isTrue(
@@ -3831,7 +3830,7 @@ public:
                    }
                    if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit))) {
                      if (isTrue(hasStopLoss)) {
-                       ccxt::any stopLossTriggerPrice = this->safeValue2(
+                       ccxt::any stopLossTriggerPrice = this->safeNumber2(
                            stopLoss, std::string("triggerPrice"),
                            std::string("stopPrice"));
                        if (isTrue(isEqual(stopLossTriggerPrice, ccxt::any{}))) {
@@ -3872,7 +3871,7 @@ public:
                        }
                      }
                      if (isTrue(hasTakeProfit)) {
-                       ccxt::any takeProfitTriggerPrice = this->safeValue2(
+                       ccxt::any takeProfitTriggerPrice = this->safeNumber2(
                            takeProfit, std::string("triggerPrice"),
                            std::string("stopPrice"));
                        if (isTrue(
@@ -4285,8 +4284,8 @@ public:
                  }
                  ccxt::any market = this->market(symbol);
                  ccxt::any trigger =
-                     this->safeValue2(params, std::string("stop"),
-                                      std::string("trigger"), false);
+                     this->safeBool2(params, std::string("stop"),
+                                     std::string("trigger"), false);
                  params =
                      this->omit(params, ccxt::list{std::string("stop"),
                                                    std::string("trigger")});
@@ -4978,8 +4977,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any address =
                      this->safeString(data, std::string("address"));
                  ccxt::any tag = this->safeString(data, std::string("tag"));
@@ -5216,7 +5215,7 @@ public:
     ccxt::any type = this->safeStringLower(transaction, std::string("type"));
     ccxt::any feeCost = this->parseNumber(
         this->fromEn(this->safeString(transaction, std::string("feeEv")),
-                     this->safeValue(currency, std::string("valueScale"))));
+                     this->safeInteger(currency, std::string("valueScale"))));
     if (isTrue(isEqual(feeCost, ccxt::any{}))) {
       feeCost = this->safeNumber(transaction, std::string("feeRv"));
     }
@@ -5232,7 +5231,7 @@ public:
         this->safeString(transaction, std::string("status")));
     ccxt::any amount = this->parseNumber(
         this->fromEn(this->safeString(transaction, std::string("amountEv")),
-                     this->safeValue(currency, std::string("valueScale"))));
+                     this->safeInteger(currency, std::string("valueScale"))));
     if (isTrue(isEqual(amount, ccxt::any{}))) {
       amount = this->safeNumber(transaction, std::string("amountRv"));
     }
@@ -5431,8 +5430,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any positions = this->safeList(
                      data, std::string("positions"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
@@ -5643,7 +5642,7 @@ public:
         position, ccxt::list{std::string("size"), std::string("sizeRq"),
                              std::string("closedSizeRq")});
     ccxt::any contractSize =
-        this->safeValue(market, std::string("contractSize"));
+        this->safeNumber(market, std::string("contractSize"));
     ccxt::any contractSizeString = this->numberToString(contractSize);
     ccxt::any leverage =
         this->parseNumber(ccxt::Precise::stringAbs((this->safeString2(
@@ -5694,7 +5693,7 @@ public:
         position, std::string("unRealisedPnlRv"), unrealizedPnl);
     ccxt::any marginRatio =
         ccxt::Precise::stringDiv(maintenanceMarginString, collateral);
-    ccxt::any isCross = this->safeValue(position, std::string("crossMargin"));
+    ccxt::any isCross = this->safeBool(position, std::string("crossMargin"));
     ccxt::any timestamp =
         this->safeInteger(position, std::string("openedTimeNs"));
     ccxt::any lastUpdateTimestamp = this->safeInteger(
@@ -5829,8 +5828,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any rows =
                      this->safeList(data, std::string("rows"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
@@ -5950,7 +5949,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  return this->parseFundingRate(result, market);
                })
@@ -6100,7 +6099,7 @@ public:
     //     }
     //
     market = this->safeMarket(ccxt::any{}, market);
-    ccxt::any inverse = this->safeValue(market, std::string("inverse"));
+    ccxt::any inverse = this->safeBool(market, std::string("inverse"));
     ccxt::any codeCurrency =
         (isTrue((isEqual(inverse, true))) ? ccxt::any(std::string("base"))
                                           : ccxt::any(std::string("quote")));
@@ -6277,7 +6276,7 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  if (isTrue(!isEqual(symbols, ccxt::any{}))) {
-                   ccxt::any first = this->safeValue(symbols, 0);
+                   ccxt::any first = this->safeString(symbols, 0);
                    ccxt::any market = this->market(first);
                    if (isTrue(
                            !isEqual(::getValue(market, std::string("settle")),
@@ -6367,8 +6366,8 @@ public:
                  //     }
                  //
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any riskLimits =
                      this->safeList(data, std::string("riskLimits"));
                  return this->parseLeverageTiers(riskLimits, symbols,
@@ -6612,7 +6611,7 @@ public:
                    awaitValue(this->loadMarkets());
                  }
                  ccxt::any currency = this->currency(code);
-                 ccxt::any accountsByType = this->safeValue(
+                 ccxt::any accountsByType = this->safeDict(
                      this->options, std::string("accountsByType"),
                      ccxt::dict{});
                  ccxt::any fromId =
@@ -6656,7 +6655,7 @@ public:
                    //         }
                    //     }
                    //
-                   ccxt::any data = this->safeValue(
+                   ccxt::any data = this->safeDict(
                        response, std::string("data"), ccxt::dict{});
                    transfer = this->parseTransfer(data, currency);
                  } else {
@@ -6682,7 +6681,7 @@ public:
                    //
                    transfer = this->parseTransfer(response);
                  }
-                 ccxt::any transferOptions = this->safeValue(
+                 ccxt::any transferOptions = this->safeDict(
                      this->options, std::string("transfer"), ccxt::dict{});
                  ccxt::any fillResponseFromRequest = this->safeBool(
                      transferOptions, std::string("fillResponseFromRequest"),
@@ -6779,8 +6778,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any transfers =
                      this->safeList(data, std::string("rows"), ccxt::list{});
                  return this->parseTransfers(transfers, currency, since, limit);
@@ -6965,8 +6964,8 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any rates = this->safeValue(data, std::string("rows"));
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(rates));
@@ -7591,8 +7590,8 @@ public:
                        awaitValue(this->privateGetAccountsAccountPositions(
                            this->extend(request, params)));
                  }
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any ranks = this->safeList(
                      data, std::string("positions"), ccxt::list{});
                  ccxt::any result = ccxt::list{};
@@ -7754,7 +7753,7 @@ public:
     //     {"error":{"code":6001,"message":"invalid
     //     argument"},"id":null,"result":null}
     //
-    ccxt::any error = this->safeValue(response, std::string("error"), response);
+    ccxt::any error = this->safeDict(response, std::string("error"), response);
     ccxt::any errorCode = this->safeString(error, std::string("code"));
     ccxt::any message = this->safeString(error, std::string("msg"));
     if (isTrue(isTrue((!isEqual(errorCode, ccxt::any{}))) &&

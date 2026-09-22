@@ -1145,13 +1145,13 @@ public:
     if (isTrue(isGreaterThanOrEqual(httpCode, 400))) {
       return ccxt::any{}; // resort to defaultErrorHandler
     }
-    ccxt::any result = this->safeValue(response, std::string("result"));
+    ccxt::any result = this->safeBool(response, std::string("result"));
     if (isTrue(isTrue(isEqual(result, ccxt::any{})) ||
                isTrue(isEqual(result, true)))) {
       return ccxt::any{}; // either public API (no error codes expected) or
                           // success
     }
-    ccxt::any code = this->safeValue(response, std::string("code"));
+    ccxt::any code = this->safeString(response, std::string("code"));
     ccxt::any feedback = add(add(this->id, std::string(" ")), body);
     this->throwExactlyMatchedException(this->exceptions, code, feedback);
     throw ExchangeError(toString(feedback));

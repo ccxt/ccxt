@@ -3299,10 +3299,9 @@ public:
       ccxt::any slippage = this->safeString(
           orderParams, std::string("slippage"), defaultSlippage);
       ::setValue(orderParams, std::string("slippage"), slippage);
-      ccxt::any stopLoss =
-          this->safeValue(orderParams, std::string("stopLoss"));
+      ccxt::any stopLoss = this->safeDict(orderParams, std::string("stopLoss"));
       ccxt::any takeProfit =
-          this->safeValue(orderParams, std::string("takeProfit"));
+          this->safeDict(orderParams, std::string("takeProfit"));
       ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
       ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
       orderParams =

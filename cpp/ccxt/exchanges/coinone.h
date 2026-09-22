@@ -683,7 +683,7 @@ public:
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(tickers));
                       postFixIncrement(i)) {
-                   ccxt::any entry = this->safeValue(tickers, i);
+                   ccxt::any entry = this->safeDict(tickers, i);
                    ccxt::any id = this->safeString(entry, std::string("id"));
                    ccxt::any baseId = this->safeStringUpper(
                        entry, std::string("target_currency"));
@@ -1786,10 +1786,10 @@ public:
                      continue;
                    }
                    ccxt::any parts = split(key, std::string("_"));
-                   ccxt::any currencyId = this->safeValue(parts, 0);
-                   ccxt::any secondPart = this->safeValue(parts, 1);
+                   ccxt::any currencyId = this->safeString(parts, 0);
+                   ccxt::any secondPart = this->safeString(parts, 1);
                    ccxt::any code = this->safeCurrencyCode(currencyId);
-                   ccxt::any depositAddress = this->safeValue(result, code);
+                   ccxt::any depositAddress = this->safeDict(result, code);
                    if (isTrue(isEqual(depositAddress, ccxt::any{}))) {
                      depositAddress = ccxt::dict{
                          {std::string("info"), value},

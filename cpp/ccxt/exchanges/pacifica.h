@@ -674,12 +674,24 @@ public:
                       {std::string("420"), std::string("ExchangeError")},
                       {std::string("422"), std::string("ExchangeError")},
                       {std::string("429"), std::string("RateLimitExceeded")},
-                      {std::string("500"), std::string("ExchangeError")},
+                      {std::string("500"), std::string("ExchangeNotAvailable")},
                       {std::string("503"), std::string("ExchangeNotAvailable")},
                       {std::string("504"), std::string("RequestTimeout")},
+                      {std::string("signature_verification_failed"),
+                       std::string("AuthenticationError")},
+                      {std::string("invalid_amount"),
+                       std::string("InvalidOrder")},
                   }},
                  {std::string("broad"),
                   ccxt::dict{
+                      {std::string("Invalid signature"),
+                       std::string("AuthenticationError")},
+                      {std::string("Invalid public key"),
+                       std::string("AuthenticationError")},
+                      {std::string("Verification failed"),
+                       std::string("AuthenticationError")},
+                      {std::string("Invalid message"),
+                       std::string("BadRequest")},
                       {std::string("UNKNOWN"), std::string("ExchangeError")},
                       {std::string("ACCOUNT_NOT_FOUND"),
                        std::string("ExchangeError")},
@@ -3590,9 +3602,10 @@ public:
                         //
                         ccxt::any data = this->safeList(
                             response, std::string("data"), ccxt::list{});
-                        // return last state
+                        // return last state, history_id is the per-event
+                        // sequence, created_at can tie within a millisecond
                         ccxt::any sorted =
-                            this->sortBy(data, std::string("created_at"), true);
+                            this->sortBy(data, std::string("history_id"), true);
                         ccxt::any lastIdx = getArrayLength(sorted);
                         ccxt::any lastInfo = ccxt::dict{};
                         if (isTrue(isGreaterThan(lastIdx, 0))) {
@@ -3760,6 +3773,18 @@ public:
     ccxt::any filledAmount = this->safeString2(
         order, std::string("filled_amount"), std::string("f"));
     ccxt::any remaining = ccxt::Precise::stringSub(totalAmount, filledAmount);
+    ccxt::any average = this->safeString2(
+        order, std::string("average_filled_price"), std::string("p"));
+    ccxt::any eventType = this->safeString(order, std::string("event_type"));
+    ccxt::any isFillEvent =
+        this->inArray(eventType, ccxt::list{std::string("fulfill_market"),
+                                            std::string("fulfill_limit")});
+    if (isTrue(isTrue((isEqual(average, ccxt::any{}))) &&
+               isTrue(isFillEvent))) {
+      average = this->safeString(
+          order,
+          std::string("price")); // on a matching event price is the fill price
+    }
     return this->safeOrder(
         ccxt::dict{
             {std::string("info"), order},
@@ -3792,9 +3817,7 @@ public:
                                std::string("sp"))},
             {std::string("amount"), totalAmount},
             {std::string("cost"), ccxt::any{}},
-            {std::string("average"),
-             this->safeString2(order, std::string("average_filled_price"),
-                               std::string("p"))},
+            {std::string("average"), average},
             {std::string("filled"), filledAmount},
             {std::string("remaining"), remaining},
             {std::string("status"), this->parseOrderStatus(status)},
@@ -4946,15 +4969,27 @@ public:
     //     account","code":400}
     //     {"success":false,"data":null,"error":"Internal server
     //     error","code":500}
+    //     {"success":false,"data":null,"error":"Verification failed: signature
+    //     does not match signer and canonical
+    //     payload.","code":400,"error_id":"signature_verification_failed"}
+    //     {"success":false,"data":null,"error":"Order amount too low for
+    //     <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+    //     {"success":false,"data":null,"error":"Invalid transfer relationship:
+    //     <from> -> <to>","code":33,"error_id":"unspecified"}
     //
-    ccxt::any inCode = this->safeInteger(
+    // code carries a business code on 422 responses and an echo of the http
+    // status otherwise, it is undefined or 200 when all ok the string form is
+    // required for the exceptions lookup, an integer key never matches the
+    // string-keyed map on the python, go and c# ports
+    ccxt::any errorCode = this->safeString(response, std::string("code"));
+    ccxt::any errorId = this->safeString(
         response,
-        std::string(
-            "code")); // actually if all ok -> code = undefined or code = 200
+        std::string("error_id")); // undocumented, present on live errors and
+                                  // more specific than code
     ccxt::any message = this->safeString(response, std::string("error"));
     ccxt::any error = ccxt::any{};
-    if (isTrue(isTrue(isEqual(inCode, ccxt::any{})) ||
-               isTrue(isEqual(inCode, 200)))) {
+    if (isTrue(isTrue(isEqual(errorCode, ccxt::any{})) ||
+               isTrue(isEqual(errorCode, std::string("200"))))) {
       error = false;
     } else {
       error = true;
@@ -4963,15 +4998,21 @@ public:
                                  isTrue((!isEqual(message, std::string("")))));
     if (isTrue(isTrue(error) || isTrue(nonEmptyMessage))) {
       ccxt::any feedback = add(add(this->id, std::string(" ")), body);
+      this->throwExactlyMatchedException(
+          ::getValue(this->exceptions, std::string("exact")), errorId,
+          feedback);
       this->throwBroadlyMatchedException(
           ::getValue(this->exceptions, std::string("broad")), message,
-          feedback); // Try deeper catch first
+          feedback); // documented message prefixes are more specific than the
+                     // http-status echo
       this->throwExactlyMatchedException(
-          ::getValue(this->exceptions, std::string("exact")), inCode, feedback);
-      this->throwExactlyMatchedException(
-          ::getValue(this->exceptions, std::string("exact")), message,
+          ::getValue(this->exceptions, std::string("exact")), errorCode,
           feedback);
-      throw ExchangeError(toString(feedback));
+      ccxt::any codeAsString = toString(code);
+      if (isTrue(isTrue((isLessThan(code, 400))) ||
+                 !isTrue((inOp(this->httpExceptions, codeAsString))))) {
+        throw ExchangeError(toString(feedback));
+      }
     }
     return ccxt::any{};
   }

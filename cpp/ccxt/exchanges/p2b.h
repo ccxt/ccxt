@@ -614,7 +614,7 @@ public:
                         //        current_time: '1699252644.487566'
                         //    }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         return this->parseTickers(result, symbols);
                       })
@@ -668,7 +668,7 @@ public:
                  //        current_time: '1699252958.859391'
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any timestamp = this->safeIntegerProduct(
                      response, std::string("cache_time"), 1000);
@@ -718,7 +718,7 @@ public:
     ccxt::any timestamp =
         this->safeIntegerProduct(ticker, std::string("at"), 1000);
     if (isTrue(inOp(ticker, std::string("ticker")))) {
-      ticker = this->safeValue(ticker, std::string("ticker"));
+      ticker = this->safeDict(ticker, std::string("ticker"));
     }
     ccxt::any last = this->safeString(ticker, std::string("last"));
     return this->safeTicker(
@@ -817,7 +817,7 @@ public:
                  //        "current_time": 1698733470.469274
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any timestamp = this->safeIntegerProduct(
                      response, std::string("current_time"), 1000);
@@ -1109,7 +1109,7 @@ public:
                         //        }
                         //    }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         return this->parseBalance(result);
                       })
@@ -1428,7 +1428,7 @@ public:
                         //        }
                         //    }
                         //
-                        ccxt::any result = this->safeValue(
+                        ccxt::any result = this->safeDict(
                             response, std::string("result"), ccxt::dict{});
                         ccxt::any records = this->safeList(
                             result, std::string("records"), ccxt::list{});
@@ -1541,7 +1541,7 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeDict(
                      response, std::string("result"), ccxt::dict{});
                  ccxt::any deals =
                      this->safeList(result, std::string("deals"), ccxt::list{});
@@ -1649,8 +1649,8 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any result =
-                     this->safeValue(response, std::string("result"));
+                 ccxt::any result = this->safeDict(
+                     response, std::string("result"), ccxt::dict{});
                  ccxt::any orders = ccxt::list{};
                  ccxt::any keys = getObjectKeys(result);
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));

@@ -2209,22 +2209,22 @@ public:
                           std::string("amount")); // This is quote amount
     ccxt::any orderType = this->safeStringLower2(
         order, std::string("order_type"), std::string("type"));
-    ccxt::any status = this->safeValue2(order, std::string("status"),
-                                        std::string("algoStatus"));
+    ccxt::any status = this->safeString2(order, std::string("status"),
+                                         std::string("algoStatus"));
     ccxt::any success = this->safeBool(order, std::string("success"));
     if (isTrue(!isEqual(success, ccxt::any{}))) {
       status = (isTrue((success)) ? ccxt::any(std::string("NEW"))
                                   : ccxt::any(std::string("REJECTED")));
     }
     ccxt::any side = this->safeStringLower(order, std::string("side"));
-    ccxt::any filled = this->omitZero(this->safeValue2(
+    ccxt::any filled = this->omitZero(this->safeString2(
         order, std::string("executed"), std::string("totalExecutedQuantity")));
     ccxt::any average = this->omitZero(
         this->safeString2(order, std::string("average_executed_price"),
                           std::string("averageExecutedPrice")));
     ccxt::any remaining = ccxt::Precise::stringSub(cost, filled);
-    ccxt::any fee = this->safeValue2(order, std::string("total_fee"),
-                                     std::string("totalFee"));
+    ccxt::any fee = this->safeNumber2(order, std::string("total_fee"),
+                                      std::string("totalFee"));
     ccxt::any feeCurrency = this->safeString2(order, std::string("fee_asset"),
                                               std::string("feeAsset"));
     ccxt::any transactions =
@@ -2233,15 +2233,15 @@ public:
         this->safeNumber(order, std::string("triggerPrice"));
     ccxt::any takeProfitPrice = ccxt::any{};
     ccxt::any stopLossPrice = ccxt::any{};
-    ccxt::any childOrders = this->safeValue(order, std::string("childOrders"));
+    ccxt::any childOrders = this->safeList(order, std::string("childOrders"));
     if (isTrue(!isEqual(childOrders, ccxt::any{}))) {
-      ccxt::any first = this->safeValue(childOrders, 0);
+      ccxt::any first = this->safeDict(childOrders, 0);
       ccxt::any innerChildOrders =
           this->safeList(first, std::string("childOrders"), ccxt::list{});
       ccxt::any innerChildOrdersLength = getArrayLength(innerChildOrders);
       if (isTrue(isGreaterThan(innerChildOrdersLength, 0))) {
-        ccxt::any takeProfitOrder = this->safeValue(innerChildOrders, 0);
-        ccxt::any stopLossOrder = this->safeValue(innerChildOrders, 1);
+        ccxt::any takeProfitOrder = this->safeDict(innerChildOrders, 0);
+        ccxt::any stopLossOrder = this->safeDict(innerChildOrders, 1);
         takeProfitPrice =
             this->safeNumber(takeProfitOrder, std::string("triggerPrice"));
         stopLossPrice =
@@ -2617,9 +2617,9 @@ public:
                        orderParams, std::string("triggerPrice"),
                        std::string("stopPrice"));
                    ccxt::any stopLoss =
-                       this->safeValue(orderParams, std::string("stopLoss"));
+                       this->safeDict(orderParams, std::string("stopLoss"));
                    ccxt::any takeProfit =
-                       this->safeValue(orderParams, std::string("takeProfit"));
+                       this->safeDict(orderParams, std::string("takeProfit"));
                    ccxt::any isConditional =
                        isTrue(
                            isTrue(isTrue(!isEqual(triggerPrice, ccxt::any{})) ||
@@ -3305,7 +3305,7 @@ public:
                  //     }
                  //
                  ccxt::any data =
-                     this->safeValue(response, std::string("data"), response);
+                     this->safeDict(response, std::string("data"), response);
                  ccxt::any orders =
                      this->safeList(data, std::string("rows"), ccxt::list{});
                  return this->parseOrders(orders, market, since, limit);

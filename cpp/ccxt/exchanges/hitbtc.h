@@ -1442,7 +1442,7 @@ public:
                  if (isTrue(isTrue((!isEqual(network, ccxt::any{}))) &&
                             isTrue((isEqual(code, std::string("USDT")))))) {
                    ccxt::any networks =
-                       this->safeValue(this->options, std::string("networks"));
+                       this->safeDict(this->options, std::string("networks"));
                    ccxt::any parsedNetwork =
                        this->safeString(networks, network);
                    if (isTrue(!isEqual(parsedNetwork, ccxt::any{}))) {
@@ -1504,7 +1504,7 @@ public:
                  if (isTrue(isTrue((!isEqual(network, ccxt::any{}))) &&
                             isTrue((isEqual(code, std::string("USDT")))))) {
                    ccxt::any networks =
-                       this->safeValue(this->options, std::string("networks"));
+                       this->safeDict(this->options, std::string("networks"));
                    ccxt::any parsedNetwork =
                        this->safeString(networks, network);
                    if (isTrue(!isEqual(parsedNetwork, ccxt::any{}))) {
@@ -1519,7 +1519,7 @@ public:
                  //
                  //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
                  //
-                 ccxt::any firstAddress = this->safeValue(response, 0);
+                 ccxt::any firstAddress = this->safeDict(response, 0);
                  ccxt::any address =
                      this->safeString(firstAddress, std::string("address"));
                  ccxt::any currencyId =
@@ -1984,7 +1984,7 @@ public:
     ccxt::any symbol = ::getValue(market, std::string("symbol"));
     ccxt::any fee = ccxt::any{};
     ccxt::any feeCostString = this->safeString(trade, std::string("fee"));
-    ccxt::any taker = this->safeValue(trade, std::string("taker"));
+    ccxt::any taker = this->safeBool(trade, std::string("taker"));
     ccxt::any takerOrMaker = ccxt::any{};
     if (isTrue(!isEqual(taker, ccxt::any{}))) {
       takerOrMaker =
@@ -1997,7 +1997,7 @@ public:
     }
     if (isTrue(!isEqual(feeCostString, ccxt::any{}))) {
       ccxt::any info =
-          this->safeValue(market, std::string("info"), ccxt::dict{});
+          this->safeDict(market, std::string("info"), ccxt::dict{});
       ccxt::any feeCurrency =
           this->safeString(info, std::string("fee_currency"));
       ccxt::any feeCurrencyCode = this->safeCurrencyCode(feeCurrency);
@@ -2165,7 +2165,7 @@ public:
     ccxt::any status = this->parseTransactionStatus(
         this->safeString(transaction, std::string("status")));
     ccxt::any native =
-        this->safeValue(transaction, std::string("native"), ccxt::dict{});
+        this->safeDict(transaction, std::string("native"), ccxt::dict{});
     ccxt::any currencyId = this->safeString(native, std::string("currency"));
     ccxt::any code = this->safeCurrencyCode(currencyId);
     ccxt::any txhash = this->safeString(native, std::string("hash"));
@@ -3458,7 +3458,7 @@ public:
                                        ccxt::any marginMode = ccxt::any{},
                                        ccxt::any params = ccxt::dict{}) {
     ccxt::any isLimit = (isEqual(type, std::string("limit")));
-    ccxt::any reduceOnly = this->safeValue(params, std::string("reduceOnly"));
+    ccxt::any reduceOnly = this->safeBool(params, std::string("reduceOnly"));
     ccxt::any timeInForce =
         this->safeString(params, std::string("timeInForce"));
     ccxt::any triggerPrice =
@@ -3789,7 +3789,7 @@ public:
                  ccxt::any currency = this->currency(code);
                  ccxt::any requestAmount =
                      this->currencyToPrecision(code, amount);
-                 ccxt::any accountsByType = this->safeValue(
+                 ccxt::any accountsByType = this->safeDict(
                      this->options, std::string("accountsByType"),
                      ccxt::dict{});
                  fromAccount = toLowerCase(fromAccount);
@@ -3850,7 +3850,7 @@ public:
   virtual std::shared_future<ccxt::any>
   convertCurrencyNetwork(ccxt::any code, ccxt::any amount,
                          ccxt::any fromNetwork, ccxt::any toNetwork,
-                         ccxt::any params) {
+                         ccxt::any params = ccxt::dict{}) {
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
@@ -3941,7 +3941,7 @@ public:
                  if (isTrue(!isEqual(tag, ccxt::any{}))) {
                    ::setValue(request, std::string("payment_id"), tag);
                  }
-                 ccxt::any networks = this->safeValue(
+                 ccxt::any networks = this->safeDict(
                      this->options, std::string("networks"), ccxt::dict{});
                  ccxt::any network =
                      this->safeStringUpper(params, std::string("network"));
@@ -3955,7 +3955,7 @@ public:
                    }
                    params = this->omit(params, std::string("network"));
                  }
-                 ccxt::any withdrawOptions = this->safeValue(
+                 ccxt::any withdrawOptions = this->safeDict(
                      this->options, std::string("withdraw"), ccxt::dict{});
                  ccxt::any includeFee = this->safeBool(
                      withdrawOptions, std::string("includeFee"), false);
@@ -4844,8 +4844,8 @@ public:
     //     }
     //
     ccxt::any currencies =
-        this->safeValue(data, std::string("currencies"), ccxt::list{});
-    ccxt::any currencyInfo = this->safeValue(currencies, 0);
+        this->safeList(data, std::string("currencies"), ccxt::list{});
+    ccxt::any currencyInfo = this->safeDict(currencies, 0);
     ccxt::any datetime = this->safeString(data, std::string("updated_at"));
     return ccxt::dict{
         {std::string("info"), data},
@@ -5207,7 +5207,7 @@ public:
       ccxt::any withdrawFee =
           this->safeNumber(networkEntry, std::string("payout_fee"));
       ccxt::any isDefault =
-          this->safeValue(networkEntry, std::string("default"));
+          this->safeBool(networkEntry, std::string("default"));
       ccxt::any withdrawResult = ccxt::dict{
           {std::string("fee"), withdrawFee},
           {std::string("percentage"),
@@ -5345,7 +5345,7 @@ public:
     //       }
     //     }
     //
-    ccxt::any error = this->safeValue(response, std::string("error"));
+    ccxt::any error = this->safeDict(response, std::string("error"));
     ccxt::any errorCode = this->safeString(error, std::string("code"));
     if (isTrue(!isEqual(errorCode, ccxt::any{}))) {
       ccxt::any feedback = add(add(this->id, std::string(" ")), body);
@@ -5862,7 +5862,11 @@ public:
         return this->parseTransfer(::getValue(args, 0), ::getValue(args, 1));
     }
     if (which == "convertCurrencyNetwork") {
-      if (true)
+      if (count <= 4)
+        return awaitValue(this->convertCurrencyNetwork(
+            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+            ::getValue(args, 3)));
+      if (count >= 5)
         return awaitValue(this->convertCurrencyNetwork(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));

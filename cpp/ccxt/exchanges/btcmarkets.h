@@ -752,7 +752,7 @@ public:
     ccxt::any base = this->safeCurrencyCode(baseId);
     ccxt::any quote = this->safeCurrencyCode(quoteId);
     ccxt::any symbol = add(add(base, std::string("/")), quote);
-    ccxt::any fees = this->safeValue(
+    ccxt::any fees = this->safeDict(
         this->safeDict(this->options, std::string("fees"), ccxt::dict{}), quote,
         this->fees);
     ccxt::any pricePrecision = this->parseNumber(this->parsePrecision(
@@ -1328,7 +1328,7 @@ public:
                            : ccxt::any(std::string("Ask")))},
                  };
                  ccxt::any lowercaseType = toLowerCase(type);
-                 ccxt::any orderTypes = this->safeValue(
+                 ccxt::any orderTypes = this->safeDict(
                      this->options, std::string("orderTypes"),
                      ccxt::dict{
                          {std::string("limit"), std::string("Limit")},

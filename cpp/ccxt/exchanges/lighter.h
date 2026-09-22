@@ -1323,8 +1323,8 @@ public:
         this->safeValue(params, std::string("stopLossPrice"), triggerPrice);
     ccxt::any takeProfitPrice =
         this->safeValue(params, std::string("takeProfitPrice"));
-    ccxt::any stopLoss = this->safeValue(params, std::string("stopLoss"));
-    ccxt::any takeProfit = this->safeValue(params, std::string("takeProfit"));
+    ccxt::any stopLoss = this->safeDict(params, std::string("stopLoss"));
+    ccxt::any takeProfit = this->safeDict(params, std::string("takeProfit"));
     ccxt::any hasStopLoss = (!isEqual(stopLoss, ccxt::any{}));
     ccxt::any hasTakeProfit = (!isEqual(takeProfit, ccxt::any{}));
     ccxt::any isConditional =

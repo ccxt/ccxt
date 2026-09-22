@@ -500,7 +500,7 @@ public:
                  //         }]
                  //     }
                  //
-                 ccxt::any payload = this->safeValue(
+                 ccxt::any payload = this->safeList(
                      response, std::string("payload"), ccxt::list{});
                  ccxt::any currency = this->safeCurrency(code);
                  return this->parseLedger(payload, currency, since, limit);
@@ -577,8 +577,8 @@ public:
     ccxt::any operation = this->safeString(item, std::string("operation"));
     ccxt::any type = this->parseLedgerEntryType(operation);
     ccxt::any balanceUpdates =
-        this->safeValue(item, std::string("balance_updates"), ccxt::list{});
-    ccxt::any firstBalance = this->safeValue(balanceUpdates, 0, ccxt::dict{});
+        this->safeList(item, std::string("balance_updates"), ccxt::list{});
+    ccxt::any firstBalance = this->safeDict(balanceUpdates, 0, ccxt::dict{});
     ccxt::any direction = ccxt::any{};
     ccxt::any fee = ccxt::any{};
     ccxt::any amount = this->safeString(firstBalance, std::string("amount"));
@@ -587,7 +587,7 @@ public:
     ccxt::any code = this->safeCurrencyCode(currencyId, currency);
     currency = this->safeCurrency(currencyId, currency);
     ccxt::any details =
-        this->safeValue(item, std::string("details"), ccxt::dict{});
+        this->safeDict(item, std::string("details"), ccxt::dict{});
     ccxt::any referenceId =
         this->safeString2(details, std::string("fid"), std::string("wid"));
     if (isTrue(isEqual(referenceId, ccxt::any{}))) {
@@ -695,9 +695,9 @@ public:
                    ccxt::any quote = toUpperCase(quoteId);
                    base = this->safeCurrencyCode(base);
                    quote = this->safeCurrencyCode(quote);
-                   ccxt::any fees = this->safeValue(market, std::string("fees"),
-                                                    ccxt::dict{});
-                   ccxt::any flatRate = this->safeValue(
+                   ccxt::any fees = this->safeDict(market, std::string("fees"),
+                                                   ccxt::dict{});
+                   ccxt::any flatRate = this->safeDict(
                        fees, std::string("flat_rate"), ccxt::dict{});
                    ccxt::any takerString =
                        this->safeString(flatRate, std::string("taker"));
@@ -1031,7 +1031,7 @@ public:
                  ccxt::any response = awaitValue(
                      this->publicGetOrderBook(this->extend(request, params)));
                  ccxt::any orderbook =
-                     this->safeValue(response, std::string("payload"));
+                     this->safeDict(response, std::string("payload"));
                  ccxt::any timestamp = this->parse8601(
                      this->safeString(orderbook, std::string("updated_at")));
                  return this->parseOrderBook(
@@ -1456,7 +1456,7 @@ public:
                  //        }
                  //    }
                  //
-                 ccxt::any payload = this->safeValue(
+                 ccxt::any payload = this->safeDict(
                      response, std::string("payload"), ccxt::dict{});
                  ccxt::any fees =
                      this->safeList(payload, std::string("fees"), ccxt::list{});
@@ -1910,7 +1910,7 @@ public:
                                 {std::string("oid"), id},
                             }));
                         ccxt::any payload =
-                            this->safeValue(response, std::string("payload"));
+                            this->safeList(response, std::string("payload"));
                         if (isTrue(isArray(payload))) {
                           ccxt::any numOrders = getArrayLength(payload);
                           if (isTrue(isEqual(numOrders, 1))) {
@@ -2015,7 +2015,7 @@ public:
                         //         }]
                         //     }
                         //
-                        ccxt::any transactions = this->safeValue(
+                        ccxt::any transactions = this->safeList(
                             response, std::string("payload"), ccxt::list{});
                         ccxt::any first =
                             this->safeDict(transactions, 0, ccxt::dict{});
@@ -2202,7 +2202,7 @@ public:
                  //    }
                  //
                  ccxt::any result = ccxt::dict{};
-                 ccxt::any payload = this->safeValue(
+                 ccxt::any payload = this->safeDict(
                      response, std::string("payload"), ccxt::dict{});
                  ccxt::any depositFees = this->safeList(
                      payload, std::string("deposit_fees"), ccxt::list{});
@@ -2249,7 +2249,7 @@ public:
                          result, code,
                          ccxt::dict{
                              {std::string("deposit"),
-                              this->safeValue(this->safeValue(result, code),
+                              this->safeValue(this->safeDict(result, code),
                                               std::string("deposit"))},
                              {std::string("withdraw"),
                               this->safeNumber(withdrawalFees, currencyId)},
@@ -2257,8 +2257,8 @@ public:
                               ccxt::dict{
                                   {std::string("deposit"),
                                    this->safeValue(
-                                       this->safeValue(
-                                           this->safeValue(result, code),
+                                       this->safeDict(
+                                           this->safeDict(result, code),
                                            std::string("info")),
                                        std::string("deposit"))},
                                   {std::string("withdraw"),
@@ -2408,7 +2408,7 @@ public:
                               {std::string("fee"),
                                this->safeNumber(entry, std::string("fee"))},
                               {std::string("percentage"),
-                               (!isEqual(this->safeValue(
+                               (!isEqual(this->safeBool(
                                              entry, std::string("is_fixed")),
                                          true))},
                           }},
@@ -2433,7 +2433,7 @@ public:
                          isTrue((inOp(codes, code))))))) {
         ccxt::any withdrawFee =
             this->parseNumber(::getValue(withdrawalResponse, currencyId));
-        ccxt::any resultValue = this->safeValue(result, code);
+        ccxt::any resultValue = this->safeDict(result, code);
         if (isTrue(isEqual(resultValue, ccxt::any{}))) {
           ::setValue(result, code, this->depositWithdrawFee(ccxt::dict{}));
         }
@@ -2522,7 +2522,7 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any payload = this->safeValue(
+                 ccxt::any payload = this->safeList(
                      response, std::string("payload"), ccxt::list{});
                  ccxt::any first = this->safeDict(payload, 0);
                  return this->parseTransaction(first, currency);
@@ -2576,7 +2576,7 @@ public:
         transaction, std::string("currency"), std::string("asset"));
     currency = this->safeCurrency(currencyId, currency);
     ccxt::any details =
-        this->safeValue(transaction, std::string("details"), ccxt::dict{});
+        this->safeDict(transaction, std::string("details"), ccxt::dict{});
     ccxt::any datetime =
         this->safeString(transaction, std::string("created_at"));
     ccxt::any withdrawalAddress =
@@ -2709,7 +2709,7 @@ public:
       if (isTrue(!isEqual(success, true))) {
         ccxt::any feedback =
             add(add(this->id, std::string(" ")), this->json(response));
-        ccxt::any error = this->safeValue(response, std::string("error"));
+        ccxt::any error = this->safeDict(response, std::string("error"));
         if (isTrue(isEqual(error, ccxt::any{}))) {
           throw ExchangeError(toString(feedback));
         }

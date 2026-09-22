@@ -2634,7 +2634,8 @@ public:
             {std::string("id"),
              this->safeStringN(trade,
                                ccxt::list{std::string("id"), std::string("t"),
-                                          std::string("fillId")})},
+                                          std::string("fillId"),
+                                          std::string("tradeId")})},
             {std::string("info"), trade},
             {std::string("timestamp"), time},
             {std::string("datetime"), this->iso8601(time)},
@@ -5997,7 +5998,7 @@ public:
                       ::getValue(market, std::string("id"))},
                  };
                  ccxt::any clientOrderIds =
-                     this->safeValue(params, std::string("clientOrderIds"));
+                     this->safeList(params, std::string("clientOrderIds"));
                  params = this->omit(params, std::string("clientOrderIds"));
                  ccxt::any idsToParse = ids;
                  ccxt::any areClientOrderIds =
@@ -7371,7 +7372,7 @@ public:
     //
     // parse withdraw-type output first...
     //
-    ccxt::any data = this->safeValue(transaction, std::string("data"));
+    ccxt::any data = this->safeDict(transaction, std::string("data"));
     ccxt::any dataId =
         (isTrue((isEqual(data, ccxt::any{})))
              ? ccxt::any(ccxt::any{})

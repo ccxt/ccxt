@@ -1286,7 +1286,7 @@ public:
         this->safeString2(trade, std::string("id"), std::string("fillId"));
     ccxt::any marketId = this->safeString(trade, std::string("market"));
     ccxt::any symbol = this->safeSymbol(marketId, market, std::string("-"));
-    ccxt::any taker = this->safeValue(trade, std::string("taker"));
+    ccxt::any taker = this->safeBool(trade, std::string("taker"));
     ccxt::any takerOrMaker = ccxt::any{};
     if (isTrue(!isEqual(taker, ccxt::any{}))) {
       takerOrMaker =
@@ -1368,7 +1368,7 @@ public:
     //         }
     //     }
     //
-    ccxt::any feesValue = this->safeValue(fees, std::string("fees"));
+    ccxt::any feesValue = this->safeDict(fees, std::string("fees"));
     ccxt::any maker = this->safeNumber(feesValue, std::string("maker"));
     ccxt::any taker = this->safeNumber(feesValue, std::string("taker"));
     ccxt::any result = ccxt::dict{};
@@ -2070,10 +2070,10 @@ public:
                                              std::string("stopPrice"),
                                              std::string("triggerAmount")});
     ccxt::any postOnly = this->isPostOnly(isMarketOrder, false, params);
-    ccxt::any stopLossPrice = this->safeValue(
+    ccxt::any stopLossPrice = this->safeString(
         params, std::string("stopLossPrice")); // trigger when price crosses
                                                // from above to below this value
-    ccxt::any takeProfitPrice = this->safeValue(
+    ccxt::any takeProfitPrice = this->safeString(
         params,
         std::string("takeProfitPrice")); // trigger when price crosses from
                                          // below to above this value
@@ -2941,7 +2941,7 @@ public:
       };
     }
     ccxt::any rawTrades =
-        this->safeValue(order, std::string("fills"), ccxt::list{});
+        this->safeList(order, std::string("fills"), ccxt::list{});
     ccxt::any timeInForce = this->safeString(order, std::string("timeInForce"));
     ccxt::any postOnly = this->safeValue(order, std::string("postOnly"));
     // https://github.com/ccxt/ccxt/issues/8489
@@ -3553,8 +3553,8 @@ public:
          }},
         {std::string("networks"), ccxt::dict{}},
     };
-    ccxt::any networks = this->safeValue(fee, std::string("networks"));
-    ccxt::any networkId = this->safeValue(
+    ccxt::any networks = this->safeList(fee, std::string("networks"));
+    ccxt::any networkId = this->safeString(
         networks,
         0); // Bitvavo currently only supports one network per currency
     ccxt::any currencyCode = this->safeString(currency, std::string("code"));
@@ -3706,7 +3706,7 @@ public:
                !isTrue((inOp(params, std::string("market")))))) {
       return ::getValue(config, std::string("noMarket"));
     }
-    return this->safeValue(config, std::string("cost"), 1);
+    return this->safeNumber(config, std::string("cost"), 1);
   }
   // GENERATED dispatch table - see createDispatchTable in
   // build/cppTranspiler.ts

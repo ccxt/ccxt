@@ -5094,7 +5094,7 @@ public:
         this->safeString(position, std::string("entryPrice"));
     ccxt::any entryPrice = this->parseNumber(entryPriceString);
     ccxt::any contractSize =
-        this->safeValue(market, std::string("contractSize"));
+        this->safeNumber(market, std::string("contractSize"));
     ccxt::any contractSizeString = this->numberToString(contractSize);
     // as oppose to notionalValue
     ccxt::any linear = (inOp(position, std::string("notional")));
@@ -5567,7 +5567,7 @@ public:
     ccxt::any liquidationPriceStringRaw = ccxt::any{};
     ccxt::any liquidationPrice = ccxt::any{};
     ccxt::any contractSize =
-        this->safeValue(market, std::string("contractSize"));
+        this->safeNumber(market, std::string("contractSize"));
     ccxt::any contractSizeString = this->numberToString(contractSize);
     if (isTrue(ccxt::Precise::stringEquals(notionalString, std::string("0")))) {
       entryPrice = ccxt::any{};

@@ -2130,7 +2130,7 @@ public:
                    ccxt::any accountsByCurrencyCode =
                        this->indexBy(this->accounts, std::string("currency"));
                    ccxt::any account =
-                       this->safeValue(accountsByCurrencyCode, code);
+                       this->safeDict(accountsByCurrencyCode, code);
                    if (isTrue(isEqual(account, ccxt::any{}))) {
                      throw ExchangeError(toString(add(
                          add(this->id, std::string(" fetchLedger() could not "
@@ -2174,7 +2174,7 @@ public:
                  ccxt::any response =
                      awaitValue(this->privateGetAccountsIdTransactions(
                          this->extend(params, request)));
-                 ccxt::any entries = this->safeValue(
+                 ccxt::any entries = this->safeList(
                      response, std::string("transactions"), ccxt::list{});
                  return this->parseLedger(entries, currency, since, limit);
                })

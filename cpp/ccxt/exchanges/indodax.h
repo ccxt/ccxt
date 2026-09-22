@@ -598,11 +598,11 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(response, std::string("return"), ccxt::dict{});
+        this->safeDict(response, std::string("return"), ccxt::dict{});
     ccxt::any free =
         this->safeDict(balances, std::string("balance"), ccxt::dict{});
     ccxt::any used =
-        this->safeValue(balances, std::string("balance_hold"), ccxt::dict{});
+        this->safeDict(balances, std::string("balance_hold"), ccxt::dict{});
     ccxt::any timestamp =
         this->safeTimestamp(balances, std::string("server_time"));
     ccxt::any result = ccxt::dict{
@@ -1413,8 +1413,8 @@ public:
                  }
                  ccxt::any result = awaitValue(
                      this->privatePostTrade(this->extend(request, params)));
-                 ccxt::any data = this->safeValue(result, std::string("return"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(result, std::string("return"),
+                                                 ccxt::dict{});
                  ccxt::any id = this->safeString(data, std::string("order_id"));
                  return this->safeOrder(
                      ccxt::dict{
@@ -1534,7 +1534,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(
+                 ccxt::any data = this->safeDict(
                      response, std::string("return"), ccxt::dict{});
                  ccxt::any currencyId =
                      this->safeString(data, std::string("currency"));
@@ -1699,7 +1699,7 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(
+                 ccxt::any data = this->safeDict(
                      response, std::string("return"), ccxt::dict{});
                  ccxt::any withdraw = this->safeDict(
                      data, std::string("withdraw"), ccxt::dict{});
@@ -1724,10 +1724,10 @@ public:
                    }
                  } else {
                    currency = this->currency(code);
-                   ccxt::any withdraws = this->safeValue(
+                   ccxt::any withdraws = this->safeList(
                        withdraw, ::getValue(currency, std::string("id")),
                        ccxt::list{});
-                   ccxt::any deposits = this->safeValue(
+                   ccxt::any deposits = this->safeList(
                        deposit, ::getValue(currency, std::string("id")),
                        ccxt::list{});
                    transactions = this->arrayConcat(withdraws, deposits);
@@ -2105,7 +2105,7 @@ public:
       return ccxt::any{}; // public endpoints may return []-arrays
     }
     ccxt::any error =
-        this->safeValue(response, std::string("error"), std::string(""));
+        this->safeString(response, std::string("error"), std::string(""));
     if (isTrue(!isTrue((inOp(response, std::string("success")))) &&
                isTrue(isEqual(error, std::string(""))))) {
       return ccxt::any{}; // no 'success' property on public responses

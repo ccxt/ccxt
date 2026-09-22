@@ -5746,8 +5746,7 @@ public:
                                            std::string("private")),
                                 std::string("GET")),
                      std::string("deposit-addresses"), version);
-                 ccxt::any data =
-                     this->safeValue(response, std::string("data"));
+                 ccxt::any data = this->safeDict(response, std::string("data"));
                  if (isTrue(isEqual(data, ccxt::any{}))) {
                    throw ExchangeError(toString(
                        add(this->id,
@@ -6189,12 +6188,12 @@ public:
   }
 
   virtual ccxt::any handleTriggerPrices(ccxt::any params) {
-    ccxt::any triggerPrice = this->safeValue2(
+    ccxt::any triggerPrice = this->safeNumber2(
         params, std::string("triggerPrice"), std::string("stopPrice"));
     ccxt::any stopLossPrice =
-        this->safeValue(params, std::string("stopLossPrice"));
+        this->safeNumber(params, std::string("stopLossPrice"));
     ccxt::any takeProfitPrice =
-        this->safeValue(params, std::string("takeProfitPrice"));
+        this->safeNumber(params, std::string("takeProfitPrice"));
     ccxt::any isStopLoss = !isEqual(stopLossPrice, ccxt::any{});
     ccxt::any isTakeProfit = !isEqual(takeProfitPrice, ccxt::any{});
     if (isTrue(
@@ -7473,7 +7472,7 @@ public:
                        this->safeValue(rawOrder, std::string("amount"));
                    ccxt::any price =
                        this->safeValue(rawOrder, std::string("price"));
-                   ccxt::any orderParams = this->safeValue(
+                   ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any orderRequest = this->createSpotOrderRequest(
                        marketId, type, side, amount, price, orderParams);
@@ -7593,7 +7592,7 @@ public:
                        this->safeValue(rawOrder, std::string("amount"));
                    ccxt::any price =
                        this->safeValue(rawOrder, std::string("price"));
-                   ccxt::any orderParams = this->safeValue(
+                   ccxt::any orderParams = this->safeDict(
                        rawOrder, std::string("params"), ccxt::dict{});
                    ccxt::any orderRequest = this->createContractOrderRequest(
                        symbol, type, side, amount, price, orderParams);
@@ -9822,7 +9821,7 @@ public:
     // precision reported by their api is 8 d.p.
     // const average = ccxt::Precise::stringDiv(cost,
     // ccxt::Precise::stringMul(filled, market['contractSize'])); bool
-    ccxt::any isActive = this->safeValue(order, std::string("isActive"));
+    ccxt::any isActive = this->safeBool(order, std::string("isActive"));
     ccxt::any cancelExist =
         this->safeBool(order, std::string("cancelExist"), false);
     ccxt::any status = ccxt::any{};
@@ -9843,8 +9842,8 @@ public:
     }
     ccxt::any clientOrderId = this->safeString(order, std::string("clientOid"));
     ccxt::any timeInForce = this->safeString(order, std::string("timeInForce"));
-    ccxt::any postOnly = this->safeValue(order, std::string("postOnly"));
-    ccxt::any reduceOnly = this->safeValue(order, std::string("reduceOnly"));
+    ccxt::any postOnly = this->safeBool(order, std::string("postOnly"));
+    ccxt::any reduceOnly = this->safeBool(order, std::string("reduceOnly"));
     ccxt::any lastUpdateTimestamp =
         this->safeInteger(order, std::string("updatedAt"));
     return this->safeOrder(
@@ -12432,7 +12431,7 @@ public:
                  // only fetches one balance at a time
                  ccxt::any defaultCode =
                      this->safeString(this->options, std::string("code"));
-                 ccxt::any fetchBalanceOptions = this->safeValue(
+                 ccxt::any fetchBalanceOptions = this->safeDict(
                      this->options, std::string("fetchBalance"), ccxt::dict{});
                  defaultCode = this->safeString(
                      fetchBalanceOptions, std::string("code"), defaultCode);
@@ -12471,8 +12470,7 @@ public:
                      {std::string("timestamp"), ccxt::any{}},
                      {std::string("datetime"), ccxt::any{}},
                  };
-                 ccxt::any data =
-                     this->safeValue(response, std::string("data"));
+                 ccxt::any data = this->safeDict(response, std::string("data"));
                  ccxt::any currencyId =
                      this->safeString(data, std::string("currency"));
                  ccxt::any currencyCode =
@@ -15240,7 +15238,7 @@ public:
                    //    }
                    //
                    ccxt::any data =
-                       this->safeValue(response, std::string("data"));
+                       this->safeDict(response, std::string("data"));
                    dataList = this->safeList(data, std::string("dataList"),
                                              ccxt::list{});
                  }
@@ -15773,7 +15771,7 @@ public:
     // collateral);
     ccxt::any unrealisedPnl = this->safeString2(
         position, std::string("unrealisedPnl"), std::string("unrealizedPnL"));
-    ccxt::any crossMode = this->safeValue(position, std::string("crossMode"));
+    ccxt::any crossMode = this->safeBool(position, std::string("crossMode"));
     // currently crossMode is always set to false and only isolated positions
     // are supported
     ccxt::any marginMode =
@@ -16097,8 +16095,8 @@ public:
                         //        "msg":"Position does not exist"
                         //    }
                         //
-                        ccxt::any data =
-                            this->safeValue(response, std::string("data"));
+                        ccxt::any data = this->safeDict(
+                            response, std::string("data"), ccxt::dict{});
                         return this->extend(
                             this->parseMarginModification(data, market),
                             ccxt::dict{
@@ -16226,7 +16224,7 @@ public:
     market = this->safeMarket(id, market);
     ccxt::any currencyId =
         this->safeString(info, std::string("settleCurrency"));
-    ccxt::any crossMode = this->safeValue(info, std::string("crossMode"));
+    ccxt::any crossMode = this->safeBool(info, std::string("crossMode"));
     ccxt::any mode = (isTrue((isEqual(crossMode, true)))
                           ? ccxt::any(std::string("cross"))
                           : ccxt::any(std::string("isolated")));
