@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct DeriveCore {
@@ -39,15 +43,15 @@ impl DeriveCore {
 impl crate::exchange::DerivedExchange for DeriveCore {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_ticker(self, ticker, &[market.clone()])
+        DeriveCore::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_trade(self, trade, &[market.clone()])
+        DeriveCore::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_order(self, order, &[market.clone()])
+        DeriveCore::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
@@ -59,11 +63,11 @@ impl crate::exchange::DerivedExchange for DeriveCore {
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_position(self, position, &[market.clone()])
+        DeriveCore::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_funding_rate(self, rate, &[market.clone()])
+        DeriveCore::parse_funding_rate(self, rate, &[market])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
@@ -71,15 +75,15 @@ impl crate::exchange::DerivedExchange for DeriveCore {
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_transaction(self, transaction, &[currency.clone()])
+        DeriveCore::parse_transaction(self, transaction, &[currency])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::parse_income(self, info, &[market.clone()])
+        DeriveCore::parse_income(self, info, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
-        DeriveCore::sign(self, path, &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()])
+        DeriveCore::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on DeriveCore.
@@ -93,31 +97,31 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
     {
         Box::pin(async move {
             match method {
-                "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-                "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-                "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_closed_orders" => self.fetch_closed_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_currencies" => self.fetch_currencies(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_deposits" => self.fetch_deposits(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_funding_history" => self.fetch_funding_history(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_markets" => self.fetch_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_my_trades" => self.fetch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_open_orders" => self.fetch_open_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_option_markets" => self.fetch_option_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_orders" => self.fetch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_positions" => self.fetch_positions(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_spot_markets" => self.fetch_spot_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_swap_markets" => self.fetch_swap_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_time" => self.fetch_time(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
-                "fetch_withdrawals" => self.fetch_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
+                "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "edit_order" => self.edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "fetch_balance" => self.fetch_balance(&args[..]).await,
+                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_closed_orders" => self.fetch_closed_orders(&args[..]).await,
+                "fetch_currencies" => self.fetch_currencies(&args[..]).await,
+                "fetch_deposits" => self.fetch_deposits(&args[..]).await,
+                "fetch_funding_history" => self.fetch_funding_history(&args[..]).await,
+                "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args[..]).await,
+                "fetch_markets" => self.fetch_markets(&args[..]).await,
+                "fetch_my_trades" => self.fetch_my_trades(&args[..]).await,
+                "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
+                "fetch_option_markets" => self.fetch_option_markets(&args[..]).await,
+                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_orders" => self.fetch_orders(&args[..]).await,
+                "fetch_positions" => self.fetch_positions(&args[..]).await,
+                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
+                "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
+                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_time" => self.fetch_time(&args[..]).await,
+                "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "handle_derive_subaccount_id" => self.handle_derive_subaccount_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_derive_wallet_address" => self.handle_derive_wallet_address(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -125,23 +129,19 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
                 "hash_order_message" => self.hash_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_units" => self.parse_units(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
-                "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_order" => self.sign_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -162,10 +162,10 @@ impl DeriveCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("derive".to_string()));
-        m.insert("name".to_string(), Value::Str("Derive".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![]));
-        m.insert("version".to_string(), Value::Str("v1".to_string()));
+        m.insert("id".to_string(), Value::Str("derive".into()));
+        m.insert("name".to_string(), Value::Str("Derive".into()));
+        m.insert("countries".to_string(), Value::from(vec![]));
+        m.insert("version".to_string(), Value::Str("v1".into()));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -211,7 +211,7 @@ impl DeriveCore {
         m.insert("fetchDepositAddress".to_string(), Value::Bool(false));
         m.insert("fetchDepositAddresses".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(true));
-        m.insert("fetchDepositWithdrawFee".to_string(), Value::Str("emulated".to_string()));
+        m.insert("fetchDepositWithdrawFee".to_string(), Value::Str("emulated".into()));
         m.insert("fetchDepositWithdrawFees".to_string(), Value::Bool(false));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(true));
         m.insert("fetchFundingRate".to_string(), Value::Bool(true));
@@ -267,41 +267,41 @@ impl DeriveCore {
 }));
         m.insert("timeframes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1m".to_string(), Value::Str("1m".to_string()));
-        m.insert("3m".to_string(), Value::Str("3m".to_string()));
-        m.insert("5m".to_string(), Value::Str("5m".to_string()));
-        m.insert("15m".to_string(), Value::Str("15m".to_string()));
-        m.insert("30m".to_string(), Value::Str("30m".to_string()));
-        m.insert("1h".to_string(), Value::Str("1h".to_string()));
-        m.insert("2h".to_string(), Value::Str("2h".to_string()));
-        m.insert("4h".to_string(), Value::Str("4h".to_string()));
-        m.insert("8h".to_string(), Value::Str("8h".to_string()));
-        m.insert("12h".to_string(), Value::Str("12h".to_string()));
-        m.insert("1d".to_string(), Value::Str("1d".to_string()));
-        m.insert("3d".to_string(), Value::Str("3d".to_string()));
-        m.insert("1w".to_string(), Value::Str("1w".to_string()));
-        m.insert("1M".to_string(), Value::Str("1M".to_string()));
+        m.insert("1m".to_string(), Value::Str("1m".into()));
+        m.insert("3m".to_string(), Value::Str("3m".into()));
+        m.insert("5m".to_string(), Value::Str("5m".into()));
+        m.insert("15m".to_string(), Value::Str("15m".into()));
+        m.insert("30m".to_string(), Value::Str("30m".into()));
+        m.insert("1h".to_string(), Value::Str("1h".into()));
+        m.insert("2h".to_string(), Value::Str("2h".into()));
+        m.insert("4h".to_string(), Value::Str("4h".into()));
+        m.insert("8h".to_string(), Value::Str("8h".into()));
+        m.insert("12h".to_string(), Value::Str("12h".into()));
+        m.insert("1d".to_string(), Value::Str("1d".into()));
+        m.insert("3d".to_string(), Value::Str("3d".into()));
+        m.insert("1w".to_string(), Value::Str("1w".into()));
+        m.insert("1M".to_string(), Value::Str("1M".into()));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.lyra.finance/public".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.lyra.finance/private".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api.lyra.finance/public".into()));
+        m.insert("private".to_string(), Value::Str("https://api.lyra.finance/private".into()));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api-demo.lyra.finance/public".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api-demo.lyra.finance/private".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api-demo.lyra.finance/public".into()));
+        m.insert("private".to_string(), Value::Str("https://api-demo.lyra.finance/private".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.derive.xyz/".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://docs.derive.xyz/docs/".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://docs.derive.xyz/reference/fees-1/".to_string()));
-        m.insert("referral".to_string(), Value::Str("https://www.derive.xyz/invite/3VB0B".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.derive.xyz/".into()));
+        m.insert("doc".to_string(), Value::Str("https://docs.derive.xyz/docs/".into()));
+        m.insert("fees".to_string(), Value::Str("https://docs.derive.xyz/reference/fees-1/".into()));
+        m.insert("referral".to_string(), Value::Str("https://www.derive.xyz/invite/3VB0B".into()));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -334,6 +334,11 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_wallets_from_session_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("login".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -344,12 +349,37 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("all_statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("all_user_statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("get_all_currencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("get_currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_asset".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_assets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -374,6 +404,11 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("get_latest_signed_feeds".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -390,6 +425,16 @@ impl DeriveCore {
     m
 }));
         m.insert("get_spot_feed_history_candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_index_chart_data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_tradingview_chart_data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -419,6 +464,11 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_perp_impact_twap".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("get_transaction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -430,6 +480,11 @@ impl DeriveCore {
     m
 }));
         m.insert("margin_watch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_quote".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -465,6 +520,11 @@ impl DeriveCore {
     m
 }));
         m.insert("get_swell_percent_points".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_stdrv_snapshots".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -509,12 +569,27 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_vault_pools".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_vault_rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("estimate_integrator_points".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("create_subaccount_debug".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("create_account_with_secret".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -549,6 +624,16 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_all_referral_codes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_referral_performance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("get_time".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -565,6 +650,16 @@ impl DeriveCore {
     m
 }));
         m.insert("get_maker_program_scores".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_detailed_maker_snapshot_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("getRateLimits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -608,6 +703,11 @@ impl DeriveCore {
     m
 }));
         m.insert("get_notificationsv".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_notifications".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -672,6 +772,16 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_trigger_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_algo_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("cancel".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -698,6 +808,21 @@ impl DeriveCore {
     m
 }));
         m.insert("cancel_trigger_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancel_algo_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancel_all_algo_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancel_all_trigger_orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -777,6 +902,16 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("order_quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("replace_quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("rfq_get_best_quote".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -852,6 +987,11 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("change_session_key_label".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("register_scoped_session_key".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -887,6 +1027,26 @@ impl DeriveCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("get_contact_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("create_contact_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("update_contact_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("delete_contact_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -909,128 +1069,128 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-32000".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("-32100".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("-32700".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-32600".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-32601".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("-32602".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-32603".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("9000".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("10000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10001".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10002".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10003".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10004".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("10005".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10006".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10007".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10008".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10009".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("10010".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("10011".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("10012".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("10013".to_string(), Value::Str("ExchangeError".to_string()).clone());
-        m.insert("10014".to_string(), Value::Str("ExchangeError".to_string()).clone());
-        m.insert("11000".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("11002".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11003".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11004".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11005".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11006".to_string(), Value::Str("OrderNotFound".to_string()).clone());
-        m.insert("11007".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11008".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11009".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11010".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11011".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11012".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11013".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11014".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11015".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11016".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11017".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11018".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11019".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11020".to_string(), Value::Str("InsufficientFunds".to_string()).clone());
-        m.insert("11021".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11022".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11023".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11024".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11025".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11026".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("11027".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11028".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11050".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11051".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11052".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11053".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11054".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11055".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11100".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11101".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11102".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11103".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11104".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11105".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11106".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11107".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11200".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11201".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11202".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("11203".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("12000".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("12001".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("12002".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("12003".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("13000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14001".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("14002".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14008".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14009".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14010".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14011".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14012".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14013".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14014".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("14015".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14016".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14017".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14018".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14019".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14020".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14021".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14022".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("14023".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("14024".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14025".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14026".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14027".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("14028".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14029".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("14030".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("14031".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("14032".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("16000".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("16001".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("16100".to_string(), Value::Str("AuthenticationError".to_string()).clone());
-        m.insert("17000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17001".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17002".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17003".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17004".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17005".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17006".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("17007".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18000".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18001".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18002".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18003".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18004".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18005".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18006".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("18007".to_string(), Value::Str("BadRequest".to_string()).clone());
-        m.insert("19000".to_string(), Value::Str("BadRequest".to_string()).clone());
+        m.insert("-32000".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("-32100".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("-32700".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-32600".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-32601".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("-32602".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-32603".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("9000".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("10000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10002".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10003".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10004".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("10005".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10006".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10007".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10008".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10009".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("10010".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("10011".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("10012".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("10013".to_string(), Value::Str("ExchangeError".into()).clone());
+        m.insert("10014".to_string(), Value::Str("ExchangeError".into()).clone());
+        m.insert("11000".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("11002".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11003".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11004".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11005".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11006".to_string(), Value::Str("OrderNotFound".into()).clone());
+        m.insert("11007".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11008".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11009".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11010".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11011".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11012".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11013".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11014".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11015".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11016".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11017".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11018".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11019".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11020".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("11021".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11022".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11023".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11024".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11025".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11026".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("11027".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11028".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11050".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11051".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11052".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11053".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11054".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11055".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11100".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11101".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11102".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11103".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11104".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11105".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11106".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11107".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11200".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11201".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11202".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("11203".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("12000".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("12001".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("12002".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("12003".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("13000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14001".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("14002".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14008".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14009".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14010".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14011".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14012".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14013".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14014".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("14015".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14016".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14017".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14018".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14019".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14020".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14021".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14022".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("14023".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("14024".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14025".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14026".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14027".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("14028".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14029".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("14030".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("14031".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("14032".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("16000".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("16001".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("16100".to_string(), Value::Str("AuthenticationError".into()).clone());
+        m.insert("17000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17002".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17003".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17004".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17005".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17006".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("17007".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18000".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18001".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18002".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18003".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18004".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18005".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18006".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("18007".to_string(), Value::Str("BadRequest".into()).clone());
+        m.insert("19000".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -1046,8 +1206,8 @@ impl DeriveCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deriveWalletAddress".to_string(), Value::Str("".to_string()));
-        m.insert("id".to_string(), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
+        m.insert("deriveWalletAddress".to_string(), Value::Str("".into()));
+        m.insert("id".to_string(), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into()));
     m
 }));
     m
@@ -1058,7 +1218,7 @@ impl DeriveCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable); }
 }
 
 /*
@@ -1074,8 +1234,8 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_post_get_time(&[params.clone()]).await;
-        return self.safe_integer_k(response.clone(), "result", &[]);
+        let mut response: Value = self.public_post_get_time(&[params]).await;
+        return self.safe_integer_k(response, "result", &[]);
 
     Value::Null
 }
@@ -1093,7 +1253,7 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tokenResponse: Value = self.public_get_get_all_currencies(&[params.clone()]).await;
+        let mut tokenResponse: Value = self.public_get_get_all_currencies(&[params]).await;
         //
         //    {
         //        "result": [
@@ -1142,8 +1302,8 @@ impl DeriveCore {
         //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
-        let mut currencies: Value = self.safe_list_k(tokenResponse.clone(), "result", &[Value::List(vec![])]);
-        return self.parse_currencies(currencies.clone());
+        let mut currencies: Value = self.safe_list_k(tokenResponse, "result", &[Value::from(vec![])]);
+        return self.parse_currencies(currencies);
 
     Value::Null
 }
@@ -1153,9 +1313,9 @@ impl DeriveCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId.clone());
+        m.insert("id".to_string(), currencyId);
         m.insert("name".to_string(), Value::Null);
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), code);
         m.insert("precision".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -1178,7 +1338,7 @@ impl DeriveCore {
 }));
     m
 }));
-        m.insert("info".to_string(), rawCurrency.clone());
+        m.insert("info".to_string(), rawCurrency);
     m
 }));
 
@@ -1200,11 +1360,11 @@ impl DeriveCore {
 }));
         let mut spotMarketsPromise: Value = self.fetch_spot_markets(&[params.clone()]).await;
         let mut swapMarketsPromise: Value = self.fetch_swap_markets(&[params.clone()]).await;
-        let mut optionMarketsPromise: Value = self.fetch_option_markets(&[params.clone()]).await;
-        let mut spotMarketsswapMarketsoptionMarketsVariable = promise_all(&Value::List(vec![spotMarketsPromise.clone(), swapMarketsPromise.clone(), optionMarketsPromise.clone()])).await;
-        let mut spotMarkets: Value = get_value(&spotMarketsswapMarketsoptionMarketsVariable, &Value::Int(0));
-        let mut swapMarkets: Value = get_value(&spotMarketsswapMarketsoptionMarketsVariable, &Value::Int(1));
-        let mut optionMarkets: Value = get_value(&spotMarketsswapMarketsoptionMarketsVariable, &Value::Int(2));
+        let mut optionMarketsPromise: Value = self.fetch_option_markets(&[params]).await;
+        let mut spotMarketsswapMarketsoptionMarketsVariable = promise_all(&Value::from(vec![spotMarketsPromise, swapMarketsPromise, optionMarketsPromise])).await;
+        let mut spotMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut swapMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut optionMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         //
         // {
         //     "result": {
@@ -1250,8 +1410,8 @@ impl DeriveCore {
         //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
         // }
         //
-        let mut result: Value = self.array_concat(spotMarkets.clone(), swapMarkets.clone());
-        result = self.array_concat(result.clone(), optionMarkets.clone());
+        let mut result: Value = self.array_concat(spotMarkets, swapMarkets);
+        result = self.array_concat(result.clone(), optionMarkets);
         return result;
 
     Value::Null
@@ -1265,17 +1425,17 @@ impl DeriveCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
-                m.insert("instrument_type".to_string(), Value::Str("erc20".to_string()));
+                m.insert("instrument_type".to_string(), Value::Str("erc20".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_0]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
-        return self.parse_markets(data.clone());
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::from(vec![])]);
+        return self.parse_markets(data);
 
     Value::Null
 }
@@ -1288,17 +1448,17 @@ impl DeriveCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
-                m.insert("instrument_type".to_string(), Value::Str("perp".to_string()));
+                m.insert("instrument_type".to_string(), Value::Str("perp".into()));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_1]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
-        return self.parse_markets(data.clone());
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::from(vec![])]);
+        return self.parse_markets(data);
 
     Value::Null
 }
@@ -1311,23 +1471,23 @@ impl DeriveCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("expired".to_string(), Value::Bool(false));
-                m.insert("instrument_type".to_string(), Value::Str("option".to_string()));
+                m.insert("instrument_type".to_string(), Value::Str("option".into()));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_2]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
-        return self.parse_markets(data.clone());
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::from(vec![])]);
+        return self.parse_markets(data);
 
     Value::Null
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut type_var: Value = self.safe_string_k(market.clone(), "instrument_type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
         let mut spot: Value = Value::Bool(false);
         let mut margin: Value = Value::Bool(true);
@@ -1340,73 +1500,73 @@ impl DeriveCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut marketId: Value = self.safe_string_k(market.clone(), "instrument_name", &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut expiry: Value = Value::Null;
         let mut strike: Value = Value::Null;
         let mut optionType: Value = Value::Null;
         let mut optionLetter: Value = Value::Null;
-        if is_equal(&type_var, &Value::Str("erc20".to_string())) {
+        if (type_var.as_deref() == Some("erc20")) {
             spot = Value::Bool(true);
-            marketType = Value::Str("spot".to_string());
-        }  else if is_equal(&type_var, &Value::Str("perp".to_string())) {
+            marketType = Value::Str("spot".into());
+        }  else if (type_var.as_deref() == Some("perp")) {
             margin = Value::Bool(false);
-            settleId = Value::Str("USDC".to_string());
+            settleId = Value::Str("USDC".into());
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
             swap = Value::Bool(true);
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
-            marketType = Value::Str("swap".to_string());
-        }  else if is_equal(&type_var, &Value::Str("option".to_string())) {
-            settleId = Value::Str("USDC".to_string());
+            marketType = Value::Str("swap".into());
+        }  else if (type_var.as_deref() == Some("option")) {
+            settleId = Value::Str("USDC".into());
             settle = self.safe_currency_code(settleId.clone(), &[]);
             margin = Value::Bool(false);
             option = Value::Bool(true);
-            marketType = Value::Str("option".to_string());
+            marketType = Value::Str("option".into());
             let mut optionDetails: Value = self.safe_dict_k(market.clone(), "option_details", &[]);
-            expiry = self.safe_timestamp(optionDetails.clone(), Value::Str("expiry".to_string()), &[]);
+            expiry = self.safe_timestamp_k(optionDetails.clone(), "expiry", &[]);
             strike = self.safe_integer_k(optionDetails.clone(), "strike", &[]);
-            optionLetter = self.safe_string_k(optionDetails.clone(), "option_type", &[]);
-            symbol = add(&add(&add(&add(&add(&add(&add(&add(&add(&add(&base, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle), &Value::Str("-".to_string())), &self.yymmdd(expiry.clone(), &[])), &Value::Str("-".to_string())), &self.number_to_string(strike.clone())), &Value::Str("-".to_string())), &optionLetter);
-            if is_equal(&optionLetter, &Value::Str("P".to_string())) {
-                optionType = Value::Str("put".to_string());
+            optionLetter = self.safe_string_k(optionDetails, "option_type", &[]);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), optionLetter).into());
+            if (optionLetter.as_str() == Some("P")) {
+                optionType = Value::Str("put".into());
             }  else {
-                optionType = Value::Str("call".to_string());
+                optionType = Value::Str("call".into());
             }
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }
-        let mut contractSize: Value = ternary(is_true(&(spot)), Value::Null, Value::Int(1));
-        let mut isContract: Value = Value::Bool(is_true(&swap) || is_true(&option));
+        let mut contractSize: Value = (if spot.as_bool() == Some(true) { Value::Null } else { Value::Int(1) });
+        let mut isContract: Value = Value::Bool(swap.as_bool() == Some(true) || option.as_bool() == Some(true));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId.clone());
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("base".to_string(), base.clone());
-        m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), settle.clone());
-        m.insert("baseId".to_string(), baseId.clone());
-        m.insert("quoteId".to_string(), quoteId.clone());
-        m.insert("settleId".to_string(), settleId.clone());
-        m.insert("type".to_string(), marketType.clone());
-        m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), margin.clone());
-        m.insert("swap".to_string(), swap.clone());
+        m.insert("id".to_string(), marketId);
+        m.insert("symbol".to_string(), symbol);
+        m.insert("base".to_string(), base);
+        m.insert("quote".to_string(), quote);
+        m.insert("settle".to_string(), settle);
+        m.insert("baseId".to_string(), baseId);
+        m.insert("quoteId".to_string(), quoteId);
+        m.insert("settleId".to_string(), settleId);
+        m.insert("type".to_string(), marketType);
+        m.insert("spot".to_string(), spot);
+        m.insert("margin".to_string(), margin);
+        m.insert("swap".to_string(), swap);
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), option.clone());
+        m.insert("option".to_string(), option);
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
-        m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), linear.clone());
-        m.insert("inverse".to_string(), inverse.clone());
-        m.insert("contractSize".to_string(), contractSize.clone());
+        m.insert("contract".to_string(), isContract);
+        m.insert("linear".to_string(), linear);
+        m.insert("inverse".to_string(), inverse);
+        m.insert("contractSize".to_string(), contractSize);
         m.insert("expiry".to_string(), expiry.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
+        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_fee_rate", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_fee_rate", &[]));
-        m.insert("strike".to_string(), strike.clone());
-        m.insert("optionType".to_string(), optionType.clone());
+        m.insert("strike".to_string(), strike);
+        m.insert("optionType".to_string(), optionType);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(market.clone(), "amount_step", &[]));
@@ -1442,7 +1602,7 @@ impl DeriveCore {
     m
 }));
         m.insert("created".to_string(), Value::Null);
-        m.insert("info".to_string(), market.clone());
+        m.insert("info".to_string(), market);
     m
 })]);
 
@@ -1463,16 +1623,16 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_3]).await;
         //
         // spot
@@ -1534,11 +1694,11 @@ impl DeriveCore {
         //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
         // }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(data.clone(), &[market.clone()]);
+        return self.parse_ticker(data, &[market]);
 
     Value::Null
 }
@@ -1601,17 +1761,17 @@ impl DeriveCore {
         // }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument_name", &[]);
-        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("timestamp".to_string()), &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("timestamp".into()), &[]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[]);
         let mut change: Value = self.safe_string_k(stats.clone(), "percent_change", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(stats.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(stats.clone(), "low", &[]));
+        m.insert("low".to_string(), self.safe_string_k(stats, "low", &[]));
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "best_bid_price", &[]));
         m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "best_bid_amount", &[]));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "best_ask_price", &[]));
@@ -1622,15 +1782,15 @@ impl DeriveCore {
         m.insert("last".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.clone());
-        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&change, &Value::Str("100".to_string())));
+        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&change, &Value::Str("100".into())));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker.clone(), "index_price", &[]));
         m.insert("markPrice".to_string(), self.safe_string_k(ticker.clone(), "mark_price", &[]));
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1654,7 +1814,7 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1662,25 +1822,25 @@ impl DeriveCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if !is_equal(&limit, &Value::Null) {
-            if is_greater_than(&limit, &Value::Int(1000)) {
+        if (limit != Value::Null) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                 limit = Value::Int(1000);
             }
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone()); // default 100, max 1000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }; // default 100, max 1000
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
-        if !is_equal(&until, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
+        if (until != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to_timestamp".into(), until); }
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_4]).await;
         //
         // {
@@ -1714,12 +1874,12 @@ impl DeriveCore {
         //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
-        return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut data: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
+        return self.parse_trades(data, &[market, since, limit]);
 
     Value::Null
 }
@@ -1732,27 +1892,26 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tradesArray: Value = self.to_array(trades.clone());
-        let mut result: Value = Value::List(vec![]);
+        let mut tradesArray: Value = self.to_array(trades);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&tradesArray)) } {
-            let mut rawTrade: Value = get_value(&tradesArray, &i);
-            let mut rawTrade: Value = get_value(&tradesArray, &i);
-            let mut isFetchTrades: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string()))))));
-            let mut liquidityRole: Value = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]);
-            if is_true(&isFetchTrades) && is_true(&(is_equal(&liquidityRole, &Value::Str("maker".to_string())))) {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
+            let mut rawTrade: Value = tradesArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut isFetchTrades: bool = !(in_op(&rawTrade, &Value::Str("order_id".into())));
+            let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
+            if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
                 continue;
             }
-            let mut parsed: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
-            let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
-            append_to_array(&mut result, trade.clone());
+            let mut parsed: Value = self.parse_trade(rawTrade, &[market.clone()]);
+            let mut trade: Value = self.extend(parsed, &[params.clone()]);
+            append_to_array(&mut result, trade);
         }
         }
-        result = self.sort_by2(result.clone(), Value::Str("timestamp".to_string()), Value::Str("id".to_string()), &[]);
-        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        return self.filter_by_symbol_since_limit(result.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
+        result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        let mut symbol: Value = self.safe_string_k(market, "symbol", &[]);
+        return self.filter_by_symbol_since_limit(result, &[symbol, since, limit]);
 
     Value::Null
 }
@@ -1790,11 +1949,11 @@ impl DeriveCore {
         // }
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "instrument_name", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), Value::Str("USDC".to_string()));
+                m.insert("currency".to_string(), Value::Str("USDC".into()));
                 m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "trade_fee", &[]));
             m
         });
@@ -1803,18 +1962,18 @@ impl DeriveCore {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("side".to_string(), self.safe_string_lower(trade.clone(), Value::Str("direction".to_string()), &[]));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "direction", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "liquidity_role", &[]));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "trade_price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "trade_amount", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(trade, "trade_amount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fee".to_string(), fee.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("fee".to_string(), fee);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1838,24 +1997,24 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
-        if !is_equal(&until, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
+        if (until != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to_timestamp".into(), until); }
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_get_funding_rate_history(&[__ws_arg_5]).await;
         //
         // {
@@ -1870,32 +2029,31 @@ impl DeriveCore {
         //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "funding_rate_history", &[Value::List(vec![])]);
-        let mut rates: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(result, "funding_rate_history", &[Value::from(vec![])]);
+        let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&data)) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
             append_to_array(&mut rates, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "funding_rate", &[]));
+                    m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
-                    m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                    m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
-        return self.filter_by_symbol_since_limit(sorted.clone(), &[get_value(&market, &Value::Str("symbol".to_string())), since.clone(), limit.clone()]);
+        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }
@@ -1914,7 +2072,7 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.fetch_funding_rate_history(&[symbol.clone(), Value::Null, Value::Int(1), params.clone()]).await;
+        let mut response: Value = self.fetch_funding_rate_history(&[symbol, Value::Null, Value::Int(1), params]).await;
         //
         // [
         //     {
@@ -1929,8 +2087,8 @@ impl DeriveCore {
         //     }
         // ]
         //
-        let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[]);
-        return self.parse_funding_rate(data.clone(), &[]);
+        let mut data: Value = self.safe_dict(response, Value::Int(0), &[]);
+        return self.parse_funding_rate(data, &[]);
 
     Value::Null
 }
@@ -1942,16 +2100,16 @@ impl DeriveCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
-        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp.clone()));
+        m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
@@ -1966,56 +2124,48 @@ impl DeriveCore {
 }
 
     pub fn hash_order_message(&self, mut order: Value) -> Value {
-        let mut accountHash: Value = self.hash(self.eth_abi_encode(Value::List(vec![Value::Str("bytes32".to_string()), Value::Str("uint256".to_string()), Value::Str("uint256".to_string()), Value::Str("address".to_string()), Value::Str("bytes32".to_string()), Value::Str("uint256".to_string()), Value::Str("address".to_string()), Value::Str("address".to_string())]), order.clone()), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
+        let mut accountHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into())]), order), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut DOMAIN_SEPARATOR: Value = ternary(is_true(&(is_equal(&sandboxMode, &Value::Bool(true)))), Value::Str("9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105".to_string()), Value::Str("d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b".to_string()));
-        let mut binaryDomainSeparator: Value = self.base16_to_binary(DOMAIN_SEPARATOR.clone(), &[]);
-        let mut prefix: Value = self.base16_to_binary(Value::Str("1901".to_string()), &[]);
-        return self.hash(self.binary_concat(prefix.clone(), &[binaryDomainSeparator.clone(), accountHash.clone()]), Value::Str("keccak".to_string()), &[Value::Str("hex".to_string())]);
+        let mut DOMAIN_SEPARATOR: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105".into()) } else { Value::Str("d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b".into()) });
+        let mut binaryDomainSeparator: Value = self.base16_to_binary(DOMAIN_SEPARATOR, &[]);
+        let mut prefix: Value = self.base16_to_binary(Value::Str("1901".into()), &[]);
+        return self.hash(self.binary_concat(prefix, &[binaryDomainSeparator, accountHash]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
 
     Value::Null
 }
 
-    pub fn sign_order(&self, mut order: Value, mut privateKey: Value) -> Value {
-        let mut hashOrder: Value = self.hash_order_message(order.clone());
-        return self.sign_hash(slice(&hashOrder, &negate(&Value::Int(64)), &Value::Null), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null));
-
-    Value::Null
+    pub fn sign_order(&self, mut order: Value, mut privateKey: Value) -> Option<String> {
+        let mut hashOrder: Value = self.hash_order_message(order);
+        return self.sign_hash(slice(&hashOrder, &Value::Int(-64), &Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
     pub fn hash_message(&self, mut message: Value) -> Value {
-        let mut binaryMessage: Value = self.encode(message.clone());
+        let mut binaryMessage: Value = self.encode(message);
         let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
-        let mut x19: Value = self.base16_to_binary(Value::Str("19".to_string()), &[]);
-        let mut newline: Value = self.base16_to_binary(Value::Str("0a".to_string()), &[]);
-        let mut prefix: Value = self.binary_concat(x19.clone(), &[self.encode(Value::Str("Ethereum Signed Message:".to_string())), newline.clone(), self.encode(self.number_to_string(binaryMessageLength.clone()))]);
-        return add(&Value::Str("0x".to_string()), &self.hash(self.binary_concat(prefix.clone(), &[binaryMessage.clone()]), Value::Str("keccak".to_string()), &[Value::Str("hex".to_string())]));
+        let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
+        let mut newline: Value = self.base16_to_binary(Value::Str("0a".into()), &[]);
+        let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(self.number_to_string(binaryMessageLength))]);
+        return add(&Value::Str("0x".into()), &self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())]));
 
     Value::Null
 }
 
-    pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Value {
+    pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Option<String> {
         self.check_required_credentials(&[]);
-        let mut signature: Value = ecdsa(slice(&hash, &negate(&Value::Int(64)), &Value::Null), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null), Value::Str("secp256k1".to_string()), Value::Null);
-        let mut r: Value = get_value(&signature, &Value::Str("r".to_string()));
-        let mut s: Value = get_value(&signature, &Value::Str("s".to_string()));
-        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), get_value(&signature, &Value::Str("v".to_string()))]), &[]);
-        return add(&add(&add(&Value::Str("0x".to_string()), &pad_start(&r, &Value::Int(64), &Value::Str("0".to_string()))), &pad_start(&s, &Value::Int(64), &Value::Str("0".to_string()))), &v);
-
-    Value::Null
+        let mut signature: Value = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
+        let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
+        let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
+        let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), pad_start(&r, &Value::Int(64), &Value::Str("0".into()))).into()), pad_start(&s, &Value::Int(64), &Value::Str("0".into()))).into()), v).into()).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Value {
-        return self.sign_hash(self.hash_message(message.clone()), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null));
-
-    Value::Null
+    pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
+        return self.sign_hash(self.hash_message(message), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
-    pub fn parse_units(&self, mut num: Value, optional_args: &[Value]) -> Value {
-        let mut dec = get_arg(optional_args, 0, Value::Str("1000000000000000000".to_string()));
-        return crate::precise::Precise::stringMul(&num, &dec);
-
-    Value::Null
+    pub fn parse_units(&self, mut num: Value, optional_args: &[Value]) -> Option<String> {
+        let mut dec = get_arg(optional_args, 0, Value::Str("1000000000000000000".into()));
+        return crate::precise::Precise::stringMul(&num, &dec).as_str().map(str::to_owned);
 }
 
 /*
@@ -2044,92 +2194,92 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        if is_equal(&price, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a price argument".to_string()))));
+        if (price == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".into()))));
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("createOrder".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("createOrder".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
-        let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-        let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
+        let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[]);
         let mut orderType: Value = to_lower(&type_var);
         let mut orderSide: Value = to_lower(&side);
-        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string()))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.milliseconds();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
-        let mut signatureExpiry: Value = self.safe_integer_k(params.clone(), "signature_expiry_sec", &[add(&self.seconds(), &Value::Int(7776000))]);
-        let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".to_string()), &[]);
+        let mut signatureExpiry: Value = self.safe_integer_k(params.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut TRADE_MODULE_ADDRESS: Value = ternary(is_true(&(is_equal(&sandboxMode, &Value::Bool(true)))), Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()), Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()));
-        let mut priceString: Value = self.number_to_string(price.clone());
+        let mut TRADE_MODULE_ADDRESS: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".into()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".into()) });
+        let mut priceString: Value = self.number_to_string(price);
         let mut maxFee: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("max_fee".to_string()), &[]); maxFee = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if is_equal(&maxFee, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a max_fee argument in params".to_string()))));
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("max_fee".into()), &[]); maxFee = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (maxFee == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a max_fee argument in params".into()))));
         }
-        let mut maxFeeString: Value = self.number_to_string(maxFee.clone());
-        let mut amountString: Value = self.number_to_string(amount.clone());
-        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::List(vec![Value::Str("address".to_string()), Value::Str("uint".to_string()), Value::Str("int".to_string()), Value::Str("int".to_string()), Value::Str("uint".to_string()), Value::Str("uint".to_string()), Value::Str("bool".to_string())]), Value::List(vec![get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_address".to_string())), self.parse_to_numeric(get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_sub_id".to_string()))), self.convert_to_big_int(self.parse_units(priceString.clone(), &[])), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol.clone(), amountString.clone()), &[])), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[])), subaccountId.clone(), orderSideIsBuy.clone()])), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
+        let mut maxFeeString: Value = self.number_to_string(maxFee);
+        let mut amountString: Value = self.number_to_string(amount);
+        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "base_asset_address"), self.parse_to_numeric(crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "base_asset_sub_id")), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), subaccountId.clone(), orderSideIsBuy])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut deriveWalletAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("createOrder".to_string()), params.clone()); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut signature: Value = self.sign_order(Value::List(vec![ACTION_TYPEHASH.clone(), subaccountId.clone(), nonce.clone(), TRADE_MODULE_ADDRESS.clone(), tradeModuleDataHash.clone(), signatureExpiry.clone(), deriveWalletAddress.clone(), self.walletAddress.clone()]), self.privateKey.clone());
+        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("createOrder".into()), params.clone()); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, subaccountId.clone(), nonce.clone(), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                m.insert("direction".to_string(), orderSide.clone());
-                m.insert("order_type".to_string(), orderType.clone());
-                m.insert("nonce".to_string(), nonce.clone());
-                m.insert("amount".to_string(), amountString.clone());
-                m.insert("limit_price".to_string(), priceString.clone());
-                m.insert("max_fee".to_string(), maxFeeString.clone());
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
-                m.insert("signature_expiry_sec".to_string(), signatureExpiry.clone());
-                m.insert("referral_code".to_string(), self.safe_string_k(self.options.clone(), "id", &[Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string())]));
+                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("direction".to_string(), orderSide);
+                m.insert("order_type".to_string(), orderType);
+                m.insert("nonce".to_string(), nonce);
+                m.insert("amount".to_string(), amountString);
+                m.insert("limit_price".to_string(), priceString);
+                m.insert("max_fee".to_string(), maxFeeString);
+                m.insert("subaccount_id".to_string(), subaccountId);
+                m.insert("signature_expiry_sec".to_string(), signatureExpiry);
+                m.insert("referral_code".to_string(), self.safe_string_k(self.options.clone(), "id", &[Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into())]));
                 m.insert("signer".to_string(), self.walletAddress.clone());
             m
         });
-        if !is_equal(&reduceOnly, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
-            if is_true(&reduceOnly) && is_true(&(is_equal(&postOnly, &Value::Bool(true)))) {
-                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" cannot use reduce only with post only time in force".to_string()))));
+        if (reduceOnly != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), reduceOnly.clone()); }
+            if reduceOnly.as_bool() == Some(true) && (postOnly.as_bool() == Some(true)) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".into()))));
             }
         }
-        if !is_equal(&postOnly, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("post_only".to_string()));
-        }  else if !is_equal(&timeInForce, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
+        if (postOnly != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), Value::Str("post_only".into())); }
+        }  else if (timeInForce != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
         }
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut triggerPriceType: Value = self.safe_string_k(params.clone(), "trigger_price_type", &[Value::Str("mark".to_string())]);
-        if !is_equal(&stopLoss, &Value::Null) {
+        let mut triggerPriceType: Value = self.safe_string_k(params.clone(), "trigger_price_type", &[Value::Str("mark".into())]);
+        if (stopLoss != Value::Null) {
             let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss.clone()]);
-            add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), stopLossPrice.clone());
-            add_element_to_object(&mut request, &Value::Str("trigger_type".to_string()), Value::Str("stoploss".to_string()));
-            add_element_to_object(&mut request, &Value::Str("trigger_price_type".to_string()), triggerPriceType.clone());
-        }  else if !is_equal(&takeProfit, &Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price".into(), stopLossPrice); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_type".into(), Value::Str("stoploss".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price_type".into(), triggerPriceType.clone()); }
+        }  else if (takeProfit != Value::Null) {
             let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
-            add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), takeProfitPrice.clone());
-            add_element_to_object(&mut request, &Value::Str("trigger_type".to_string()), Value::Str("takeprofit".to_string()));
-            add_element_to_object(&mut request, &Value::Str("trigger_price_type".to_string()), triggerPriceType.clone());
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price".into(), takeProfitPrice); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_type".into(), Value::Str("takeprofit".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price_type".into(), triggerPriceType); }
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if !is_equal(&clientOrderId, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("label".to_string()), clientOrderId.clone());
+        if (clientOrderId != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("label".into(), clientOrderId); }
         }
-        add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("test".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trigger_price_type".to_string())]), &[]);
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("test".into()), Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trigger_price_type".into())]), &[]);
         let mut response: Value = Value::Null;
-        if is_equal(&test, &Value::Bool(true)) {
+        if (test.as_bool() == Some(true)) {
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_order_debug(&[__ws_arg_6]).await;
         }  else {
-            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_7 = self.extend(request, &[params]);
             response = self.private_post_order(&[__ws_arg_7]).await;
         }
         //
@@ -2199,16 +2349,16 @@ impl DeriveCore {
         //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
         let mut rawOrder: Value = self.safe_dict_k(result.clone(), "raw_data", &[]);
-        if is_equal(&rawOrder, &Value::Null) {
-            rawOrder = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+        if (rawOrder == Value::Null) {
+            rawOrder = self.safe_dict_k(result, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         }
-        let mut order: Value = self.parse_order(rawOrder.clone(), &[market.clone()]);
-        add_element_to_object(&mut order, &Value::Str("type".to_string()), type_var.clone());
+        let mut order: Value = self.parse_order(rawOrder, &[market]);
+        add_element_to_object(&mut order, &Value::Str("type".into()), type_var);
         return order;
 
     Value::Null
@@ -2236,64 +2386,64 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("editOrder".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-        let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("editOrder".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
+        let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[]);
         let mut orderType: Value = to_lower(&type_var);
         let mut orderSide: Value = to_lower(&side);
-        let mut orderSideIsBuy: Value = Value::Bool(is_equal(&orderSide, &Value::Str("buy".to_string()))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.milliseconds();
-        let mut signatureExpiry: Value = self.safe_number_k(params.clone(), "signature_expiry_sec", &[add(&self.seconds(), &Value::Int(7776000))]);
+        let mut signatureExpiry: Value = self.safe_number_k(params.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         // TODO: subaccount id / trade module address
-        let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".to_string()), &[]);
+        let mut ACTION_TYPEHASH: Value = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        let mut TRADE_MODULE_ADDRESS: Value = ternary(is_true(&(is_equal(&sandboxMode, &Value::Bool(true)))), Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".to_string()), Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string()));
-        let mut priceString: Value = self.number_to_string(price.clone());
-        let mut maxFeeString: Value = self.safe_string_k(params.clone(), "max_fee", &[Value::Str("0".to_string())]);
-        let mut amountString: Value = self.number_to_string(amount.clone());
-        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::List(vec![Value::Str("address".to_string()), Value::Str("uint".to_string()), Value::Str("int".to_string()), Value::Str("int".to_string()), Value::Str("uint".to_string()), Value::Str("uint".to_string()), Value::Str("bool".to_string())]), Value::List(vec![get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_address".to_string())), self.parse_to_numeric(get_value(&get_value(&market, &Value::Str("info".to_string())), &Value::Str("base_asset_sub_id".to_string()))), self.convert_to_big_int(self.parse_units(priceString.clone(), &[])), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol.clone(), amountString.clone()), &[])), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[])), subaccountId.clone(), orderSideIsBuy.clone()])), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
+        let mut TRADE_MODULE_ADDRESS: Value = (if (sandboxMode.as_bool() == Some(true)) { Value::Str("0x87F2863866D85E3192a35A73b388BD625D83f2be".into()) } else { Value::Str("0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".into()) });
+        let mut priceString: Value = self.number_to_string(price);
+        let mut maxFeeString: Value = self.safe_string_k(params.clone(), "max_fee", &[Value::Str("0".into())]);
+        let mut amountString: Value = self.number_to_string(amount);
+        let mut tradeModuleDataHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "base_asset_address"), self.parse_to_numeric(crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "base_asset_sub_id")), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone(), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)), subaccountId.clone(), orderSideIsBuy])), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut deriveWalletAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("editOrder".to_string()), params.clone()); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut signature: Value = self.sign_order(Value::List(vec![ACTION_TYPEHASH.clone(), subaccountId.clone(), nonce.clone(), TRADE_MODULE_ADDRESS.clone(), tradeModuleDataHash.clone(), signatureExpiry.clone(), deriveWalletAddress.clone(), self.walletAddress.clone()]), self.privateKey.clone());
+        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("editOrder".into()), params.clone()); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut signature: Value = self.sign_order(Value::from(vec![ACTION_TYPEHASH, subaccountId.clone(), nonce.clone(), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry.clone(), deriveWalletAddress, self.walletAddress.clone()]), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("order_id_to_cancel".to_string(), id.clone());
-                m.insert("direction".to_string(), orderSide.clone());
-                m.insert("order_type".to_string(), orderType.clone());
-                m.insert("nonce".to_string(), nonce.clone());
-                m.insert("amount".to_string(), amountString.clone());
-                m.insert("limit_price".to_string(), priceString.clone());
-                m.insert("max_fee".to_string(), maxFeeString.clone());
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
-                m.insert("signature_expiry_sec".to_string(), signatureExpiry.clone());
+                m.insert("direction".to_string(), orderSide);
+                m.insert("order_type".to_string(), orderType);
+                m.insert("nonce".to_string(), nonce);
+                m.insert("amount".to_string(), amountString);
+                m.insert("limit_price".to_string(), priceString);
+                m.insert("max_fee".to_string(), maxFeeString);
+                m.insert("subaccount_id".to_string(), subaccountId);
+                m.insert("signature_expiry_sec".to_string(), signatureExpiry);
                 m.insert("signer".to_string(), self.walletAddress.clone());
             m
         });
-        if !is_equal(&reduceOnly, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
-            if is_true(&reduceOnly) && is_true(&(is_equal(&postOnly, &Value::Bool(true)))) {
-                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" cannot use reduce only with post only time in force".to_string()))));
+        if (reduceOnly != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), reduceOnly.clone()); }
+            if reduceOnly.as_bool() == Some(true) && (postOnly.as_bool() == Some(true)) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".into()))));
             }
         }
-        if !is_equal(&postOnly, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("post_only".to_string()));
-        }  else if !is_equal(&timeInForce, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
+        if (postOnly != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), Value::Str("post_only".into())); }
+        }  else if (timeInForce != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("time_in_force".into(), timeInForce); }
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if !is_equal(&clientOrderId, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("label".to_string()), clientOrderId.clone());
+        if (clientOrderId != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("label".into(), clientOrderId); }
         }
-        add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into())]), &[]);
+        let __ws_arg_8 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_replace(&[__ws_arg_8]).await;
         //
         //   {
@@ -2369,12 +2519,12 @@ impl DeriveCore {
         //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
         //   }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut rawOrder: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
+        let mut rawOrder: Value = self.safe_dict_k(result, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut order: Value = self.parse_order(rawOrder.clone(), &[market.clone()]);
+        let mut order: Value = self.parse_order(rawOrder, &[market]);
         return order;
 
     Value::Null
@@ -2398,39 +2548,39 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&symbol, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
+        if (symbol == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("cancelOrder".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("cancelOrder".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut clientOrderIdUnified: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "label", &[clientOrderIdUnified.clone()]);
-        let mut isByClientOrder: Value = Value::Bool(!is_equal(&clientOrderIdExchangeSpecific, &Value::Null));
+        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "label", &[clientOrderIdUnified]);
+        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
-        if is_true(&isByClientOrder) {
-            add_element_to_object(&mut request, &Value::Str("label".to_string()), clientOrderIdExchangeSpecific.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("label".to_string())]), &[]);
+        if isByClientOrder {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("label".into(), clientOrderIdExchangeSpecific.clone()); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("label".into())]), &[]);
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_cancel_by_label(&[__ws_arg_9]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-            if is_equal(&isTrigger, &Value::Bool(true)) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id); }
+            if (isTrigger.as_bool() == Some(true)) {
                 let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_cancel_trigger_order(&[__ws_arg_10]).await;
             }  else {
-                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_11 = self.extend(request, &[params]);
                 response = self.private_post_cancel(&[__ws_arg_11]).await;
             }
         }
@@ -2479,18 +2629,18 @@ impl DeriveCore {
         //
         let mut extendParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), symbol.clone());
+                m.insert("symbol".to_string(), symbol);
             m
         });
-        let mut order: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut order: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&isByClientOrder) {
-            add_element_to_object(&mut extendParams, &Value::Str("client_order_id".to_string()), clientOrderIdExchangeSpecific.clone());
+        if isByClientOrder {
+            if let Value::Dict(__d) = &mut extendParams { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIdExchangeSpecific); }
         }
-        let __ws_arg_12 = self.parse_order(order.clone(), &[market.clone()]);
-        return self.extend(__ws_arg_12, &[extendParams.clone()]);
+        let __ws_arg_12 = self.parse_order(order, &[market]);
+        return self.extend(__ws_arg_12, &[extendParams]);
 
     Value::Null
 }
@@ -2512,32 +2662,32 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("cancelAllOrders".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("cancelAllOrders".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut response: Value = Value::Null;
-        if !is_equal(&market, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (market != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_cancel_by_instrument(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params]);
             response = self.private_post_cancel_all(&[__ws_arg_14]).await;
         }
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response);
     m
 }), &[])]);
 
@@ -2566,37 +2716,37 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".to_string()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
-        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
+        let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchOrders".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchOrders".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), Value::Int(500));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(500)); }
         }
-        if is_equal(&isTrigger, &Value::Bool(true)) {
-            add_element_to_object(&mut request, &Value::Str("status".to_string()), Value::Str("untriggered".to_string()));
+        if (isTrigger.as_bool() == Some(true)) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("untriggered".into())); }
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_orders(&[__ws_arg_15]).await;
         //
         // {
@@ -2643,17 +2793,17 @@ impl DeriveCore {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "result", &[]);
-        let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
-        if !is_equal(&page, &Value::Null) {
+        let mut data: Value = self.safe_dict_k(response, "result", &[]);
+        let mut page: Value = self.safe_integer_k(params, "page", &[]);
+        if (page != Value::Null) {
             let mut pagination: Value = self.safe_dict_k(data.clone(), "pagination", &[]);
-            let mut currentPage: Value = self.safe_integer_k(pagination.clone(), "num_pages", &[Value::Int(0)]);
-            if is_greater_than(&page, &currentPage) {
-                return Value::List(vec![]);
+            let mut currentPage: Value = self.safe_integer_k(pagination, "num_pages", &[Value::Int(0)]);
+            if page.as_f64().unwrap_or(f64::NAN) > currentPage.as_f64().unwrap_or(f64::NAN) {
+                return Value::from(vec![]);
             }
         }
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
-        return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
+        return self.parse_orders(orders, &[market, since, limit]);
 
     Value::Null
 }
@@ -2678,15 +2828,15 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("status".to_string(), Value::Str("open".to_string()));
+                m.insert("status".to_string(), Value::Str("open".into()));
             m
         })]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), extendedParams.clone()]).await;
+        return self.fetch_orders(&[symbol, since, limit, extendedParams]).await;
 
     Value::Null
 }
@@ -2711,15 +2861,15 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("status".to_string(), Value::Str("filled".to_string()));
+                m.insert("status".to_string(), Value::Str("filled".into()));
             m
         })]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), extendedParams.clone()]).await;
+        return self.fetch_orders(&[symbol, since, limit, extendedParams]).await;
 
     Value::Null
 }
@@ -2744,15 +2894,15 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("status".to_string(), Value::Str("cancelled".to_string()));
+                m.insert("status".to_string(), Value::Str("cancelled".into()));
             m
         })]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), extendedParams.clone()]).await;
+        return self.fetch_orders(&[symbol, since, limit, extendedParams]).await;
 
     Value::Null
 }
@@ -2760,31 +2910,31 @@ impl DeriveCore {
     pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ioc".to_string(), Value::Str("IOC".to_string()));
-                m.insert("fok".to_string(), Value::Str("FOK".to_string()));
-                m.insert("gtc".to_string(), Value::Str("GTC".to_string()));
-                m.insert("post_only".to_string(), Value::Str("PO".to_string()));
+                m.insert("ioc".to_string(), Value::Str("IOC".into()));
+                m.insert("fok".to_string(), Value::Str("FOK".into()));
+                m.insert("gtc".to_string(), Value::Str("GTC".into()));
+                m.insert("post_only".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[]);
+        return self.safe_string(timeInForces, timeInForce, &[]);
 
     Value::Null
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
-        if !is_equal(&status, &Value::Null) {
+        if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("open".to_string(), Value::Str("open".to_string()));
-                    m.insert("untriggered".to_string(), Value::Str("open".to_string()));
-                    m.insert("filled".to_string(), Value::Str("closed".to_string()));
-                    m.insert("cancelled".to_string(), Value::Str("canceled".to_string()));
-                    m.insert("expired".to_string(), Value::Str("rejected".to_string()));
+                    m.insert("open".to_string(), Value::Str("open".into()));
+                    m.insert("untriggered".to_string(), Value::Str("open".into()));
+                    m.insert("filled".to_string(), Value::Str("closed".into()));
+                    m.insert("cancelled".to_string(), Value::Str("canceled".into()));
+                    m.insert("expired".to_string(), Value::Str("rejected".into()));
                 m
             });
-            return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+            return self.safe_string(statuses, status.clone(), &[status.clone()]);
         }
-        return status;
+        return Value::Null;
 
     Value::Null
 }
@@ -2843,14 +2993,14 @@ impl DeriveCore {
         //     "trigger_reject_message": null
         // }
         let mut order: Value = self.safe_dict_k(rawOrder.clone(), "data", &[]);
-        if is_equal(&order, &Value::Null) {
+        if (order == Value::Null) {
             order = rawOrder.clone();
         }
-        let mut timestamp: Value = self.safe_integer2(rawOrder.clone(), Value::Str("creation_timestamp".to_string()), Value::Str("nonce".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer2(rawOrder.clone(), Value::Str("creation_timestamp".into()), Value::Str("nonce".into()), &[]);
         let mut orderId: Value = self.safe_string_k(order.clone(), "order_id", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "instrument_name", &[]);
-        if !is_equal(&marketId, &Value::Null) {
-            market = self.safe_market(&[marketId.clone(), market.clone()]);
+        if (marketId != Value::Null) {
+            market = self.safe_market(&[marketId, market.clone()]);
         }
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "limit_price", &[]);
@@ -2858,65 +3008,65 @@ impl DeriveCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "desired_amount", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filled_amount", &[]);
         let mut fee: Value = self.safe_string_k(order.clone(), "order_fee", &[]);
-        let mut orderType: Value = self.safe_string_lower(order.clone(), Value::Str("order_type".to_string()), &[]);
+        let mut orderType: Value = self.safe_string_lower_k(order.clone(), "order_type", &[]);
         let mut isBid: Value = self.safe_bool_k(order.clone(), "is_bid", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "direction", &[]);
-        if is_equal(&side, &Value::Null) {
-            if is_equal(&isBid, &Value::Bool(true)) {
-                side = Value::Str("buy".to_string());
+        if (side == Value::Null) {
+            if (isBid.as_bool() == Some(true)) {
+                side = Value::Str("buy".into());
             }  else {
-                side = Value::Str("sell".to_string());
+                side = Value::Str("sell".into());
             }
         }
-        let mut triggerType: Value = self.safe_string_k(order.clone(), "trigger_type", &[]);
+        let mut triggerType: Option<String> = self.safe_string_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         let mut triggerPrice: Value = Value::Null;
-        if !is_equal(&triggerType, &Value::Null) {
+        if (triggerType.is_some()) {
             triggerPrice = self.safe_string_k(order.clone(), "trigger_price", &[]);
-            if is_equal(&triggerType, &Value::Str("stoploss".to_string())) {
+            if (triggerType.as_deref() == Some("stoploss")) {
                 stopLossPrice = triggerPrice.clone();
             }  else {
                 takeProfitPrice = triggerPrice.clone();
             }
         }
-        let mut lastUpdateTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "last_update_timestamp", &[]);
+        let mut lastUpdateTimestamp: Value = self.safe_integer_k(rawOrder, "last_update_timestamp", &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "order_status", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "time_in_force", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), orderId.clone());
+        m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "label", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
-        m.insert("status".to_string(), self.parse_order_status(status.clone()));
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("type".to_string(), orderType.clone());
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(timeInForce.clone()));
+        m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
+        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("type".to_string(), orderType);
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(timeInForce));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
-        m.insert("side".to_string(), side.clone());
-        m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), triggerPrice.clone());
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
-        m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
-        m.insert("average".to_string(), average.clone());
-        m.insert("amount".to_string(), amount.clone());
-        m.insert("filled".to_string(), filled.clone());
+        m.insert("side".to_string(), side);
+        m.insert("price".to_string(), price);
+        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("average".to_string(), average);
+        m.insert("amount".to_string(), amount);
+        m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), fee.clone());
-        m.insert("currency".to_string(), Value::Str("USDC".to_string()));
+        m.insert("cost".to_string(), fee);
+        m.insert("currency".to_string(), Value::Str("USDC".into()));
     m
 }));
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), order);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -2942,29 +3092,29 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchOrderTrades".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchOrderTrades".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("order_id".to_string(), id);
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_16]).await;
         //
         // {
@@ -3002,12 +3152,12 @@ impl DeriveCore {
         //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
+        return self.parse_trades(trades, &[market, since, limit, params]);
 
     Value::Null
 }
@@ -3033,33 +3183,33 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".to_string()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_17]).await;
         //
         // {
@@ -3097,20 +3247,20 @@ impl DeriveCore {
         //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
-        if !is_equal(&page, &Value::Null) {
+        if (page != Value::Null) {
             let mut pagination: Value = self.safe_dict_k(result.clone(), "pagination", &[]);
-            let mut currentPage: Value = self.safe_integer_k(pagination.clone(), "num_pages", &[Value::Int(0)]);
-            if is_greater_than(&page, &currentPage) {
-                return Value::List(vec![]);
+            let mut currentPage: Value = self.safe_integer_k(pagination, "num_pages", &[Value::Int(0)]);
+            if page.as_f64().unwrap_or(f64::NAN) > currentPage.as_f64().unwrap_or(f64::NAN) {
+                return Value::from(vec![]);
             }
         }
-        let mut trades: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
+        return self.parse_trades(trades, &[market, since, limit, params]);
 
     Value::Null
 }
@@ -3131,18 +3281,18 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchPositions".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchPositions".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("subaccount_id".to_string())]), &[]);
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("subaccount_id".into())]), &[]);
+        let __ws_arg_18 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_get_positions(&[__ws_arg_18]).await;
         //
         // {
@@ -3182,12 +3332,12 @@ impl DeriveCore {
         //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
-        return self.parse_positions(positions.clone(), &[symbols.clone()]);
+        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::from(vec![])]);
+        return self.parse_positions(positions, &[symbols]);
 
     Value::Null
 }
@@ -3225,13 +3375,13 @@ impl DeriveCore {
         // }
         //
         let mut contract: Value = self.safe_string_k(position.clone(), "instrument_name", &[]);
-        market = self.safe_market(&[contract.clone(), market.clone()]);
+        market = self.safe_market(&[contract, market.clone()]);
         let mut size: Value = self.safe_string_k(position.clone(), "amount", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".to_string()))) {
-            side = Value::Str("long".to_string());
+        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
+            side = Value::Str("long".into());
         }  else {
-            side = Value::Str("short".to_string());
+            side = Value::Str("short".into());
         }
         let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
         let mut markPrice: Value = self.safe_string_k(position.clone(), "mark_price", &[]);
@@ -3243,27 +3393,27 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initial_margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenance_margin", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
-        m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
-        m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
+        m.insert("contracts".to_string(), self.parse_number(size, &[]));
+        m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice.clone(), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -3294,33 +3444,33 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".to_string()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        if (symbol != Value::Null) {
+            market = self.market(symbol);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
-        if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
+        if (limit != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_funding_history(&[__ws_arg_19]).await;
         //
         // {
@@ -3353,20 +3503,20 @@ impl DeriveCore {
         //     "id": "524b817f-2108-467f-8795-511066f4acec"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
-        if !is_equal(&page, &Value::Null) {
+        let mut page: Value = self.safe_integer_k(params, "page", &[]);
+        if (page != Value::Null) {
             let mut pagination: Value = self.safe_dict_k(result.clone(), "pagination", &[]);
-            let mut currentPage: Value = self.safe_integer_k(pagination.clone(), "num_pages", &[Value::Int(0)]);
-            if is_greater_than(&page, &currentPage) {
-                return Value::List(vec![]);
+            let mut currentPage: Value = self.safe_integer_k(pagination, "num_pages", &[Value::Int(0)]);
+            if page.as_f64().unwrap_or(f64::NAN) > currentPage.as_f64().unwrap_or(f64::NAN) {
+                return Value::from(vec![]);
             }
         }
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
-        return self.parse_incomes(events.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::from(vec![])]);
+        return self.parse_incomes(events, &[market, since, limit]);
 
     Value::Null
 }
@@ -3382,20 +3532,20 @@ impl DeriveCore {
         // }
         //
         let mut marketId: Value = self.safe_string_k(income.clone(), "instrument_name", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+        let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut rate: Value = self.safe_string_k(income.clone(), "funding", &[]);
-        let mut code: Value = self.safe_currency_code(Value::Str("USDC".to_string()), &[]);
+        let mut code: Value = self.safe_currency_code(Value::Str("USDC".into()), &[]);
         let mut timestamp: Value = self.safe_integer_k(income.clone(), "timestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), income.clone());
-        m.insert("symbol".to_string(), symbol.clone());
-        m.insert("code".to_string(), code.clone());
+        m.insert("info".to_string(), income);
+        m.insert("symbol".to_string(), symbol);
+        m.insert("code".to_string(), code);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), Value::Null);
         m.insert("amount".to_string(), Value::Null);
-        m.insert("rate".to_string(), rate.clone());
+        m.insert("rate".to_string(), rate);
     m
 });
 
@@ -3415,17 +3565,17 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut deriveWalletAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("fetchBalance".to_string()), params.clone()); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_wallet_address(Value::Str("fetchBalance".into()), params.clone()); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("wallet".to_string(), deriveWalletAddress.clone());
+                m.insert("wallet".to_string(), deriveWalletAddress);
             m
         });
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_get_all_portfolios(&[__ws_arg_20]).await;
         //
         // {
@@ -3475,8 +3625,8 @@ impl DeriveCore {
         //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
         // }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[]);
-        return self.parse_balance(result.clone());
+        let mut result: Value = self.safe_list_k(response, "result", &[]);
+        return self.parse_balance(result);
 
     Value::Null
 }
@@ -3489,34 +3639,33 @@ impl DeriveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_638: bool = true;
+            while { if !__for_first_638 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_638 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut subaccount: Value = get_value(&response, &i);
             let mut subaccount: Value = get_value(&response, &i);
-            let mut collaterals: Value = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]);
+            let mut collaterals: Value = self.safe_list_k(subaccount, "collaterals", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_634: bool = true;
-                while { if !__for_first_634 { j = add(&j, &Value::Int(1)); } __for_first_634 = false; is_less_than(&j, &get_array_length(&collaterals)) } {
-                let mut balance: Value = get_value(&collaterals, &j);
-                let mut balance: Value = get_value(&collaterals, &j);
+                let mut __for_first_637: bool = true;
+                while { if !__for_first_637 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; j.as_f64().unwrap_or(f64::NAN) < ((collaterals.len() as i64) as f64) } {
+                let mut balance: Value = collaterals.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
                 let mut account: Value = self.safe_dict(result.clone(), code.clone(), &[]);
-                if is_equal(&account, &Value::Null) {
+                if (account == Value::Null) {
                     account = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "amount", &[]));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[])); }
                 }  else {
-                    let mut amount: Value = self.safe_string_k(balance.clone(), "amount", &[]);
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&get_value(&account, &Value::Str("total".to_string())), &amount); add_element_to_object(&mut account, &Value::Str("total".to_string()), __be_tmp); };
+                    let mut amount: Value = self.safe_string_k(balance, "amount", &[]);
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&account, "total"), &amount); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
                 }
-                if !is_equal(&code, &Value::Null) {
-                    add_element_to_object(&mut result, &code, account.clone());
+                if (code != Value::Null) {
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                 }
             }
             }
         }
         }
-        return self.safe_balance(result.clone());
+        return self.safe_balance(result);
 
     Value::Null
 }
@@ -3541,20 +3690,20 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchDeposits".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchDeposits".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_deposit_history(&[__ws_arg_21]).await;
         //
         // {
@@ -3574,13 +3723,13 @@ impl DeriveCore {
         //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
         // }
         //
-        let mut currency: Value = self.safe_currency(code.clone(), &[]);
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut currency: Value = self.safe_currency(code, &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
-        return self.parse_transactions(events.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::from(vec![])]);
+        return self.parse_transactions(events, &[currency, since, limit, params]);
 
     Value::Null
 }
@@ -3605,20 +3754,20 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut subaccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchWithdrawals".to_string()), params.clone()); subaccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("fetchWithdrawals".into()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subaccount_id".to_string(), subaccountId.clone());
+                m.insert("subaccount_id".to_string(), subaccountId);
             m
         });
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
+        if (since != Value::Null) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_withdrawal_history(&[__ws_arg_22]).await;
         //
         // {
@@ -3638,13 +3787,13 @@ impl DeriveCore {
         //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
         // }
         //
-        let mut currency: Value = self.safe_currency(code.clone(), &[]);
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut currency: Value = self.safe_currency(code, &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
-        return self.parse_transactions(events.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::from(vec![])]);
+        return self.parse_transactions(events, &[currency, since, limit, params]);
 
     Value::Null
 }
@@ -3665,16 +3814,16 @@ impl DeriveCore {
         let mut code: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
         let mut txId: Value = self.safe_string_k(transaction.clone(), "tx_hash", &[]);
-        if is_equal(&txId, &Value::Str("0x0".to_string())) {
+        if (txId.as_str() == Some("0x0")) {
             txId = Value::Null;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("txid".to_string(), txId.clone());
+        m.insert("txid".to_string(), txId);
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
@@ -3683,8 +3832,8 @@ impl DeriveCore {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("currency".to_string(), code.clone());
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "tx_status", &[])));
+        m.insert("currency".to_string(), code);
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "tx_status", &[])));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -3699,57 +3848,57 @@ impl DeriveCore {
     pub fn parse_transaction_status(&self, mut status: Value) -> Value {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("settled".to_string(), Value::Str("ok".to_string()));
-                m.insert("reverted".to_string(), Value::Str("failed".to_string()));
+                m.insert("settled".to_string(), Value::Str("ok".into()));
+                m.insert("reverted".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
+        return self.safe_string(statuses, status.clone(), &[status.clone()]);
 
     Value::Null
 }
 
     pub fn handle_derive_subaccount_id(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut derivesubAccountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("subaccount_id".to_string()), &[]); derivesubAccountId = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if is_true(&(!is_equal(&derivesubAccountId, &Value::Null))) && is_true(&(!is_equal(&derivesubAccountId, &Value::Str("".to_string())))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("subaccount_id".to_string()), derivesubAccountId.clone()); // saving in options
-            return Value::List(vec![derivesubAccountId.clone(), params.clone()]);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("subaccount_id".into()), &[]); derivesubAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (derivesubAccountId != Value::Null) && (derivesubAccountId.as_str() != Some("")) {
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), derivesubAccountId.clone()); }; // saving in options
+            return Value::from(vec![derivesubAccountId, params.clone()]);
         }
         let mut optionsWallet: Value = self.safe_string_k(self.options.clone(), "subaccount_id", &[]);
-        if !is_equal(&optionsWallet, &Value::Null) {
-            return Value::List(vec![optionsWallet.clone(), params.clone()]);
+        if (optionsWallet != Value::Null) {
+            return Value::from(vec![optionsWallet, params]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".to_string()))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".into()))));
 
     Value::Null
 }
 
     pub fn handle_derive_wallet_address(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut deriveWalletAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("deriveWalletAddress".to_string()), &[]); deriveWalletAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if is_true(&(!is_equal(&deriveWalletAddress, &Value::Null))) && is_true(&(!is_equal(&deriveWalletAddress, &Value::Str("".to_string())))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("deriveWalletAddress".to_string()), deriveWalletAddress.clone()); // saving in options
-            return Value::List(vec![deriveWalletAddress.clone(), params.clone()]);
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("deriveWalletAddress".into()), &[]); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (deriveWalletAddress != Value::Null) && (deriveWalletAddress.as_str() != Some("")) {
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone()); }; // saving in options
+            return Value::from(vec![deriveWalletAddress, params.clone()]);
         }
         let mut optionsWallet: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
-        if !is_equal(&optionsWallet, &Value::Null) {
-            return Value::List(vec![optionsWallet.clone(), params.clone()]);
+        if (optionsWallet != Value::Null) {
+            return Value::from(vec![optionsWallet, params]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.".to_string()))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.".into()))));
 
     Value::Null
 }
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_equal(&response, &Value::Null) {
+        if (response == Value::Null) {
             return Value::Null;
         }
         let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
-        if !is_equal(&error, &Value::Null) {
-            let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
-            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &self.json(response.clone()));
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), body.clone(), feedback.clone());
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
+        if (error != Value::Null) {
+            let mut errorCode: Value = self.safe_string_k(error, "code", &[]);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3758,36 +3907,36 @@ impl DeriveCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api), &Value::Str("/".to_string())), &path);
-        if is_equal(&method, &Value::Str("POST".to_string())) {
+        let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), &path);
+        if (method.as_str() == Some("POST")) {
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
             });
-            if is_equal(&api, &Value::Str("private".to_string())) {
+            if (api.as_str() == Some("private")) {
                 let mut now: Value = to_string_val(&self.milliseconds());
-                let mut signature: Value = self.sign_message(now.clone(), self.privateKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-LyraWallet".to_string()), self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]));
-                add_element_to_object(&mut headers, &Value::Str("X-LyraTimestamp".to_string()), now.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-LyraSignature".to_string()), signature.clone());
+                let mut signature: Value = self.sign_message(now.clone(), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-LyraWallet".into(), self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[])); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-LyraTimestamp".into(), now); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-LyraSignature".into(), signature); }
             }
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("url".to_string(), url);
+        m.insert("method".to_string(), method);
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 

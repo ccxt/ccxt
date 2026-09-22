@@ -722,7 +722,7 @@ class coinbase extends coinbase$1["default"] {
         if (events === undefined) {
             return;
         }
-        const event = this.safeValue(events, 0);
+        const event = this.safeDict(events, 0);
         const trades = this.safeList(event, 'trades');
         const trade = this.safeDict(trades, 0);
         const marketId = this.safeString(trade, 'product_id');
@@ -919,7 +919,7 @@ class coinbase extends coinbase$1["default"] {
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const messageHash = 'level2::' + symbol;
-            const subscription = this.safeValue(client.subscriptions, messageHash, {});
+            const subscription = this.safeDict(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {
@@ -965,7 +965,7 @@ class coinbase extends coinbase$1["default"] {
         //      }
         //
         const events = this.safeList(message, 'events', []);
-        const firstEvent = this.safeValue(events, 0, {});
+        const firstEvent = this.safeDict(events, 0, {});
         const isUnsub = ('subscriptions' in firstEvent);
         const subKeys = Object.keys(firstEvent['subscriptions']);
         const subKeysLength = subKeys.length;

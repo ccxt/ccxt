@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 174 implicit endpoints across 2 access groups.
+> 201 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -140,27 +140,42 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateSpotDeleteOpenOrder` | DELETE | `open-order` | 1 |
 | `privateSpotDeleteOrderOrderId` | DELETE | `order/{orderId}` | 1 |
 | `privateSpotPutOrderOrderId` | PUT | `order/{orderId}` | 1 |
+| `privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2` | GET | `future/copytrade/user/v1/copy-trade/current-following-v2` | 1 |
+| `privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill` | GET | `future/copytrade/user/v1/copy-trade/follower-balance-bill` | 1 |
+| `privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition` | GET | `future/copytrade/user/v1/copy-trade/follower-position` | 1 |
 | `privateLinearGetFutureTradeV1EntrustPlanDetail` | GET | `future/trade/v1/entrust/plan-detail` | 1 |
 | `privateLinearGetFutureTradeV1EntrustPlanList` | GET | `future/trade/v1/entrust/plan-list` | 1 |
 | `privateLinearGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateLinearGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustProfitListHistory` | GET | `future/trade/v1/entrust/profit-list-history` | 1 |
+| `privateLinearGetFutureTradeV1EntrustReversePlanList` | GET | `future/trade/v1/entrust/reverse-plan-list` | 1 |
+| `privateLinearGetFutureTradeV1EntrustReversePlanListHistory` | GET | `future/trade/v1/entrust/reverse-plan-list-history` | 1 |
 | `privateLinearGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
 | `privateLinearGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
 | `privateLinearGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
+| `privateLinearGetFutureTradeV1OrderEntrustList` | GET | `future/trade/v1/order-entrust/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateLinearGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateLinearGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateLinearGetFutureTradeV1OrderTradeHistory` | GET | `future/trade/v1/order/trade-history` | 1 |
 | `privateLinearGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
+| `privateLinearGetFutureTradeV1PositionCrossMarginSymbol` | GET | `future/trade/v1/position/cross-margin/{symbol}` | 1 |
+| `privateLinearGetFutureTradeV1PositionLeverageList` | GET | `future/trade/v1/position/leverage/list` | 1 |
+| `privateLinearGetFutureTradeV1PositionListActive` | GET | `future/trade/v1/position/list/active` | 1 |
 | `privateLinearGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
+| `privateLinearGetFutureTradeV1OrderTradeListAll` | GET | `future/trade/v1/order/trade-list-all` | 1 |
 | `privateLinearGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
+| `privateLinearGetFutureUserV1AutoDeleverageHistory` | GET | `future/user/v1/auto-deleverage/history` | 1 |
 | `privateLinearGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |
 | `privateLinearGetFutureUserV1BalanceDetail` | GET | `future/user/v1/balance/detail` | 1 |
 | `privateLinearGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateLinearGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
+| `privateLinearGetFutureUserV1CompatBalanceCoin` | GET | `future/user/v1/compat/balance/{coin}` | 1 |
 | `privateLinearGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
 | `privateLinearGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateLinearGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateLinearGetFutureUserV1TakerOverList` | GET | `future/user/v1/taker-over/list` | 1 |
 | `privateLinearGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateLinearGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
@@ -192,22 +207,34 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureTradeV1EntrustPlanListHistory` | GET | `future/trade/v1/entrust/plan-list-history` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitDetail` | GET | `future/trade/v1/entrust/profit-detail` | 1 |
 | `privateInverseGetFutureTradeV1EntrustProfitList` | GET | `future/trade/v1/entrust/profit-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustProfitListHistory` | GET | `future/trade/v1/entrust/profit-list-history` | 1 |
+| `privateInverseGetFutureTradeV1EntrustReversePlanList` | GET | `future/trade/v1/entrust/reverse-plan-list` | 1 |
+| `privateInverseGetFutureTradeV1EntrustReversePlanListHistory` | GET | `future/trade/v1/entrust/reverse-plan-list-history` | 1 |
 | `privateInverseGetFutureTradeV1EntrustTrackDetail` | GET | `future/trade/v1/entrust/track-detail` | 1 |
 | `privateInverseGetFutureTradeV1EntrustTrackList` | GET | `future/trade/v1/entrust/track-list` | 1 |
 | `privateInverseGetFutureTradeV1EntrustTrackListHistory` | GET | `future/trade/v1/entrust/track-list-history` | 1 |
+| `privateInverseGetFutureTradeV1OrderEntrustList` | GET | `future/trade/v1/order-entrust/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderDetail` | GET | `future/trade/v1/order/detail` | 1 |
 | `privateInverseGetFutureTradeV1OrderList` | GET | `future/trade/v1/order/list` | 1 |
 | `privateInverseGetFutureTradeV1OrderListHistory` | GET | `future/trade/v1/order/list-history` | 1 |
+| `privateInverseGetFutureTradeV1OrderTradeHistory` | GET | `future/trade/v1/order/trade-history` | 1 |
 | `privateInverseGetFutureTradeV1PositionListHistory` | GET | `future/trade/v1/position/list-history` | 1 |
+| `privateInverseGetFutureTradeV1PositionCrossMarginSymbol` | GET | `future/trade/v1/position/cross-margin/{symbol}` | 1 |
+| `privateInverseGetFutureTradeV1PositionLeverageList` | GET | `future/trade/v1/position/leverage/list` | 1 |
+| `privateInverseGetFutureTradeV1PositionListActive` | GET | `future/trade/v1/position/list/active` | 1 |
 | `privateInverseGetFutureTradeV1OrderTradeList` | GET | `future/trade/v1/order/trade-list` | 1 |
+| `privateInverseGetFutureTradeV1OrderTradeListAll` | GET | `future/trade/v1/order/trade-list-all` | 1 |
 | `privateInverseGetFutureUserV1AccountInfo` | GET | `future/user/v1/account/info` | 1 |
+| `privateInverseGetFutureUserV1AutoDeleverageHistory` | GET | `future/user/v1/auto-deleverage/history` | 1 |
 | `privateInverseGetFutureUserV1BalanceBills` | GET | `future/user/v1/balance/bills` | 1 |
 | `privateInverseGetFutureUserV1BalanceDetail` | GET | `future/user/v1/balance/detail` | 1 |
 | `privateInverseGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateInverseGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
+| `privateInverseGetFutureUserV1CompatBalanceCoin` | GET | `future/user/v1/compat/balance/{coin}` | 1 |
 | `privateInverseGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
 | `privateInverseGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateInverseGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
+| `privateInverseGetFutureUserV1TakerOverList` | GET | `future/user/v1/taker-over/list` | 1 |
 | `privateInverseGetFutureUserV1UserStepRate` | GET | `future/user/v1/user/step-rate` | 1 |
 | `privateInverseGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |

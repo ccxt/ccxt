@@ -8,81 +8,86 @@
 package ccxt
 
 // PublicGet20PublicOrderBookSymbol returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet20PublicOrderBookSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet20PublicOrderBookSymbol", args...)
+func (this *Revolutx) PublicGet20PublicOrderBookSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("2.0/public/order-book/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGet10PublicTickers returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet10PublicTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet10PublicTickers", args...)
+func (this *Revolutx) PublicGet10PublicTickers(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/public/tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGet10PublicCandlesSymbol returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet10PublicCandlesSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet10PublicCandlesSymbol", args...)
+func (this *Revolutx) PublicGet10PublicCandlesSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/public/candles/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGet10PublicTradesAll returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet10PublicTradesAll(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet10PublicTradesAll", args...)
+func (this *Revolutx) PublicGet10PublicTradesAll(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/public/trades/all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGet10PublicConfigurationCurrencies returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet10PublicConfigurationCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet10PublicConfigurationCurrencies", args...)
+func (this *Revolutx) PublicGet10PublicConfigurationCurrencies(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/public/configuration/currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGet10PublicConfigurationPairs returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PublicGet10PublicConfigurationPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGet10PublicConfigurationPairs", args...)
+func (this *Revolutx) PublicGet10PublicConfigurationPairs(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/public/configuration/pairs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10Balances returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10Balances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10Balances", args...)
+func (this *Revolutx) PrivateGet10Balances(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10OrdersActive returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10OrdersActive(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10OrdersActive", args...)
+func (this *Revolutx) PrivateGet10OrdersActive(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/active", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10OrdersHistorical returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10OrdersHistorical(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10OrdersHistorical", args...)
+func (this *Revolutx) PrivateGet10OrdersHistorical(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/historical", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10OrdersVenueOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10OrdersVenueOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10OrdersVenueOrderId", args...)
+func (this *Revolutx) PrivateGet10OrdersVenueOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/{venue_order_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10OrdersFillsVenueOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10OrdersFillsVenueOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10OrdersFillsVenueOrderId", args...)
+func (this *Revolutx) PrivateGet10OrdersFillsVenueOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/fills/{venue_order_id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGet10TradesPrivateSymbol returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateGet10TradesPrivateSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGet10TradesPrivateSymbol", args...)
+func (this *Revolutx) PrivateGet10TradesPrivateSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/trades/private/{symbol}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGet10Transactions returns a channel that yields a JSON object or a JSON array.
+func (this *Revolutx) PrivateGet10Transactions(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePost10Orders returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivatePost10Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePost10Orders", args...)
+func (this *Revolutx) PrivatePost10Orders(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePut10OrdersVenueOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivatePut10OrdersVenueOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePut10OrdersVenueOrderId", args...)
+func (this *Revolutx) PrivatePut10OrdersVenueOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/{venue_order_id}", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDelete10Orders returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateDelete10Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDelete10Orders", args...)
+func (this *Revolutx) PrivateDelete10Orders(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDelete10OrdersVenueOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *RevolutxCore) PrivateDelete10OrdersVenueOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDelete10OrdersVenueOrderId", args...)
+func (this *Revolutx) PrivateDelete10OrdersVenueOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("1.0/orders/{venue_order_id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

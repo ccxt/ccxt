@@ -177,6 +177,8 @@ export default class bithumb extends Exchange {
                         'v1/orders/chance': { 'cost': 1 },
                         'v1/order': { 'cost': 1 },
                         'v1/orders': { 'cost': 1 },
+                        'v2/orders/pending': { 'cost': 1 },
+                        'v2/orders/history': { 'cost': 1 },
                         'v1/twap': { 'cost': 1 },
                         'v1/withdraws': { 'cost': 1 },
                         'v1/withdraws/krw': { 'cost': 1 },
@@ -212,6 +214,7 @@ export default class bithumb extends Exchange {
                         'v2/orders': { 'cost': 1 },
                         'v2/orders/batch': { 'cost': 6 }, // max 20 requests per second
                         'v2/orders/cancel': { 'cost': 6 }, // max 20 requests per second
+                        'v2/orders/search': { 'cost': 1 },
                         'v1/twap': { 'cost': 1 },
                         'v1/withdraws/coin': { 'cost': 1 },
                         'v1/withdraws/krw': { 'cost': 1 },
@@ -3354,6 +3357,9 @@ export default class bithumb extends Exchange {
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            };
             if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
@@ -3364,6 +3370,7 @@ export default class bithumb extends Exchange {
             if (isVersionedApi) {
                 headers = {
                     'Accept': 'application/json',
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
                 const request = {
                     'access_key': this.apiKey,
@@ -3407,6 +3414,7 @@ export default class bithumb extends Exchange {
                     'Api-Key': this.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT',
                 };
             }
         }

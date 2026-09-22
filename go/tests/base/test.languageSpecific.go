@@ -1,6 +1,6 @@
 package base
 
-func TestLanguageSpecific() <-chan interface{} {
+func TestLanguageSpecificAsync() <-chan interface{} {
 	TestFutures()
 	TestStructs()
 

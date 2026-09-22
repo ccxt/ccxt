@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct MyokxCore {
@@ -189,31 +193,31 @@ impl MyokxCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("myokx".to_string()));
-        m.insert("name".to_string(), Value::Str("MyOKX (EEA)".to_string()));
+        m.insert("id".to_string(), Value::Str("myokx".into()));
+        m.insert("name".to_string(), Value::Str("MyOKX (EEA)".into()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
-        m.insert("hostname".to_string(), Value::Str("eea.okx.com".to_string()));
+        m.insert("hostname".to_string(), Value::Str("eea.okx.com".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://my.okx.com".to_string()));
-        m.insert("doc".to_string(), Value::Str("https://my.okx.com/docs-v5/en/#overview".to_string()));
-        m.insert("fees".to_string(), Value::Str("https://my.okx.com/pages/products/fees.html".to_string()));
+        m.insert("www".to_string(), Value::Str("https://my.okx.com".into()));
+        m.insert("doc".to_string(), Value::Str("https://my.okx.com/docs-v5/en/#overview".into()));
+        m.insert("fees".to_string(), Value::Str("https://my.okx.com/pages/products/fees.html".into()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str("https://www.my.okx.com/join/CCXT2023".to_string()));
+        m.insert("url".to_string(), Value::Str("https://www.my.okx.com/join/CCXT2023".into()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
+        m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
     m
 }));
     m
@@ -249,7 +253,7 @@ impl MyokxCore {
         m.insert("mica".to_string(), Value::Bool(true));
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]));
     m
 }));
     m

@@ -46,7 +46,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -89,7 +89,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -132,7 +132,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -172,7 +172,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -212,7 +212,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -278,7 +278,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -325,7 +325,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -389,7 +389,7 @@ export default class dydx extends dydxRest {
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = this.safeDict (candles, 0, content);
         const parsed = this.parseOHLCV (ohlcv, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -400,7 +400,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         // {
         //     "type": "error",
@@ -418,7 +418,7 @@ export default class dydx extends dydxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             this.handleErrorMessage (client, message);

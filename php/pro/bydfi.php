@@ -100,11 +100,11 @@ class bydfi extends \ccxt\async\bydfi {
         return $reqid;
     }
 
-    public function watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
+    public function watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
         return Async\async(self::do_watch_public(...))($messageHashes, $channels, $params, $subscription);
     }
 
-    private function do_watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
+    private function do_watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
         $url = $this->urls['api']['ws'];
         $id = $this->request_id();
         $subscriptionParams = array(
@@ -126,11 +126,11 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $this->extend($subscriptionParams, $subscription)));
     }
 
-    public function watch_private(mixed $messageHashes, $params = array()) {
+    public function watch_private(array $messageHashes, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHashes, $params);
     }
 
-    private function do_watch_private(mixed $messageHashes, $params = array()) {
+    private function do_watch_private(array $messageHashes, $params = array()) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $subHash = 'private';
@@ -256,8 +256,8 @@ class bydfi extends \ccxt\async\bydfi {
             'topic' => 'ticker',
         );
         if ($symbols === null) {
-            // all tickers and tickers for specific $symbols are different $channels
-            // we need to unsubscribe from all ticker $channels
+            // all tickers and tickers for specific symbols are different channels
+            // we need to unsubscribe from all ticker channels
             $subHashes = $this->get_message_hashes_for_tickers_unsubscription();
             $subscription['subHashIsPrefix'] = true;
             for ($i = 0; $i < count($subHashes); $i++) {
@@ -302,17 +302,17 @@ class bydfi extends \ccxt\async\bydfi {
         return $messageHashes;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         "s" => "KAS-USDT",
-        //         "c" => 0.04543,
-        //         "e" => "24hrTicker",
-        //         "E" => 1766528295905,
-        //         "v" => 98278925,
-        //         "h" => 0.04685,
-        //         "l" => 0.04404,
-        //         "o" => 0.04657
+        //         "s": "KAS-USDT",
+        //         "c": 0.04543,
+        //         "e": "24hrTicker",
+        //         "E": 1766528295905,
+        //         "v": 98278925,
+        //         "h": 0.04685,
+        //         "l": 0.04404,
+        //         "o": 0.04657
         //     }
         //
         $ticker = $this->parse_ticker($message);
@@ -323,11 +323,11 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve($this->tickers, 'ticker::all');
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
          *
@@ -338,7 +338,7 @@ class bydfi extends \ccxt\async\bydfi {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
         return $result[$symbol][$timeframe];
@@ -353,7 +353,7 @@ class bydfi extends \ccxt\async\bydfi {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
@@ -372,7 +372,7 @@ class bydfi extends \ccxt\async\bydfi {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -411,7 +411,7 @@ class bydfi extends \ccxt\async\bydfi {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -437,19 +437,19 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         "s" => "ETH-USDC",
-        //         "c" => 2956.13,
-        //         "t" => 1766506860000,
-        //         "T" => 1766506920000,
-        //         "e" => "kline",
-        //         "v" => 3955,
-        //         "h" => 2956.41,
-        //         "i" => "1m",
-        //         "l" => 2956.05,
-        //         "o" => 2956.05
+        //         "s": "ETH-USDC",
+        //         "c": 2956.13,
+        //         "t": 1766506860000,
+        //         "T": 1766506920000,
+        //         "e": "kline",
+        //         "v": 3955,
+        //         "h": 2956.41,
+        //         "i": "1m",
+        //         "l": 2956.05,
+        //         "o": 2956.05
         //     }
         //
         $marketId = $this->safe_string($message, 's');
@@ -582,14 +582,14 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "a" => array( array( 150000, 15 ), ... ),
-        //         "b" => array( array( 90450.7, 3615 ), ... ),
-        //         "s" => "BTC-USDT",
-        //         "e" => "depthUpdate",
-        //         "E" => 1766577624512
+        //         "a": [ [ 150000, 15 ], ... ],
+        //         "b": [ [ 90450.7, 3615 ], ... ],
+        //         "s": "BTC-USDT",
+        //         "e": "depthUpdate",
+        //         "E": 1766577624512
         //     }
         //
         $marketId = $this->safe_string($message, 's');
@@ -660,39 +660,39 @@ class bydfi extends \ccxt\async\bydfi {
         }
         $orders = Async\await($this->watch_private($messageHashes, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($orders, 0);
+            $first = $this->safe_dict($orders, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $orders->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "T" => 1766588450558,
-        //         "E" => 1766588450685,
-        //         "e" => "ORDER_TRADE_UPDATE",
-        //         "o" => {
-        //             "S" => "BUY",
-        //             "ap" => "0",
-        //             "cpt" => false,
-        //             "ct" => "future",
-        //             "ev" => "0",
-        //             "fee" => "0",
-        //             "lv" => 2,
-        //             "mt" => "isolated",
-        //             "o" => "7409609004526010368",
-        //             "p" => "1000",
-        //             "ps" => "BOTH",
-        //             "pt" => "ONE_WAY",
-        //             "ro" => false,
-        //             "s" => "ETH-USDC",
-        //             "st" => "NEW",
-        //             "t" => "LIMIT",
-        //             "tp" => "0",
-        //             "u" => "0.001",
-        //             "v" => "2"
+        //         "T": 1766588450558,
+        //         "E": 1766588450685,
+        //         "e": "ORDER_TRADE_UPDATE",
+        //         "o": {
+        //             "S": "BUY",
+        //             "ap": "0",
+        //             "cpt": false,
+        //             "ct": "future",
+        //             "ev": "0",
+        //             "fee": "0",
+        //             "lv": 2,
+        //             "mt": "isolated",
+        //             "o": "7409609004526010368",
+        //             "p": "1000",
+        //             "ps": "BOTH",
+        //             "pt": "ONE_WAY",
+        //             "ro": false,
+        //             "s": "ETH-USDC",
+        //             "st": "NEW",
+        //             "t": "LIMIT",
+        //             "tp": "0",
+        //             "u": "0.001",
+        //             "v": "2"
         //         }
         //     }
         //
@@ -718,25 +718,25 @@ class bydfi extends \ccxt\async\bydfi {
     public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "S" => "BUY",
-        //         "ap" => "0",
-        //         "cpt" => false,
-        //         "ct" => "future",
-        //         "ev" => "0",
-        //         "fee" => "0",
-        //         "lv" => 2,
-        //         "mt" => "isolated",
-        //         "o" => "7409609004526010368",
-        //         "p" => "1000",
-        //         "ps" => "BOTH",
-        //         "pt" => "ONE_WAY",
-        //         "ro" => false,
-        //         "s" => "ETH-USDC",
-        //         "st" => "NEW",
-        //         "t" => "LIMIT",
-        //         "tp" => "0",
-        //         "u" => "0.001",
-        //         "v" => "2"
+        //         "S": "BUY",
+        //         "ap": "0",
+        //         "cpt": false,
+        //         "ct": "future",
+        //         "ev": "0",
+        //         "fee": "0",
+        //         "lv": 2,
+        //         "mt": "isolated",
+        //         "o": "7409609004526010368",
+        //         "p": "1000",
+        //         "ps": "BOTH",
+        //         "pt": "ONE_WAY",
+        //         "ro": false,
+        //         "s": "ETH-USDC",
+        //         "st": "NEW",
+        //         "t": "LIMIT",
+        //         "tp": "0",
+        //         "u": "0.001",
+        //         "v": "2"
         //     }
         //
         $marketId = $this->safe_string($order, 's');
@@ -817,45 +817,45 @@ class bydfi extends \ccxt\async\bydfi {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         "a" => {
-        //             "B" => array(
+        //         "a": {
+        //             "B": [
         //                 {
-        //                     "a" => "USDC",
-        //                     "ba" => "0",
-        //                     "im" => "1.46282986",
-        //                     "om" => "0",
-        //                     "tfm" => "1.46282986",
-        //                     "wb" => "109.86879703"
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
         //                 }
-        //             ),
-        //             "m" => "ORDER",
-        //             "p" => array(
-        //                 array(
-        //                     "S" => "1",
-        //                     "ap" => "2925.81666667",
-        //                     "c" => "USDC",
-        //                     "ct" => "FUTURE",
-        //                     "l" => 2,
-        //                     "lq" => "1471.1840621072728637",
-        //                     "lv" => "0",
-        //                     "ma" => "0",
-        //                     "mt" => "ISOLATED",
-        //                     "pm" => "1.4628298566666665",
-        //                     "pt" => "ONEWAY",
-        //                     "rp" => "-0.00036721",
-        //                     "s" => "ETH-USDC",
-        //                     "t" => "0",
-        //                     "uq" => "0.001",
-        //                     "v" => "1"
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
         //                 }
-        //             )
-        //         ),
-        //         "T" => 1766592694451,
-        //         "E" => 1766592694554,
-        //         "e" => "ACCOUNT_UPDATE"
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
         //     }
         //
         $data = $this->safe_dict($message, 'a', array());
@@ -879,25 +879,25 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "S" => "1",
-        //         "ap" => "2925.81666667",
-        //         "c" => "USDC",
-        //         "ct" => "FUTURE",
-        //         "l" => 2,
-        //         "lq" => "1471.1840621072728637",
-        //         "lv" => "0",
-        //         "ma" => "0",
-        //         "mt" => "ISOLATED",
-        //         "pm" => "1.4628298566666665",
-        //         "pt" => "ONEWAY",
-        //         "rp" => "-0.00036721",
-        //         "s" => "ETH-USDC",
-        //         "t" => "0",
-        //         "uq" => "0.001",
-        //         "v" => "1"
+        //         "S": "1",
+        //         "ap": "2925.81666667",
+        //         "c": "USDC",
+        //         "ct": "FUTURE",
+        //         "l": 2,
+        //         "lq": "1471.1840621072728637",
+        //         "lv": "0",
+        //         "ma": "0",
+        //         "mt": "ISOLATED",
+        //         "pm": "1.4628298566666665",
+        //         "pt": "ONEWAY",
+        //         "rp": "-0.00036721",
+        //         "s": "ETH-USDC",
+        //         "t": "0",
+        //         "uq": "0.001",
+        //         "v": "1"
         //     }
         //
         $marketId = $this->safe_string($position, 's');
@@ -972,7 +972,7 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function fetch_balance_snapshot(Client $client) {
-        $options = $this->safe_value($this->options, 'watchBalance');
+        $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot === true) {
             $messageHash = 'fetchBalanceSnapshot';
@@ -983,61 +983,61 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash) {
+    public function load_balance_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash) {
         $params = array(
             'type' => 'swap',
         );
         $response = Async\await($this->fetch_balance($params));
         $this->balance = $this->extend($response, $this->balance);
-        // don't remove the $future from the .futures cache
+        // don't remove the future from the .futures cache
         $future = $client->futures[$messageHash];
         $future->resolve();
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
-        //         "a" => {
-        //             "B" => array(
+        //         "a": {
+        //             "B": [
         //                 {
-        //                     "a" => "USDC",
-        //                     "ba" => "0",
-        //                     "im" => "1.46282986",
-        //                     "om" => "0",
-        //                     "tfm" => "1.46282986",
-        //                     "wb" => "109.86879703"
+        //                     "a": "USDC",
+        //                     "ba": "0",
+        //                     "im": "1.46282986",
+        //                     "om": "0",
+        //                     "tfm": "1.46282986",
+        //                     "wb": "109.86879703"
         //                 }
-        //             ),
-        //             "m" => "ORDER",
-        //             "p" => array(
-        //                 array(
-        //                     "S" => "1",
-        //                     "ap" => "2925.81666667",
-        //                     "c" => "USDC",
-        //                     "ct" => "FUTURE",
-        //                     "l" => 2,
-        //                     "lq" => "1471.1840621072728637",
-        //                     "lv" => "0",
-        //                     "ma" => "0",
-        //                     "mt" => "ISOLATED",
-        //                     "pm" => "1.4628298566666665",
-        //                     "pt" => "ONEWAY",
-        //                     "rp" => "-0.00036721",
-        //                     "s" => "ETH-USDC",
-        //                     "t" => "0",
-        //                     "uq" => "0.001",
-        //                     "v" => "1"
+        //             ],
+        //             "m": "ORDER",
+        //             "p": [
+        //                 {
+        //                     "S": "1",
+        //                     "ap": "2925.81666667",
+        //                     "c": "USDC",
+        //                     "ct": "FUTURE",
+        //                     "l": 2,
+        //                     "lq": "1471.1840621072728637",
+        //                     "lv": "0",
+        //                     "ma": "0",
+        //                     "mt": "ISOLATED",
+        //                     "pm": "1.4628298566666665",
+        //                     "pt": "ONEWAY",
+        //                     "rp": "-0.00036721",
+        //                     "s": "ETH-USDC",
+        //                     "t": "0",
+        //                     "uq": "0.001",
+        //                     "v": "1"
         //                 }
-        //             )
-        //         ),
-        //         "T" => 1766592694451,
-        //         "E" => 1766592694554,
-        //         "e" => "ACCOUNT_UPDATE"
+        //             ]
+        //         },
+        //         "T": 1766592694451,
+        //         "E": 1766592694554,
+        //         "e": "ACCOUNT_UPDATE"
         //     }
         //
         $messageHash = 'balance';
@@ -1067,11 +1067,11 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
-        //         "result" => true,
-        //         "id" => 1
+        //         "result": true,
+        //         "id": 1
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -1095,22 +1095,22 @@ class bydfi extends \ccxt\async\bydfi {
         $this->clean_cache($subscription);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
-        //         "id" => 1,
-        //         "result" => "pong"
+        //         "id": 1,
+        //         "result": "pong"
         //     }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
-        //         "msg" => "Service error",
-        //         "code" => "-1"
+        //         "msg": "Service error",
+        //         "code": "-1"
         //     }
         //
         $code = $this->safe_string($message, 'code');
@@ -1122,7 +1122,7 @@ class bydfi extends \ccxt\async\bydfi {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $code = $this->safe_string($message, 'code');
         if ($code !== null && ($code !== '0')) {
             $this->handle_error_message($client, $message);

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official extended API documentation:** [api.docs.extended.exchange](https://api.docs.extended.exchange)
 
-> 51 implicit endpoints across 1 access group.
+> 69 implicit endpoints across 1 access group.
 
 ## v1
 
@@ -71,6 +71,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetInfoMarketFunding` | GET | `info/{market}/funding` | 1 |
 | `v1PublicGetInfoMarketOpenInterests` | GET | `info/{market}/open-interests` | 1 |
 | `v1PublicGetInfoBuilderDashboard` | GET | `info/builder/dashboard` | 1 |
+| `v1PublicGetInterestInfoRateCurves` | GET | `interest/info/rate-curves` | 1 |
+| `v1PublicGetInterestInfoLatestRateCurves` | GET | `interest/info/latest-rate-curves` | 1 |
 | `v1PrivateGetUserAccounts` | GET | `user/accounts` | 1 |
 | `v1PrivateGetUserAccountInfo` | GET | `user/account/info` | 1 |
 | `v1PrivateGetUserBalance` | GET | `user/balance` | 1 |
@@ -97,10 +99,26 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetUserRewardsLeaderboardStats` | GET | `user/rewards/leaderboard/stats` | 1 |
 | `v1PrivateGetPortfolioChartsEquities` | GET | `portfolio/charts/equities` | 1 |
 | `v1PrivateGetPortfolioChartsPnl` | GET | `portfolio/charts/pnl` | 1 |
+| `v1PrivateGetPortfolioChartsPnlPercentage` | GET | `portfolio/charts/pnl/percentage` | 1 |
+| `v1PrivateGetPortfolioChartsPnlCumulative` | GET | `portfolio/charts/pnl/cumulative` | 1 |
+| `v1PrivateGetPortfolioChartsPnlCumulativePercentage` | GET | `portfolio/charts/pnl/cumulative/percentage` | 1 |
+| `v1PrivateGetPortfolioChartsVaultEquities` | GET | `portfolio/charts/vault-equities` | 1 |
+| `v1PrivateGetPortfolioChartsMaxDrawdown` | GET | `portfolio/charts/max-drawdown` | 1 |
+| `v1PrivateGetPortfolioChartsFunding` | GET | `portfolio/charts/funding` | 1 |
+| `v1PrivateGetPortfolioAccountsSummary` | GET | `portfolio/accounts/summary` | 1 |
+| `v1PrivateGetPortfolioAccountsHealth` | GET | `portfolio/accounts/health` | 1 |
+| `v1PrivateGetPortfolioAccountsPerformance` | GET | `portfolio/accounts/performance` | 1 |
+| `v1PrivateGetPortfolioFundingStats` | GET | `portfolio/funding/stats` | 1 |
+| `v1PrivateGetPortfolioFundingHistory` | GET | `portfolio/funding/history` | 1 |
 | `v1PrivateGetVaultPublicPerformance` | GET | `vault/public/performance` | 1 |
 | `v1PrivateGetVaultPublicSummary` | GET | `vault/public/summary` | 1 |
 | `v1PrivateGetBuilderTrades` | GET | `builder/trades` | 1 |
+| `v1PrivateGetInterestKeyMetrics` | GET | `interest/key-metrics` | 1 |
+| `v1PrivateGetInterestDailyMetrics` | GET | `interest/daily-metrics` | 1 |
+| `v1PrivateGetInterestPaymentChart` | GET | `interest/payment-chart` | 1 |
+| `v1PrivateGetInterestPayments` | GET | `interest/payments` | 1 |
 | `v1PrivatePostUserOrder` | POST | `user/order` | 1 |
+| `v1PrivatePostUserOrderRfq` | POST | `user/order/rfq` | 1 |
 | `v1PrivatePostUserOrderMassCancel` | POST | `user/order/massCancel` | 1 |
 | `v1PrivatePostUserDeadmanswitch` | POST | `user/deadmanswitch` | 1 |
 | `v1PrivatePostUserBridgeQuote` | POST | `user/bridge/quote` | 1 |

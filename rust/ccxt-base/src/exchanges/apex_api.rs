@@ -14,137 +14,162 @@ use crate::exchange::ExchangeRuntime;
 impl ApexCore {
     /// Auto-generated wrapper for the `publicGetV3Symbols` implicit endpoint.
     pub async fn public_get_v3_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_symbols".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_symbols".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3HistoryFunding` implicit endpoint.
     pub async fn public_get_v3_history_funding(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_history_funding".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_history_funding".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3Ticker` implicit endpoint.
     pub async fn public_get_v3_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_ticker".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_ticker".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3Klines` implicit endpoint.
     pub async fn public_get_v3_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_klines".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_klines".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3Trades` implicit endpoint.
     pub async fn public_get_v3_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_trades".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_trades".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3Depth` implicit endpoint.
     pub async fn public_get_v3_depth(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_depth".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_depth".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3Time` implicit endpoint.
     pub async fn public_get_v3_time(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_time".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_time".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV3DataAllTickerInfo` implicit endpoint.
     pub async fn public_get_v3_data_all_ticker_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v3_data_all_ticker_info".to_string()), optional_args).await
+        self.call_method(Value::Str("public_get_v3_data_all_ticker_info".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Account` implicit endpoint.
     pub async fn private_get_v3_account(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_account".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_account".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3AccountBalance` implicit endpoint.
     pub async fn private_get_v3_account_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_account_balance".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_account_balance".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Fills` implicit endpoint.
     pub async fn private_get_v3_fills(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_fills".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_fills".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3OrderFills` implicit endpoint.
     pub async fn private_get_v3_order_fills(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_order_fills".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_order_fills".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Order` implicit endpoint.
     pub async fn private_get_v3_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3HistoryOrders` implicit endpoint.
     pub async fn private_get_v3_history_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_history_orders".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_history_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3OrderByClientOrderId` implicit endpoint.
     pub async fn private_get_v3_order_by_client_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_order_by_client_order_id".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_order_by_client_order_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Funding` implicit endpoint.
     pub async fn private_get_v3_funding(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_funding".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_funding".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3HistoricalPnl` implicit endpoint.
     pub async fn private_get_v3_historical_pnl(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_historical_pnl".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_historical_pnl".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3OpenOrders` implicit endpoint.
     pub async fn private_get_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_open_orders".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_open_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Transfers` implicit endpoint.
     pub async fn private_get_v3_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_transfers".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_transfers".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV3Transfer` implicit endpoint.
     pub async fn private_get_v3_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_v3_transfer".to_string()), optional_args).await
+        self.call_method(Value::Str("private_get_v3_transfer".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV3StockAccount` implicit endpoint.
+    pub async fn private_get_v3_stock_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v3_stock_account".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3DeleteOpenOrders` implicit endpoint.
     pub async fn private_post_v3_delete_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_delete_open_orders".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_delete_open_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3DeleteClientOrderId` implicit endpoint.
     pub async fn private_post_v3_delete_client_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_delete_client_order_id".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_delete_client_order_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3DeleteOrder` implicit endpoint.
     pub async fn private_post_v3_delete_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_delete_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_delete_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3Order` implicit endpoint.
     pub async fn private_post_v3_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_order".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3SetInitialMarginRate` implicit endpoint.
     pub async fn private_post_v3_set_initial_margin_rate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_set_initial_margin_rate".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_set_initial_margin_rate".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3TransferOut` implicit endpoint.
     pub async fn private_post_v3_transfer_out(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_transfer_out".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_transfer_out".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV3ContractTransferOut` implicit endpoint.
     pub async fn private_post_v3_contract_transfer_out(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v3_contract_transfer_out".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_v3_contract_transfer_out".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3ContractTransferTo` implicit endpoint.
+    pub async fn private_post_v3_contract_transfer_to(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_contract_transfer_to".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3SubmitWithdrawClaim` implicit endpoint.
+    pub async fn private_post_v3_submit_withdraw_claim(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_submit_withdraw_claim".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3StockRegisterAccount` implicit endpoint.
+    pub async fn private_post_v3_stock_register_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_stock_register_account".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3StockGenerateApi` implicit endpoint.
+    pub async fn private_post_v3_stock_generate_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_stock_generate_api".into()), optional_args).await
     }
 
 }

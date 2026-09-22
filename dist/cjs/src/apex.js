@@ -185,6 +185,7 @@ class apex extends apex$1["default"] {
                         'v3/open-orders': { 'cost': 1 },
                         'v3/transfers': { 'cost': 1 },
                         'v3/transfer': { 'cost': 1 },
+                        'v3/stock/account': { 'cost': 1 },
                     },
                     'post': {
                         'v3/delete-open-orders': { 'cost': 1 },
@@ -194,6 +195,10 @@ class apex extends apex$1["default"] {
                         'v3/set-initial-margin-rate': { 'cost': 1 },
                         'v3/transfer-out': { 'cost': 1 },
                         'v3/contract-transfer-out': { 'cost': 1 },
+                        'v3/contract-transfer-to': { 'cost': 1 },
+                        'v3/submit-withdraw-claim': { 'cost': 1 },
+                        'v3/stock/register-account': { 'cost': 1 },
+                        'v3/stock/generate-api': { 'cost': 1 },
                     },
                 },
             },
@@ -339,11 +344,10 @@ class apex extends apex$1["default"] {
         // }
         // }
         //
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const code = 'USDT';
         const account = this.account();
@@ -727,7 +731,6 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(ticker, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market);
@@ -739,8 +742,8 @@ class apex extends apex$1["default"] {
         const low = this.safeString(ticker, 'lowPrice24h');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -1042,7 +1045,6 @@ class apex extends apex$1["default"] {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds();
         const marketId = this.safeString(interest, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, market);
@@ -1050,8 +1052,8 @@ class apex extends apex$1["default"] {
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'openInterest'),
             'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
     }
@@ -1246,7 +1248,7 @@ class apex extends apex$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -118,16 +118,16 @@ class foxbit(Exchange, ImplicitAPI):
                     '404': BadRequest,  # Resource not found. A resource was not found while processing the request.
                     '500': ExchangeError,  # Internal server error. An unknown error occurred while processing the request.
                     '2001': AuthenticationError,  # Authentication error. Error authenticating request.
-                    '2002': AuthenticationError,  # Invalid signature. The signature for self request is not valid.
+                    '2002': AuthenticationError,  # Invalid signature. The signature for this request is not valid.
                     '2003': AuthenticationError,  # Invalid access key. Access key missing, invalid or not found.
                     '2004': BadRequest,  # Invalid timestamp. Invalid or missing timestamp.
-                    '2005': PermissionDenied,  # IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for self API key.
-                    '3001': PermissionDenied,  # Permission denied. Permission denied for self request.
-                    '3002': PermissionDenied,  # KYC required. A greater level of KYC verification is required to proceed with self request.
+                    '2005': PermissionDenied,  # IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for this API key.
+                    '3001': PermissionDenied,  # Permission denied. Permission denied for this request.
+                    '3002': PermissionDenied,  # KYC required. A greater level of KYC verification is required to proceed with this request.
                     '3003': AccountSuspended,  # Member disabled. This member is disabled. Please get in touch with our support for more information.
                     '4001': BadRequest,  # Validation error. A validation error occurred.
-                    '4002': InsufficientFunds,  # Insufficient funds. Insufficient funds to proceed with self request.
-                    '4003': InvalidOrder,  # Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with self request.
+                    '4002': InsufficientFunds,  # Insufficient funds. Insufficient funds to proceed with this request.
+                    '4003': InvalidOrder,  # Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with this request.
                     '4004': BadSymbol,  # Invalid symbol. The market or asset symbol is invalid or was not found.
                     '4005': BadRequest,  # Invalid idempotent. Characters allowed are "a-z", "0-9", "_" or "-", and 36 at max. We recommend UUID v4 in lowercase.
                     '4007': ExchangeError,  # Locked error. There was an error in your allocated balance, please contact us.
@@ -161,6 +161,8 @@ class foxbit(Exchange, ImplicitAPI):
                             'markets/{market}/candlesticks': {'cost': 12},  # 5 requests per 2 seconds
                             'markets/{market}/trades/history': {'cost': 12},  # 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': {'cost': 15},  # 4 requests per 2 seconds
+                            'markets/sparkline/{window}': {'cost': 20},  # 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': {'cost': 30},  # 2 requests per 2 seconds
                         },
                     },
                     'private': {
@@ -174,12 +176,14 @@ class foxbit(Exchange, ImplicitAPI):
                             'deposits': {'cost': 10},  # 3 requests per second
                             'withdrawals': {'cost': 10},  # 3 requests per second
                             'me/fees/trading': {'cost': 60},  # 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': {'cost': 10},  # 6 requests per 2 seconds
                         },
                         'post': {
                             'orders': {'cost': 2},  # 30 requests per 2 seconds
                             'orders/batch': {'cost': 7.5},  # 8 requests per 2 seconds
                             'orders/cancel-replace': {'cost': 3},  # 20 requests per 2 seconds
                             'withdrawals': {'cost': 10},  # 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': {'cost': 30},  # 2 requests per 2 seconds
                         },
                         'put': {
                             'orders/cancel': {'cost': 2},  # 30 requests per 2 seconds
@@ -281,10 +285,10 @@ class foxbit(Exchange, ImplicitAPI):
                         'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': {
-                            'expire_maker': True,  # foxbit prevents self trading by default, no params can change self
-                            'expire_taker': True,  # foxbit prevents self trading by default, no params can change self
-                            'expire_both': True,  # foxbit prevents self trading by default, no params can change self
-                            'none': True,  # foxbit prevents self trading by default, no params can change self
+                            'expire_maker': True,  # foxbit prevents self trading by default, no params can change this
+                            'expire_taker': True,  # foxbit prevents self trading by default, no params can change this
+                            'expire_both': True,  # foxbit prevents self trading by default, no params can change this
+                            'none': True,  # foxbit prevents self trading by default, no params can change this
                         },
                         'trailing': False,
                         'icebergAmount': False,
@@ -341,7 +345,7 @@ class foxbit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         response = self.v3PublicGetCurrencies(params)
         # {
         #   "data": [
@@ -355,7 +359,7 @@ class foxbit(Exchange, ImplicitAPI):
         #         "min_amount": "0.0001"
         #       },
         #       "withdraw_info": {
-        #         "enabled": True,
+        #         "enabled": true,
         #         "min_amount": "0.0001",
         #         "fee": "0.0001"
         #       },
@@ -374,7 +378,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                  "status": "ENABLED",
         #                  "fee": "0.0001",
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #           }
         #       ]
         #     }
@@ -455,7 +459,7 @@ class foxbit(Exchange, ImplicitAPI):
             'networks': parsedNetworks,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         Retrieves data on all markets for foxbit.
 
@@ -491,10 +495,10 @@ class foxbit(Exchange, ImplicitAPI):
         #           "deposit_info": {
         #             "min_to_confirm": "1",
         #             "min_amount": "0.0001",
-        #             "enabled": True
+        #             "enabled": true
         #           },
         #           "withdraw_info": {
-        #             "enabled": True,
+        #             "enabled": true,
         #             "min_amount": "0.0001",
         #             "fee": "0.0001"
         #           },
@@ -509,7 +513,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                 "status": "ENABLED",
         #                 "fee": "0.0001"
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #             }
         #           ],
         #           "default_network_code": "bitcoin"
@@ -526,10 +530,10 @@ class foxbit(Exchange, ImplicitAPI):
         #           "deposit_info": {
         #             "min_to_confirm": "1",
         #             "min_amount": "0.0001",
-        #             "enabled": True
+        #             "enabled": true
         #           },
         #           "withdraw_info": {
-        #             "enabled": True,
+        #             "enabled": true,
         #             "min_amount": "0.0001",
         #             "fee": "0.0001"
         #           },
@@ -544,7 +548,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                 "status": "ENABLED",
         #                 "fee": "0.0001"
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #             }
         #           ],
         #           "default_network_code": "bitcoin"
@@ -562,7 +566,7 @@ class foxbit(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         Get last 24 hours ticker information, in real-time, for given market.
 
@@ -614,7 +618,7 @@ class foxbit(Exchange, ImplicitAPI):
         result = self.safe_dict(data, 0, {})
         return self.parse_ticker(result, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         Retrieve the ticker data of all markets.
 
@@ -652,7 +656,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -681,7 +685,7 @@ class foxbit(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(entry, market)
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         Exports a copy of the order book of a specific market.
 
@@ -728,7 +732,7 @@ class foxbit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         Retrieve the trades of a specific market.
 
@@ -763,7 +767,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -774,7 +778,7 @@ class foxbit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -793,22 +797,22 @@ class foxbit(Exchange, ImplicitAPI):
         response = self.v3PublicGetMarketsMarketCandlesticks(self.extend(request, params))
         # [
         #     [
-        #         "1692918000000",  # timestamp
-        #         "127772.05150000",  # open
-        #         "128467.99980000",  # high
-        #         "127750.01000000",  # low
-        #         "128353.99990000",  # close
-        #         "1692918060000",  # close timestamp
-        #         "0.17080431",  # base volume
-        #         "21866.35948786",  # quote volume
-        #         66,  # number of trades
-        #         "0.12073605",  # taker buy base volume
-        #         "15466.34096391"  # taker buy quote volume
+        #         "1692918000000", // timestamp
+        #         "127772.05150000", // open
+        #         "128467.99980000", // high
+        #         "127750.01000000", // low
+        #         "128353.99990000", // close
+        #         "1692918060000", // close timestamp
+        #         "0.17080431", // base volume
+        #         "21866.35948786", // quote volume
+        #         66, // number of trades
+        #         "0.12073605", // taker buy base volume
+        #         "15466.34096391" // taker buy quote volume
         #     ]
         # ]
         return self.parse_ohlcvs(self.to_array(response), market, interval, since, limit)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         Query for balance and get the amount of funds available for trading or funds locked in orders.
 
@@ -850,7 +854,7 @@ class foxbit(Exchange, ImplicitAPI):
                 result[currencyCode] = balanceObj
         return self.safe_balance(result)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         Fetch all unfilled currently open orders.
 
@@ -864,7 +868,7 @@ class foxbit(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('ACTIVE', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         Fetch all currently closed orders.
 
@@ -878,10 +882,10 @@ class foxbit(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         return self.fetch_orders_by_status('CANCELED', symbol, since, limit, params)
 
-    def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         market = None
@@ -901,7 +905,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         Create an order with the specified characteristics
 
@@ -965,7 +969,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    def create_orders(self, orders: list[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1028,7 +1032,7 @@ class foxbit(Exchange, ImplicitAPI):
         #         "remark": "A remarkable note for the order.",
         #         "quantity": "0.42",
         #         "price": "250000.0",
-        #         "post_only": True,
+        #         "post_only": true,
         #         "time_in_force": "GTC"
         #         }
         #     ]
@@ -1036,7 +1040,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         Cancel open orders.
 
@@ -1066,7 +1070,7 @@ class foxbit(Exchange, ImplicitAPI):
         result = self.safe_dict(data, 0, {})
         return self.parse_order(result)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         Cancel all open orders or all open orders for a specific market.
 
@@ -1098,7 +1102,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': response,
         })]
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         Get an order by ID.
 
@@ -1136,7 +1140,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1190,7 +1194,7 @@ class foxbit(Exchange, ImplicitAPI):
         list = self.safe_list(response, 'data', [])
         return self.parse_orders(list, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         Trade history queries will only have data available for the last 3 months, in descending order(most recents trades first).
 
@@ -1234,7 +1238,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         Fetch the deposit address for a currency associated with self account.
 
@@ -1267,7 +1271,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         Fetch all deposits made to an account.
 
@@ -1311,7 +1315,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         Fetch all withdrawals made from an account.
 
@@ -1370,7 +1374,7 @@ class foxbit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         Fetch all transactions(deposits and withdrawals) made from an account.
 
@@ -1389,7 +1393,7 @@ class foxbit(Exchange, ImplicitAPI):
         result = self.sort_by(allTransactions, 'timestamp')
         return result
 
-    def fetch_status(self, params={}) -> Status:
+    def fetch_status(self, params: dict = {}) -> Status:
         """
         The latest known information on the availability of the exchange API.
 
@@ -1428,7 +1432,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         Simultaneously cancel an existing order and create a new one.
 
@@ -1439,7 +1443,7 @@ class foxbit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used on stop market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1487,7 +1491,7 @@ class foxbit(Exchange, ImplicitAPI):
         created = self.safe_dict(response, 'create', {})
         return self.parse_order(created, market)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         Make a withdrawal.
 
@@ -1525,7 +1529,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_transaction(response)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
@@ -1671,7 +1675,7 @@ class foxbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def parse_trade(self, trade: object, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.parse_date(self.safe_string(trade, 'created_at'))
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'volume', self.safe_string(trade, 'quantity'))
@@ -1720,7 +1724,7 @@ class foxbit(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'quantity_executed')
         remaining = self.safe_string(order, 'quantity')
-        # TODO: validate logic of amount here, should self be calculated?
+        # TODO: validate logic of amount here, should this be calculated?
         amount = None
         if remaining is not None and filled is not None:
             amount = Precise.string_add(remaining, filled)
@@ -1763,7 +1767,7 @@ class foxbit(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         network = self.safe_dict(depositAddress, 'network')
         networkId = self.safe_string(network, 'code')
         currencyCode = self.safe_currency_code(None, currency)
@@ -1813,7 +1817,7 @@ class foxbit(Exchange, ImplicitAPI):
         timestamp = self.parse_date(created_at)
         datetime = self.iso8601(timestamp)
         if fee is not None and amount is not None:
-            # actualAmount = amount - fee
+            # actualAmount = amount - fee;
             actualAmount = Precise.string_sub(amount, fee)
         feeRate = Precise.string_div(fee, actualAmount)
         feeObj = {
@@ -1844,7 +1848,7 @@ class foxbit(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
@@ -1854,7 +1858,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         # {
         #     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
         #     "amount": "0.0001",
@@ -1910,7 +1914,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)

@@ -505,6 +505,7 @@ export default class binance extends Exchange {
                         'portfolio/pmloan-history': { 'cost': 5 },
                         'portfolio/earn-asset-balance': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         // staking
                         'staking/productList': { 'cost': 0.1 },
                         'staking/position': { 'cost': 0.1 },
@@ -681,6 +682,7 @@ export default class binance extends Exchange {
                         'portfolio/redeem': { 'cost': 20 },
                         'portfolio/earn-asset-transfer': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': { 'cost': 0.1 }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': { 'cost': 0.1 }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': { 'cost': 0.1 }, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -714,6 +716,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'portfolio/margin-call-level': { 'cost': 150 }, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders': { 'cost': 0.1 },
                         'margin/order': { 'cost': 0.006667 }, // Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': { 'cost': 0.006667 },
@@ -1050,6 +1053,7 @@ export default class binance extends Exchange {
                         'countdownCancelAllHeartBeat': { 'cost': 10 },
                         'block/order/create': { 'cost': 5 },
                         'block/order/execute': { 'cost': 5 },
+                        'stock/contract': { 'cost': 50 }, // Weight(IP): 50 => cost = 50
                     },
                     'put': {
                         'listenKey': { 'cost': 1 },
@@ -1082,7 +1086,11 @@ export default class binance extends Exchange {
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': { 'cost': 4 }, // Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'executionRules': { 'cost': 0.4, 'noSymbol': 8 }, // Weight(IP): 2 (symbol) / 40 (none) => cost = 0.2 * weight
                         'avgPrice': { 'cost': 0.4 },
+                        'referencePrice': { 'cost': 0.4 }, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation': { 'cost': 0.4 }, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades': { 'cost': 5 }, // Weight(IP): 25 => cost = 0.2 * 25 = 5
                     },
                     'put': {
                         'userDataStream': { 'cost': 0.4 },
@@ -1147,6 +1155,10 @@ export default class binance extends Exchange {
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': { 'cost': 1 },
                         'um/conditional/allOrders': { 'cost': 1, 'noSymbol': 40 },
+                        // algo (conditional) orders
+                        'um/algo/algoOrder': { 'cost': 1 },
+                        'um/algo/openAlgoOrders': { 'cost': 1 },
+                        'um/algo/allAlgoOrders': { 'cost': 5 },
                         'cm/conditional/openOrder': { 'cost': 1 },
                         'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/conditional/orderHistory': { 'cost': 1 },
@@ -1205,6 +1217,7 @@ export default class binance extends Exchange {
                     'post': {
                         'um/order': { 'cost': 1 },
                         'um/conditional/order': { 'cost': 1 },
+                        'um/algo/order': { 'cost': 1 },
                         'cm/order': { 'cost': 1 },
                         'cm/conditional/order': { 'cost': 1 },
                         'margin/order': { 'cost': 1 },
@@ -1235,6 +1248,8 @@ export default class binance extends Exchange {
                         'um/conditional/order': { 'cost': 1 },
                         'um/allOpenOrders': { 'cost': 1 },
                         'um/conditional/allOpenOrders': { 'cost': 1 },
+                        'um/algo/order': { 'cost': 1 },
+                        'um/algo/allOpenOrders': { 'cost': 1 },
                         'cm/order': { 'cost': 1 },
                         'cm/conditional/order': { 'cost': 1 },
                         'cm/allOpenOrders': { 'cost': 1 },
@@ -2917,7 +2932,7 @@ export default class binance extends Exchange {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (this.safeValue(market, defaultType) === true) {
+                    if (this.safeBool(market, defaultType) === true) {
                         return market;
                     }
                 }
@@ -4401,7 +4416,7 @@ export default class binance extends Exchange {
             response = await this.eapiPublicGetDepth(this.extend(request, params));
         }
         else if (market['linear'] === true) {
-            const rpi = this.safeValue(params, 'rpi', false);
+            const rpi = this.safeBool(params, 'rpi', false);
             params = this.omit(params, 'rpi');
             if (rpi === true) {
                 // rpi limit only supports 1000
@@ -4740,6 +4755,18 @@ export default class binance extends Exchange {
         }
         return this.parseTicker(response, market);
     }
+    checkNoStockSymbols(symbols, methodName) {
+        if (symbols === undefined) {
+            return;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbolMarket = this.market(symbols[i]);
+            const stock = this.safeBool(symbolMarket, 'stock', false);
+            if (stock === true) {
+                throw new NotSupported(this.id + ' ' + methodName + '() does not support tokenized stock symbols (' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead');
+            }
+        }
+    }
     /**
      * @method
      * @name binance#fetchBidsAsks
@@ -4751,13 +4778,14 @@ export default class binance extends Exchange {
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        this.checkNoStockSymbols(symbols, 'fetchBidsAsks');
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
@@ -4912,13 +4940,14 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     async fetchTickers(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        this.checkNoStockSymbols(symbols, 'fetchTickers');
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
@@ -5872,7 +5901,7 @@ export default class binance extends Exchange {
         else {
             request['newClientOrderId'] = clientOrderId;
         }
-        request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
@@ -7350,7 +7379,7 @@ export default class binance extends Exchange {
         if (uppercaseType === 'MARKET') {
             if (stock === true) {
                 if (upperCaseSide === 'BUY') {
-                    const precision = this.safeValue(market['precision'], 'price');
+                    const precision = this.safeNumber(market['precision'], 'price');
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     let notional = undefined;
                     if (quoteOrderQtyNew !== undefined) {
@@ -7388,7 +7417,7 @@ export default class binance extends Exchange {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
-                    const precision = this.safeValue(market['precision'], 'price');
+                    const precision = this.safeNumber(market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     }
@@ -9990,8 +10019,8 @@ export default class binance extends Exchange {
         const accountsById = this.safeDict(this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split('_');
-            fromAccount = this.safeValue(parts, 0);
-            toAccount = this.safeValue(parts, 1);
+            fromAccount = this.safeString(parts, 0);
+            toAccount = this.safeString(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
@@ -11423,7 +11452,7 @@ export default class binance extends Exchange {
         let percentage = undefined;
         let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         if (Precise.stringEquals(notionalString, '0')) {
             entryPrice = undefined;
@@ -11638,7 +11667,7 @@ export default class binance extends Exchange {
         }
         const entryPriceString = this.safeString(position, 'entryPrice');
         const entryPrice = this.parseNumber(entryPriceString);
-        const contractSize = this.safeValue(market, 'contractSize');
+        const contractSize = this.safeNumber(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
@@ -13560,7 +13589,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        return this.safeValue(config, 'cost', 1);
+        return this.safeNumber(config, 'cost', 1);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);

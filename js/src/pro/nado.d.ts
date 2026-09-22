@@ -15,7 +15,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name nado#unWatchTrades
@@ -37,7 +37,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name nado#unWatchTradesForSymbols
@@ -58,7 +58,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name nado#unWatchOrderBook
@@ -79,7 +79,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name nado#unWatchOrderBookForSymbols
@@ -102,7 +102,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name nado#watchOHLCVForSymbols
@@ -114,7 +114,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name nado#unWatchOHLCV
@@ -145,7 +145,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name nado#unWatchTicker
@@ -165,7 +165,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name nado#unWatchTickers
@@ -185,7 +185,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name nado#unWatchBidsAsks
@@ -209,7 +209,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#unWatchOrders
@@ -234,7 +234,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name nado#unWatchMyTrades
@@ -259,7 +259,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name nado#unWatchPositions
@@ -293,7 +293,7 @@ export default class nado extends nadoRest {
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name nado#editOrderWs
@@ -316,9 +316,10 @@ export default class nado extends nadoRest {
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
      * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name nado#cancelOrderWs
@@ -333,7 +334,7 @@ export default class nado extends nadoRest {
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name nado#cancelOrdersWs
@@ -348,7 +349,7 @@ export default class nado extends nadoRest {
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name nado#cancelAllOrdersWs
@@ -361,48 +362,44 @@ export default class nado extends nadoRest {
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    watchExecuteRequest(requestIdString: Str, request: any): Promise<any>;
-    watchPublic(streamType: any, market: any, messageHash: string, params?: {}): Promise<any>;
-    watchPrivate(streamType: any, stream: any, messageHash: string, params?: {}): Promise<any>;
-    unWatchPrivate(stream: any, messageHash: string, params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
-    signStreamAuthentication(tx: any, chainId: any, endpointAddress: string): string;
-    createPublicSubscriptionRequest(method: string, streamType: any, market?: undefined, id?: Int, params?: {}): {
-        method: string;
-        stream: any;
-        id: Int;
-    };
-    watchPublicMultiple(streamType: any, markets: any, messageHashes: string[], params?: {}, subscriptionParams?: any): Promise<any>;
-    unWatchPublic(streamType: any, market: any, messageHash: string, params?: {}): Promise<any>;
-    unWatchPublicMultiple(streamType: any, markets: any, messageHashes: string[], params?: {}, subscriptionParams?: any): Promise<any[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    watchExecuteRequest(requestIdString: Str, request: Dict): Promise<any>;
+    watchPublic(streamType: Str, market: any, messageHash: string, params?: Dict): Promise<any>;
+    watchPrivate(streamType: Str, stream: Dict, messageHash: string, params?: Dict): Promise<any>;
+    unWatchPrivate(stream: Dict, messageHash: string, params?: Dict): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
+    signStreamAuthentication(tx: Dict, chainId: Str, endpointAddress: Str): string;
+    createPublicSubscriptionRequest(method: string, streamType: Str, market?: Market, id?: Int, params?: Dict): Dict;
+    watchPublicMultiple(streamType: Str, markets: Market[], messageHashes: string[], params?: Dict, subscriptionParams?: Dict[] | undefined): Promise<any>;
+    unWatchPublic(streamType: Str, market: Market, messageHash: string, params?: Dict): Promise<any>;
+    unWatchPublicMultiple(streamType: Str, markets: Market[], messageHashes: string[], params?: Dict, subscriptionParams?: Dict[] | undefined): Promise<any[]>;
     parseWsTimestamp(message: Dict, key: string): Int;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;
-    handleTrade(client: Client, message: any): void;
-    handleMyTrade(client: Client, message: any): void;
-    handleOHLCV(client: Client, message: any): void;
+    handleTrade(client: Client, message: Dict): void;
+    handleMyTrade(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
-    handlePosition(client: Client, message: any): void;
+    handlePosition(client: Client, message: Dict): void;
     parseWsBidAsk(bidask: Dict, market?: Market): Ticker;
-    handleBidAsk(client: Client, message: any): void;
+    handleBidAsk(client: Client, message: Dict): void;
     parseWsAllBidsAsks(message: Dict): Tickers;
-    handleAllBidsAsks(client: Client, message: any): void;
+    handleAllBidsAsks(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    handleExecuteResponse(client: Client, message: any): void;
-    handleSubscription(client: Client, message: any): void;
-    handleAuthentication(client: Client, message: any): void;
-    handleUnsubscription(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleExecuteResponse(client: Client, message: Dict): void;
+    handleSubscription(client: Client, message: Dict): void;
+    handleAuthentication(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, message: Dict): void;
     handleUnsubscriptionCache(messageHash: Str): void;
     ping(client: Client): {
         method: string;
         id: Int;
         client_time: string;
     } | undefined;
-    handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
+    handlePong(client: Client, message: Dict): Dict;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
 }

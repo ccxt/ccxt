@@ -1,12 +1,8 @@
 package ccxt
 
 import (
-	"bytes"
-	"compress/flate"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"reflect"
 	"runtime"
@@ -42,6 +38,8 @@ func UnWrapType(value any) any {
 }
 
 func Add(a any, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 	if (a == nil) || (b == nil) {
 		return nil
 	}
@@ -98,6 +96,7 @@ func IsTrue(a any) bool {
 
 // EvalTruthy determines if a single interface value is truthy.
 func EvalTruthy(val any) bool {
+	val = derefScalar(val)
 	if val == nil {
 		return false
 	}
@@ -162,6 +161,7 @@ func EvalTruthy(val any) bool {
 // }
 
 func IsInteger(value any) bool {
+	value = derefScalar(value)
 	switch v := value.(type) {
 	case int, int8, int16, int32, int64:
 		return true
@@ -169,7 +169,7 @@ func IsInteger(value any) bool {
 		return true
 	case float32, float64:
 		// Check if the float has no fractional part
-		return v == math.Trunc(v.(float64))
+		return v == math.Trunc(derefScalar(v).(float64))
 	default:
 		// // Handle other numeric types, including when value is a pointer to an int type
 		// val := reflect.ValueOf(value)
@@ -183,137 +183,40 @@ func IsInteger(value any) bool {
 	}
 }
 
-// func GetValue(collection any, key any) any {
-
-// 	if collection == nil {
-// 		return nil
-// 	}
-// 	if key == nil {
-// 		return nil
-// 	}
-
-// 	keyNum := -1
-// 	keyStr, ok := key.(string)
-// 	if !ok {
-// 		keyNum64 := ParseInt(key)
-// 		if keyNum64 == math.MinInt64 {
-// 			return nil
-// 		}
-// 		keyNum = int(keyNum64)
-// 	}
-
-// 	_, isMap := collection.(map[string]any)
-
-// 	if isMap || keyNum != -1 {
-// 		switch v := collection.(type) {
-// 		case map[string]any:
-// 			if !ok {
-// 				return nil
-// 			}
-// 			if val, ok := v[keyStr]; ok {
-// 				return val
-// 			}
-// 			return nil
-// 		case []any:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []string:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []int64:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []float64:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []bool:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []int:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case string:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return string(v[keyNum])
-// 		}
-// 	}
-
-// 	// this is needed in checkRequiredCredentials or alike
-// 	reflectValue := reflect.ValueOf(collection)
-
-// 	if reflectValue.Kind() == reflect.Ptr {
-// 		reflectValue = reflectValue.Elem()
-// 	}
-// 	if reflectValue.Kind() == reflect.Struct {
-// 		stringKey := key.(string)
-// 		stringKeyCapitalized := Capitalize(stringKey)
-// 		field := reflectValue.FieldByName(stringKey)
-
-// 		fieldCapitalized := reflectValue.FieldByName(stringKeyCapitalized)
-// 		if fieldCapitalized.IsValid() {
-// 			return fieldCapitalized.Interface()
-// 		}
-
-// 		if field.IsValid() {
-// 			return field.Interface()
-// 		}
-
-// 		return nil
-// 	}
-
-// 	switch reflectValue.Kind() {
-// 	case reflect.Slice, reflect.Array:
-// 		// Handle slice or array: key should be an integer index.
-// 		index2 := ParseInt(key)
-// 		if index2 == math.MinInt64 {
-// 			return nil // Key is not an int, invalid index
-// 		}
-// 		index := int(index2)
-// 		if index < 0 || index >= reflectValue.Len() {
-// 			return nil // Index out of bounds
-// 		}
-// 		return reflectValue.Index(index).Interface()
-
-// 	case reflect.Map:
-// 		// Handle map: key needs to be appropriate for the map
-// 		keyStr, ok := key.(string)
-// 		if !ok {
-// 			return nil // Key is not a string, invalid key
-// 		}
-// 		reflectKeyValue := reflect.ValueOf(keyStr)
-// 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
-// 			return reflectValue.MapIndex(reflectKeyValue).Interface()
-// 		}
-// 		return nil
-
-// 	default:
-// 		// Type not supported
-// 		return nil
-// 	}
-// }
-
+// GetValue returns a plain value: the container may store typed pointers emitted
+// by the Safe* accessors, and callers compare/type-switch on the result.
 func GetValue(collection any, key any) any {
+	return derefScalar(getValue(collection, key))
+}
+
+// MapTyped converts a boxed dictionary into a plain map: a map passes through, a
+// *sync.Map is converted, anything else (including nil) reads as a nil map, exactly
+// what the boxed value answered through GetValue/ObjectKeys/InOp. The printer emits it
+// for a local whose TypeScript type proves the box holds the market dictionary.
+func MapTyped(v any) map[string]any {
+	v = derefScalar(v)
+	if v == nil {
+		return nil
+	}
+	if asMap, ok := v.(map[string]any); ok {
+		return asMap
+	}
+	if asSyncMap, ok := v.(*sync.Map); ok {
+		return SafeMapToMap(asSyncMap)
+	}
+	return nil
+}
+
+func getValue(collection any, key any) any {
+	collection = derefScalar(collection)
+	key = derefScalar(key)
 
 	if collection == nil || key == nil {
 		return nil
 	}
 
 	keyNum := -1
-	keyStr, isStr := key.(string)
+	keyStr, isStr := derefScalar(key).(string)
 	if !isStr {
 		keyNum64 := ParseInt(key)
 		if keyNum64 == math.MinInt64 {
@@ -423,7 +326,7 @@ func GetValue(collection any, key any) any {
 		reflectValue = reflectValue.Elem()
 	}
 	if reflectValue.Kind() == reflect.Struct {
-		stringKey := key.(string)
+		stringKey := derefScalar(key).(string)
 		stringKeyCapitalized := Capitalize(stringKey)
 		field := reflectValue.FieldByName(stringKey)
 
@@ -471,6 +374,8 @@ func GetValue(collection any, key any) any {
 }
 
 func Multiply(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 
 	if (a == nil) || (b == nil) {
 		return nil
@@ -507,6 +412,8 @@ func Multiply(a, b any) any {
 }
 
 func Divide(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 
 	if a == nil || b == nil {
 		return nil
@@ -549,6 +456,8 @@ func Divide(a, b any) any {
 }
 
 func Subtract(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 
 	if a == nil || b == nil {
 		return nil
@@ -565,34 +474,13 @@ func Subtract(a, b any) any {
 	}
 	return res
 
-	// if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-	// 	return nil
-	// }
-
-	// aValConverted := aVal.Convert(bVal.Type())
-
-	// switch bVal.Kind() {
-	// case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-	// 	return aValConverted.Int() - bVal.Int()
-	// case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-	// 	return aValConverted.Uint() - bVal.Uint()
-	// case reflect.Float32, reflect.Float64:
-	// 	aFloat := ToFloat64(a)
-	// 	bFloat := ToFloat64(b)
-	// 	res := aFloat - bFloat
-	// 	if IsInteger(res) {
-	// 		return ParseInt(res)
-	// 	}
-	// 	return res
-	// default:
-	// 	return nil
-	// }
 }
 
 type Dict map[string]any
 
 // GetArrayLength returns the length of various array or slice types or string length.
 func GetArrayLength(value any) int {
+	value = derefScalar(value)
 	if value == nil {
 		return 0
 	}
@@ -666,6 +554,8 @@ func GetArrayLength(value any) int {
 }
 
 func IsGreaterThan(a, b any) bool {
+	a = derefScalar(a)
+	b = derefScalar(b)
 	if a != nil && b == nil {
 		return true
 	}
@@ -742,6 +632,8 @@ func IsLessThanOrEqual(a, b any) bool {
 
 // Mod performs a modulus operation on a and b
 func Mod(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
@@ -767,6 +659,8 @@ func Mod(a, b any) any {
 
 // IsEqual checks for equality of a and b with dynamic type support
 func IsEqual(a, b any) bool {
+	a = derefScalar(a)
+	b = derefScalar(b)
 	if a == nil && b == nil {
 		return true
 	}
@@ -869,6 +763,7 @@ func NormalizeAndConvert(a, b any) (reflect.Value, reflect.Value, bool) {
 }
 
 func ToFloat64(v any) float64 {
+	v = derefScalar(v)
 	var result float64 = math.NaN()
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
@@ -888,6 +783,7 @@ func ToFloat64(v any) float64 {
 }
 
 func Increment(a any) any {
+	a = derefScalar(a)
 	switch v := a.(type) {
 	case int:
 		return v + 1
@@ -904,6 +800,7 @@ func Increment(a any) any {
 
 // Decrement decreases the numeric value by 1.
 func Decrement(a any) any {
+	a = derefScalar(a)
 	switch v := a.(type) {
 	case int:
 		return v - 1
@@ -918,6 +815,7 @@ func Decrement(a any) any {
 
 // Negate negates the numeric value.
 func Negate(a any) any {
+	a = derefScalar(a)
 	switch v := a.(type) {
 	case int:
 		return -v
@@ -932,6 +830,7 @@ func Negate(a any) any {
 
 // UnaryPlus returns the numeric value unchanged.
 func UnaryPlus(a any) any {
+	a = derefScalar(a)
 	switch v := a.(type) {
 	case int:
 		return +v
@@ -946,6 +845,8 @@ func UnaryPlus(a any) any {
 
 // PlusEqual adds the value of `value` to `a`, handling some basic types.
 func PlusEqual(a, value any) any {
+	a = derefScalar(a)
+	value = derefScalar(value)
 	aVal := reflect.ValueOf(a)
 	valueVal := reflect.ValueOf(value)
 
@@ -1003,6 +904,8 @@ func AppendToArray(slicePtr *any, element any) {
 
 // without reflection
 func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
+	stringOrInt = derefScalar(stringOrInt)
+	value = derefScalar(value)
 
 	switch obj := arrayOrDict.(type) {
 	case []string:
@@ -1157,14 +1060,14 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			if val.Kind() == reflect.Ptr {
 				val = val.Elem()
 			}
-			field := val.FieldByName(Capitalize(stringOrInt.(string))) // do remove reflection here??
+			field := val.FieldByName(Capitalize(derefScalar(stringOrInt).(string))) // do remove reflection here??
 			if field.IsValid() && field.CanSet() {
 				if value != nil {
 					// Convert value to the correct type
 					valueVal := reflect.ValueOf(value)
 					fieldType := field.Type()
 					if fieldType.Kind() == reflect.Ptr && !valueVal.Type().ConvertibleTo(fieldType) && valueVal.Type().ConvertibleTo(fieldType.Elem()) {
-						// e.g. assigning an int64 to a `*int64` field (WsOrderBook.Timestamp)
+						// scalar into a pointer field, e.g. int64 -> OrderBook.Timestamp *int64
 						ptr := reflect.New(fieldType.Elem())
 						ptr.Elem().Set(valueVal.Convert(fieldType.Elem()))
 						field.Set(ptr)
@@ -1178,42 +1081,9 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	}
 }
 
-// func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
-// 	val := reflect.ValueOf(arrayOrDict)
-// 	key := reflect.ValueOf(stringOrInt)
-// 	valueVal := reflect.ValueOf(value)
-
-// 	switch val.Kind() {
-// 	case reflect.Slice:
-// 		if key.Kind() != reflect.Int {
-// 			// return fmt.Errorf("index must be an integer for slices")
-// 		}
-// 		index := int(key.Int())
-// 		if index < 0 || index >= val.Len() {
-// 			// return fmt.Errorf("index out of range")
-// 		}
-// 		val.Index(index).Set(valueVal)
-// 	case reflect.Map:
-// 		if !key.Type().AssignableTo(val.Type().Key()) {
-// 			// return fmt.Errorf("key type %s does not match map key type %s", key.Type(), val.Type().Key())
-// 		}
-// 		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
-// 		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
-// 		// }
-// 		// fmt.Println("key", key.Interface())
-// 		// fmt.Println("value", valueVal.Interface())
-// 		if !valueVal.IsValid() {
-// 			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 		} else {
-// 			val.SetMapIndex(key, valueVal)
-// 		}
-// 	default:
-// 		// return fmt.Errorf("unsupported type: %s", val.Kind())
-// 	}
-// 	// return nil
-// }
-
 func InOp(dict any, key any) bool {
+	dict = derefScalar(dict)
+	key = derefScalar(key)
 
 	if dict == nil {
 		return false
@@ -1260,7 +1130,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1269,7 +1139,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1278,7 +1148,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCache:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1287,7 +1157,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCacheBySymbolBySide:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1314,44 +1184,9 @@ func InOp(dict any, key any) bool {
 	// return false
 }
 
-// func InOp(dict any, key any) bool {
-
-// 	if dict == nil {
-// 		return false
-// 	}
-// 	if key == nil {
-// 		return false
-// 	}
-
-// 	if IsNumber(key) {
-// 		return false
-// 	}
-
-// 	switch v := dict.(type) {
-// 	case map[string]any:
-// 		if _, ok := v[key.(string)]; ok {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// 	// dictVal := reflect.ValueOf(dict)
-
-// 	// // Ensure that the provided dict is a map
-// 	// if dictVal.Kind() != reflect.Map {
-// 	// 	return false
-// 	// }
-
-// 	// keyVal := reflect.ValueOf(key)
-
-// 	// // Check if the map has the provided key todo:debug here
-// 	// if dictVal.MapIndex(keyVal).IsValid() {
-// 	// 	return true
-// 	// }
-// 	// return false
-// }
-
 func GetIndexOf(str any, target any) int {
+	str = derefScalar(str)
+	target = derefScalar(target)
 	switch v := str.(type) {
 	case []string:
 		t, ok := target.(string)
@@ -1386,6 +1221,7 @@ func GetIndexOf(str any, target any) int {
 
 // IsBool checks if the input is a boolean
 func IsBool(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1395,6 +1231,7 @@ func IsBool(v any) bool {
 
 // IsDictionary checks if the input is a map (dictionary in Python)
 func IsDictionary(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1424,6 +1261,7 @@ func IsDictionary(v any) bool {
 
 // IsString checks if the input is a string
 func IsString(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1433,6 +1271,7 @@ func IsString(v any) bool {
 
 // IsInt checks if the input is an integer
 func IsInt(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1448,6 +1287,7 @@ func IsInt(v any) bool {
 
 // IsFunction checks if the input is a function
 func IsFunction(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1455,6 +1295,7 @@ func IsFunction(v any) bool {
 }
 
 func IsNumber(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1471,6 +1312,7 @@ func IsNumber(v any) bool {
 }
 
 func IsObject(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1485,6 +1327,7 @@ func IsObject(v any) bool {
 }
 
 func ToLower(v any) string {
+	v = derefScalar(v)
 	if str, ok := v.(string); ok {
 		return strings.ToLower(str)
 	}
@@ -1493,6 +1336,7 @@ func ToLower(v any) string {
 
 // ToUpper converts a string to uppercase
 func ToUpper(v any) string {
+	v = derefScalar(v)
 	if str, ok := v.(string); ok {
 		return strings.ToUpper(str)
 	}
@@ -1511,6 +1355,7 @@ func ToUpper(v any) string {
 
 // MathFloor returns the largest integer less than or equal to the given number
 func MathFloor(v any) float64 {
+	v = derefScalar(v)
 	if num, ok := v.(float64); ok {
 		return math.Floor(num)
 	}
@@ -1525,6 +1370,7 @@ func MathFloor(v any) float64 {
 
 // MathCeil returns the smallest integer greater than or equal to the given number
 func MathCeil(v any) float64 {
+	v = derefScalar(v)
 	if num, ok := v.(float64); ok {
 		return math.Ceil(num)
 	}
@@ -1539,6 +1385,7 @@ func MathCeil(v any) float64 {
 
 // MathRound returns the nearest integer, rounding half away from zero
 func MathRound(v any) float64 {
+	v = derefScalar(v)
 	if num, ok := v.(float64); ok {
 		return math.Round(num)
 	}
@@ -1553,6 +1400,8 @@ func MathRound(v any) float64 {
 
 // StartsWith checks if the string starts with the specified prefix
 func StartsWith(v any, prefix any) bool {
+	v = derefScalar(v)
+	prefix = derefScalar(prefix)
 	if str, ok := v.(string); ok {
 		prefixStr := ToString(prefix)
 		return strings.HasPrefix(str, prefixStr)
@@ -1562,6 +1411,8 @@ func StartsWith(v any, prefix any) bool {
 
 // EndsWith checks if the string ends with the specified suffix
 func EndsWith(v any, suffix any) bool {
+	v = derefScalar(v)
+	suffix = derefScalar(suffix)
 	if str, ok := v.(string); ok {
 		suffixStr := ToString(suffix)
 		return strings.HasSuffix(str, suffixStr)
@@ -1571,6 +1422,8 @@ func EndsWith(v any, suffix any) bool {
 
 // IndexOf returns the index of the first occurrence of a substring
 func IndexOf(v any, substr any) int {
+	v = derefScalar(v)
+	substr = derefScalar(substr)
 	if str, ok := v.(string); ok {
 		substrStr := ToString(substr)
 		return strings.Index(str, substrStr)
@@ -1580,6 +1433,7 @@ func IndexOf(v any, substr any) int {
 
 // Trim removes leading and trailing whitespace from a string
 func Trim(v any) string {
+	v = derefScalar(v)
 	if str, ok := v.(string); ok {
 		return strings.TrimSpace(str)
 	}
@@ -1588,6 +1442,8 @@ func Trim(v any) string {
 
 // Contains checks if the string contains the specified substring
 func Contains(v any, substr any) bool {
+	v = derefScalar(v)
+	substr = derefScalar(substr)
 	if str, ok := v.(string); ok {
 		substrStr := ToString(substr)
 		return strings.Contains(str, substrStr)
@@ -1596,6 +1452,7 @@ func Contains(v any, substr any) bool {
 }
 
 func ToString(v any) string {
+	v = derefScalar(v)
 	switch v := v.(type) {
 	case string:
 		return v
@@ -1644,6 +1501,8 @@ func ToString(v any) string {
 }
 
 func Join(slice any, sep any) string {
+	slice = derefScalar(slice)
+	sep = derefScalar(sep)
 	sepStr := ToString(sep)
 	var strSlice []string
 
@@ -1663,6 +1522,8 @@ func Join(slice any, sep any) string {
 
 // Split splits a string into a slice of substrings separated by a separator
 func Split(str any, sep any) []string {
+	str = derefScalar(str)
+	sep = derefScalar(sep)
 	strVal, ok := str.(string)
 	if !ok {
 		return nil
@@ -1674,6 +1535,7 @@ func Split(str any, sep any) []string {
 
 // ObjectKeys returns the keys of a map as a slice of strings
 func ObjectKeys(v any) []string {
+	v = derefScalar(v)
 
 	if v == nil {
 		return nil
@@ -1714,6 +1576,7 @@ func ObjectKeys(v any) []string {
 
 // ObjectValues returns the values of a map as a slice of any
 func ObjectValues(v any) []any {
+	v = derefScalar(v)
 	if v == nil {
 		return nil
 	}
@@ -1740,7 +1603,8 @@ func ObjectValues(v any) []any {
 }
 
 func JsonParse(jsonStr2 any) any {
-	jsonStr := jsonStr2.(string)
+	jsonStr2 = derefScalar(jsonStr2)
+	jsonStr := derefScalar(jsonStr2).(string)
 	var result any
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
@@ -1750,6 +1614,7 @@ func JsonParse(jsonStr2 any) any {
 }
 
 func IsArray(v any) bool {
+	v = derefScalar(v)
 	if v == nil {
 		return false
 	}
@@ -1803,19 +1668,6 @@ func Reverse(slice any) {
 	}
 }
 
-// Pop removes the last element from a slice and returns the new slice and the removed element
-func Pop(slice any) (any, any) {
-	sliceVal, ok := castToSlice(slice)
-	if !ok || len(sliceVal) == 0 {
-		return slice, nil
-	}
-	return sliceVal[:len(sliceVal)-1], sliceVal[len(sliceVal)-1]
-}
-
-func CastToSlice(slice any) ([]any, bool) {
-	return castToSlice(slice)
-}
-
 // Helper function to cast any to []any
 func castToSlice(slice any) ([]any, bool) {
 	val := reflect.ValueOf(slice)
@@ -1831,6 +1683,7 @@ func castToSlice(slice any) ([]any, bool) {
 }
 
 func Replace(input any, old any, new any) string {
+	input = derefScalar(input)
 	str := ToString(input)
 	oldStr := ToString(old)
 	newStr := ToString(new)
@@ -1865,6 +1718,7 @@ func DateNow() string {
 }
 
 func GetLength(v any) int {
+	v = derefScalar(v)
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
 	case reflect.String:
@@ -1877,6 +1731,7 @@ func GetLength(v any) int {
 }
 
 func IsNil(x any) bool {
+	x = derefScalar(x)
 	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
 	if x == nil {
 		return true
@@ -1901,6 +1756,67 @@ func IsNil(x any) bool {
 	// }
 }
 
+// derefScalar reproduces untyped-nil semantics for a maybe-undefined value that
+// travels as a pointer: a nil pointer becomes untyped nil (absent), a non-nil one
+// becomes the value it points at. Pointer types that are values in their own right
+// (*sync.Map, *PreciseStruct, *ArrayCache, ...) are returned untouched.
+// DerefScalar is the exported form of derefScalar, used by transpiled code that
+// stores a Safe* result in an `any` local and then compares it inline.
+func DerefScalar(v any) any {
+	return derefScalar(v)
+}
+
+func derefScalar(v any) any {
+	switch p := v.(type) {
+	case *string:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *int64:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *float64:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *bool:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *int:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *[]string:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *[]any:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *map[string]any:
+		if p == nil {
+			return nil
+		}
+		return *p
+	case *any:
+		if p == nil {
+			return nil
+		}
+		return derefScalar(*p)
+	}
+	return v
+}
+
 func GetArg(v []any, index int, def any) any {
 	if len(v) <= index {
 		return def
@@ -1914,56 +1830,29 @@ func GetArg(v []any, index int, def any) any {
 	// Generated wrappers bind their optional arguments straight from the typed option
 	// struct field (e.g. `var since *int64 = opts.Since`), so what arrives here is a
 	// POINTER, not the plain value. A typed nil pointer boxed in `any` is not `== nil`,
-	// so the check above cannot see it — unwrap explicitly and reproduce the untyped-nil
-	// semantics: nil pointer -> def, non-nil pointer -> the dereferenced value, which then
-	// falls through the rest of this function exactly as the plain value used to.
-	switch p := val.(type) {
-	case *string:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *int64:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *float64:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *bool:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *[]string:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *map[string]any:
-		if p == nil {
-			return def
-		}
-		val = *p
-	case *any:
-		if p == nil {
-			return def
-		}
-		val = *p
-		// a *any holding an untyped nil must behave like an absent argument, same as
-		// passing that nil directly
-		if val == nil {
-			return def
-		}
+	// so the check above cannot see it — unwrap explicitly and reproduce untyped-nil
+	// semantics: nil pointer -> def, non-nil pointer -> the dereferenced value.
+	if val = derefScalar(val); val == nil {
+		return def
 	}
 
 	if res, ok := val.([]any); ok { // this is not working well with safeList(x, 'key', []) but works for fetchTrade(s, options any...)
 		// if len(res) == 0 {
 		// 	return def
 		// }
+		if res == nil {
+			return def
+		}
+	}
+
+	// Generated wrappers bind `symbols` as a typed `[]string`, and a nil `[]string` boxed
+	// into `any` is not `== nil`, so the check at the top of this function cannot see it.
+	// Unwrap it to an untyped nil so that a caller passing nil means "argument absent",
+	// matching `undefined` in the TypeScript source these bodies are ported from.
+	// Only nil is collapsed, never a non-nil empty slice: the empty-vs-absent decision
+	// belongs to MarketSymbols/allowEmpty, which must still panic with ArgumentsRequired
+	// for `allowEmpty: false` callers rather than silently substituting the default.
+	if res, ok := val.([]string); ok {
 		if res == nil {
 			return def
 		}
@@ -1978,10 +1867,12 @@ func GetArg(v []any, index int, def any) any {
 }
 
 func Ternary(cond bool, whenTrue any, whenFalse any) any {
+	// forward the selected branch as a plain value, so a pointer-carried operand
+	// does not leak past the ternary into ToString/Split/comparison sites
 	if cond {
-		return whenTrue
+		return derefScalar(whenTrue)
 	}
-	return whenFalse
+	return derefScalar(whenFalse)
 }
 
 func IsInstance(value any, typ any) bool {
@@ -2010,10 +1901,13 @@ func IsInstance(value any, typ any) bool {
 }
 
 func Slice(str2 any, idx1 any, idx2 any) string {
+	str2 = derefScalar(str2)
+	idx1 = derefScalar(idx1)
+	idx2 = derefScalar(idx2)
 	if str2 == nil {
 		return ""
 	}
-	str := str2.(string)
+	str := derefScalar(str2).(string)
 	var start int64 = -1
 	if idx1 != nil {
 		start = ParseInt(idx1)
@@ -2118,177 +2012,8 @@ func promiseAll(tasksInterface any) <-chan any {
 	return ch
 }
 
-// func promiseAll(tasksInterface any) <-chan any {
-// 	ch := make(chan any)
-// 	panicChan := make(chan any, 1) // Separate channel for panics
-
-// 	go func() {
-// 		defer close(ch)
-
-// 		// Ensure tasksInterface is a slice of channels (<-chan any)
-// 		tasks, ok := tasksInterface.([]any)
-// 		if !ok {
-// 			ch <- nil // Return nil if the input is not a slice of interfaces
-// 			return
-// 		}
-
-// 		results := make([]any, len(tasks))
-// 		var wg sync.WaitGroup
-// 		wg.Add(len(tasks))
-
-// 		for i, task := range tasks {
-// 			go func(i int, task any) {
-// 				defer wg.Done()
-// 				defer ReturnPanicError(panicChan)
-
-// 				// Assert the task is a channel
-// 				if chanTask, ok := task.(<-chan any); ok {
-// 					// Receive the result from the channel
-// 					results[i] = <-chanTask
-// 				} else {
-// 					// If the task is not a channel, set the result to nil
-// 					results[i] = nil
-// 				}
-// 			}(i, task)
-// 		}
-
-// 		// Wait for all tasks to complete
-// 		wg.Wait()
-// 		close(panicChan)
-
-// 		// Check if any panics occurred and report the first one
-// 		select {
-// 		case panicMsg := <-panicChan:
-// 			ch <- panicMsg // Send the panic message
-// 		default:
-// 			ch <- results // No panics, send results
-// 		}
-// 	}()
-
-// 	return ch
-// }
-
-// func promiseAll(tasksInterface any) <-chan any {
-// 	ch := make(chan any)
-
-// 	go func() {
-// 		defer close(ch)
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				if r != "break" {
-// 					ch <- "panic:" + ToString(r)
-// 				}
-// 			}
-// 		}()
-
-// 		// Ensure tasksInterface is a slice of channels (<-chan any)
-// 		tasks, ok := tasksInterface.([]any)
-// 		if !ok {
-// 			ch <- nil // Return nil if the input is not a slice of interfaces
-// 			return
-// 		}
-
-// 		results := make([]any, len(tasks))
-// 		var wg sync.WaitGroup
-// 		wg.Add(len(tasks))
-
-// 		// A separate channel to capture panics
-// 		panicChan := make(chan string, len(tasks))
-
-// 		for i, task := range tasks {
-// 			go func(i int, task any) {
-// 				defer wg.Done()
-// 				defer func() {
-// 					if r := recover(); r != nil {
-// 						if r != "break" {
-// 							panicChan <- "panic:" + ToString(r)
-// 						}
-// 					}
-// 				}()
-
-// 				// Assert the task is a channel
-// 				if chanTask, ok := task.(<-chan any); ok {
-// 					// Receive the result from the channel
-// 					results[i] = <-chanTask
-// 				} else {
-// 					// If the task is not a channel, set the result to nil
-// 					results[i] = nil
-// 				}
-// 			}(i, task)
-// 		}
-
-// 		// Wait for all tasks to complete
-// 		wg.Wait()
-// 		close(panicChan)
-
-// 		// Check if any panics occurred and report the first one
-// 		select {
-// 		case panicMsg := <-panicChan:
-// 			ch <- panicMsg // Send the panic message
-// 		default:
-// 			ch <- results // No panics, send results
-// 		}
-// 	}()
-
-// 	return ch
-// }
-
-// func promiseAll(tasksInterface any) <-chan any {
-// 	ch := make(chan any)
-
-// 	go func() {
-// 		defer close(ch)
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				if r != "break" {
-// 					ch <- "panic:" + ToString(r)
-// 				}
-// 			}
-// 		}()
-// 		// Ensure tasksInterface is a slice of channels (<-chan any)
-// 		tasks, ok := tasksInterface.([]any)
-// 		if !ok {
-// 			ch <- nil // Return nil if the input is not a slice of interfaces
-// 			return
-// 		}
-
-// 		results := make([]any, len(tasks))
-// 		var wg sync.WaitGroup
-// 		wg.Add(len(tasks))
-
-// 		for i, task := range tasks {
-// 			go func(i int, task any) {
-// 				defer wg.Done()
-// 				defer func() {
-// 					if r := recover(); r != nil {
-// 						if r != "break" {
-// 							ch <- "panic:" + ToString(r)
-// 						}
-// 					}
-// 				}()
-
-// 				// Assert the task is a channel
-// 				if chanTask, ok := task.(<-chan any); ok {
-// 					// Receive the result from the channel
-// 					results[i] = <-chanTask
-// 				} else {
-// 					// If the task is not a channel, set the result to nil
-// 					results[i] = nil
-// 				}
-// 			}(i, task)
-// 		}
-
-// 		// Wait for all tasks to complete
-// 		wg.Wait()
-
-// 		// Once all tasks are done, send the results
-// 		ch <- results
-// 	}()
-
-// 	return ch
-// }
-
 func ParseInt(number any) int64 {
+	number = derefScalar(number)
 	switch v := number.(type) {
 	case int:
 		return int64(v)
@@ -2329,6 +2054,8 @@ func MathMin(a, b any) any {
 }
 
 func mathMin(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 
 	if a == nil || b == nil {
 		return nil
@@ -2347,28 +2074,6 @@ func mathMin(a, b any) any {
 
 	return bf
 
-	// switch a := a.(type) {
-	// case int:
-	// 	b := b.(int)
-	// 	if a < b {
-	// 		return a
-	// 	}
-	// 	return b
-	// case float64:
-	// 	b := b.(float64)
-	// 	if a < b {
-	// 		return a
-	// 	}
-	// 	return b
-	// case string:
-	// 	b := b.(string)
-	// 	if a < b {
-	// 		return a
-	// 	}
-	// 	return b
-	// default:
-	// 	return nil
-	// }
 }
 
 func MathPow(base any, exp any) float64 {
@@ -2378,6 +2083,7 @@ func MathPow(base any, exp any) float64 {
 }
 
 func MathAbs(v any) float64 {
+	v = derefScalar(v)
 	switch n := v.(type) {
 	case float64:
 		return math.Abs(n)
@@ -2407,6 +2113,8 @@ func MathMax(a, b any) any {
 // mathMax returns the maximum of two values of the same type.
 // It supports int, float64, and string types.
 func mathMax(a, b any) any {
+	a = derefScalar(a)
+	b = derefScalar(b)
 
 	if a == nil || b == nil {
 		return nil
@@ -2426,45 +2134,8 @@ func mathMax(a, b any) any {
 	return bf
 }
 
-// parseInt tries to convert various types of input to an int
-// func parseInt(input any) any {
-// 	switch v := input.(type) {
-// 	case int:
-// 		return v
-// 	case int8:
-// 		return int(v)
-// 	case int16:
-// 		return int(v)
-// 	case int32:
-// 		return int(v)
-// 	case int64:
-// 		return int(v)
-// 	case uint:
-// 		return int(v)
-// 	case uint8:
-// 		return int(v)
-// 	case uint16:
-// 		return int(v)
-// 	case uint32:
-// 		return int(v)
-// 	case uint64:
-// 		return int(v)
-// 	case float32:
-// 		return int(v)
-// 	case float64:
-// 		return int(v)
-// 	case string:
-// 		if result, err := strconv.Atoi(v); err == nil {
-// 			return result
-// 		}
-// 		return nil
-// 	default:
-// 		return nil
-// 	}
-// }
-
-// parseFloat tries to convert various types of input to a float64
 func ParseFloat(input any) any {
+	input = derefScalar(input)
 	switch v := input.(type) {
 	case float32:
 		return float64(v)
@@ -2501,6 +2172,7 @@ func ParseFloat(input any) any {
 }
 
 func ParseJSON(input any) any {
+	input = derefScalar(input) // generated callers pass *string from the typed Safe* accessors
 	jsonString, ok := input.(string)
 	if !ok {
 		return nil
@@ -2564,10 +2236,6 @@ func normalizeNumbers(data any) any {
 	}
 }
 
-func throwDynamicException(exceptionType any, message any) {
-	ThrowDynamicException(exceptionType, message)
-}
-
 func ThrowDynamicException(exceptionType any, message any) {
 	functionError := exceptionType.(func(...any) error)
 	errorMsg := functionError(message)
@@ -2592,6 +2260,7 @@ func ThrowDynamicException(exceptionType any, message any) {
 }
 
 func OpNeg(value any) any {
+	value = derefScalar(value)
 	val := reflect.ValueOf(value)
 
 	switch val.Kind() {
@@ -2609,6 +2278,7 @@ func OpNeg(value any) any {
 }
 
 func JsonStringify(obj any) string {
+	obj = derefScalar(obj)
 	if obj == nil {
 		return ""
 	}
@@ -2644,7 +2314,7 @@ func ToFixed(number any, decimals any) float64 {
 
 func Remove(dict any, key any) {
 	// Attempt to cast the key to string first
-	keyStr, ok := key.(string)
+	keyStr, ok := derefScalar(key).(string)
 	if !ok {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
@@ -2714,7 +2384,8 @@ func Capitalize(s string) string {
 	return firstLetter + s[1:]
 }
 
-func (this *BaseExchange) IsDictionary(value any) any {
+// delegates to the package-level predicate, which returns a bool
+func (this *BaseExchange) IsDictionary(value any) bool {
 	return IsDictionary(value)
 }
 
@@ -2771,276 +2442,9 @@ func setDefaults(p any) {
 	}
 }
 
-// func CallInternalMethod(itf any, name2 string, args ...any) <-chan any {
-// 	name := Capitalize(name2)
-// 	baseValue := reflect.ValueOf(itf)
-// 	baseType := baseValue.Type()
-
-// 	ch := make(chan any)
-// 	go func() {
-
-// 		// Error handling
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-// 				close(ch)
-// 			}
-// 		}()
-
-// 		for i := 0; i < baseType.NumMethod(); i++ {
-// 			method := baseType.Method(i)
-// 			if name == method.Name {
-// 				methodValue := baseValue.MethodByName(name)
-// 				methodType := method.Type
-// 				numIn := methodType.NumIn()
-// 				isVariadic := methodType.IsVariadic()
-
-// 				var in []reflect.Value
-
-// 				// Handle fixed arguments for both regular and variadic functions
-// 				for k := 0; k < numIn-1; k++ {
-// 					if k < len(args) {
-// 						if args[k] == nil {
-// 							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					} else {
-// 						// paramType := methodType.In(k)
-// 						in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						// in = append(in, reflect.Zero(paramType))
-// 					}
-// 				}
-
-// 				// Properly handle the variadic arguments
-// 				if isVariadic {
-// 					variadicArgs := []reflect.Value{}
-// 					// variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							variadicArgs = append(variadicArgs, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						} else {
-// 							variadicArgs = append(variadicArgs, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 					in = append(in, variadicArgs...)
-// 				} else if len(args) >= numIn-1 {
-// 					// Handle non-variadic arguments beyond fixed ones
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							// paramType := methodType.In(k)
-// 							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 				}
-
-// 				// Call the method with the constructed arguments
-// 				res := methodValue.Call(in)
-
-// 				// Handle the result
-// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-// 					resultChan := res[0]
-// 					go func() {
-// 						for {
-// 							val, ok := resultChan.Recv()
-// 							if !ok {
-// 								break // result channel is closed
-// 							}
-// 							ch <- val.Interface() // pass the value to the output channel
-// 						}
-// 						close(ch) // close the output channel after all values are received
-// 					}()
-// 					return
-// 				} else if len(res) > 0 {
-// 					ch <- res[0].Interface()
-// 				} else {
-// 					ch <- nil
-// 				}
-// 				close(ch)
-// 				return
-// 			}
-// 		}
-
-// 		// If no method is found, return nil
-// 		ch <- nil
-// 		close(ch)
-// 	}()
-// 	return ch
-// }
-
-// var methodCache = sync.Map{}
-
-// func CallInternalMethodCache(itf any, name2 string, args ...any) <-chan any {
-// 	name := Capitalize(name2)
-// 	baseValue := reflect.ValueOf(itf)
-// 	baseType := baseValue.Type()
-
-// 	// Cache key to avoid redundant reflection
-// 	cacheKey := fmt.Sprintf("%T.%s", itf, name)
-// 	cachedMethod, found := methodCache.Load(cacheKey)
-
-// 	ch := make(chan any)
-
-// 	go func() {
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-// 			}
-// 			close(ch)
-// 		}()
-
-// 		var method reflect.Method
-// 		if found {
-// 			method = cachedMethod.(reflect.Method)
-// 		} else {
-// 			for i := 0; i < baseType.NumMethod(); i++ {
-// 				if baseType.Method(i).Name == name {
-// 					method = baseType.Method(i)
-// 					methodCache.Store(cacheKey, method)
-// 					break
-// 				}
-// 			}
-// 			if method.Name == "" {
-// 				ch <- nil
-// 				return
-// 			}
-// 		}
-
-// 		methodValue := baseValue.MethodByName(name)
-// 		methodType := method.Type
-// 		numIn := methodType.NumIn()
-// 		// isVariadic := methodType.IsVariadic()
-
-// 		in := make([]reflect.Value, 0, numIn)
-
-// 		// Handle arguments
-// 		for k := 0; k < numIn; k++ {
-// 			if k < len(args) {
-// 				if args[k] == nil {
-// 					in = append(in, reflect.Zero(methodType.In(k)))
-// 				} else {
-// 					in = append(in, reflect.ValueOf(args[k]))
-// 				}
-// 			} else {
-// 				in = append(in, reflect.Zero(methodType.In(k)))
-// 			}
-// 		}
-
-// 		// Call method
-// 		res := methodValue.Call(in)
-
-// 		// Return result
-// 		if len(res) > 0 {
-// 			ch <- res[0].Interface()
-// 		} else {
-// 			ch <- nil
-// 		}
-// 	}()
-
-// 	return ch
-// }
-
-// original imp
-func CallInternalMethod3(itf any, name2 string, args ...any) <-chan any {
-	name := Capitalize(name2)
-	baseValue := reflect.ValueOf(itf)
-	baseType := baseValue.Type()
-
-	ch := make(chan any)
-	go func() {
-
-		// Error handling
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-				close(ch)
-			}
-		}()
-
-		for i := 0; i < baseType.NumMethod(); i++ {
-			method := baseType.Method(i)
-			if name == method.Name {
-				methodValue := baseValue.MethodByName(name)
-				methodType := method.Type
-				numIn := methodType.NumIn()
-				isVariadic := methodType.IsVariadic()
-
-				var in []reflect.Value
-
-				// Handle fixed arguments for both regular and variadic functions
-				for k := 0; k < numIn-1; k++ {
-					if k < len(args) {
-						if args[k] == nil {
-							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					} else {
-						// paramType := methodType.In(k)
-						in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						// in = append(in, reflect.Zero(paramType))
-					}
-				}
-
-				// Properly handle the variadic arguments
-				if isVariadic {
-					variadicArgs := []reflect.Value{}
-					// variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							variadicArgs = append(variadicArgs, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							variadicArgs = append(variadicArgs, reflect.ValueOf(args[k]))
-						}
-					}
-					in = append(in, variadicArgs...)
-				} else if len(args) >= numIn-1 {
-					// Handle non-variadic arguments beyond fixed ones
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							// paramType := methodType.In(k)
-							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					}
-				}
-
-				// Call the method with the constructed arguments
-				res := methodValue.Call(in)
-
-				// Handle the result
-				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-					resultChan := res[0]
-					go func() {
-						for {
-							val, ok := resultChan.Recv()
-							if !ok {
-								break // result channel is closed
-							}
-							ch <- val.Interface() // pass the value to the output channel
-						}
-						close(ch) // close the output channel after all values are received
-					}()
-					return
-				} else if len(res) > 0 {
-					ch <- res[0].Interface()
-				} else {
-					ch <- nil
-				}
-				close(ch)
-				return
-			}
-		}
-
-		// If no method is found, return nil
-		ch <- nil
-		close(ch)
-	}()
-	return ch
-}
+// suffix carried by every transpiled channel-returning (async) method; the plain
+// name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
+const asyncMethodSuffix = "Async"
 
 func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan any {
 	name := Capitalize(name2)
@@ -3061,8 +2465,14 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 			}
 		}()
 
+		// dynamic callers name the unified method (fetchTicker). Its channel form is the
+		// Async-suffixed trampoline; the plain name is the typed sync method (or a plain
+		// sync helper when no trampoline exists), so the trampoline is looked up first.
 		cacheKey := fmt.Sprintf("%s", name)
-		cachedMethod, found := methodCache.Load(cacheKey)
+		cachedMethod, found := methodCache.Load(cacheKey + asyncMethodSuffix)
+		if !found {
+			cachedMethod, found = methodCache.Load(cacheKey)
+		}
 
 		if !found {
 			panic(name + " :method not found")
@@ -3081,8 +2491,8 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		// method := cachedMap["method"].(reflect.Method)
 		methodValue := cachedMap["methodValue"].(reflect.Value)
 		methodType := cachedMap["methodType"].(reflect.Type)
-		numIn := cachedMap["numIn"].(int)
-		isVariadic := cachedMap["isVariadic"].(bool)
+		numIn := derefScalar(cachedMap["numIn"]).(int)
+		isVariadic := derefScalar(cachedMap["isVariadic"]).(bool)
 
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions
@@ -3139,206 +2549,6 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 	}()
 	return ch
 }
-
-// func CallInternalMethod(itf any, name2 string, args ...any) <-chan any {
-// 	name := Capitalize(name2)
-// 	baseValue := reflect.ValueOf(itf)
-// 	baseType := baseValue.Type()
-
-// 	ch := make(chan any)
-// 	go func() {
-
-// 		// Error handling
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-// 				close(ch)
-// 			}
-// 		}()
-
-// 		for i := 0; i < baseType.NumMethod(); i++ {
-// 			method := baseType.Method(i)
-// 			if name == method.Name {
-// 				methodValue := baseValue.MethodByName(name)
-// 				methodType := method.Type
-// 				numIn := methodType.NumIn()
-// 				isVariadic := methodType.IsVariadic()
-
-// 				var in []reflect.Value
-// 				// Fixed argument handling for both regular and variadic functions
-// 				for k := 0; k < numIn-1; k++ {
-// 					if k < len(args) {
-// 						if args[k] == nil {
-// 							paramType := methodType.In(k)
-// 							in = append(in, reflect.Zero(paramType))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					} else {
-// 						paramType := methodType.In(k)
-// 						in = append(in, reflect.Zero(paramType))
-// 					}
-// 				}
-
-// 				// Handle the variadic arguments
-// 				if isVariadic && len(args) >= numIn-1 {
-// 					variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							in = append(in, reflect.Zero(variadicType))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 				} else if len(args) >= numIn-1 {
-// 					// Handle non-variadic arguments beyond fixed ones
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							paramType := methodType.In(k)
-// 							in = append(in, reflect.Zero(paramType))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 				}
-
-// 				// Call the method with the constructed arguments
-// 				res := methodValue.Call(in)
-
-// 				// Handle the result
-// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-// 					resultChan := res[0]
-// 					go func() {
-// 						for {
-// 							val, ok := resultChan.Recv()
-// 							if !ok {
-// 								break // result channel is closed
-// 							}
-// 							ch <- val.Interface() // pass the value to the output channel
-// 						}
-// 						close(ch) // close the output channel after all values are received
-// 					}()
-// 					return
-// 				} else if len(res) > 0 {
-// 					ch <- res[0].Interface()
-// 				} else {
-// 					ch <- nil
-// 				}
-// 				close(ch)
-// 				return
-// 			}
-// 		}
-
-// 		// If no method is found, return nil
-// 		ch <- nil
-// 		close(ch)
-// 	}()
-// 	return ch
-// }
-
-// original version not working for createExpiredEtc..
-// func CallInternalMethod(itf any, name2 string, args ...any) <-chan any {
-// 	name := Capitalize(name2)
-// 	baseType := reflect.TypeOf(itf)
-
-// 	ch := make(chan any)
-// 	go func() {
-
-// 		// error handling
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				// panic(r)
-// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-// 			}
-// 		}()
-
-// 		for i := 0; i < baseType.NumMethod(); i++ {
-// 			method := baseType.Method(i)
-// 			if name == method.Name {
-// 				methodType := method.Type
-// 				numIn := methodType.NumIn()
-// 				isVariadic := methodType.IsVariadic()
-
-// 				var in []reflect.Value
-// 				if isVariadic {
-// 					// Handle fixed arguments
-// 					for k := 0; k < numIn-1; k++ {
-// 						if k < len(args) {
-// 							if args[k] == nil {
-// 								in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 							} else {
-// 								in = append(in, reflect.ValueOf(args[k]))
-// 							}
-// 						} else {
-// 							// paramType := methodType.In(k)
-// 							// in = append(in, reflect.Zero(paramType))
-// 							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						}
-// 					}
-
-// 					// Handle variadic arguments
-// 					// variadicType := methodType.In(numIn - 1).Elem()
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 				} else {
-// 					for k := 0; k < numIn; k++ {
-// 						if k < len(args) {
-// 							if args[k] == nil {
-// 								paramType := methodType.In(k)
-// 								in = append(in, reflect.Zero(paramType))
-// 							} else {
-// 								in = append(in, reflect.ValueOf(args[k]))
-// 							}
-// 						} else {
-// 							paramType := methodType.In(k)
-// 							in = append(in, reflect.Zero(paramType))
-// 						}
-// 					}
-// 				}
-
-// 				// Call the method
-// 				res := reflect.ValueOf(itf).MethodByName(name).Call(in)
-
-// 				// Check if the result is a channel
-// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-// 					resultChan := res[0]
-// 					// Read values from the returned channel and pass them to ch
-// 					go func() {
-// 						for {
-// 							val, ok := resultChan.Recv()
-// 							if !ok {
-// 								break // result channel is closed
-// 							}
-// 							valInt := val.Interface()
-// 							ch <- valInt // pass the value to the output channel
-// 						}
-// 						close(ch) // close the output channel after all values are received
-// 					}()
-// 					// // Don't close `ch` yet, as it will be closed after the resultChan is read
-// 					return
-// 				} else if len(res) > 0 {
-// 					// Directly return the first result if it's not a channel
-// 					val := res[0].Interface()
-// 					ch <- val
-// 				} else {
-// 					// Return nil if no results
-// 					ch <- nil
-// 				}
-// 				close(ch)
-// 				return
-// 			}
-// 		}
-// 		// If no method is found, return nil
-// 		ch <- nil
-// 		close(ch)
-// 	}()
-// 	return ch
-// }
 
 func PanicOnError(msg any) {
 	caller := getCallerName()
@@ -3473,19 +2683,4 @@ func HandleDeltas(bookside any, deltas any) any {
 	}
 
 	return bookside
-}
-
-func GunzipSync(data []byte) ([]byte, error) {
-	r, err := gzip.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	return io.ReadAll(r)
-}
-
-func InflateSync(data []byte) ([]byte, error) {
-	r := flate.NewReader(bytes.NewReader(data))
-	defer r.Close()
-	return io.ReadAll(r)
 }

@@ -213,6 +213,7 @@ export default class cryptocom extends Exchange {
                             'private/get-deposit-history': { 'cost': 10 / 3 },
                             'private/get-fee-rate': { 'cost': 2 },
                             'private/get-instrument-fee-rate': { 'cost': 2 },
+                            'private/get-fee-credit-balances': { 'cost': 10 / 3 },
                             'private/fiat/fiat-deposit-info': { 'cost': 10 / 3 },
                             'private/fiat/fiat-deposit-history': { 'cost': 10 / 3 },
                             'private/fiat/fiat-withdraw-history': { 'cost': 10 / 3 },
@@ -232,6 +233,13 @@ export default class cryptocom extends Exchange {
                             'private/staking/get-convert-history': { 'cost': 2 },
                             'private/create-isolated-margin-transfer': { 'cost': 10 / 3 },
                             'private/change-isolated-margin-leverage': { 'cost': 10 / 3 },
+                            'private/bot/create-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/update-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/terminate-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/pause-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/resume-trading-bot': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bots': { 'cost': 10 / 3 },
+                            'private/bot/get-trading-bot-executions': { 'cost': 10 / 3 },
                         },
                     },
                 },
@@ -1207,14 +1215,14 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        const orderBook = this.safeValue(data, 0);
+        const orderBook = this.safeDict(data, 0);
         const timestamp = this.safeInteger(orderBook, 't');
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         const result = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
@@ -2522,7 +2530,7 @@ export default class cryptocom extends Exchange {
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const execInst = this.safeValue(order, 'exec_inst');
+        const execInst = this.safeList(order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = false;
@@ -2760,7 +2768,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
-        const data = this.safeValue(response, 'result');
+        const data = this.safeDict(response, 'result');
         const currencyMap = this.safeList(data, 'currency_map');
         return this.parseDepositWithdrawFees(currencyMap, codes, 'full_name');
     }
@@ -3047,7 +3055,7 @@ export default class cryptocom extends Exchange {
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    parseSettlement(settlement, market) {
+    parseSettlement(settlement, market = undefined) {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3066,7 +3074,7 @@ export default class cryptocom extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
-    parseSettlements(settlements, market) {
+    parseSettlements(settlements, market = undefined) {
         //
         //     [
         //         {

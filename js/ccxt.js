@@ -34,12 +34,13 @@ SOFTWARE.
 import { Exchange, BaseExchange } from './src/base/Exchange.js';
 import PredictionExchange from './src/base/PredictionExchange.js';
 import { Precise } from './src/base/Precise.js';
+import { OrderRouter } from './src/base/OrderRouter.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.77';
+const version = '4.5.82';
 //-----------------------------------------------------------------------------
 import alpaca from './src/alpaca.js';
 import apex from './src/apex.js';
@@ -76,6 +77,7 @@ import btse from './src/btse.js';
 import bullish from './src/bullish.js';
 import bybit from './src/bybit.js';
 import bybiteu from './src/bybiteu.js';
+import bybitid from './src/bybitid.js';
 import bydfi from './src/bydfi.js';
 import cex from './src/cex.js';
 import coinbase from './src/coinbase.js';
@@ -170,6 +172,7 @@ import blofinPro from './src/pro/blofin.js';
 import bullishPro from './src/pro/bullish.js';
 import bybitPro from './src/pro/bybit.js';
 import bybiteuPro from './src/pro/bybiteu.js';
+import bybitidPro from './src/pro/bybitid.js';
 import bydfiPro from './src/pro/bydfi.js';
 import cexPro from './src/pro/cex.js';
 import coinbasePro from './src/pro/coinbase.js';
@@ -229,6 +232,7 @@ import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
 import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
+import predictfunPrediction from './src/prediction/predictfun.js';
 const exchanges = {
     'alpaca': alpaca,
     'apex': apex,
@@ -265,6 +269,7 @@ const exchanges = {
     'bullish': bullish,
     'bybit': bybit,
     'bybiteu': bybiteu,
+    'bybitid': bybitid,
     'bydfi': bydfi,
     'cex': cex,
     'coinbase': coinbase,
@@ -360,6 +365,7 @@ const pro = {
     'bullish': bullishPro,
     'bybit': bybitPro,
     'bybiteu': bybiteuPro,
+    'bybitid': bybitidPro,
     'bydfi': bydfiPro,
     'cex': cexPro,
     'coinbase': coinbasePro,
@@ -424,13 +430,14 @@ const prediction = {
     'myriad': myriadPrediction,
     'opinion': opinionPrediction,
     'polymarket': polymarketPrediction,
+    'predictfun': predictfunPrediction,
 };
 prediction.exchanges = Object.keys(prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
 // prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
 prediction['Exchange'] = PredictionExchange;
 //-----------------------------------------------------------------------------
-const ccxt = Object.assign({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
-export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
+const ccxt = Object.assign({ version, Exchange, BaseExchange, PredictionExchange, Precise, OrderRouter, 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
+export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, OrderRouter, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bybitid, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
 export default ccxt;
 //-----------------------------------------------------------------------------

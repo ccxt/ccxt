@@ -63,11 +63,11 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function watch_public(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         return Async\async(self::do_watch_public(...))($topics, $messageHashes, $params, $unwatch);
     }
 
-    private function do_watch_public(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    private function do_watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -85,11 +85,11 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function watch_private(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         return Async\async(self::do_watch_private(...))($topics, $messageHashes, $params, $unwatch);
     }
 
-    private function do_watch_private(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
+    private function do_watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws']['private'];
         $instruction = 'subscribe';
@@ -280,22 +280,22 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         data => array(
-        //             E => '1754176123312507',
-        //             V => '19419526.742584',
-        //             c => '3398.57',
-        //             e => 'ticker',
-        //             h => '3536.65',
-        //             l => '3371.8',
-        //             n => 17152,
-        //             o => '3475.45',
-        //             s => 'ETH_USDC',
-        //             v => '5573.5827'
-        //         ),
-        //         stream => 'bookTicker.ETH_USDC'
+        //         data: {
+        //             E: '1754176123312507',
+        //             V: '19419526.742584',
+        //             c: '3398.57',
+        //             e: 'ticker',
+        //             h: '3536.65',
+        //             l: '3371.8',
+        //             n: 17152,
+        //             o: '3475.45',
+        //             s: 'ETH_USDC',
+        //             v: '5573.5827'
+        //         },
+        //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
         $ticker = $this->safe_dict($message, 'data', array());
@@ -311,16 +311,16 @@ class backpack extends \ccxt\async\backpack {
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         E => '1754178406415232',
-        //         V => '19303818.6923',
-        //         c => '3407.54',
-        //         e => 'ticker',
-        //         h => '3536.65',
-        //         l => '3369.18',
-        //         n => 17272,
-        //         o => '3481.71',
-        //         s => 'ETH_USDC',
-        //         v => '5542.3911'
+        //         E: '1754178406415232',
+        //         V: '19303818.6923',
+        //         c: '3407.54',
+        //         e: 'ticker',
+        //         h: '3536.65',
+        //         l: '3369.18',
+        //         n: 17272,
+        //         o: '3481.71',
+        //         s: 'ETH_USDC',
+        //         v: '5542.3911'
         //     }
         //
         $microseconds = $this->safe_integer($ticker, 'E', 0);
@@ -410,21 +410,21 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             A => '0.4087',
-        //             B => '0.0020',
-        //             E => '1754517402450016',
-        //             T => '1754517402449064',
-        //             a => '3667.50',
-        //             b => '3667.49',
-        //             e => 'bookTicker',
-        //             s => 'ETH_USDC',
-        //             u => 1328288557
-        //         ),
-        //         stream => 'bookTicker.ETH_USDC'
+        //         data: {
+        //             A: '0.4087',
+        //             B: '0.0020',
+        //             E: '1754517402450016',
+        //             T: '1754517402449064',
+        //             a: '3667.50',
+        //             b: '3667.49',
+        //             e: 'bookTicker',
+        //             s: 'ETH_USDC',
+        //             u: 1328288557
+        //         },
+        //         stream: 'bookTicker.ETH_USDC'
         //     }
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
@@ -436,18 +436,18 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($parsedBidAsk, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         A => '0.4087',
-        //         B => '0.0020',
-        //         E => '1754517402450016',
-        //         T => '1754517402449064',
-        //         a => '3667.50',
-        //         b => '3667.49',
-        //         e => 'bookTicker',
-        //         s => 'ETH_USDC',
-        //         u => 1328288557
+        //         A: '0.4087',
+        //         B: '0.0020',
+        //         E: '1754517402450016',
+        //         T: '1754517402449064',
+        //         a: '3667.50',
+        //         b: '3667.49',
+        //         e: 'bookTicker',
+        //         s: 'ETH_USDC',
+        //         u: 1328288557
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
@@ -486,7 +486,7 @@ class backpack extends \ccxt\async\backpack {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
         return $result[$symbol][$timeframe];
@@ -501,7 +501,7 @@ class backpack extends \ccxt\async\backpack {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
@@ -520,7 +520,7 @@ class backpack extends \ccxt\async\backpack {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -560,7 +560,7 @@ class backpack extends \ccxt\async\backpack {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -583,24 +583,24 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754519557526056',
-        //             T => '2025-08-07T00:00:00',
-        //             X => false,
-        //             c => '3680.520000000',
-        //             e => 'kline',
-        //             h => '3681.370000000',
-        //             l => '3667.650000000',
-        //             n => 255,
-        //             o => '3670.150000000',
-        //             s => 'ETH_USDC',
-        //             t => '2025-08-06T22:00:00',
-        //             v => '62.2621000'
-        //         ),
-        //         $stream => 'kline.2h.ETH_USDC'
+        //         data: {
+        //             E: '1754519557526056',
+        //             T: '2025-08-07T00:00:00',
+        //             X: false,
+        //             c: '3680.520000000',
+        //             e: 'kline',
+        //             h: '3681.370000000',
+        //             l: '3667.650000000',
+        //             n: 255,
+        //             o: '3670.150000000',
+        //             s: 'ETH_USDC',
+        //             t: '2025-08-06T22:00:00',
+        //             v: '62.2621000'
+        //         },
+        //         stream: 'kline.2h.ETH_USDC'
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -627,20 +627,20 @@ class backpack extends \ccxt\async\backpack {
 
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         E => '1754519557526056',
-        //         T => '2025-08-07T00:00:00',
-        //         X => false,
-        //         c => '3680.520000000',
-        //         e => 'kline',
-        //         h => '3681.370000000',
-        //         l => '3667.650000000',
-        //         n => 255,
-        //         o => '3670.150000000',
-        //         s => 'ETH_USDC',
-        //         t => '2025-08-06T22:00:00',
-        //         v => '62.2621000'
-        //     ),
+        //     {
+        //         E: '1754519557526056',
+        //         T: '2025-08-07T00:00:00',
+        //         X: false,
+        //         c: '3680.520000000',
+        //         e: 'kline',
+        //         h: '3681.370000000',
+        //         l: '3667.650000000',
+        //         n: 255,
+        //         o: '3670.150000000',
+        //         s: 'ETH_USDC',
+        //         t: '2025-08-06T22:00:00',
+        //         v: '62.2621000'
+        //     },
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'T')),
@@ -714,7 +714,7 @@ class backpack extends \ccxt\async\backpack {
         }
         $trades = Async\await($this->watch_public($topics, $messageHashes, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -755,22 +755,22 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754601477746429',
-        //             T => '1754601477744000',
-        //             a => '5121860761',
-        //             b => '5121861755',
-        //             e => 'trade',
-        //             m => false,
-        //             p => '3870.25',
-        //             q => '0.0008',
-        //             s => 'ETH_USDC_PERP',
-        //             t => 10782547
-        //         ),
-        //         stream => 'trade.ETH_USDC_PERP'
+        //         data: {
+        //             E: '1754601477746429',
+        //             T: '1754601477744000',
+        //             a: '5121860761',
+        //             b: '5121861755',
+        //             e: 'trade',
+        //             m: false,
+        //             p: '3870.25',
+        //             q: '0.0008',
+        //             s: 'ETH_USDC_PERP',
+        //             t: 10782547
+        //         },
+        //         stream: 'trade.ETH_USDC_PERP'
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -790,19 +790,19 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($cache, 'trades');
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         E => '1754601477746429',
-        //         T => '1754601477744000',
-        //         a => '5121860761',
-        //         b => '5121861755',
-        //         e => 'trade',
-        //         m => false,
-        //         p => '3870.25',
-        //         q => '0.0008',
-        //         s => 'ETH_USDC_PERP',
-        //         t => 10782547
+        //         E: '1754601477746429',
+        //         T: '1754601477744000',
+        //         a: '5121860761',
+        //         b: '5121861755',
+        //         e: 'trade',
+        //         m: false,
+        //         p: '3870.25',
+        //         q: '0.0008',
+        //         s: 'ETH_USDC_PERP',
+        //         t: 10782547
         //     }
         //
         $microseconds = $this->safe_integer($trade, 'E', 0);
@@ -894,7 +894,7 @@ class backpack extends \ccxt\async\backpack {
             $topics[] = $topic;
         }
         $orderbook = Async\await($this->watch_public($topics, $messageHashes, $params));
-        return $orderbook->limit(); // todo check if $limit is needed
+        return $orderbook->limit(); // todo check if limit is needed
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -936,23 +936,23 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_public($topics, $messageHashes, $params, true));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "data" => array(
-        //             "E" => "1754903057555305",
-        //             "T" => "1754903057554352",
-        //             "U" => 1345937436,
-        //             "a" => array(),
-        //             "b" => array(),
-        //             "e" => "depth",
-        //             "s" => "ETH_USDC",
-        //             "u" => 1345937436
-        //         ),
-        //         "stream" => "depth.ETH_USDC"
+        //         "data": {
+        //             "E": "1754903057555305",
+        //             "T": "1754903057554352",
+        //             "U": 1345937436,
+        //             "a": [],
+        //             "b": [],
+        //             "e": "depth",
+        //             "s": "ETH_USDC",
+        //             "u": 1345937436
+        //         },
+        //         "stream": "depth.ETH_USDC"
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -995,16 +995,16 @@ class backpack extends \ccxt\async\backpack {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_bid_asks(mixed $bookSide, mixed $bidAsks) {
+    public function handle_bid_asks(mixed $bookSide, array $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
             $bookSide->storeArray($bidAsk);
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache): float {
         //
-        // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
+        // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
@@ -1099,29 +1099,29 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params, true));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754939110175843',
-        //             O => 'USER',
-        //             Q => '4.30',
-        //             S => 'Bid',
-        //             T => '1754939110174703',
-        //             V => 'RejectTaker',
-        //             X => 'New',
-        //             Z => '0',
-        //             e => 'orderAccepted',
-        //             f => 'GTC',
-        //             i => '5406825793',
-        //             o => 'MARKET',
-        //             q => '0.0010',
-        //             r => false,
-        //             s => 'ETH_USDC',
-        //             t => null,
-        //             z => '0'
-        //         ),
-        //         stream => 'account.orderUpdate.ETH_USDC'
+        //         data: {
+        //             E: '1754939110175843',
+        //             O: 'USER',
+        //             Q: '4.30',
+        //             S: 'Bid',
+        //             T: '1754939110174703',
+        //             V: 'RejectTaker',
+        //             X: 'New',
+        //             Z: '0',
+        //             e: 'orderAccepted',
+        //             f: 'GTC',
+        //             i: '5406825793',
+        //             o: 'MARKET',
+        //             q: '0.0010',
+        //             r: false,
+        //             s: 'ETH_USDC',
+        //             t: null,
+        //             z: '0'
+        //         },
+        //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
         $messageHash = 'orders';
@@ -1142,32 +1142,32 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
-        //     array(
-        //         E => '1754939110175879',
-        //         L => '4299.16',
-        //         N => 'ETH',
-        //         O => 'USER',
-        //         Q => '4.30',
-        //         S => 'Bid',
-        //         T => '1754939110174705',
-        //         V => 'RejectTaker',
-        //         X => 'Filled',
-        //         Z => '4.299160',
-        //         e => 'orderFill',
-        //         f => 'GTC',
-        //         i => '5406825793',
-        //         l => '0.0010',
-        //         m => false,
-        //         n => '0.000001',
-        //         o => 'MARKET',
-        //         q => '0.0010',
-        //         r => false,
-        //         s => 'ETH_USDC',
-        //         t => 2888471,
-        //         z => '0.0010'
-        //     ),
+        //     {
+        //         E: '1754939110175879',
+        //         L: '4299.16',
+        //         N: 'ETH',
+        //         O: 'USER',
+        //         Q: '4.30',
+        //         S: 'Bid',
+        //         T: '1754939110174705',
+        //         V: 'RejectTaker',
+        //         X: 'Filled',
+        //         Z: '4.299160',
+        //         e: 'orderFill',
+        //         f: 'GTC',
+        //         i: '5406825793',
+        //         l: '0.0010',
+        //         m: false,
+        //         n: '0.000001',
+        //         o: 'MARKET',
+        //         q: '0.0010',
+        //         r: false,
+        //         s: 'ETH_USDC',
+        //         t: 2888471,
+        //         z: '0.0010'
+        //     },
         //
         $id = $this->safe_string($order, 'i');
         $clientOrderId = $this->safe_string($order, 'c');
@@ -1278,7 +1278,7 @@ class backpack extends \ccxt\async\backpack {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
+    public function un_watch_positions(?array $symbols = null, $params = array()) {
         return Async\async(self::do_un_watch_positions(...))($symbols, $params);
     }
 
@@ -1311,28 +1311,28 @@ class backpack extends \ccxt\async\backpack {
         return Async\await($this->watch_private($topics, $messageHashes, $params, true));
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             B => '4236.36',
-        //             E => '1754943862040486',
-        //             M => '4235.88650933',
-        //             P => '-0.000473',
-        //             Q => '0.0010',
-        //             T => '1754943862040487',
-        //             b => '4238.479',
-        //             e => 'positionOpened',
-        //             f => '0.02',
-        //             i => 5411399049,
-        //             l => '0',
-        //             m => '0.0125',
-        //             n => '4.23588650933',
-        //             p => '0',
-        //             q => '0.0010',
-        //             s => 'ETH_USDC_PERP'
-        //         ),
-        //         stream => 'account.positionUpdate'
+        //         data: {
+        //             B: '4236.36',
+        //             E: '1754943862040486',
+        //             M: '4235.88650933',
+        //             P: '-0.000473',
+        //             Q: '0.0010',
+        //             T: '1754943862040487',
+        //             b: '4238.479',
+        //             e: 'positionOpened',
+        //             f: '0.02',
+        //             i: 5411399049,
+        //             l: '0',
+        //             m: '0.0125',
+        //             n: '4.23588650933',
+        //             p: '0',
+        //             q: '0.0010',
+        //             s: 'ETH_USDC_PERP'
+        //         },
+        //         stream: 'account.positionUpdate'
         //     }
         //
         $messageHash = 'positions';
@@ -1352,25 +1352,25 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $parsedPosition ), $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         B => '4236.36',
-        //         E => '1754943862040486',
-        //         M => '4235.88650933',
-        //         P => '-0.000473',
-        //         Q => '0.0010',
-        //         T => '1754943862040487',
-        //         b => '4238.479',
-        //         e => 'positionOpened',
-        //         f => '0.02',
-        //         i => 5411399049,
-        //         l => '0',
-        //         m => '0.0125',
-        //         n => '4.23588650933',
-        //         p => '0',
-        //         q => '0.0010',
-        //         s => 'ETH_USDC_PERP'
+        //         B: '4236.36',
+        //         E: '1754943862040486',
+        //         M: '4235.88650933',
+        //         P: '-0.000473',
+        //         Q: '0.0010',
+        //         T: '1754943862040487',
+        //         b: '4238.479',
+        //         e: 'positionOpened',
+        //         f: '0.02',
+        //         i: 5411399049,
+        //         l: '0',
+        //         m: '0.0125',
+        //         n: '4.23588650933',
+        //         p: '0',
+        //         q: '0.0010',
+        //         s: 'ETH_USDC_PERP'
         //     }
         //
         $id = $this->safe_string($position, 'i');
@@ -1451,13 +1451,13 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         id => null,
-        //         $error => {
-        //             $code => 4006,
-        //             $message => 'Invalid stream'
+        //         id: null,
+        //         error: {
+        //             code: 4006,
+        //             message: 'Invalid stream'
         //         }
         //     }
         //

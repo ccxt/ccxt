@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BinanceusdmCore {
@@ -168,8 +172,8 @@ impl crate::exchange_generated::ExchangeBase for BinanceusdmCore {
     {
         Box::pin(async move {
             match method {
-                "transfer_in" => self.transfer_in(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
-                "transfer_out" => self.transfer_out(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
+                "transfer_in" => self.transfer_in(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "transfer_out" => self.transfer_out(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -190,12 +194,12 @@ impl BinanceusdmCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("binanceusdm".to_string()));
-        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".to_string()));
+        m.insert("id".to_string(), Value::Str("binanceusdm".into()));
+        m.insert("name".to_string(), Value::Str("Binance USDⓈ-M".into()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".into()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".into()), Value::Str("https://developers.binance.com/en".into())]));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -213,11 +217,11 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("linear".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("linear".into())]));
     m
 }));
-        m.insert("defaultType".to_string(), Value::Str("swap".to_string()));
-        m.insert("defaultSubType".to_string(), Value::Str("linear".to_string()));
+        m.insert("defaultType".to_string(), Value::Str("swap".into()));
+        m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
         m.insert("leverageBrackets".to_string(), Value::Null);
         m.insert("marginTypes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -233,9 +237,9 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-5021".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5022".to_string(), Value::Str("InvalidOrder".to_string()).clone());
-        m.insert("-5028".to_string(), Value::Str("InvalidOrder".to_string()).clone());
+        m.insert("-5021".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5022".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5028".to_string(), Value::Str("InvalidOrder".into()).clone());
     m
 }));
     m
@@ -251,7 +255,7 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(1), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(1), &[params]).await;
 
     Value::Null
 }
@@ -261,7 +265,7 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.futures_transfer(code.clone(), amount.clone(), Value::Int(2), &[params.clone()]).await;
+        return self.futures_transfer(code, amount, Value::Int(2), &[params]).await;
 
     Value::Null
 }

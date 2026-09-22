@@ -77,23 +77,23 @@ class luno extends \ccxt\async\luno {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message, mixed $subscription) {
+    public function handle_trades(Client $client, array $message, array $subscription) {
         //
         //     {
-        //         "sequence" => "110980825",
-        //         "trade_updates" => array(),
-        //         "create_update" => array(
-        //             "order_id" => "BXHSYXAUMH8C2RW",
-        //             "type" => "ASK",
-        //             "price" => "24081.09000000",
-        //             "volume" => "0.07780000"
-        //         ),
-        //         "delete_update" => null,
-        //         "status_update" => null,
-        //         "timestamp" => 1660598775360
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
+        //         },
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
-        $rawTrades = $this->safe_value($message, 'trade_updates', array());
+        $rawTrades = $this->safe_list($message, 'trade_updates', array());
         $length = count($rawTrades);
         if ($length === 0) {
             return;
@@ -116,16 +116,16 @@ class luno extends \ccxt\async\luno {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // watchTrades (public)
         //
         //     {
-        //       "base" => "69.00000000",
-        //       "counter" => "113.6499000000000000",
-        //       "maker_order_id" => "BXEEU4S2BWF5WRB",
-        //       "taker_order_id" => "BXKNCSF7JDHXY3H",
-        //       "order_id" => "BXEEU4S2BWF5WRB"
+        //       "base": "69.00000000",
+        //       "counter": "113.6499000000000000",
+        //       "maker_order_id": "BXEEU4S2BWF5WRB",
+        //       "taker_order_id": "BXKNCSF7JDHXY3H",
+        //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
         $symbol = ($market === null) ? null : $market['symbol'];
@@ -182,37 +182,37 @@ class luno extends \ccxt\async\luno {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book(Client $client, array $message, array $subscription) {
         //
         //     {
-        //         "sequence" => "24352",
-        //         "asks" => [array(
-        //             "id" => "BXMC2CJ7HNB88U4",
-        //             "price" => "1234.00",
-        //             "volume" => "0.93"
-        //         )],
-        //         "bids" => [array(
-        //             "id" => "BXMC2CJ7HNB88U5",
-        //             "price" => "1201.00",
-        //             "volume" => "1.22"
-        //         )],
-        //         "status" => "ACTIVE",
-        //         "timestamp" => 1528884331021
+        //         "sequence": "24352",
+        //         "asks": [{
+        //             "id": "BXMC2CJ7HNB88U4",
+        //             "price": "1234.00",
+        //             "volume": "0.93"
+        //         }],
+        //         "bids": [{
+        //             "id": "BXMC2CJ7HNB88U5",
+        //             "price": "1201.00",
+        //             "volume": "1.22"
+        //         }],
+        //         "status": "ACTIVE",
+        //         "timestamp": 1528884331021
         //     }
         //
         //  update
         //     {
-        //         "sequence" => "110980825",
-        //         "trade_updates" => array(),
-        //         "create_update" => array(
-        //             "order_id" => "BXHSYXAUMH8C2RW",
-        //             "type" => "ASK",
-        //             "price" => "24081.09000000",
-        //             "volume" => "0.07780000"
-        //         ),
-        //         "delete_update" => null,
-        //         "status_update" => null,
-        //         "timestamp" => 1660598775360
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
+        //         },
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         $symbol = $subscription['symbol'];
@@ -237,9 +237,9 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
-        $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
-        $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
+    public function custom_parse_order_book(array $orderbook, ?string $symbol, ?int $timestamp = null, ?string $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+        $bids = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
+        $asks = $this->parse_order_book_bids_asks($this->safe_list($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -274,44 +274,44 @@ class luno extends \ccxt\async\luno {
         //
         //  create
         //     {
-        //         "sequence" => "110980825",
-        //         "trade_updates" => array(),
-        //         "create_update" => array(
-        //             "order_id" => "BXHSYXAUMH8C2RW",
-        //             "type" => "ASK",
-        //             "price" => "24081.09000000",
-        //             "volume" => "0.07780000"
-        //         ),
-        //         "delete_update" => null,
-        //         "status_update" => null,
-        //         "timestamp" => 1660598775360
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
+        //         },
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  delete
         //     {
-        //         "sequence" => "110980825",
-        //         "trade_updates" => array(),
-        //         "create_update" => null,
-        //         "delete_update" => array(
-        //             "order_id" => "BXMC2CJ7HNB88U4"
-        //         ),
-        //         "status_update" => null,
-        //         "timestamp" => 1660598775360
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": null,
+        //         "delete_update": {
+        //             "order_id": "BXMC2CJ7HNB88U4"
+        //         },
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  trade
         //     {
-        //         "sequence" => "110980825",
-        //         "trade_updates" => array(
+        //         "sequence": "110980825",
+        //         "trade_updates": [
         //             {
-        //                 "base" => "0.1",
-        //                 "counter" => "5232.00",
-        //                 "maker_order_id" => "BXMC2CJ7HNB88U4",
-        //                 "taker_order_id" => "BXMC2CJ7HNB88U5"
+        //                 "base": "0.1",
+        //                 "counter": "5232.00",
+        //                 "maker_order_id": "BXMC2CJ7HNB88U4",
+        //                 "taker_order_id": "BXMC2CJ7HNB88U5"
         //             }
-        //         ),
-        //         "create_update" => null,
-        //         "delete_update" => null,
-        //         "status_update" => null,
-        //         "timestamp" => 1660598775360
+        //         ],
+        //         "create_update": null,
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         $createUpdate = $this->safe_value($message, 'create_update');

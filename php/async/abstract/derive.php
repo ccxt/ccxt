@@ -34,6 +34,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_get_wallets_from_session_key($params = array()) {
+        return $this->request('get_wallets_from_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_login($params = array()) {
         return $this->request('login', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -46,6 +52,24 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_all_statistics($params = array()) {
+        return $this->request('all_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_user_statistics($params = array()) {
+        return $this->request('user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_all_user_statistics($params = array()) {
+        return $this->request('all_user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_get_all_currencies($params = array()) {
         return $this->request('get_all_currencies', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -54,6 +78,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_get_currency($params = array()) {
         return $this->request('get_currency', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_asset($params = array()) {
+        return $this->request('get_asset', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_assets($params = array()) {
+        return $this->request('get_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -82,6 +118,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_get_tickers($params = array()) {
+        return $this->request('get_tickers', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_get_latest_signed_feeds($params = array()) {
         return $this->request('get_latest_signed_feeds', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -102,6 +144,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_get_spot_feed_history_candles($params = array()) {
         return $this->request('get_spot_feed_history_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_index_chart_data($params = array()) {
+        return $this->request('get_index_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_tradingview_chart_data($params = array()) {
+        return $this->request('get_tradingview_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -136,6 +190,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_get_perp_impact_twap($params = array()) {
+        return $this->request('get_perp_impact_twap', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_get_transaction($params = array()) {
         return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -150,6 +210,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_margin_watch($params = array()) {
         return $this->request('margin_watch', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_order_quote($params = array()) {
+        return $this->request('order_quote', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -192,6 +258,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_get_swell_percent_points($params = array()) {
         return $this->request('get_swell_percent_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_stdrv_snapshots($params = array()) {
+        return $this->request('get_stdrv_snapshots', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -244,6 +316,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_get_vault_pools($params = array()) {
+        return $this->request('get_vault_pools', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_vault_rates($params = array()) {
+        return $this->request('get_vault_rates', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_estimate_integrator_points($params = array()) {
         return $this->request('estimate_integrator_points', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -252,6 +336,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_create_subaccount_debug($params = array()) {
         return $this->request('create_subaccount_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_create_account_with_secret($params = array()) {
+        return $this->request('create_account_with_secret', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -292,6 +382,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_post_get_all_referral_codes($params = array()) {
+        return $this->request('get_all_referral_codes', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_referral_performance($params = array()) {
+        return $this->request('get_referral_performance', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_post_get_time($params = array()) {
         return $this->request('get_time', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -312,6 +414,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function public_post_get_maker_program_scores($params = array()) {
         return $this->request('get_maker_program_scores', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_get_detailed_maker_snapshot_history($params = array()) {
+        return $this->request('get_detailed_maker_snapshot_history', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_post_getratelimits($params = array()) {
+        return $this->request('getRateLimits', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -354,6 +468,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function private_post_get_notificationsv($params = array()) {
         return $this->request('get_notificationsv', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_get_notifications($params = array()) {
+        return $this->request('get_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -430,6 +550,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_get_trigger_orders($params = array()) {
+        return $this->request('get_trigger_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_get_algo_orders($params = array()) {
+        return $this->request('get_algo_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_cancel($params = array()) {
         return $this->request('cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -462,6 +594,24 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function private_post_cancel_trigger_order($params = array()) {
         return $this->request('cancel_trigger_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_cancel_algo_order($params = array()) {
+        return $this->request('cancel_algo_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_cancel_all_algo_orders($params = array()) {
+        return $this->request('cancel_all_algo_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_cancel_all_trigger_orders($params = array()) {
+        return $this->request('cancel_all_trigger_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -556,6 +706,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_order_quote($params = array()) {
+        return $this->request('order_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_replace_quote($params = array()) {
+        return $this->request('replace_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_rfq_get_best_quote($params = array()) {
         return $this->request('rfq_get_best_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -646,6 +808,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_change_session_key_label($params = array()) {
+        return $this->request('change_session_key_label', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_register_scoped_session_key($params = array()) {
         return $this->request('register_scoped_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -688,6 +856,30 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_get_contact_info($params = array()) {
+        return $this->request('get_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_create_contact_info($params = array()) {
+        return $this->request('create_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_update_contact_info($params = array()) {
+        return $this->request('update_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_delete_contact_info($params = array()) {
+        return $this->request('delete_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetGetAllCurrencies($params = array()) {
         return $this->request('get_all_currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -712,6 +904,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostGetWalletsFromSessionKey($params = array()) {
+        return $this->request('get_wallets_from_session_key', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostLogin($params = array()) {
         return $this->request('login', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -724,6 +922,24 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostAllStatistics($params = array()) {
+        return $this->request('all_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostUserStatistics($params = array()) {
+        return $this->request('user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostAllUserStatistics($params = array()) {
+        return $this->request('all_user_statistics', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostGetAllCurrencies($params = array()) {
         return $this->request('get_all_currencies', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -732,6 +948,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostGetCurrency($params = array()) {
         return $this->request('get_currency', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetAsset($params = array()) {
+        return $this->request('get_asset', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetAssets($params = array()) {
+        return $this->request('get_assets', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -760,6 +988,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostGetTickers($params = array()) {
+        return $this->request('get_tickers', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostGetLatestSignedFeeds($params = array()) {
         return $this->request('get_latest_signed_feeds', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -780,6 +1014,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostGetSpotFeedHistoryCandles($params = array()) {
         return $this->request('get_spot_feed_history_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetIndexChartData($params = array()) {
+        return $this->request('get_index_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetTradingviewChartData($params = array()) {
+        return $this->request('get_tradingview_chart_data', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -814,6 +1060,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostGetPerpImpactTwap($params = array()) {
+        return $this->request('get_perp_impact_twap', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostGetTransaction($params = array()) {
         return $this->request('get_transaction', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -828,6 +1080,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostMarginWatch($params = array()) {
         return $this->request('margin_watch', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostOrderQuote($params = array()) {
+        return $this->request('order_quote', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -870,6 +1128,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostGetSwellPercentPoints($params = array()) {
         return $this->request('get_swell_percent_points', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetStdrvSnapshots($params = array()) {
+        return $this->request('get_stdrv_snapshots', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -922,6 +1186,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostGetVaultPools($params = array()) {
+        return $this->request('get_vault_pools', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetVaultRates($params = array()) {
+        return $this->request('get_vault_rates', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostEstimateIntegratorPoints($params = array()) {
         return $this->request('estimate_integrator_points', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -930,6 +1206,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostCreateSubaccountDebug($params = array()) {
         return $this->request('create_subaccount_debug', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostCreateAccountWithSecret($params = array()) {
+        return $this->request('create_account_with_secret', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -970,6 +1252,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicPostGetAllReferralCodes($params = array()) {
+        return $this->request('get_all_referral_codes', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetReferralPerformance($params = array()) {
+        return $this->request('get_referral_performance', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicPostGetTime($params = array()) {
         return $this->request('get_time', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -990,6 +1284,18 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function publicPostGetMakerProgramScores($params = array()) {
         return $this->request('get_maker_program_scores', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetDetailedMakerSnapshotHistory($params = array()) {
+        return $this->request('get_detailed_maker_snapshot_history', 'public', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicPostGetRateLimits($params = array()) {
+        return $this->request('getRateLimits', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1032,6 +1338,12 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function privatePostGetNotificationsv($params = array()) {
         return $this->request('get_notificationsv', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetNotifications($params = array()) {
+        return $this->request('get_notifications', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1108,6 +1420,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostGetTriggerOrders($params = array()) {
+        return $this->request('get_trigger_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetAlgoOrders($params = array()) {
+        return $this->request('get_algo_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostCancel($params = array()) {
         return $this->request('cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1140,6 +1464,24 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function privatePostCancelTriggerOrder($params = array()) {
         return $this->request('cancel_trigger_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCancelAlgoOrder($params = array()) {
+        return $this->request('cancel_algo_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCancelAllAlgoOrders($params = array()) {
+        return $this->request('cancel_all_algo_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCancelAllTriggerOrders($params = array()) {
+        return $this->request('cancel_all_trigger_orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1234,6 +1576,18 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostOrderQuote($params = array()) {
+        return $this->request('order_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostReplaceQuote($params = array()) {
+        return $this->request('replace_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostRfqGetBestQuote($params = array()) {
         return $this->request('rfq_get_best_quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1324,6 +1678,12 @@ abstract class derive extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostChangeSessionKeyLabel($params = array()) {
+        return $this->request('change_session_key_label', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostRegisterScopedSessionKey($params = array()) {
         return $this->request('register_scoped_session_key', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1362,5 +1722,29 @@ abstract class derive extends \ccxt\async\Exchange {
      */
     public function privatePostRegisterInvite($params = array()) {
         return $this->request('register_invite', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostGetContactInfo($params = array()) {
+        return $this->request('get_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCreateContactInfo($params = array()) {
+        return $this->request('create_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostUpdateContactInfo($params = array()) {
+        return $this->request('update_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostDeleteContactInfo($params = array()) {
+        return $this->request('delete_contact_info', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

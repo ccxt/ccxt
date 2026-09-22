@@ -3,17 +3,17 @@ import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLC
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
-    negotiate(privateChannel: any, isFuturesMethod?: boolean, params?: {}): Promise<any>;
-    negotiateHelper(privateChannel: any, connectId: any, params?: {}): Promise<string | undefined>;
+    negotiate(privateChannel: any, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
+    negotiateHelper(privateChannel: any, connectId: string, params?: Dict): Promise<Str>;
     requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
-    subscribePublicUta(messageHash: any, channel: any, symbol: any, params?: {}, subscription?: NullableDict): Promise<any>;
-    subscribePrivateUta(messageHashes: any, subscribeHash: any, channel: any, symbol?: Str, params?: {}, subscription?: NullableDict): Promise<any>;
+    subscribe(url: string, messageHash: string, subscriptionHash: string, params?: Dict, subscription?: NullableDict): Promise<any>;
+    subscribePublicUta(messageHash: string, channel: string, symbol: string, params?: Dict, subscription?: NullableDict): Promise<any>;
+    subscribePrivateUta(messageHashes: string[], subscribeHash: string, channel: string, symbol?: Str, params?: Dict, subscription?: NullableDict): Promise<any>;
     getUtaUrl(): Promise<string>;
     authenticateUta(): Promise<Str>;
     unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
-    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
-    unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: NullableDict): Promise<any>;
+    subscribeMultiple(url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params?: Dict, subscription?: NullableDict): Promise<any>;
+    unSubscribeMultiple(url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params?: Dict, subscription?: NullableDict): Promise<any>;
     /**
      * @method
      * @name kucoin#watchTicker
@@ -26,7 +26,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name kucoin#unWatchTicker
@@ -39,7 +39,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name kucoin#watchTickers
@@ -54,13 +54,13 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    subscribePublicMultipleUta(messageHashes: any, channel: any, symbols: any, params?: {}, subscription?: Dict | undefined): Promise<any>;
-    watchUtaTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
-    handleContractTicker(client: Client, message: any): void;
-    handleUtaTicker(client: Client, message: any): void;
-    parseWsUtaTicker(ticker: any, market?: Market): Ticker;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    subscribePublicMultipleUta(messageHashes: string[], channel: string, symbols: any[], params?: Dict, subscription?: NullableDict): Promise<any>;
+    watchUtaTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    handleTicker(client: Client, message: Dict): void;
+    handleContractTicker(client: Client, message: Dict): void;
+    handleUtaTicker(client: Client, message: Dict): void;
+    parseWsUtaTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchBidsAsks
@@ -71,10 +71,10 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchMultiHelper(methodName: any, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: {}): Promise<any>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    watchMultiHelper(methodName: string, channelName: string, isFuturesChannel: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name kucoin#watchOHLCV
@@ -90,7 +90,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name kucoin#unWatchOHLCV
@@ -104,9 +104,9 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
-    handleUtaOHLCV(client: Client, message: any): void;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: Dict): void;
+    handleUtaOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name kucoin#watchTrades
@@ -121,7 +121,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name kucoin#watchTradesForSymbols
@@ -134,7 +134,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name kucoin#unWatchTradesForSymbols
@@ -159,9 +159,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrade(client: Client, message: any): void;
-    handleUtaTrade(client: Client, message: any): void;
-    parseWsUtaTrade(trade: any, market?: Market): Trade;
+    handleTrade(client: Client, message: Dict): void;
+    handleUtaTrade(client: Client, message: Dict): void;
+    parseWsUtaTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name kucoin#watchOrderBook
@@ -180,7 +180,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name kucoin#unWatchOrderBook
@@ -215,7 +215,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name kucoin#unWatchOrderBookForSymbols
@@ -232,14 +232,14 @@ export default class kucoin extends kucoinRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: any): void;
-    handleUtaOrderBook(client: Client, message: any): void;
-    getCacheIndex(orderbook: any, cache: any): any;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleUtaOrderBook(client: Client, message: Dict): void;
+    getCacheIndex(orderbook: any, cache: any): number;
     handleDelta(orderbook: any, delta: any): void;
-    handleBidAsks(bookSide: any, bidAsks: any): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): void;
-    handleSystemStatus(client: Client, message: any): any;
+    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleSystemStatus(client: Client, message: Dict): Dict;
     /**
      * @method
      * @name kucoin#watchOrders
@@ -258,13 +258,13 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    getOrdersMessageHashSuffix(topic: any): string;
-    parseWsOrderStatus(status: any): string;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    getOrdersMessageHashSuffix(topic: Str): string;
+    parseWsOrderStatus(status: Str): Str;
     parseWsOrder(order: any, market?: Market): Order;
-    parseWsUtaOrder(order: any, market?: Market): Order;
-    handleOrder(client: Client, message: any): void;
-    handleUtaOrder(client: Client, message: any): void;
+    parseWsUtaOrder(order: Dict, market?: Market): Order;
+    handleOrder(client: Client, message: Dict): void;
+    handleUtaOrder(client: Client, message: Dict): void;
     /**
      * @method
      * @name kucoin#watchMyTrades
@@ -282,8 +282,8 @@ export default class kucoin extends kucoinRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     getMyTradesMessageHashSuffix(topic: any): string;
-    handleMyTrade(client: Client, message: any): void;
-    handleUtaMyTrade(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: Dict): void;
+    handleUtaMyTrade(client: Client, message: Dict): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -297,11 +297,11 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any): void;
-    loadBalanceSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
-    handleBalance(client: Client, message: any): void;
-    handleUtaBalance(client: Client, message: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
+    handleBalance(client: Client, message: Dict): void;
+    handleUtaBalance(client: Client, message: Dict): void;
     /**
      * @method
      * @name kucoin#watchPosition
@@ -311,7 +311,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
+    watchPosition(symbol?: Str, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name kucoin#watchPositions
@@ -324,15 +324,15 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    getCurrentPosition(symbol: any): any;
-    setPositionsCache(client: Client, uta: any): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, uta: any): Promise<void>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    getCurrentPosition(symbol: string): import("../base/types.js").Dictionary<any> | undefined;
+    setPositionsCache(client: Client, uta: boolean): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, uta: boolean): Promise<void>;
     setPositionCache(client: Client, symbol: string): void;
-    loadPositionSnapshot(client: Client, messageHash: any, symbol: any): Promise<void>;
-    handlePosition(client: Client, message: any): void;
-    handleUtaPosition(client: Client, message: any): void;
-    parseWsUtaPosition(position: any, market?: Market): Position;
+    loadPositionSnapshot(client: Client, messageHash: string, symbol: string): Promise<void>;
+    handlePosition(client: Client, message: Dict): void;
+    handleUtaPosition(client: Client, message: Dict): void;
+    parseWsUtaPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name kucoin#watchFundingRate
@@ -342,7 +342,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name kucoin#unWatchFundingRate
@@ -353,8 +353,8 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
-    handleUtaFundingRate(client: Client, message: any): void;
-    parseWsFundingRate(data: any, market?: Market): FundingRate;
+    handleUtaFundingRate(client: Client, message: Dict): void;
+    parseWsFundingRate(data: Dict, market?: Market): FundingRate;
     /**
      * @method
      * @name kucoin#watchMarkPrice
@@ -364,7 +364,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name kucoin#unWatchMarkPrice
@@ -375,13 +375,10 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
-    handleSubject(client: Client, message: any): void;
-    ping(client: Client): {
-        id: any;
-        type: string;
-    };
-    handlePong(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleSubject(client: Client, message: Dict): void;
+    ping(client: Client): Dict;
+    handlePong(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleMessage(client: Client, message: Dict): void;
     getMessageHash(elementName: string, symbol?: Str): string;
 }

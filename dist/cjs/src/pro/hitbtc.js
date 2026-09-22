@@ -222,7 +222,7 @@ class hitbtc extends hitbtc$1["default"] {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        const options = this.safeValue(this.options, 'watchOrderBook');
+        const options = this.safeDict(this.options, 'watchOrderBook');
         const defaultMethod = this.safeString(options, 'method', 'orderbook/full');
         let name = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
         const depth = this.safeString(params, 'depth', '20');
@@ -345,7 +345,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'watchTicker');
+        const options = this.safeDict(this.options, 'watchTicker');
         const defaultMethod = this.safeString(options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString(params, 'speed', '1s');
@@ -417,7 +417,7 @@ class hitbtc extends hitbtc$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeDict(message, 'data', {});
         const marketIds = Object.keys(data);
         const result = [];
         const topic = 'tickers';
@@ -504,7 +504,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, undefined, false);
-        const options = this.safeValue(this.options, 'watchBidsAsks');
+        const options = this.safeDict(this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString(options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2(params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString(params, 'speed', '100ms');
@@ -642,7 +642,7 @@ class hitbtc extends hitbtc$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue2(message, 'snapshot', 'update', {});
+        const data = this.safeDict2(message, 'snapshot', 'update', {});
         const marketIds = Object.keys(data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -765,7 +765,7 @@ class hitbtc extends hitbtc$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue2(message, 'snapshot', 'update', {});
+        const data = this.safeDict2(message, 'snapshot', 'update', {});
         const marketIds = Object.keys(data);
         const channel = this.safeString(message, 'ch', '');
         const splitChannel = channel.split('/');
@@ -778,7 +778,7 @@ class hitbtc extends hitbtc$1["default"] {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1363,7 +1363,7 @@ class hitbtc extends hitbtc$1["default"] {
             }
             if (Array.isArray(result)) {
                 // to do improve this, not very reliable right now
-                const first = this.safeValue(result, 0, {});
+                const first = this.safeDict(result, 0, {});
                 const arrayLength = result.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest(client, message);
@@ -1378,7 +1378,7 @@ class hitbtc extends hitbtc$1["default"] {
         //        "result": true
         //    }
         //
-        const success = this.safeValue(message, 'result');
+        const success = this.safeBool(message, 'result');
         const messageHash = 'authenticated';
         if (success === true) {
             const future = this.safeValue(client.futures, messageHash);
@@ -1405,7 +1405,7 @@ class hitbtc extends hitbtc$1["default"] {
         //        id: 1700228604325
         //    }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeDict(message, 'error');
         if (error !== undefined) {
             try {
                 const code = this.safeValue(error, 'code');
@@ -1431,7 +1431,7 @@ class hitbtc extends hitbtc$1["default"] {
                 return true;
             }
         }
-        return undefined;
+        return false;
     }
 }
 

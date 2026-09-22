@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class woofipro : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "woofipro" },
@@ -234,6 +234,12 @@ public partial class woofipro : Exchange
                             { "public/points/epoch_dates", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "public/points/rankings", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/stages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "public/referral/check_ref_code", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -273,6 +279,9 @@ public partial class woofipro : Exchange
                             { "tv/symbol_info", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "tv/kline_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "public/funding_rate_history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -298,6 +307,15 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "public/futures/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/batch_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/pool_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/revenue_buyback", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -360,6 +378,9 @@ public partial class woofipro : Exchange
                             { "settle_nonce", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "transfer_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "pnl_settlement/history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -402,6 +423,9 @@ public partial class woofipro : Exchange
                             { "broker/user_info", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "broker/daily_fee_revenue", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "orderbook/{symbol}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -409,6 +433,42 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "client/margin_modes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/points/user_statistics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/redeem", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/max_rebate_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/rebate_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/statistics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/volume_prerequisite", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -450,6 +510,9 @@ public partial class woofipro : Exchange
                                 { "cost", 60 },
                             } },
                             { "client/leverage", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
                                 { "cost", 120 },
                             } },
                             { "client/margin_mode", new Dictionary<string, object>() {
@@ -494,6 +557,33 @@ public partial class woofipro : Exchange
                             { "referral/edit_split", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "referral/edit_referee_description", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/create/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/reset/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/claim_code", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "order", new Dictionary<string, object>() {
@@ -526,6 +616,15 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "client/batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
+                } },
+                { "v2", new Dictionary<string, object>() {
+                    { "private", new Dictionary<string, object>() {
+                        { "post", new Dictionary<string, object>() {
+                            { "internal_transfer", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -689,7 +788,7 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PublicGetPublicSystemInfo(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicSystemInfo(parameters);
         //
         //     {
         //         "success": true,
@@ -700,12 +799,12 @@ public partial class woofipro : Exchange
         //         "timestamp": "1709274106602"
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object status = this.safeString(data, "status");
-        if (isTrue(isEqual(status, null)))
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        string? status = this.safeString(data, "status");
+        if ((status == null))
         {
             status = "error";
-        } else if (isTrue(isEqual(status, "0")))
+        } else if ((status == "0"))
         {
             status = "ok";
         } else
@@ -726,7 +825,7 @@ public partial class woofipro : Exchange
     public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PublicGetPublicSystemInfo(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicSystemInfo(parameters);
         //
         //     {
         //         "success": true,
@@ -740,7 +839,7 @@ public partial class woofipro : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //   {
@@ -769,19 +868,19 @@ public partial class woofipro : Exchange
         //     "liquidation_tier": "1"
         //   }
         //
-        object marketId = this.safeString(market, "symbol");
-        if (isTrue(isEqual(marketId, null)))
+        string? marketId = this.safeString(market, "symbol");
+        if ((marketId == null))
         {
-            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
         }
-        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = marketId.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
-        object baseId = this.safeString(parts, 1);
-        object quoteId = this.safeString(parts, 2);
+        string? baseId = this.safeString(parts, 1);
+        string? quoteId = this.safeString(parts, 2);
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object settleId = this.safeString(parts, 2);
-        object settle = this.safeCurrencyCode(settleId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? settleId = this.safeString(parts, 2);
+        string? settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -845,7 +944,7 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PublicGetPublicInfo(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicInfo(parameters);
         //
         //   {
         //     "success": true,
@@ -881,8 +980,8 @@ public partial class woofipro : Exchange
         //     }
         //   }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(rows));
     }
 
@@ -895,10 +994,10 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         object tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
@@ -926,43 +1025,43 @@ public partial class woofipro : Exchange
         var tokenResponsechainResponseVariable = await promiseAll(new List<object>() {tokenPromise, chainPromise});
         var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
         var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
-        object tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
-        object tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
-        object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
-        object chainRows = this.safeList(chainData, "rows", new List<object>() {});
+        IDictionary<string, object> tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
+        List<object> tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
+        IDictionary<string, object> chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
+        List<object> chainRows = this.safeList(chainData, "rows", new List<object>() {});
         Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
-        for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
+        for (int i = 0; i < tokenRows.Count; i++)
         {
-            object token = getValue(tokenRows, i);
-            object parsed = this.parseCurrency(new Dictionary<string, object>() {
+            object token = tokenRows[i];
+            Dictionary<string, object> parsed = this.parseCurrency(new Dictionary<string, object>() {
                 { "_token", token },
                 { "_indexedChains", indexedChains },
             });
-            if (isTrue(isEqual(parsed, null)))
+            if ((parsed == null))
             {
-                throw new ExchangeError ((string)add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+                throw new ExchangeError ((string)(this.id + " fetchCurrencies() could not resolve parsed")) ;
             }
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
-        object token = this.safeDict(rawCurrency, "_token", new Dictionary<string, object>() {});
-        object currencyId = this.safeString(token, "token");
-        object networks = this.safeList(token, "chain_details", new List<object>() {});
-        object code = this.safeCurrencyCode(currencyId);
-        object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
-        object resultingNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        IDictionary<string, object> token = this.safeDict(rawCurrency, "_token", new Dictionary<string, object>() {});
+        string? currencyId = this.safeString(token, "token");
+        List<object> networks = this.safeList(token, "chain_details", new List<object>() {});
+        string? code = this.safeCurrencyCode(currencyId);
+        IDictionary<string, object> indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
+        Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
+        for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = getValue(networks, j);
-            object networkId = this.safeString(networkEntry, "chain_id");
-            object networkRow = this.safeDict(indexedChains, networkId);
-            object networkName = this.safeString(networkRow, "name", networkId);
+            object networkEntry = networks[j];
+            string? networkId = this.safeString(networkEntry, "chain_id");
+            IDictionary<string, object> networkRow = this.safeDict(indexedChains, networkId);
+            string? networkName = this.safeString(networkRow, "name", networkId);
             object networkCode = this.networkIdToCode(networkName, code);
-            if (isTrue(!isEqual(networkCode, null)))
+            if ((networkCode != null))
             {
                 ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
@@ -1015,12 +1114,12 @@ public partial class woofipro : Exchange
 
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
     {
-        object feeCost = this.safeString(item, feeAmountKey);
-        object fee = null;
-        if (isTrue(!isEqual(feeCost, null)))
+        string? feeCost = this.safeString(item, feeAmountKey);
+        Dictionary<string, object> fee = null;
+        if ((feeCost != null))
         {
-            object feeCurrencyId = this.safeString(item, feeTokenKey);
-            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            string? feeCurrencyId = this.safeString(item, feeTokenKey);
+            string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurrencyCode },
@@ -1029,7 +1128,7 @@ public partial class woofipro : Exchange
         return fee;
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public/market_trades
@@ -1058,28 +1157,28 @@ public partial class woofipro : Exchange
         //         "is_maker": "1"
         //     }
         //
-        bool isFromFetchOrder = (inOp(trade, "id"));
-        object timestamp = this.safeInteger(trade, "executed_timestamp");
-        object marketId = this.safeString(trade, "symbol");
+        bool isFromFetchOrder = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")));
+        Int64? timestamp = this.safeInteger(trade, "executed_timestamp");
+        string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.safeString(trade, "executed_price");
-        object amount = this.safeString(trade, "executed_quantity");
-        object order_id = this.safeString(trade, "order_id");
-        object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        object feeCost = this.safeString(fee, "cost");
-        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(feeCost, null)))))
+        string? price = this.safeString(trade, "executed_price");
+        string? amount = this.safeString(trade, "executed_quantity");
+        string? order_id = this.safeString(trade, "order_id");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(trade, "fee_asset", "fee"));
+        string? feeCost = this.safeString(fee, "cost");
+        if (((fee != null)) && ((feeCost != null)))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
-        object cost = Precise.stringMul(price, amount);
-        object side = this.safeStringLower(trade, "side");
-        object id = this.safeString(trade, "id");
-        object takerOrMaker = null;
-        if (isTrue(isFromFetchOrder))
+        string? cost = Precise.stringMul(price, amount);
+        string? side = this.safeStringLower(trade, "side");
+        string? id = this.safeString(trade, "id");
+        string? takerOrMaker = null;
+        if (isFromFetchOrder)
         {
-            bool isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            bool isMaker = (this.safeString(trade, "is_maker") == "1");
+            takerOrMaker = isMaker ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1112,19 +1211,19 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.v1PublicGetPublicMarketTrades(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetPublicMarketTrades(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1140,8 +1239,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
     }
 
@@ -1158,14 +1257,14 @@ public partial class woofipro : Exchange
         //            "sum_unitary_funding": 521.367
         //         }
         //
-        object symbol = this.safeString(fundingRate, "symbol");
+        string? symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
-        object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
-        object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
-        object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
-        object fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
-        object nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
-        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        Int64? nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
+        Int64? estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
+        Int64? lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        string? fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
+        string? nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
+        string? millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", getValue(market, "symbol") },
@@ -1188,9 +1287,9 @@ public partial class woofipro : Exchange
         };
     }
 
-    public virtual object parseFundingInterval(object interval)
+    public virtual string? parseFundingInterval(object interval)
     {
-        object intervals = new Dictionary<string, object>() {
+        Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
             { "14400000", "4h" },
             { "28800000", "8h" },
@@ -1227,15 +1326,15 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1251,7 +1350,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
     }
 
@@ -1267,12 +1366,12 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.v1PublicGetPublicFundingRates(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicFundingRates(parameters);
         //
         // {
         //     "success": true,
@@ -1290,12 +1389,12 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rows, symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1315,9 +1414,9 @@ public partial class woofipro : Exchange
         //         "24h_amount": 6595662.199482
         //     }
         //
-        object marketId = this.safeString(ticker, "symbol");
+        string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -1356,15 +1455,15 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1387,7 +1486,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
@@ -1404,12 +1503,12 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.v1PublicGetPublicFutures(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
         //
         // {
         //     "success": true,
@@ -1434,15 +1533,15 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
-        object timestamp = this.safeInteger(response, "timestamp");
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < rows.Count; i++)
         {
-            object row = getValue(rows, i);
-            object marketId = this.safeString(row, "symbol", "");
-            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            object row = rows[i];
+            string? marketId = this.safeString(row, "symbol", "");
+            if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
             {
                 continue;
             }
@@ -1470,10 +1569,10 @@ public partial class woofipro : Exchange
         //         "24h_amount": 6595662.199482
         //     }
         //
-        object marketId = this.safeString(interest, "symbol");
+        string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger(interest, "timestamp");
-        object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        Int64? timestamp = this.safeInteger(interest, "timestamp");
+        double? amount = this.safeNumber2(interest, "open_interest", "openInterest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "openInterestAmount", amount },
@@ -1496,15 +1595,15 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1519,7 +1618,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(data, market));
     }
@@ -1536,12 +1635,12 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.v1PublicGetPublicFutures(parameters);
+        Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
         //
         // {
         //     "success": true,
@@ -1558,15 +1657,15 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
-        object timestamp = this.safeInteger(response, "timestamp");
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < rows.Count; i++)
         {
-            object row = getValue(rows, i);
-            object marketId = this.safeString(row, "symbol", "");
-            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            object row = rows[i];
+            string? marketId = this.safeString(row, "symbol", "");
+            if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
             {
                 continue;
             }
@@ -1595,33 +1694,33 @@ public partial class woofipro : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        bool paginate = false;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbolVar, since, limit, parameters, "page", 25));
         }
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbolVar, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if ((symbolVar != null))
         {
-            object market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            Dictionary<string, object> market = this.market(symbolVar);
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (isTrue(!isEqual(since, null)))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        var requestparametersVariable = this.handleUntilOption("end_t", request, parameters, 0.001);
-        request = ((IList<object>)requestparametersVariable)[0];
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_t", request, parameters, 0.001);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1641,14 +1740,14 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object result = this.safeList(data, "rows", new List<object>() {});
-        object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> result = this.safeList(data, "rows", new List<object>() {});
+        List<object> rates = new List<object>() {};
+        for (int i = 0; i < result.Count; i++)
         {
-            object entry = getValue(result, i);
-            object marketId = this.safeString(entry, "symbol");
-            object timestamp = this.safeInteger(entry, "funding_rate_timestamp");
+            object entry = result[i];
+            string? marketId = this.safeString(entry, "symbol");
+            Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId) },
@@ -1657,7 +1756,7 @@ public partial class woofipro : Exchange
                 { "datetime", this.iso8601(timestamp) },
             });
         }
-        object sorted = this.sortBy(rates, "timestamp");
+        List<object> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolVar, since, limit));
     }
 
@@ -1675,14 +1774,14 @@ public partial class woofipro : Exchange
         //         "updated_time": 1682235722003
         // }
         //
-        object marketId = this.safeString(income, "symbol");
-        object symbol = this.safeSymbol(marketId, market);
-        object amount = this.safeString(income, "funding_fee");
-        object code = this.safeCurrencyCode("USDC");
-        object timestamp = this.safeInteger(income, "updated_time");
-        object rate = this.safeNumber(income, "funding_rate");
-        object paymentType = this.safeString(income, "payment_type");
-        amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
+        string? marketId = this.safeString(income, "symbol");
+        string? symbol = this.safeSymbol(marketId, market);
+        string? amount = this.safeString(income, "funding_fee");
+        string? code = this.safeCurrencyCode("USDC");
+        Int64? timestamp = this.safeInteger(income, "updated_time");
+        double? rate = this.safeNumber(income, "funding_rate");
+        string? paymentType = this.safeString(income, "payment_type");
+        amount = ((paymentType == "Pay")) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
@@ -1710,40 +1809,40 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        bool paginate = false;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500));
         }
-        object request = new Dictionary<string, object>() {};
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (isTrue(!isEqual(since, null)))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (isTrue(!isEqual(until, null)))
+        if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["end_t"] = until;
         }
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limit, 500);
         }
-        object response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1767,8 +1866,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(rows, market, since, limit));
     }
 
@@ -1783,11 +1882,11 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.v1PrivateGetClientInfo(parameters);
+        Dictionary<string, object> response = await this.v1PrivateGetClientInfo(parameters);
         //
         // {
         //     "success": true,
@@ -1815,14 +1914,14 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object maker = this.safeString(data, "futures_maker_fee_rate");
-        object taker = this.safeString(data, "futures_taker_fee_rate");
-        object result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        string? maker = this.safeString(data, "futures_maker_fee_rate");
+        string? taker = this.safeString(data, "futures_taker_fee_rate");
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
+        List<object> symbols = this.symbols;
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1849,20 +1948,20 @@ public partial class woofipro : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isTrue(!isEqual(limitVar, null)))
+        if ((limitVar != null))
         {
             limitVar = mathMin(limitVar, 1000);
             ((IDictionary<string,object>)request)["max_level"] = limitVar;
         }
-        object response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -1880,8 +1979,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "timestamp");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        Int64? timestamp = this.safeInteger(data, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
@@ -1904,24 +2003,24 @@ public partial class woofipro : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        object response = await this.v1PrivateGetKline(this.extend(request, parameters));
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.v1PrivateGetKline(this.extend(request, parameters));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         //
         // {
         //     "success": true,
@@ -1942,11 +2041,11 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object rows = this.safeList(data, "rows", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market, timeframeVar, since, limit));
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,((string)timeframeVar), since, limit));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // Possible input functions:
@@ -1993,47 +2092,47 @@ public partial class woofipro : Exchange
         //       "updatedTime": "1686149903.362"
         //   }
         //
-        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
-        object orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
-        object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
-        object marketId = this.safeString(order, "symbol");
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
+        string? orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
+        string? clientOrderId = ((string)this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId"))); // Somehow, this always returns 0 for limit order
+        string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.safeString2(order, "order_price", "price");
-        object amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
-        object cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
-        object orderType = this.safeStringLower2(order, "order_type", "type");
-        object status = this.safeValue2(order, "status", "algoStatus");
-        object success = this.safeBool(order, "success");
-        if (isTrue(!isEqual(success, null)))
+        string? price = this.safeString2(order, "order_price", "price");
+        string? amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
+        string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
+        string? orderType = this.safeStringLower2(order, "order_type", "type");
+        string? status = this.safeString2(order, "status", "algoStatus");
+        bool? success = this.safeBool(order, "success");
+        if (!isEqual(success, null))
         {
-            status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
+            status = success == true ? "NEW" : "REJECTED";
         }
-        object side = this.safeStringLower(order, "side");
-        object filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
-        object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(amount, filled);
+        string? side = this.safeStringLower(order, "side");
+        string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
+        string? average = ((string)this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice")));
+        string? remaining = Precise.stringSub(amount, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
-        object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
+        string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
-        object triggerPrice = this.safeNumber(order, "triggerPrice");
-        object takeProfitPrice = null;
-        object stopLossPrice = null;
-        object childOrders = this.safeValue(order, "childOrders");
-        if (isTrue(!isEqual(childOrders, null)))
+        double? triggerPrice = this.safeNumber(order, "triggerPrice");
+        double? takeProfitPrice = null;
+        double? stopLossPrice = null;
+        List<object> childOrders = this.safeList(order, "childOrders");
+        if ((childOrders != null))
         {
-            object first = this.safeValue(childOrders, 0);
-            object innerChildOrders = this.safeValue(first, "childOrders", new List<object>() {});
-            int innerChildOrdersLength = getArrayLength(innerChildOrders);
-            if (isTrue(isGreaterThan(innerChildOrdersLength, 0)))
+            IDictionary<string, object> first = this.safeDict(childOrders, 0);
+            List<object> innerChildOrders = this.safeList(first, "childOrders", new List<object>() {});
+            int innerChildOrdersLength = innerChildOrders.Count;
+            if (innerChildOrdersLength > 0)
             {
-                object takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                object stopLossOrder = this.safeValue(innerChildOrders, 1);
+                IDictionary<string, object> takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                IDictionary<string, object> stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
         }
-        object lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
+        Int64? lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -2066,9 +2165,9 @@ public partial class woofipro : Exchange
         }, market);
     }
 
-    public virtual object parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(object timeInForce)
     {
-        object timeInForces = new Dictionary<string, object>() {
+        Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "ioc", "IOC" },
             { "fok", "FOK" },
             { "post_only", "PO" },
@@ -2076,11 +2175,11 @@ public partial class woofipro : Exchange
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public virtual object parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(object status)
     {
-        if (isTrue(!isEqual(status, null)))
+        if ((status != null))
         {
-            object statuses = new Dictionary<string, object>() {
+            Dictionary<string, object> statuses = new Dictionary<string, object>() {
                 { "NEW", "open" },
                 { "FILLED", "closed" },
                 { "CANCEL_SENT", "canceled" },
@@ -2093,12 +2192,12 @@ public partial class woofipro : Exchange
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
-    public virtual object parseOrderType(object type)
+    public virtual string? parseOrderType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "LIMIT", "limit" },
             { "MARKET", "market" },
             { "POST_ONLY", "limit" },
@@ -2106,16 +2205,16 @@ public partial class woofipro : Exchange
         return this.safeStringLower(types, type, type);
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(type, null)))
+        if ((type == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isTrue(isEqual(side, null)))
+        if ((side == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -2130,78 +2229,78 @@ public partial class woofipro : Exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string orderType = ((string)type).ToUpper();
-        if (isTrue(isEqual(side, null)))
+        if ((side == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " createOrderRequest() requires a side argument")) ;
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         string orderSide = ((string)side).ToUpper();
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
-        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
-        bool hasStopLoss = (!isEqual(stopLoss, null));
-        bool hasTakeProfit = (!isEqual(takeProfit, null));
-        object algoType = this.safeString(parameters, "algoType");
-        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        bool isMarket = isEqual(orderType, "MARKET");
-        object timeInForce = this.safeStringLower(parameters, "timeInForce");
-        object postOnly = this.isPostOnly(isMarket, null, parameters);
-        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
-        object typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
+        bool hasStopLoss = ((stopLoss != null));
+        bool hasTakeProfit = ((takeProfit != null));
+        string? algoType = this.safeString(parameters, "algoType");
+        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        bool isMarket = (orderType == "MARKET");
+        string? timeInForce = this.safeStringLower(parameters, "timeInForce");
+        bool postOnly = this.isPostOnly(isMarket, null, parameters);
+        string orderQtyKey = isConditional ? "quantity" : "order_quantity";
+        string priceKey = isConditional ? "price" : "order_price";
+        string typeKey = isConditional ? "type" : "order_type";
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isTrue(isConditional))
+        if (!isConditional)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["order_type"] = "POST_ONLY";
-            } else if (isTrue(isEqual(timeInForce, "fok")))
+            } else if ((timeInForce == "fok"))
             {
                 ((IDictionary<string,object>)request)["order_type"] = "FOK";
-            } else if (isTrue(isEqual(timeInForce, "ioc")))
+            } else if ((timeInForce == "ioc"))
             {
                 ((IDictionary<string,object>)request)["order_type"] = "IOC";
             }
         }
-        if (isTrue(isEqual(reduceOnly, true)))
+        if ((reduceOnly == true))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
         }
-        if (isTrue(!isEqual(price, null)))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(isTrue(isMarket) && !isTrue(isConditional)))
+        if (isMarket && !isConditional)
         {
             ((IDictionary<string,object>)request)[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
-        } else if (isTrue(!isEqual(algoType, "POSITIONAL_TP_SL")))
+        } else if ((algoType != "POSITIONAL_TP_SL"))
         {
             ((IDictionary<string,object>)request)[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-        if (isTrue(!isEqual(clientOrderId, null)))
+        string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        if ((clientOrderId != null))
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        if (isTrue(!isEqual(triggerPrice, null)))
+        if ((triggerPrice != null))
         {
             ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["algo_type"] = "STOP";
-        } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
+        } else if (hasStopLoss || hasTakeProfit)
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
-            object childOrders = new List<object>() {};
-            object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
-            if (isTrue(hasStopLoss))
+            List<object> childOrders = new List<object>() {};
+            string closeSide = ((orderSide == "BUY")) ? "SELL" : "BUY";
+            if (hasStopLoss)
             {
                 object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
-                object stopLossOrder = new Dictionary<string, object>() {
+                Dictionary<string, object> stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
                     { "trigger_price", this.priceToPrecision(symbol, stopLossPrice) },
@@ -2210,10 +2309,10 @@ public partial class woofipro : Exchange
                 };
                 ((IList<object>)childOrders).Add(stopLossOrder);
             }
-            if (isTrue(hasTakeProfit))
+            if (hasTakeProfit)
             {
                 object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
-                object takeProfitOrder = new Dictionary<string, object>() {
+                Dictionary<string, object> takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
                     { "trigger_price", this.priceToPrecision(symbol, takeProfitPrice) },
@@ -2222,8 +2321,8 @@ public partial class woofipro : Exchange
                 };
                 ((IList<object>)childOrders).Add(takeProfitOrder);
             }
-            object outterOrder = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+            Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "reduce_only", false },
                 { "algo_type", "POSITIONAL_TP_SL" },
                 { "child_orders", childOrders },
@@ -2259,27 +2358,27 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
-        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object response = null;
-        if (isTrue(isConditional))
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
+        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(parameters, "childOrders") != null));
+        Dictionary<string, object> response = null;
+        if (isConditional)
         {
             response = await this.v1PrivatePostAlgoOrder(request);
         } else
         {
             response = await this.v1PrivatePostOrder(request);
         }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
-        object order = this.parseOrder(data, market);
+        Dictionary<string, object> order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2296,35 +2395,35 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        List<object> ordersRequests = new List<object>() {};
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
-            object type = this.safeString(rawOrder, "type");
-            object side = this.safeString(rawOrder, "side");
+            string? marketId = this.safeString(rawOrder, "symbol");
+            string? type = this.safeString(rawOrder, "type");
+            string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
-            object stopLoss = this.safeValue(orderParams, "stopLoss");
-            object takeProfit = this.safeValue(orderParams, "takeProfit");
-            bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
-            if (isTrue(isConditional))
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
+            IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
+            IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
+            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(orderParams, "childOrders") != null));
+            if (isConditional)
             {
-                throw new NotSupported ((string)add(this.id, " createOrders() only support non-stop order")) ;
+                throw new NotSupported ((string)(this.id + " createOrders() only support non-stop order")) ;
             }
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
         };
-        object response = await this.v1PrivatePostBatchOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivatePostBatchOrder(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
@@ -2342,8 +2441,8 @@ public partial class woofipro : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(rows));
     }
 
@@ -2368,63 +2467,63 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
-        if (isTrue(!isEqual(triggerPrice, null)))
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
+        if ((triggerPrice != null))
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
-        if (isTrue(!isEqual(price, null)))
+        bool isConditional = ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        string orderQtyKey = isConditional ? "quantity" : "order_quantity";
+        string priceKey = isConditional ? "price" : "order_price";
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(!isEqual(amount, null)))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
-        object response = null;
-        if (isTrue(isEqual(side, null)))
+        Dictionary<string, object> response = null;
+        if ((side == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a side argument")) ;
         }
-        if (isTrue(isConditional))
+        if (isConditional)
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
             string orderType = ((string)type).ToUpper();
-            object timeInForce = this.safeStringLower(parameters, "timeInForce");
-            bool isMarket = isEqual(orderType, "MARKET");
-            object postOnly = this.isPostOnly(isMarket, null, parameters);
-            if (isTrue(postOnly))
+            string? timeInForce = this.safeStringLower(parameters, "timeInForce");
+            bool isMarket = (orderType == "MARKET");
+            bool postOnly = this.isPostOnly(isMarket, null, parameters);
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["order_type"] = "POST_ONLY";
-            } else if (isTrue(isEqual(timeInForce, "fok")))
+            } else if ((timeInForce == "fok"))
             {
                 ((IDictionary<string,object>)request)["order_type"] = "FOK";
-            } else if (isTrue(isEqual(timeInForce, "ioc")))
+            } else if ((timeInForce == "ioc"))
             {
                 ((IDictionary<string,object>)request)["order_type"] = "IOC";
             } else
             {
                 ((IDictionary<string,object>)request)["order_type"] = orderType;
             }
-            object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+            string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
             parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
-            if (isTrue(!isEqual(clientOrderId, null)))
+            if ((clientOrderId != null))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
             }
@@ -2441,7 +2540,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
@@ -2464,31 +2563,31 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(isTrue((!isEqual(trigger, true))) && isTrue((isEqual(symbol, null)))))
+        if (((trigger != true)) && ((symbol == null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
         };
-        object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
-        object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
-        object response = null;
-        if (isTrue(isEqual(trigger, true)))
+        string? clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
+        string? clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
+        bool isByClientOrder = (clientOrderIdExchangeSpecific != null);
+        Dictionary<string, object> response = null;
+        if ((trigger == true))
         {
-            if (isTrue(isByClientOrder))
+            if (isByClientOrder)
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderIdExchangeSpecific;
                 parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
@@ -2500,7 +2599,7 @@ public partial class woofipro : Exchange
             }
         } else
         {
-            if (isTrue(isByClientOrder))
+            if (isByClientOrder)
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderIdExchangeSpecific;
                 parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
@@ -2526,22 +2625,22 @@ public partial class woofipro : Exchange
         //     "status": "CANCEL_SENT"
         // }
         //
-        object extendParams = new Dictionary<string, object>() {
+        Dictionary<string, object> extendParams = new Dictionary<string, object>() {
             { "symbol", symbol },
         };
-        if (isTrue(isByClientOrder))
+        if (isByClientOrder)
         {
             ((IDictionary<string,object>)extendParams)["client_order_id"] = clientOrderIdExchangeSpecific;
         } else
         {
             ((IDictionary<string,object>)extendParams)["id"] = id;
         }
-        if (isTrue(isEqual(trigger, true)))
+        if ((trigger == true))
         {
-            object parsedResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+            Dictionary<string, object> parsedResponse = ((response == null)) ? new Dictionary<string, object>() {} : response;
             return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(parsedResponse), extendParams));
         }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(data), extendParams));
     }
 
@@ -2560,15 +2659,15 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
+        List<object> clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object request = new Dictionary<string, object>() {};
-        object response = null;
-        if (isTrue(!isEqual(clientOrderIds, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
+        if ((clientOrderIds != null))
         {
             ((IDictionary<string,object>)request)["client_order_ids"] = String.Join(",", ((IList<object>)clientOrderIds).ToArray());
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters));
@@ -2603,20 +2702,20 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if ((symbol != null))
         {
-            object market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            Dictionary<string, object> market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object response = null;
-        if (isTrue(isEqual(trigger, true)))
+        if ((trigger == true))
         {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters));
         } else
@@ -2659,23 +2758,23 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object request = new Dictionary<string, object>() {};
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
-        object response = null;
-        if (isTrue(isEqual(trigger, true)))
+        Dictionary<string, object> response = null;
+        if ((trigger == true))
         {
-            if (isTrue(isTrue(!isEqual(clientOrderId, null)) && isTrue(!isEqual(clientOrderId, ""))))
+            if ((clientOrderId != null) && (clientOrderId != ""))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters));
@@ -2686,7 +2785,7 @@ public partial class woofipro : Exchange
             }
         } else
         {
-            if (isTrue(isTrue((!isEqual(clientOrderId, null))) && isTrue((!isEqual(clientOrderId, "")))))
+            if (((clientOrderId != null)) && ((clientOrderId != "")))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters));
@@ -2723,8 +2822,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object orders = this.safeDict(response, "data", response);
-        object parsedOrders = ((bool) isTrue((isEqual(orders, null)))) ? new Dictionary<string, object>() {} : orders;
+        IDictionary<string, object> orders = this.safeDict(response, "data", response);
+        IDictionary<string, object> parsedOrders = ((orders == null)) ? new Dictionary<string, object>() {} : orders;
         return ccxt.BaseExchange.ToOrder(this.parseOrder(parsedOrders, market));
     }
 
@@ -2748,48 +2847,48 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object paginate = false;
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object maxLimit = ((bool) isTrue((isEqual(isTrigger, true)))) ? 100 : 500;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        bool paginate = false;
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        int maxLimit = ((isTrigger == true)) ? 100 : 500;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit));
         }
-        object request = new Dictionary<string, object>() {};
-        object market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(!isEqual(symbol, null)))
+        if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (isTrue(!isEqual(since, null)))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         } else
         {
             ((IDictionary<string,object>)request)["size"] = maxLimit;
         }
-        if (isTrue(isEqual(isTrigger, true)))
+        if ((isTrigger == true))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "STOP";
         }
-        var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_t", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = null;
-        if (isTrue(isEqual(isTrigger, true)))
+        Dictionary<string, object> response = null;
+        if ((isTrigger == true))
         {
             response = await this.v1PrivateGetAlgoOrders(this.extend(request, parameters));
         } else
@@ -2830,8 +2929,8 @@ public partial class woofipro : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", response);
-        object orders = this.safeList(data, "rows");
+        IDictionary<string, object> data = this.safeDict(response, "data", response);
+        List<object> orders = this.safeList(data, "rows");
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
@@ -2855,7 +2954,7 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2885,7 +2984,7 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2910,19 +3009,19 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "oid", id },
         };
-        object response = await this.v1PrivateGetOrderOidTrades(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetOrderOidTrades(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -2944,8 +3043,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> trades = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit, parameters));
     }
 
@@ -2965,40 +3064,40 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
+        bool paginate = false;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
+        if (paginate)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500));
         }
-        object request = new Dictionary<string, object>() {};
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (isTrue(!isEqual(since, null)))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         } else
         {
             ((IDictionary<string,object>)request)["size"] = 500;
         }
-        var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_t", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v1PrivateGetTrades(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetTrades(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -3025,25 +3124,25 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> trades = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit, parameters));
     }
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeList(response, "holding", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        List<object> balances = this.safeList(response, "holding", new List<object>() {});
+        for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
-            object code = this.safeCurrencyCode(this.safeString(balance, "token"));
-            object account = this.account();
+            object balance = balances[i];
+            string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
-            if (isTrue(!isEqual(code, null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
@@ -3062,11 +3161,11 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.v1PrivateGetClientHolding(parameters);
+        Dictionary<string, object> response = await this.v1PrivateGetClientHolding(parameters);
         //
         // {
         //     "success": true,
@@ -3082,39 +3181,39 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public async virtual Task<object> getAssetHistoryRows(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<object>> getAssetHistoryRows(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
-        object currency = null;
-        if (isTrue(!isEqual(code, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        IDictionary<string, object> currency = null;
+        if ((code != null))
         {
-            currency = this.currency(code);
-            ((IDictionary<string,object>)request)["balance_token"] = getValue(currency, "id");
+            currency = this.currency(((string)code));
+            ((IDictionary<string,object>)request)["balance_token"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
-        if (isTrue(!isEqual(since, null)))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        if (isTrue(!isEqual(limit, null)))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        object transactionType = this.safeString(parameters, "type");
+        string? transactionType = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
-        if (isTrue(!isEqual(transactionType, null)))
+        if ((transactionType != null))
         {
             ((IDictionary<string,object>)request)["type"] = transactionType;
         }
-        object response = await this.v1PrivateGetAssetHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetAssetHistory(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -3140,20 +3239,20 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return new List<object>() {currency, this.safeList(data, "rows", new List<object>() {})};
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object currencyId = this.safeString(item, "token");
-        object code = this.safeCurrencyCode(currencyId, currency);
+        string? currencyId = this.safeString(item, "token");
+        string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object amount = this.safeNumber(item, "amount");
-        object side = this.safeString(item, "token_side");
-        object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
-        object timestamp = this.safeInteger(item, "created_time");
-        object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        double? amount = this.safeNumber(item, "amount");
+        string? side = this.safeString(item, "token_side");
+        string direction = ((side == "DEPOSIT")) ? "in" : "out";
+        Int64? timestamp = this.safeInteger(item, "created_time");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
@@ -3175,7 +3274,7 @@ public partial class woofipro : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
@@ -3196,25 +3295,25 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        List<object> currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, parameters);
         object currency = this.safeValue(currencyRows, 0);
-        object rows = this.safeList(currencyRows, 1);
+        List<object> rows = this.safeList(currencyRows, 1);
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
     {
         // example in fetchLedger
-        object code = this.safeString(transaction, "token");
-        object movementDirection = this.safeStringLower(transaction, "token_side");
-        if (isTrue(isEqual(movementDirection, "withdraw")))
+        string? code = this.safeString(transaction, "token");
+        string? movementDirection = this.safeStringLower(transaction, "token_side");
+        if ((movementDirection == "withdraw"))
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
-        object addressTo = this.safeString(transaction, "target_address");
-        object addressFrom = this.safeString(transaction, "source_address");
-        object timestamp = this.safeInteger(transaction, "created_time");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount"));
+        string? addressTo = this.safeString(transaction, "target_address");
+        string? addressFrom = this.safeString(transaction, "source_address");
+        Int64? timestamp = this.safeInteger(transaction, "created_time");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString2(transaction, "id", "withdraw_id") },
@@ -3239,9 +3338,9 @@ public partial class woofipro : Exchange
         };
     }
 
-    public virtual object parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "NEW", "pending" },
             { "CONFIRMING", "pending" },
             { "PROCESSING", "pending" },
@@ -3265,10 +3364,10 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "DEPOSIT" },
         };
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -3285,10 +3384,10 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "WITHDRAW" },
         };
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -3302,13 +3401,13 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
-        object currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        List<object> currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, this.extend(request, parameters));
         object currency = this.safeValue(currencyRows, 0);
-        object rows = this.safeList(currencyRows, 1);
+        List<object> rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -3320,18 +3419,18 @@ public partial class woofipro : Exchange
         //         "success":true
         //     }
         //
-        object rowsList = new List<object>() {};
-        if (isTrue(!isEqual(rows, null)))
+        List<object> rowsList = new List<object>() {};
+        if ((rows != null))
         {
             rowsList = rows;
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rowsList, currency, since, limit, parameters));
     }
 
-    public async virtual Task<object> getWithdrawNonce(object parameters = null)
+    public async virtual Task<double?> getWithdrawNonce(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v1PrivateGetWithdrawNonce(parameters);
+        Dictionary<string, object> response = await this.v1PrivateGetWithdrawNonce(parameters);
         //
         //     {
         //         "success": true,
@@ -3341,27 +3440,27 @@ public partial class woofipro : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeNumber(data, "withdraw_nonce");
     }
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
     {
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = getValue(signature, "r");
-        object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        string? r = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? s = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
+        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
     {
-        return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     /**
@@ -3378,40 +3477,40 @@ public partial class woofipro : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object codeVar = code;
+        string codeVar = code;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        if (isTrue(!isEqual(codeVar, null)))
+        if ((codeVar != null))
         {
             codeVar = ((string)codeVar).ToUpper();
-            if (isTrue(!isEqual(codeVar, "USDC")))
+            if (!isEqual(codeVar, "USDC"))
             {
-                throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
+                throw new NotSupported ((string)(this.id + " withdraw() only support USDC")) ;
             }
         }
-        object currency = this.currency(codeVar);
-        object verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
-        object chainId = this.safeString(parameters, "chainId");
-        object currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        object coinNetwork = this.safeDict(currencyNetworks, chainId, new Dictionary<string, object>() {});
-        object coinNetworkId = this.safeNumber(coinNetwork, "id");
-        if (isTrue(isEqual(coinNetworkId, null)))
+        Dictionary<string, object> currency = this.currency(((string)codeVar));
+        string? verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
+        string? chainId = this.safeString(parameters, "chainId");
+        IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        IDictionary<string, object> coinNetwork = this.safeDict(currencyNetworks, chainId, new Dictionary<string, object>() {});
+        double? coinNetworkId = this.safeNumber(coinNetwork, "id");
+        if (isEqual(coinNetworkId, null))
         {
-            throw new BadRequest ((string)add(this.id, " withdraw() require chainId parameter")) ;
+            throw new BadRequest ((string)(this.id + " withdraw() require chainId parameter")) ;
         }
-        object withdrawNonce = await this.getWithdrawNonce(parameters);
-        object nonce = this.nonce();
-        object domain = new Dictionary<string, object>() {
+        double? withdrawNonce = await this.getWithdrawNonce(parameters);
+        Int64 nonce = this.nonce();
+        Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "chainId", chainId },
             { "name", "Orderly" },
             { "verifyingContract", verifyingContractAddress },
             { "version", "1" },
         };
-        object messageTypes = new Dictionary<string, object>() {
+        Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "Withdraw", new List<object>() {new Dictionary<string, object>() {
     { "name", "brokerId" },
     { "type", "string" },
@@ -3435,7 +3534,7 @@ public partial class woofipro : Exchange
     { "type", "uint64" },
 }} },
         };
-        object withdrawRequest = new Dictionary<string, object>() {
+        Dictionary<string, object> withdrawRequest = new Dictionary<string, object>() {
             { "brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro") },
             { "chainId", this.parseToInt(chainId) },
             { "receiver", address },
@@ -3444,16 +3543,16 @@ public partial class woofipro : Exchange
             { "withdrawNonce", withdrawNonce },
             { "timestamp", nonce },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
         object signature = this.signMessage(msg, this.privateKey);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signature", signature },
             { "userAddress", address },
             { "verifyingContract", verifyingContractAddress },
             { "message", withdrawRequest },
         };
         parameters = this.omit(parameters, "chainId");
-        object response = await this.v1PrivatePostWithdrawRequest(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivatePostWithdrawRequest(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
@@ -3463,7 +3562,7 @@ public partial class woofipro : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
     }
 
@@ -3475,7 +3574,7 @@ public partial class woofipro : Exchange
         //         "default_margin_mode": "CROSS"
         //     }
         //
-        object marketId = this.safeString(marginMode, "symbol");
+        string? marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", marginMode },
@@ -3496,12 +3595,12 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.MarginModes> FetchMarginModes(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.v1PrivateGetClientMarginModes(parameters);
+        Dictionary<string, object> response = await this.v1PrivateGetClientMarginModes(parameters);
         //
         // {
         //     "success": true,
@@ -3514,8 +3613,8 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeList(data, "rows", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> rows = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(rows, symbols, "symbol"));
     }
 
@@ -3531,16 +3630,16 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {getValue(market, "symbol")}, parameters));
-        object marginMode = this.safeDict(marginModes, getValue(market, "symbol"));
-        if (isTrue(isEqual(marginMode, null)))
+        Dictionary<string, object> market = this.market(symbol);
+        object marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
+        IDictionary<string, object> marginMode = this.safeDict(marginModes, (market.ContainsKey("symbol") ? market["symbol"] : null));
+        if ((marginMode == null))
         {
-            throw new BadSymbol ((string)add(add(this.id, " fetchMarginMode() did not return a margin mode for "), getValue(market, "symbol"))) ;
+            throw new BadSymbol ((string)((this.id + " fetchMarginMode() did not return a margin mode for ") + ((market.ContainsKey("symbol") ? market["symbol"] : null)))) ;
         }
         return ccxt.BaseExchange.ToMarginMode(marginMode);
     }
@@ -3557,24 +3656,24 @@ public partial class woofipro : Exchange
      */
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
-        object marginModeVar = marginMode;
+        string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if ((symbol == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (isTrue(isTrue(!isEqual(marginModeVar, "cross")) && isTrue(!isEqual(marginModeVar, "isolated"))))
+        if (!isEqual(marginModeVar, "cross") && !isEqual(marginModeVar, "isolated"))
         {
-            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+            throw new BadRequest ((string)(this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "default_margin_mode", ((string)marginModeVar).ToUpper() },
         };
         //
@@ -3594,8 +3693,8 @@ public partial class woofipro : Exchange
         //         "timestamp": 1702989203989
         //     }
         //
-        object timestamp = this.safeInteger(data, "timestamp");
-        object success = this.safeBool(data, "success", false);
+        Int64? timestamp = this.safeInteger(data, "timestamp");
+        bool? success = this.safeBool(data, "success", false);
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeString(market, "symbol") },
@@ -3604,7 +3703,7 @@ public partial class woofipro : Exchange
             { "amount", null },
             { "total", null },
             { "code", this.safeString(market, "settle") },
-            { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },
+            { "status", ((success == true)) ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
@@ -3625,25 +3724,25 @@ public partial class woofipro : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.numberToString(amount) },
             { "type", type },
         };
-        object response = await this.v1PrivatePostPositionMargin(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivatePostPositionMargin(this.extend(request, parameters));
         //
         // {
         //     "success": true,
         //     "timestamp": 1702989203989
         // }
         //
-        object modification = this.parseMarginModification(response, market);
-        ((IDictionary<string,object>)modification)["type"] = ((bool) isTrue((isEqual(type, "ADD")))) ? "add" : "reduce";
+        IDictionary<string, object> modification = ((IDictionary<string, object>)this.parseMarginModification(response, market));
+        ((IDictionary<string,object>)modification)["type"] = (isEqual(type, "ADD")) ? "add" : "reduce";
         ((IDictionary<string,object>)modification)["amount"] = this.parseNumber(this.numberToString(amount));
         return modification;
     }
@@ -3682,7 +3781,7 @@ public partial class woofipro : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object leverageValue = this.safeInteger(leverage, "max_leverage");
+        Int64? leverageValue = this.safeInteger(leverage, "max_leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeString(market, "symbol") },
@@ -3704,12 +3803,12 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object response = await this.v1PrivateGetClientInfo(parameters);
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> response = await this.v1PrivateGetClientInfo(parameters);
         //
         // {
         //     "success": true,
@@ -3737,7 +3836,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
@@ -3754,21 +3853,21 @@ public partial class woofipro : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isTrue(isTrue((isLessThan(leverage, 1))) || isTrue((isGreaterThan(leverage, 50)))))
+        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 50)))
         {
-            throw new BadRequest ((string)add(this.id, " leverage should be between 1 and 50")) ;
+            throw new BadRequest ((string)(this.id + " leverage should be between 1 and 50")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
         };
         return ccxt.BaseExchange.ToDict(await this.v1PrivatePostClientLeverage(this.extend(request, parameters)));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // {
@@ -3792,24 +3891,24 @@ public partial class woofipro : Exchange
         //     "unsettled_pnl": 354.858492
         // }
         //
-        object contract = this.safeString(position, "symbol");
+        string? contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
-        object size = this.safeString(position, "position_qty");
-        object side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        string? size = this.safeString(position, "position_qty");
+        string? side = null;
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else
         {
             side = "short";
         }
-        object contractSize = this.safeString(market, "contractSize");
-        object markPrice = this.safeString(position, "mark_price");
-        object timestamp = this.safeInteger(position, "timestamp");
-        object entryPrice = this.safeString(position, "average_open_price");
-        object unrealisedPnl = this.safeString(position, "unsettled_pnl");
+        string? contractSize = this.safeString(market, "contractSize");
+        string? markPrice = this.safeString(position, "mark_price");
+        Int64? timestamp = this.safeInteger(position, "timestamp");
+        string? entryPrice = this.safeString(position, "average_open_price");
+        string? unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
-        object notional = Precise.stringMul(size, markPrice);
+        string? notional = Precise.stringMul(size, markPrice);
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3854,15 +3953,15 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object response = await this.v1PrivateGetPositionSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PrivateGetPositionSymbol(this.extend(request, parameters));
         //
         // {
         //     "success": true,
@@ -3889,7 +3988,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToPosition(this.parsePosition(data, market));
     }
 
@@ -3905,11 +4004,11 @@ public partial class woofipro : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object response = await this.v1PrivateGetPositions(parameters);
+        Dictionary<string, object> response = await this.v1PrivateGetPositions(parameters);
         //
         // {
         //     "success": true,
@@ -3948,12 +4047,12 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object positions = this.safeList(result, "rows", new List<object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> positions = this.safeList(result, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override object nonce()
+    public override Int64 nonce()
     {
         return this.milliseconds();
     }
@@ -3965,30 +4064,30 @@ public partial class woofipro : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
         object access = getValue(section, 1);
-        object pathWithParams = this.implodeParams(path, parameters);
-        object url = add(add(add(getValue(getValue(this.urls, "api"), access), "/"), version), "/");
+        string? pathWithParams = this.implodeParams(path, parameters);
+        object url = add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
-        if (isTrue(isEqual(access, "public")))
+        if (isEqual(access, "public"))
         {
             url = add(url, pathWithParams);
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            if (isTrue(isTrue((isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT")))) && isTrue((isTrue(isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))) || isTrue(isEqual(path, "batch-order"))))))
+            if ((isEqual(method, "POST") || isEqual(method, "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
             {
-                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (isTrue(!isEqual(isSandboxMode, true)))
+                bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                if ((isSandboxMode != true))
                 {
-                    object brokerId = this.safeString(this.options, "brokerId", "CCXT");
-                    if (isTrue(isEqual(path, "batch-order")))
+                    string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
+                    if (isEqual(path, "batch-order"))
                     {
-                        object ordersList = this.safeList(parameters, "orders", new List<object>() {});
-                        for (object i = 0; isLessThan(i, getArrayLength(ordersList)); postFixIncrement(ref i))
+                        List<object> ordersList = this.safeList(parameters, "orders", new List<object>() {});
+                        for (int i = 0; i < ordersList.Count; i++)
                         {
                             ((IDictionary<string,object>)getValue(getValue(parameters, "orders"), i))["order_tag"] = brokerId;
                         }
@@ -4003,41 +4102,41 @@ public partial class woofipro : Exchange
             string ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
             object apiKey = this.apiKey;
-            if (isTrue(isLessThan(getIndexOf(apiKey, "ed25519:"), 0)))
+            if (getIndexOf(apiKey, "ed25519:") < 0)
             {
-                apiKey = add("ed25519:", apiKey);
+                apiKey = ("ed25519:" + (apiKey));
             }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
-            if (isTrue(isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT"))))
+            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
+            if (isEqual(method, "POST") || isEqual(method, "PUT"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
                 ((IDictionary<string,object>)headers)["content-type"] = "application/json";
             } else
             {
-                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
+                if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(parameters)));
-                    auth = add(auth, add("?", this.rawencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(parameters)));
+                    auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
-                if (isTrue(isEqual(method, "DELETE")))
+                if (isEqual(method, "DELETE"))
                 {
                     body = "";
                 }
             }
             object secret = this.secret;
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
+            if (getIndexOf(secret, "ed25519:") >= 0)
             {
                 List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
-                secret = getValue(parts, 1);
+                secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
-            object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
             ((IDictionary<string,object>)headers)["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
         return new Dictionary<string, object>() {
@@ -4050,7 +4149,7 @@ public partial class woofipro : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }
@@ -4058,13 +4157,13 @@ public partial class woofipro : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        object success = this.safeBool(response, "success");
-        object errorCode = this.safeString(response, "code");
-        if (isTrue(!isEqual(success, true)))
+        bool? success = this.safeBool(response, "success");
+        string? errorCode = this.safeString(response, "code");
+        if ((success != true))
         {
-            object feedback = add(add(this.id, " "), this.json(response));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            string feedback = ((this.id + " ") + this.json(response));
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

@@ -14,3 +14,4 @@ pub mod limitless_typed;
 pub mod myriad_typed;
 pub mod opinion_typed;
 pub mod polymarket_typed;
+pub mod predictfun_typed;

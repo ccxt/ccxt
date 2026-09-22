@@ -229,7 +229,7 @@ export default class binance extends binanceRest {
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
-            const streamLimits = this.safeValue(this.options, 'streamLimits');
+            const streamLimits = this.safeDict(this.options, 'streamLimits');
             const streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = streamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
@@ -238,7 +238,7 @@ export default class binance extends binanceRest {
             if (subscriptionHash !== undefined) {
                 this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             }
-            const subscriptionsByStreams = this.safeValue(this.options, 'numSubscriptionsByStream');
+            const subscriptionsByStreams = this.safeDict(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
                 this.options['numSubscriptionsByStream'] = this.createSafeDictionary();
             }
@@ -460,7 +460,7 @@ export default class binance extends binanceRest {
         //        }
         //    }
         //
-        const rawLiquidation = this.safeValue(message, 'o', {});
+        const rawLiquidation = this.safeDict(message, 'o', {});
         const marketId = this.safeString(rawLiquidation, 's');
         const market = this.safeMarket(marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
@@ -703,42 +703,10 @@ export default class binance extends binanceRest {
      */
     watchOrderBook(symbol, limit = undefined, params = {}) {
         //
-        // todo add support for <levels>-snapshots (depth)
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-        // valid <levels> are 5, 10, or 20
-        //
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        //
-        // notice the differences between trading futures and spot trading
-        // the algorithms use different urls in step 1
-        // delta caching and merging also differs in steps 4, 5, 6
-        //
-        // spot/margin
-        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        // futures
-        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-        // 4. Drop any event where u is < lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
+        // todo add support for <levels>-snapshots (depth): <symbol>@depth<levels>[@100ms], levels 5/10/20
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+        // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
         return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
@@ -983,9 +951,9 @@ export default class binance extends binanceRest {
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
-            const type = this.safeValue(subscription, 'type');
+            const type = this.safeString(subscription, 'type');
             const limit = this.safeInteger(subscription, 'limit', defaultLimit);
-            const params = this.safeValue(subscription, 'params');
+            const params = this.safeDict(subscription, 'params');
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -1050,8 +1018,8 @@ export default class binance extends binanceRest {
     }
     handleOrderBookMessage(client, message, orderbook) {
         const u = this.safeInteger(message, 'u');
-        this.handleDeltas(orderbook['asks'], this.safeValue(message, 'a', []));
-        this.handleDeltas(orderbook['bids'], this.safeValue(message, 'b', []));
+        this.handleDeltas(orderbook['asks'], this.safeList(message, 'a', []));
+        this.handleDeltas(orderbook['bids'], this.safeList(message, 'b', []));
         orderbook['nonce'] = u;
         const timestamp = this.safeInteger(message, 'E');
         orderbook['timestamp'] = timestamp;
@@ -1182,7 +1150,7 @@ export default class binance extends binanceRest {
         const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString(subscription, 'symbol'); // watchOrderBook
-        const symbols = this.safeValue(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
+        const symbols = this.safeList(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
         const limit = this.safeInteger(subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
@@ -1205,7 +1173,7 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString(message, 'id');
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id, {});
+        const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
             method.call(this, client, message, subscription);
@@ -1308,7 +1276,7 @@ export default class binance extends binanceRest {
         };
         const trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1896,7 +1864,7 @@ export default class binance extends binanceRest {
             'markPrice_kline': 'markPriceKline',
         };
         event = this.safeString(eventMap, event, event);
-        const kline = this.safeValue(message, 'k');
+        const kline = this.safeDict(message, 'k');
         let marketId = this.safeString2(kline, 's', 'ps');
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix
@@ -1919,8 +1887,8 @@ export default class binance extends binanceRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
@@ -2587,6 +2555,23 @@ export default class binance extends binanceRest {
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const last = this.safeString2(message, 'c', 'price');
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        let baseVolume = this.safeString(message, 'v');
+        let quoteVolume = this.safeString(message, 'q');
+        if (market['inverse'] === true) {
+            const contracts = baseVolume;
+            baseVolume = quoteVolume;
+            const weightedAverage = this.safeString(message, 'w');
+            if (weightedAverage === undefined) {
+                quoteVolume = Precise.stringMul(contracts, this.safeString(market, 'contractSize'));
+            }
+            else {
+                quoteVolume = Precise.stringMul(baseVolume, weightedAverage);
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -2605,8 +2590,8 @@ export default class binance extends binanceRest {
             'change': this.safeString(message, 'p'),
             'percentage': this.safeString(message, 'P'),
             'average': undefined,
-            'baseVolume': this.safeString(message, 'v'),
-            'quoteVolume': this.safeString(message, 'q'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': message,
         }, market);
     }
@@ -2638,7 +2623,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const result = this.safeValue(message, 'result', {});
+        const result = this.safeDict(message, 'result', {});
         const ticker = this.parseWsTicker(result, 'future');
         client.resolve(ticker, messageHash);
     }
@@ -2726,12 +2711,12 @@ export default class binance extends binanceRest {
                 continue;
             }
             const tickerMarketId = this.safeString(ticker, 's');
-            const tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
+            const tickerMarketsByIdList = this.safeList(this.markets_by_id, tickerMarketId);
             const numTickerMarkets = (tickerMarketsByIdList === undefined) ? 0 : tickerMarketsByIdList.length;
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            const tickerMarketById = (numTickerMarkets === 1) ? this.safeValue(tickerMarketsByIdList, 0) : undefined;
+            const tickerMarketById = (numTickerMarkets === 1) ? this.safeDict(tickerMarketsByIdList, 0) : undefined;
             const isSpot = this.isSpotUrl(client);
             const tickerFallbackType = isSpot ? 'spot' : 'contract';
             const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
@@ -3008,7 +2993,7 @@ export default class binance extends binanceRest {
         }
         params = this.omit(params, 'symbol');
         const isStock = (type === 'stock');
-        const options = this.safeValue(this.options, type, {});
+        const options = this.safeDict(this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
         const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
         const listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
@@ -3117,7 +3102,7 @@ export default class binance extends binanceRest {
             return;
         }
         const isStock = (type === 'stock');
-        const options = this.safeValue(this.options, type, {});
+        const options = this.safeDict(this.options, type, {});
         const listenKey = this.safeString(options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
@@ -3214,7 +3199,7 @@ export default class binance extends binanceRest {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
-        const options = this.safeValue(this.options, 'watchBalance');
+        const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
@@ -3235,7 +3220,7 @@ export default class binance extends binanceRest {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -5439,12 +5424,12 @@ export default class binance extends binanceRest {
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-                    const order = this.safeValue(orders, orderId);
+                    const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+                    const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
                         const fees = this.safeValue(order, 'fees');
-                        const fee = this.safeValue(order, 'fee');
+                        const fee = this.safeDict(order, 'fee');
                         if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
@@ -5521,8 +5506,8 @@ export default class binance extends binanceRest {
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue(orders, orderId);
+            const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict(orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue(order, 'fee');
                 if (fee !== undefined) {
@@ -5715,7 +5700,7 @@ export default class binance extends binanceRest {
         }
         // user subscription wraps message in subscriptionId and event
         const id = this.safeString(message, 'id');
-        const subscriptions = this.safeValue(client.subscriptions, id);
+        const subscriptions = this.safeDict(client.subscriptions, id);
         let method = this.safeValue(subscriptions, 'method');
         if (method !== undefined) {
             method.call(this, client, message);

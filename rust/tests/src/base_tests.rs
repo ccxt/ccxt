@@ -27,16 +27,6 @@ pub fn run(ws: bool) -> Result<(), String> {
     Ok(())
 }
 
-fn run_ws_panicable(f: fn(), name: &str) -> Result<(), String> {
-    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f));
-    if let Err(payload) = outcome {
-        let msg = payload.downcast_ref::<String>().cloned()
-            .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
-            .unwrap_or_else(|| "<panic>".to_string());
-        return Err(format!("{name}: {msg}"));
-    }
-    Ok(())
-}
 
 fn test_precise_arithmetic() -> Result<(), String> {
     assert_eq_msg!(Precise::string_add ("1.5",  "2.25").unwrap(), "3.75",  "stringAdd");

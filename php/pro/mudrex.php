@@ -171,7 +171,7 @@ class mudrex extends \ccxt\async\mudrex {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->safe_string($message, 'method') === 'PONG') {
             return;
         }
@@ -190,7 +190,7 @@ class mudrex extends \ccxt\async\mudrex {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
         $msg = $this->safe_string($error, 'msg');
@@ -201,7 +201,7 @@ class mudrex extends \ccxt\async\mudrex {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_ohlcv(mixed $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         $stream = $this->safe_string($message, 'stream');
         if ($stream === null) {
             return;
@@ -224,8 +224,8 @@ class mudrex extends \ccxt\async\mudrex {
             $this->safe_number($data, 'c'),
             $this->safe_number($data, 'v'),
         );
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $tf);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $tf);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -238,7 +238,7 @@ class mudrex extends \ccxt\async\mudrex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $t = $data[$i];

@@ -44,7 +44,7 @@ class hashkey(ccxt.async_support.hashkey):
                 'listenKeyRefreshRate': 3600000,
                 'listenKey': None,
                 'watchBalance': {
-                    'fetchBalanceSnapshot': True,  # or False
+                    'fetchBalanceSnapshot': True,  # or false
                     'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
             },
@@ -53,7 +53,7 @@ class hashkey(ccxt.async_support.hashkey):
             },
         })
 
-    async def wath_public(self, market: Market, topic: str, messageHash: str, params={}):
+    async def wath_public(self, market: Market, topic: str, messageHash: str, params: dict = {}):
         request = {
             'symbol': market['id'],
             'topic': topic,
@@ -70,7 +70,7 @@ class hashkey(ccxt.async_support.hashkey):
     def get_private_url(self, listenKey: object):
         return self.urls['api']['ws']['private'] + '/' + listenKey
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -82,7 +82,7 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -96,7 +96,7 @@ class hashkey(ccxt.async_support.hashkey):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "symbol": "DOGEUSDT",
@@ -118,9 +118,9 @@ class hashkey(ccxt.async_support.hashkey):
         #                 "v": "0"
         #             }
         #         ],
-        #         "f": True,
+        #         "f": true,
         #         "sendTime": 1722861664258,
-        #         "shared": False
+        #         "shared": false
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
@@ -184,7 +184,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'ticker:' + symbol
         return await self.wath_public(market, topic, messageHash, params)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -208,13 +208,13 @@ class hashkey(ccxt.async_support.hashkey):
         #                 "e": 301
         #             }
         #         ],
-        #         "f": False,
+        #         "f": false,
         #         "sendTime": 1722864411086,
-        #         "shared": False
+        #         "shared": false
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        ticker = self.parse_ticker(self.safe_dict(data, 0))
+        ticker = self.parse_ticker(self.safe_dict(data, 0, {}))
         symbol = ticker['symbol']
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = ticker
@@ -244,7 +244,7 @@ class hashkey(ccxt.async_support.hashkey):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -259,14 +259,14 @@ class hashkey(ccxt.async_support.hashkey):
         #                 "t": 1722866228075,
         #                 "p": "2340.41",
         #                 "q": "0.0132",
-        #                 "m": True
+        #                 "m": true
         #             },
         #             ...
         #         ],
-        #         "f": True,
+        #         "f": true,
         #         "sendTime": 1722869464248,
         #         "channelId": "668498fffeba4108-00000001-00113184-562e27d215e43f9c-c188b319",
-        #         "shared": False
+        #         "shared": false
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
@@ -286,7 +286,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'trades' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -306,13 +306,13 @@ class hashkey(ccxt.async_support.hashkey):
         orderbook = await self.wath_public(market, topic, messageHash, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "symbol": "ETHUSDT",
         #         "symbolName": "ETHUSDT",
         #         "topic": "depth",
-        #         "params": {"realtimeInterval": "24h"},
+        #         "params": { "realtimeInterval": "24h" },
         #         "data": [
         #             {
         #                 "e": 301,
@@ -320,20 +320,20 @@ class hashkey(ccxt.async_support.hashkey):
         #                 "t": 1722873144371,
         #                 "v": "84661262_18",
         #                 "b": [
-        #                     ["1650", "0.0864"],
+        #                     [ "1650", "0.0864" ],
         #                     ...
         #                 ],
         #                 "a": [
-        #                     ["4085", "0.0074"],
+        #                     ["4085", "0.0074" ],
         #                     ...
         #                 ],
         #                 "o": 0
         #             }
         #         ],
-        #         "f": False,
+        #         "f": false,
         #         "sendTime": 1722873144589,
         #         "channelId": "2265aafffe68b588-00000001-0011510c-9e9ca710b1500854-551830bd",
-        #         "shared": False
+        #         "shared": false
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
@@ -351,7 +351,7 @@ class hashkey(ccxt.async_support.hashkey):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -374,7 +374,7 @@ class hashkey(ccxt.async_support.hashkey):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message: object):
+    def handle_order(self, client: Client, message: dict):
         #
         # swap
         #     {
@@ -394,19 +394,19 @@ class hashkey(ccxt.async_support.hashkey):
         #         "L": "2463.36",
         #         "n": "0.001478016",
         #         "N": "USDT",
-        #         "u": True,
-        #         "w": True,
-        #         "m": False,
+        #         "u": true,
+        #         "w": true,
+        #         "m": false,
         #         "O": "1723037391140",
         #         "Z": "2463.36",
-        #         "C": False,
+        #         "C": false,
         #         "v": "5",
         #         "reqAmt": "0",
         #         "d": "1747358716255075840",
         #         "r": "0",
         #         "V": "2463.36",
         #         "P": "0",
-        #         "lo": False,
+        #         "lo": false,
         #         "lt": ""
         #     }
         #
@@ -467,7 +467,7 @@ class hashkey(ccxt.async_support.hashkey):
             'info': order,
         }, market)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -490,7 +490,7 @@ class hashkey(ccxt.async_support.hashkey):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message: object, subscription={}):
+    def handle_my_trade(self, client: Client, message: dict, subscription: dict = {}):
         #
         #     {
         #         "e": "ticketInfo",
@@ -503,7 +503,7 @@ class hashkey(ccxt.async_support.hashkey):
         #         "o": "1747358716129257216",
         #         "c": "1723037389677",
         #         "a": "1735619524953226496",
-        #         "m": False,
+        #         "m": false,
         #         "S": "BUY"
         #     }
         #
@@ -528,7 +528,7 @@ class hashkey(ccxt.async_support.hashkey):
         #         "t": 1722866228075,
         #         "p": "2340.41",
         #         "q": "0.0132",
-        #         "m": True
+        #         "m": true
         #     }
         #
         # watchMyTrades
@@ -543,7 +543,7 @@ class hashkey(ccxt.async_support.hashkey):
         #         "o": "1747358716129257216",
         #         "c": "1723037389677",
         #         "a": "1735619524953226496",
-        #         "m": False,
+        #         "m": false,
         #         "S": "BUY"
         #     }
         #
@@ -577,7 +577,7 @@ class hashkey(ccxt.async_support.hashkey):
             'info': trade,
         }, market)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
 
         https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
@@ -607,7 +607,7 @@ class hashkey(ccxt.async_support.hashkey):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_position(self, client: Client, message: object):
+    def handle_position(self, client: Client, message: dict):
         #
         #     {
         #         "e": "outboundContractPositionInfo",
@@ -674,7 +674,7 @@ class hashkey(ccxt.async_support.hashkey):
             'info': position,
         })
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -701,7 +701,7 @@ class hashkey(ccxt.async_support.hashkey):
             await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, None, messageHash)
 
-    def set_balance_cache(self, client: Client, type: object, subscribeHash: object):
+    def set_balance_cache(self, client: Client, type: str, subscribeHash: str):
         if subscribeHash in client.subscriptions:
             return
         options = self.safe_dict(self.options, 'watchBalance')
@@ -712,32 +712,32 @@ class hashkey(ccxt.async_support.hashkey):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash, type)
         self.balance[type] = {}
-        # without self comment, transpilation breaks for some reason...
+        # without this comment, transpilation breaks for some reason...
 
-    async def load_balance_snapshot(self, client: Client, messageHash: object, type: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str):
         response = await self.fetch_balance({'type': type})
-        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
+        self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]
             future.resolve()
             client.resolve(self.balance[type], 'balance:' + type)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
-        #         "e": "outboundContractAccountInfo",        # event type
-        #                                                    # outboundContractAccountInfo
-        #         "E": "1714717314118",                      # event time
-        #         "T": True,                                 # can trade
-        #         "W": True,                                 # can withdraw
-        #         "D": True,                                 # can deposit
-        #         "B": [                                    # balances changed
+        #         "e": "outboundContractAccountInfo",        // event type
+        #                                                    // outboundContractAccountInfo
+        #         "E": "1714717314118",                      // event time
+        #         "T": true,                                 // can trade
+        #         "W": true,                                 // can withdraw
+        #         "D": true,                                 // can deposit
+        #         "B": [                                     // balances changed
         #             {
-        #                 "a": "USDT",                       # asset
-        #                 "f": "474960.65",                  # free amount
-        #                 "l": "24835.178056020383226869",   # locked amount
-        #                 "r": ""                            # to be released
+        #                 "a": "USDT",                       // asset
+        #                 "f": "474960.65",                  // free amount
+        #                 "l": "24835.178056020383226869",   // locked amount
+        #                 "r": ""                            // to be released
         #             }
         #         ]
         #     }
@@ -761,7 +761,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'balance:' + type
         client.resolve(self.balance[type], messageHash)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}) -> Str:
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is not None:
             return listenKey
@@ -769,10 +769,10 @@ class hashkey(ccxt.async_support.hashkey):
         # https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
         # mint their own listenKey and each schedules its own
         # keepAliveListenKey timer, and the key rides the private url built by
-        # getPrivateUrl(), so every loser dials .../ws/<orphaned-key> and its
+        # getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
         # subscriptions never deliver. the flight is registered in
-        # client.futures and settled through client.resolve() /
-        # client.reject(), so every mutation of the futures map goes through
+        # client.futures and settled through client.resolve () /
+        # client.reject (), so every mutation of the futures map goes through
         # the client's own accessors
         messageHash = 'authenticateFlight'
         client = self.client('authenticationFlights')
@@ -794,16 +794,16 @@ class hashkey(ccxt.async_support.hashkey):
             listenKey = self.safe_string(response, 'listenKey')
             if listenKey is None:
                 # reject instead of caching an empty credential, so waiters
-                # retry rather than dial .../ws/None for an hour
+                # retry rather than dial .../ws/undefined for an hour
                 raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
             self.options['listenKey'] = listenKey
             listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
             self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
-            # settle the flight: client.resolve() wakes every waiter and
+            # settle the flight: client.resolve () wakes every waiter and
             # drops the future from the map
             client.resolve(listenKey, messageHash)
         except Exception as e:
-            # reject the flight - all waiters raise and the next caller
+            # reject the flight - all waiters throw and the next caller
             # re-leads instead of deadlocking on a dead flight
             client.reject(e, messageHash)
         # rethrows the failure to the leader and attaches the handler that
@@ -811,7 +811,7 @@ class hashkey(ccxt.async_support.hashkey):
         await future
         return listenKey
 
-    async def keep_alive_listen_key(self, listenKey: object, params={}):
+    async def keep_alive_listen_key(self, listenKey: Str, params: dict = {}):
         if listenKey is None:
             return
         request = {

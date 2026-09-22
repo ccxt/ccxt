@@ -100,6 +100,7 @@ class bitflyer extends bitflyer$1["default"] {
                         'getboardstate': { 'cost': 1 },
                         'getchats': { 'cost': 1 },
                         'getfundingrate': { 'cost': 1 },
+                        'getfundingratehistory': { 'cost': 1 },
                     },
                 },
                 'private': {

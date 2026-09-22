@@ -17,7 +17,8 @@
 
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
-use crate::{ExchangeError, Result, Value};
+use crate::{ExchangeError, Value};
+use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
@@ -499,18 +500,6 @@ fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
 
-fn strip_trailing_zeros(s: &str) -> String {
-    if !s.contains('.') {
-        return s.to_string();
-    }
-    let out = s.trim_end_matches('0').trim_end_matches('.');
-    if out.is_empty() {
-        "0".to_string()
-    } else {
-        out.to_string()
-    }
-}
-
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -592,11 +581,13 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
 /// `handle_order_book_snapshot`), so it enqueues it here; `ws_run` drains and
 /// dispatches it asynchronously right after the current `handle_message`.
 pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
-    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
-        method: name.to_string(),
-        args,
-        due_at: None,
-    }));
+    SPAWN_QUEUE.with(|q| {
+        q.borrow_mut().push(QueuedSpawn {
+            method: name.to_string(),
+            args,
+            due_at: None,
+        })
+    });
 }
 
 /// Queue a coroutine to run no earlier than `ms` from now — the scheduling half
@@ -604,13 +595,14 @@ pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
 /// (`keepAliveListenKey`, token refresh, …), which must fire on their own
 /// cadence rather than on the next inbound frame.
 pub fn enqueue_spawn_after(name: &str, args: Vec<Value>, ms: i64) {
-    let due_at = std::time::Instant::now()
-        + std::time::Duration::from_millis(ms.max(0) as u64);
-    SPAWN_QUEUE.with(|q| q.borrow_mut().push(QueuedSpawn {
-        method: name.to_string(),
-        args,
-        due_at: Some(due_at),
-    }));
+    let due_at = std::time::Instant::now() + std::time::Duration::from_millis(ms.max(0) as u64);
+    SPAWN_QUEUE.with(|q| {
+        q.borrow_mut().push(QueuedSpawn {
+            method: name.to_string(),
+            args,
+            due_at: Some(due_at),
+        })
+    });
 }
 
 impl Exchange {
@@ -625,7 +617,7 @@ impl Exchange {
     pub fn exception_message(&self, exc: Value, _optional_args: &[Value]) -> Value {
         let s = match exc {
             Value::Str(s) => s,
-            other => crate::runtime::stringify_param(&other),
+            other => crate::runtime::stringify_param(&other).into(),
         };
         let n = s.chars().count().min(100_000);
         Value::Str(s.chars().take(n).collect())
@@ -640,7 +632,7 @@ impl Exchange {
     /// (the `X-FB-CLIENT-VERSION` request header), and no static fixture asserts
     /// the header, so a version bump can't break the suites.
     pub fn get_ccxt_version(&self) -> Value {
-        Value::Str("4.5.71".to_string())
+        Value::Str("4.5.71".into())
     }
 
     // ── Hot-path `safe_*_k` variants — take `key: &str` directly so the
@@ -665,8 +657,8 @@ impl Exchange {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Str(_) => v,
-            Value::Int(n) => Value::Str(n.to_string()),
-            Value::Float(f) => Value::Str(f.to_string()),
+            Value::Int(n) => Value::Str(n.to_string().into()),
+            Value::Float(f) => Value::Str(f.to_string().into()),
             // Booleans/lists/dicts are not strings or finite numbers → return
             // the default, matching TS `safeString` (base/functions/type.ts).
             _ => arg_default(optional_args),
@@ -749,7 +741,7 @@ impl Exchange {
         // "missing" — same as null/undefined. Without this, exchanges
         // that signal end-of-pagination with `cursor: ""` loop forever
         // because `is_equal(&Value::Str(""), &Value::Null)` is false.
-        let v = crate::get_value(&obj, &Value::Str(key_str(&key)));
+        let v = crate::get_value(&obj, &Value::Str(key_str(&key).into()));
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -787,8 +779,8 @@ impl Exchange {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Str(_) => v,
-            Value::Int(n) => Value::Str(n.to_string()),
-            Value::Float(f) => Value::Str(f.to_string()),
+            Value::Int(n) => Value::Str(n.to_string().into()),
+            Value::Float(f) => Value::Str(f.to_string().into()),
             // A boolean is NOT a string or finite number — TS `safeString`
             // (base/functions/type.ts) returns the default for it, not "true"/
             // "false". Same for lists/dicts (the `_` arm).
@@ -832,7 +824,20 @@ impl Exchange {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s.to_uppercase());
+                return Value::Str(s.to_uppercase().into());
+            }
+            return v;
+        }
+        arg_default(optional_args)
+    }
+
+    /// `safe_string_upper` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_string_upper_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_string_k(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v {
+                return Value::Str(s.to_uppercase().into());
             }
             return v;
         }
@@ -845,7 +850,7 @@ impl Exchange {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
-                        return Value::Str(s.to_lowercase());
+                        return Value::Str(s.to_lowercase().into());
                     }
                     return v;
                 }
@@ -860,7 +865,7 @@ impl Exchange {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
-                        return Value::Str(s.to_uppercase());
+                        return Value::Str(s.to_uppercase().into());
                     }
                     return v;
                 }
@@ -873,7 +878,21 @@ impl Exchange {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s.to_lowercase());
+                return Value::Str(s.to_lowercase().into());
+            }
+            return v;
+        }
+        arg_default(optional_args)
+    }
+
+    /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
+    /// lookup above (same `get_value_k` path as the rest of the family).
+    #[inline]
+    pub fn safe_string_lower_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_string_k(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v {
+                return Value::Str(s.to_lowercase().into());
             }
             return v;
         }
@@ -890,7 +909,7 @@ impl Exchange {
         let v = self.safe_string2(obj, k1, k2, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s.to_lowercase());
+                return Value::Str(s.to_lowercase().into());
             }
             return v;
         }
@@ -907,7 +926,7 @@ impl Exchange {
         let v = self.safe_string2(obj, k1, k2, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s.to_uppercase());
+                return Value::Str(s.to_uppercase().into());
             }
             return v;
         }
@@ -949,9 +968,9 @@ impl Exchange {
     pub fn set_last_request(&self, request: Value) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.last_request_headers =
-            crate::runtime::get_value(&request, &Value::Str("headers".to_string()));
-        me.last_request_body = crate::runtime::get_value(&request, &Value::Str("body".to_string()));
-        me.last_request_url = crate::runtime::get_value(&request, &Value::Str("url".to_string()));
+            crate::runtime::get_value(&request, &Value::Str("headers".into()));
+        me.last_request_body = crate::runtime::get_value(&request, &Value::Str("body".into()));
+        me.last_request_url = crate::runtime::get_value(&request, &Value::Str("url".into()));
     }
 
     pub fn get_fetch_cache(&self) -> Value {
@@ -1018,13 +1037,22 @@ impl Exchange {
         Value::Null
     }
     pub fn order_book(&self, args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::OrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn indexed_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::IndexedOrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn counted_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(crate::runtime::get_arg(args, 0, Value::Null), crate::runtime::get_arg(args, 1, Value::Null))
+        crate::pro::CountedOrderBook::new(
+            crate::runtime::get_arg(args, 0, Value::Null),
+            crate::runtime::get_arg(args, 1, Value::Null),
+        )
     }
     pub fn safe_order_tracker(&self, _args: &[Value]) -> Value {
         Value::Null
@@ -1039,6 +1067,12 @@ impl Exchange {
         Value::Null
     }
     pub fn unlock_id(&self, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub fn lock_last_nonce(&self, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub fn unlock_last_nonce(&self, _args: &[Value]) -> Value {
         Value::Null
     }
     pub fn extend_exchange_options(&self, _args: &[Value]) -> Value {
@@ -1057,7 +1091,7 @@ impl Exchange {
     /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
     /// replaced with the real algorithm when those order books need it.
     pub fn crc32(&self, args: &[Value]) -> Value {
-        let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new()));
+        let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new().into()));
         let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
         crate::runtime::crc32(payload, signed)
     }
@@ -1090,7 +1124,7 @@ impl Exchange {
     pub fn remove0x_prefix(&self, hex_data: Value) -> Value {
         match &hex_data {
             Value::Str(s) if s.len() >= 2 && (&s[0..2] == "0x" || &s[0..2] == "0X") => {
-                Value::Str(s[2..].to_string())
+                Value::Str(s[2..].to_string().into())
             }
             _ => hex_data,
         }
@@ -1120,7 +1154,7 @@ impl Exchange {
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
         let mut rng = rand::thread_rng();
         let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
-        Value::Str(hex::encode(bytes))
+        Value::Str(hex::encode(bytes).into())
     }
 
     /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
@@ -1136,7 +1170,7 @@ impl Exchange {
                 // (eth_abi_encode) encode the full value instead of truncating.
                 match t.parse::<i64>() {
                     Ok(n) => Value::Int(n),
-                    Err(_) => Value::Str(t.to_string()),
+                    Err(_) => Value::Str(t.to_string().into()),
                 }
             }
             _ => Value::Int(0),
@@ -1152,7 +1186,7 @@ impl Exchange {
                     .replace("\"{", "{")
                     .replace("}\"", "}")
                     .replace("\"[", "[")
-                    .replace("]\"", "]"),
+                    .replace("]\"", "]").into(),
             ),
             _ => content,
         }
@@ -1168,7 +1202,7 @@ impl Exchange {
                 }
             }
         }
-        Value::Str(out)
+        Value::Str(out.into())
     }
 
     /// `uuid5(namespace, name)` — RFC-4122 v5 (SHA-1 based) UUID.
@@ -1197,7 +1231,7 @@ impl Exchange {
             &h[12..16],
             &h[16..20],
             &h[20..32]
-        ))
+        ).into())
     }
 
     /// `ethAbiEncode(types, values)` — Solidity `abi.encode` of a head-only
@@ -1211,20 +1245,35 @@ impl Exchange {
     /// consumes via value_to_bytes.
     pub fn eth_abi_encode(&self, types: Value, values: Value) -> Value {
         use num_bigint::BigInt;
-        let ts: Vec<Value> = match &types  { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
-        let vs: Vec<Value> = match &values { Value::Arr(a) => (**a).clone(), _ => return Value::Null };
+        let ts: Vec<Value> = match &types {
+            Value::Arr(a) => (**a).clone(),
+            _ => return Value::Null,
+        };
+        let vs: Vec<Value> = match &values {
+            Value::Arr(a) => (**a).clone(),
+            _ => return Value::Null,
+        };
         let to_bytes = |v: &Value| -> Vec<u8> {
             match v {
-                Value::Arr(a) => a.iter().filter_map(|x| if let Value::Int(n) = x { Some(*n as u8) } else { None }).collect(),
+                Value::Arr(a) => a
+                    .iter()
+                    .filter_map(|x| {
+                        if let Value::Int(n) = x {
+                            Some(*n as u8)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect(),
                 Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
                 _ => Vec::new(),
             }
         };
         let to_bigint = |v: &Value| -> BigInt {
             match v {
-                Value::Int(n)   => BigInt::from(*n),
+                Value::Int(n) => BigInt::from(*n),
                 Value::Float(f) => BigInt::from(*f as i64),
-                Value::Str(s)   => {
+                Value::Str(s) => {
                     let t = s.trim();
                     if let Some(h) = t.strip_prefix("0x") {
                         BigInt::parse_bytes(h.as_bytes(), 16).unwrap_or_default()
@@ -1237,7 +1286,10 @@ impl Exchange {
         };
         let mut out: Vec<u8> = Vec::new();
         for (t, v) in ts.iter().zip(vs.iter()) {
-            let ty = match t { Value::Str(s) => s.as_str(), _ => return Value::Null };
+            let ty = match t {
+                Value::Str(s) => s.as_ref(),
+                _ => return Value::Null,
+            };
             let mut word = [0u8; 32];
             if ty == "address" {
                 let b = to_bytes(v);
@@ -1253,7 +1305,9 @@ impl Exchange {
                 // negative-for-unsigned / overflow, then encode (review #15).
                 word = crate::exchange::eip712_int_word(ty, &to_bigint(v));
             } else if ty == "bool" {
-                if matches!(v, Value::Bool(true)) { word[31] = 1; }
+                if matches!(v, Value::Bool(true)) {
+                    word[31] = 1;
+                }
             } else {
                 return Value::Null; // unsupported (dynamic) type
             }
@@ -1280,10 +1334,16 @@ impl Exchange {
     /// Fail loudly for an unported crypto/signing primitive. Diverges (`-> !`),
     /// so it satisfies any `-> Value` stub body.
     fn crypto_not_supported(&self, what: &str) -> ! {
-        let id = match &self.id { Value::Str(s) => s.clone(), _ => String::new() };
-        panic!("{}", crate::exchange_errors::not_supported(Value::Str(
-            format!("{id} {what}() signing is not implemented in the Rust port yet"),
-        )));
+        let id = match &self.id {
+            Value::Str(s) => s.clone(),
+            _ => String::new().into(),
+        };
+        panic!(
+            "{}",
+            crate::exchange_errors::not_supported(Value::Str(format!(
+                "{id} {what}() signing is not implemented in the Rust port yet"
+            ).into(),))
+        );
     }
 
     /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
@@ -1484,7 +1544,7 @@ impl Exchange {
     pub fn urlencode_with_array_repeat(&self, params: Value) -> Value {
         let m = match &params {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new()),
+            _ => return Value::Str(String::new().into()),
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, v) in m.iter() {
@@ -1508,7 +1568,7 @@ impl Exchange {
                 }
             }
         }
-        Value::Str(pairs.join("&"))
+        Value::Str(pairs.join("&").into())
     }
 
     pub fn safe_integer(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
@@ -1571,6 +1631,33 @@ impl Exchange {
         optional_args: &[Value],
     ) -> Value {
         let v = self.safe_value(obj, key, &[]);
+        let n = match v {
+            Value::Int(n) => Some(n as f64),
+            Value::Float(f) => Some(f),
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        };
+        let f = match factor {
+            Value::Int(n) => n as f64,
+            Value::Float(f) => f,
+            _ => return arg_default(optional_args),
+        };
+        match n {
+            Some(x) => Value::Int((x * f) as i64),
+            None => arg_default(optional_args),
+        }
+    }
+
+    /// `safe_integer_product` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_integer_product_k(
+        &self,
+        obj: Value,
+        key: &str,
+        factor: Value,
+        optional_args: &[Value],
+    ) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
         let n = match v {
             Value::Int(n) => Some(n as f64),
             Value::Float(f) => Some(f),
@@ -1664,6 +1751,16 @@ impl Exchange {
         }
     }
 
+    /// `safe_timestamp` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_timestamp_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        match self.safe_float_k(obj, key, &[]) {
+            Value::Float(f) => Value::Int((f * 1000.0) as i64),
+            Value::Int(n) => Value::Int(n * 1000),
+            _ => arg_default(optional_args),
+        }
+    }
+
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
@@ -1718,12 +1815,12 @@ impl Exchange {
                     Value::Arr(ks) => {
                         for k in ks.iter() {
                             if let Value::Str(s) = k {
-                                mm.shift_remove(s);
+                                mm.shift_remove(s.as_ref());
                             }
                         }
                     }
                     Value::Str(s) => {
-                        mm.shift_remove(&s);
+                        mm.shift_remove(s.as_ref());
                     }
                     _ => {}
                 }
@@ -1882,7 +1979,7 @@ impl Exchange {
             let out: Vec<Value> = items
                 .into_iter()
                 .filter(|it| {
-                    let v = crate::get_value(it, &Value::Str(k.clone()));
+                    let v = crate::get_value(it, &Value::Str(k.clone().into()));
                     crate::runtime::is_equal(&v, &value)
                 })
                 .collect();
@@ -1900,7 +1997,7 @@ impl Exchange {
             other => return other,
         };
         let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
-        let key = Value::Str(stringify_param(&key));
+        let key = Value::Str(stringify_param(&key).into());
         items.sort_by(|a, b| {
             let av = crate::get_value(a, &key);
             let bv = crate::get_value(b, &key);
@@ -1922,8 +2019,8 @@ impl Exchange {
             other => return other,
         };
         let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
-        let k1 = Value::Str(stringify_param(&k1));
-        let k2 = Value::Str(stringify_param(&k2));
+        let k1 = Value::Str(stringify_param(&k1).into());
+        let k2 = Value::Str(stringify_param(&k2).into());
         items.sort_by(|a, b| {
             let ord = value_cmp(&crate::get_value(a, &k1), &crate::get_value(b, &k1)).then(
                 value_cmp(&crate::get_value(a, &k2), &crate::get_value(b, &k2)),
@@ -2025,7 +2122,7 @@ impl Exchange {
         match v {
             Value::Str(s) => {
                 let prepared = crate::runtime::quote_json_numbers(&s);
-                crate::runtime::json_parse(&Value::Str(prepared))
+                crate::runtime::json_parse(&Value::Str(prepared.into()))
             }
             // Already a parsed object/array (some fixtures store the
             // response pre-parsed) — pass it through untouched.
@@ -2198,7 +2295,7 @@ impl Exchange {
         }
     }
     pub fn binary_to_base58(&self, b: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)))
+        Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)).into())
     }
     pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
         match b {
@@ -2267,7 +2364,7 @@ impl Exchange {
     /// defaults to empty (TS `functions/time.ts`).
     pub fn ymd(&self, ts: Value, optional_args: &[Value]) -> Value {
         if optional_args.is_empty() {
-            self.yyyymmdd(ts, &[Value::Str(String::new())])
+            self.yyyymmdd(ts, &[Value::Str(String::new().into())])
         } else {
             self.yyyymmdd(ts, optional_args)
         }
@@ -2316,7 +2413,7 @@ impl Exchange {
     /// `binaryToString(buffer)` — decodes a byte buffer as UTF-8.
     pub fn binary_to_string(&self, b: Value, _optional_args: &[Value]) -> Value {
         let bytes = crate::exchange::value_to_bytes(&b);
-        Value::Str(String::from_utf8_lossy(&bytes).into_owned())
+        Value::Str(String::from_utf8_lossy(&bytes).into_owned().into())
     }
     pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         match s {
@@ -2334,10 +2431,10 @@ impl Exchange {
         };
         let encoded = match self.binary_to_base64(bytes_to_value(&bytes), &[]) {
             Value::Str(s) => s,
-            _ => String::new(),
+            _ => String::new().into(),
         };
         let trimmed = encoded.trim_end_matches('=');
-        Value::Str(trimmed.replace('+', "-").replace('/', "_"))
+        Value::Str(trimmed.replace('+', "-").replace('/', "_").into())
     }
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
@@ -2345,13 +2442,13 @@ impl Exchange {
     pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> Value {
         let m = match &v {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new()),
+            _ => return Value::Str(String::new().into()),
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, val) in m.iter() {
             urlencode_nested_walk(k, val, &mut pairs);
         }
-        Value::Str(pairs.join("&"))
+        Value::Str(pairs.join("&").into())
     }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
         match optional_args.get(0) {
@@ -2361,7 +2458,7 @@ impl Exchange {
     }
     pub fn strip(&self, s: Value, _optional_args: &[Value]) -> Value {
         match s {
-            Value::Str(s) => Value::Str(s.trim().to_string()),
+            Value::Str(s) => Value::Str(s.trim().to_string().into()),
             other => other,
         }
     }
@@ -2382,6 +2479,14 @@ impl Exchange {
     /// timestamp to the timeframe boundary (down by default, up for
     /// `ROUND_UP`).
     pub fn round_timeframe(&self, tf: Value, ts: Value, direction: Value) -> Value {
+        let timeframe = match &tf {
+            Value::Str(timeframe) => timeframe.as_ref(),
+            _ => "",
+        };
+        let unit = timeframe.chars().last().unwrap_or(' ');
+        let amount = timeframe[..timeframe.len().saturating_sub(1)]
+            .parse::<i64>()
+            .unwrap_or(0);
         let secs = match self.parse_timeframe(tf) {
             Value::Int(s) => s,
             Value::Float(s) => s as i64,
@@ -2395,6 +2500,42 @@ impl Exchange {
         };
         if ms == 0 {
             return ts;
+        }
+        if ((unit == 'w') || (unit == 'M') || (unit == 'y')) && (amount >= 1) {
+            let date = match Utc.timestamp_millis_opt(t).single() {
+                Some(date) => date,
+                None => return ts,
+            };
+            let mut rounded = date.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
+            if unit == 'w' {
+                let days_since_monday = date.weekday().num_days_from_monday() as i64;
+                let monday = rounded - chrono::Duration::days(days_since_monday);
+                let epoch_monday = Utc.with_ymd_and_hms(1970, 1, 5, 0, 0, 0).unwrap();
+                let weeks_since_epoch_monday = (monday - epoch_monday).num_days() / 7;
+                rounded = epoch_monday
+                    + chrono::Duration::days(
+                        weeks_since_epoch_monday.div_euclid(amount) * amount * 7,
+                    );
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Duration::days(amount * 7);
+                }
+            } else if unit == 'M' {
+                let months_since_year_zero = date.year() as i64 * 12 + date.month0() as i64;
+                let rounded_months = months_since_year_zero.div_euclid(amount) * amount;
+                let year = rounded_months.div_euclid(12) as i32;
+                let month = (rounded_months.rem_euclid(12) + 1) as u32;
+                rounded = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new(amount as u32);
+                }
+            } else {
+                let year = (date.year() as i64).div_euclid(amount) * amount;
+                rounded = Utc.with_ymd_and_hms(year as i32, 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new((amount * 12) as u32);
+                }
+            }
+            return Value::Int(rounded.timestamp_millis());
         }
         let offset = t % ms;
         let is_up = matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP);
@@ -2416,34 +2557,33 @@ impl Exchange {
     /// (keccak256 of the uncompressed secp256k1 public key, last 20 bytes).
     pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> Value {
         use k256::ecdsa::SigningKey;
-        use k256::elliptic_curve::sec1::ToEncodedPoint;
         let pk_s = match &pk {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
-            _ => return Value::Str(String::new()),
+            _ => return Value::Str(String::new().into()),
         };
         let pk_bytes = match hex::decode(&pk_s) {
             Ok(b) => b,
-            Err(_) => return Value::Str(String::new()),
+            Err(_) => return Value::Str(String::new().into()),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
-            Err(_) => return Value::Str(String::new()),
+            Err(_) => return Value::Str(String::new().into()),
         };
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", hex::encode(&hash[12..32])))
+        Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
     }
     pub fn exists_file(&self, p: Value) -> Value {
         match &p {
-            Value::Str(path) => Value::Bool(std::path::Path::new(path).is_file()),
+            Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
         match &p {
-            Value::Str(path) => match std::fs::read_to_string(path) {
-                Ok(s) => Value::Str(s),
+            Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
+                Ok(s) => Value::Str(s.into()),
                 Err(_) => Value::Null,
             },
             _ => Value::Null,
@@ -2451,29 +2591,29 @@ impl Exchange {
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
         let path = match &p {
-            Value::Str(s) => s.clone(),
+            Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
         };
         let body = match &content {
-            Value::Str(s) => s.clone(),
-            other => stringify_param(other),
+            Value::Str(s) => s.to_string(),
+            other => stringify_param(other).into(),
         };
-        Value::Bool(std::fs::write(&path, body).is_ok())
+        Value::Bool(std::fs::write(&*path, body).is_ok())
     }
     pub fn get_temp_dir(&self) -> Value {
         Value::Str(format!(
             "{}/",
             std::env::temp_dir().to_string_lossy().trim_end_matches('/')
-        ))
+        ).into())
     }
     pub fn get_property(&self, obj: Value, key: Value) -> Value {
-        crate::get_value(&obj, &Value::Str(stringify_param(&key)))
+        crate::get_value(&obj, &Value::Str(stringify_param(&key).into()))
     }
 
     pub fn yymmdd(&self, ts: Value, optional_args: &[Value]) -> Value {
         let infix = match optional_args.get(0) {
             Some(Value::Str(s)) => s.clone(),
-            _ => String::new(),
+            _ => String::new().into(),
         };
         let n = match ts {
             Value::Int(n) => n,
@@ -2481,7 +2621,7 @@ impl Exchange {
         };
         let dt = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n);
         match dt {
-            Some(t) => Value::Str(t.format(&format!("%y{i}%m{i}%d", i = infix)).to_string()),
+            Some(t) => Value::Str(t.format(&format!("%y{i}%m{i}%d", i = infix)).to_string().into()),
             None => Value::Null,
         }
     }
@@ -2489,7 +2629,7 @@ impl Exchange {
         // TS default infix for yyyymmdd is '-'.
         let infix = match optional_args.get(0) {
             Some(Value::Str(s)) => s.clone(),
-            _ => "-".to_string(),
+            _ => "-".to_string().into(),
         };
         let n = match ts {
             Value::Int(n) => n,
@@ -2497,7 +2637,7 @@ impl Exchange {
         };
         let dt = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n);
         match dt {
-            Some(t) => Value::Str(t.format(&format!("%Y{i}%m{i}%d", i = infix)).to_string()),
+            Some(t) => Value::Str(t.format(&format!("%Y{i}%m{i}%d", i = infix)).to_string().into()),
             None => Value::Null,
         }
     }
@@ -2505,7 +2645,7 @@ impl Exchange {
     pub fn ymdhms(&self, ts: Value, optional_args: &[Value]) -> Value {
         let infix = match optional_args.get(0) {
             Some(Value::Str(s)) => s.clone(),
-            _ => " ".to_string(),
+            _ => " ".to_string().into(),
         };
         let n = match ts {
             Value::Int(n) => n,
@@ -2514,7 +2654,7 @@ impl Exchange {
         };
         let dt = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n);
         match dt {
-            Some(t) => Value::Str(t.format(&format!("%Y-%m-%d{infix}%H:%M:%S")).to_string()),
+            Some(t) => Value::Str(t.format(&format!("%Y-%m-%d{infix}%H:%M:%S")).to_string().into()),
             None => Value::Null,
         }
     }
@@ -2525,13 +2665,13 @@ impl Exchange {
     pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> Value {
         let m = match &params {
             Value::Dict(m) => m,
-            _ => return Value::Str(String::new()),
+            _ => return Value::Str(String::new().into()),
         };
         let pairs: Vec<String> = m
             .iter()
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
-        Value::Str(pairs.join("&"))
+        Value::Str(pairs.join("&").into())
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
@@ -2542,7 +2682,7 @@ impl Exchange {
             Value::Str(s) => s.parse::<u64>().unwrap_or(0),
             _ => 0,
         };
-        Value::Str(format!("{:x}", v))
+        Value::Str(format!("{:x}", v).into())
     }
 
     /// `packb(action)` — MessagePack pack stub. Hyperliquid signs the
@@ -2582,11 +2722,11 @@ impl Exchange {
 
     /// `uuid22()` — pseudo-random 22-char hex id.
     pub fn uuid22(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(22))
+        Value::Str(random_hex(22).into())
     }
     /// `uuid16()` — pseudo-random 16-char hex id.
     pub fn uuid16(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(16))
+        Value::Str(random_hex(16).into())
     }
     /// `uuid()` — pseudo-random UUID v4: `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`.
     pub fn uuid(&self, _optional_args: &[Value]) -> Value {
@@ -2601,17 +2741,17 @@ impl Exchange {
             &h[17..20],
             &h[20..32],
         );
-        Value::Str(s)
+        Value::Str(s.into())
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
     pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(self.urlencode_kv(&params))
+        Value::Str(self.urlencode_kv(&params).into())
     }
 
     /// `json(value)` — JSON-stringify.
     pub fn json(&self, v: Value) -> Value {
-        Value::Str(self.json_str(&v))
+        Value::Str(self.json_str(&v).into())
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).
@@ -2634,9 +2774,9 @@ impl Exchange {
                         _ => None,
                     })
                     .collect();
-                Value::Str(String::from_utf8_lossy(&bytes).to_string())
+                Value::Str(String::from_utf8_lossy(&bytes).into_owned().into())
             }
-            _ => Value::Str(String::new()),
+            _ => Value::Str(String::new().into()),
         }
     }
 
@@ -2659,7 +2799,7 @@ impl Exchange {
         if matches!(n, Value::Null) {
             return Value::Null;
         }
-        Value::Str(stringify_param(&n))
+        Value::Str(stringify_param(&n).into())
     }
 
     pub fn parse_number(&self, v: Value, optional_args: &[Value]) -> Value {
@@ -2719,7 +2859,7 @@ impl Exchange {
             Value::Int(i) => *i as f64,
             Value::Float(f) => *f,
             Value::Str(s) => s.parse().unwrap_or(f64::NAN),
-            _ => return Value::Str(n_s),
+            _ => return Value::Str(n_s.into()),
         };
         let counting: i64 = match optional_args.get(0) {
             Some(Value::Int(c)) => *c,
@@ -2739,14 +2879,14 @@ impl Exchange {
             prec_f,
             counting,
             padding,
-        ))
+        ).into())
     }
 
     pub fn capitalize(&self, s: Value) -> Value {
         let s = stringify_param(&s);
         let mut c = s.chars();
         Value::Str(match c.next() {
-            None => String::new(),
+            None => String::new().into(),
             Some(f) => f.to_uppercase().chain(c).collect(),
         })
     }
@@ -2767,7 +2907,7 @@ impl Exchange {
 
     pub fn string_to_chars_array(&self, s: Value) -> Value {
         let s = stringify_param(&s);
-        Value::Array(s.chars().map(|c| Value::Str(c.to_string())).collect())
+        Value::Array(s.chars().map(|c| Value::Str(c.to_string().into())).collect())
     }
 
     pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> Value {
@@ -2792,7 +2932,7 @@ impl Exchange {
                     chars.next();
                 }
                 if !name.is_empty() {
-                    out.push(Value::Str(name));
+                    out.push(Value::Str(name.into()));
                 }
             }
         }
@@ -2907,23 +3047,32 @@ impl Exchange {
             return Value::Null;
         }
         let tb = |key: &str| -> Option<f64> {
-            crate::get_value(&self.tokenBucket, &Value::Str(key.to_string())).as_f64()
+            crate::get_value(&self.tokenBucket, &Value::Str(key.to_string().into())).as_f64()
         };
         let rate_limit = self.rateLimit.as_f64().unwrap_or(0.0);
-        let refill_rate = tb("refillRate")
-            .unwrap_or_else(|| if rate_limit > 0.0 { 1.0 / rate_limit } else { f64::MAX });
+        let refill_rate = tb("refillRate").unwrap_or_else(|| {
+            if rate_limit > 0.0 {
+                1.0 / rate_limit
+            } else {
+                f64::MAX
+            }
+        });
         if !(refill_rate.is_finite() && refill_rate > 0.0) {
             return Value::Null; // effectively unlimited
         }
         let capacity = tb("capacity").unwrap_or(1.0);
         let delay_ms = tb("delay").unwrap_or(0.001) * 1000.0;
-        let this_cost = cost.first().and_then(|v| v.as_f64())
+        let this_cost = cost
+            .first()
+            .and_then(|v| v.as_f64())
             .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
 
-        let now_ms = || std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64)
-            .unwrap_or(0);
+        let now_ms = || {
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0)
+        };
 
         let mut guard = self.internals.throttle.lock().await;
         let (tokens, last_ms) = &mut *guard;
@@ -3003,32 +3152,32 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
     // dedupe by code, keeping the most-precise instance.
     let mut by_code: HashMap<String, HashMap<String, Value>> = HashMap::new();
     for market in market_list {
-        let market_precision = crate::get_value(market, &Value::Str("precision".to_string()));
+        let market_precision = crate::get_value(market, &Value::Str("precision".into()));
         // base side
         for (id_key, code_key, prec_keys) in [
             ("baseId", "base", ["base", "amount"]),
             ("quoteId", "quote", ["quote", "price"]),
         ] {
-            let code = crate::get_value(market, &Value::Str(code_key.to_string()));
+            let code = crate::get_value(market, &Value::Str(code_key.to_string().into()));
             let code_s = match &code {
                 Value::Str(s) if !s.is_empty() => s.clone(),
                 _ => continue,
             };
-            let id = crate::get_value(market, &Value::Str(id_key.to_string()));
+            let id = crate::get_value(market, &Value::Str(id_key.to_string().into()));
             let id_v = match &id {
                 Value::Null => Value::Str(code_s.clone()),
                 other => other.clone(),
             };
             let mut precision =
-                crate::get_value(&market_precision, &Value::Str(prec_keys[0].to_string()));
+                crate::get_value(&market_precision, &Value::Str(prec_keys[0].to_string().into()));
             if matches!(precision, Value::Null) {
                 precision =
-                    crate::get_value(&market_precision, &Value::Str(prec_keys[1].to_string()));
+                    crate::get_value(&market_precision, &Value::Str(prec_keys[1].to_string().into()));
             }
             if matches!(precision, Value::Null) {
                 precision = default_precision.clone();
             }
-            let entry = by_code.entry(code_s.clone()).or_insert_with(|| {
+            let entry = by_code.entry(code_s.to_string()).or_insert_with(|| {
                 let mut m = HashMap::new();
                 m.insert("id".to_string(), id_v.clone());
                 m.insert("numericId".to_string(), Value::Null);
@@ -3071,7 +3220,10 @@ mod spawn_queue_tests {
         let batch = drain_spawn_queue();
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].0, "handle_order_book_snapshot");
-        assert!(next_spawn_due().is_some(), "the delayed item is still queued");
+        assert!(
+            next_spawn_due().is_some(),
+            "the delayed item is still queued"
+        );
     }
 
     #[test]

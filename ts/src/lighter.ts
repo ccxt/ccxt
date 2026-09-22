@@ -198,6 +198,7 @@ export default class lighter extends Exchange {
                         'currentHeight': { 'cost': 1 } as Endpoint<Dict>,
                         // candlestick
                         'candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'markPriceCandles': { 'cost': 1 } as Endpoint<Dict>,
                         'fundings': { 'cost': 1 } as Endpoint<Dict>,
                         // bridge
                         'fastbridge/info': { 'cost': 1 } as Endpoint<Dict>,
@@ -205,6 +206,9 @@ export default class lighter extends Exchange {
                         'funding-rates': { 'cost': 1 } as Endpoint<Dict>,
                         // info
                         'withdrawalDelay': { 'cost': 1 } as Endpoint<Dict>,
+                        'partnerStats': { 'cost': 1 } as Endpoint<Dict>,
+                        'syntheticSpotInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'tokenlist': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // transaction
@@ -222,10 +226,13 @@ export default class lighter extends Exchange {
                         'liquidations': { 'cost': 1 } as Endpoint<Dict>,
                         'positionFunding': { 'cost': 1 } as Endpoint<Dict>,
                         'publicPoolsMetadata': { 'cost': 1 } as Endpoint<Dict>,
+                        'getMakerOnlyApiKeys': { 'cost': 1 } as Endpoint<Dict>,
                         // order
                         'accountActiveOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'accountInactiveOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'accountOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'export': { 'cost': 1 } as Endpoint<Dict>,
+                        'export/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,
                         // transaction
                         'accountTxs': { 'cost': 1 } as Endpoint<Dict>,
@@ -236,12 +243,20 @@ export default class lighter extends Exchange {
                         'referral/points': { 'cost': 1 } as Endpoint<Dict>,
                         // info
                         'transferFeeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        // rfq
+                        'rfq/get': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/list': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
                         'changeAccountTier': { 'cost': 1 } as Endpoint<Dict>,
+                        'setMakerOnlyApiKeys': { 'cost': 1 } as Endpoint<Dict>,
                         // notification
                         'notification/ack': { 'cost': 1 } as Endpoint<Dict>,
+                        // rfq
+                        'rfq/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/respond': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq/update': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -379,7 +394,7 @@ export default class lighter extends Exchange {
         });
     }
 
-    async loadAccount (chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params = {}) {
+    async loadAccount (chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
         this.initAuthObject (accountIndex, apiKeyIndex);
         const cachedAuths = this.safeDict (this.options['auths'][accountIndex], apiKeyIndex);
         let signer = this.safeValue (cachedAuths, 'signer');
@@ -450,7 +465,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    async preLoadLighterLibrary (params = {}) {
+    async preLoadLighterLibrary (params: Dict = {}): Promise<boolean> {
         let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
@@ -532,7 +547,7 @@ export default class lighter extends Exchange {
         return [ this.parseToInt (accountIndex), params ];
     }
 
-    override async createSubAccount (name: string, params = {}) {
+    override async createSubAccount (name: string, params: Dict = {}): Promise<Dict> {
         let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
@@ -554,7 +569,7 @@ export default class lighter extends Exchange {
         return await this.publicPostSendTx (request);
     }
 
-    createAuth (params = {}) {
+    createAuth (params: Dict = {}): Str {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         let apiKeyIndex = this.safeString2 (params, 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
@@ -577,7 +592,7 @@ export default class lighter extends Exchange {
             }
         }
         const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry', 28800);
-        const request = {
+        const request: Dict = {
             'deadline': deadline,
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
@@ -653,13 +668,13 @@ export default class lighter extends Exchange {
         return true;
     }
 
-    async approveBuilderFee (builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params: object = {}) {
+    async approveBuilderFee (builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params: Dict = {}): Promise<Dict> {
         const strAccountIndex = this.numberToString (accountIndex);
         const strApiKeyIndex = this.numberToString (apiKeyIndex);
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, this.extend (params, { 'skipNonce': false }));
         const expiry = this.milliseconds () + 365 * 864000;
-        const signRaw = {
+        const signRaw: Dict = {
             'integrator_account_index': builder,
             'integrator_taker_fee': takerFeeRate,
             'integrator_maker_fee': makerFeeRate,
@@ -670,7 +685,7 @@ export default class lighter extends Exchange {
         };
         const [ txType, txInfo, messageToSign ] = this.lighterSignApproveIntegrator (signer, this.extend (signRaw, params));
         const newTxInfo = this.signL1AndPrepareTxInfo (txInfo, messageToSign, this.privateKey);
-        const request = {
+        const request: Dict = {
             'tx_type': txType,
             'tx_info': newTxInfo,
         };
@@ -678,7 +693,7 @@ export default class lighter extends Exchange {
         return response;
     }
 
-    async changeApiKey (params: object = {}) {
+    async changeApiKey (params: Dict = {}) {
         let apiKeyIndex: Int = undefined;
         [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
@@ -688,7 +703,7 @@ export default class lighter extends Exchange {
         const signerNotLoad = this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'];
         const [ privateKey, publicKey ] = this.lighterGenerateApiKey (signerNotLoad);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, this.extend (params, { 'skipNonce': false }));
-        const signRaw = {
+        const signRaw: Dict = {
             'pubkey': this.encode (publicKey),
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
@@ -698,7 +713,7 @@ export default class lighter extends Exchange {
         const signer = this.lighterCreateClient (signerNotLoad, this.options['chainId'], privateKey, apiKeyIndex, accountIndex);
         const [ txType, txInfo, messageToSign ] = this.lighterSignChangePubkey (signer, this.extend (signRaw, params));
         const newTxInfo = this.signL1AndPrepareTxInfo (txInfo, messageToSign, this.privateKey);
-        const request = {
+        const request: Dict = {
             'tx_type': txType,
             'tx_info': newTxInfo,
         };
@@ -715,7 +730,7 @@ export default class lighter extends Exchange {
         this.options['chainId'] = enable ? 300 : 304;
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): any[] {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): any[] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -765,8 +780,8 @@ export default class lighter extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const isConditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
@@ -881,7 +896,7 @@ export default class lighter extends Exchange {
         return orders;
     }
 
-    async fetchNonce (accountIndex: any, apiKeyIndex: any, params = {}) {
+    async fetchNonce (accountIndex: any, apiKeyIndex: any, params: Dict = {}): Promise<Int> {
         if ((accountIndex === undefined) || (apiKeyIndex === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
@@ -969,9 +984,9 @@ export default class lighter extends Exchange {
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
-        const request = {
+        const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
         };
@@ -1002,7 +1017,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1061,7 +1076,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.rootGet (params);
         //
         //     {
@@ -1088,7 +1103,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.rootGet (params);
         //
         //     {
@@ -1108,7 +1123,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetOrderBookDetails (params);
         //
         //    {
@@ -1280,7 +1295,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetAssetDetails (params);
         if (this.checkRequiredCredentials (false)) {
             await this.preLoadLighterLibrary ();
@@ -1353,7 +1368,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
         }
@@ -1509,7 +1524,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
         }
@@ -1581,7 +1596,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1633,7 +1648,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
         }
@@ -1740,7 +1755,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1780,7 +1795,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1879,7 +1894,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
         return this.safeDict (positions, 0, {}) as Position;
     }
@@ -1895,7 +1910,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1967,7 +1982,7 @@ export default class lighter extends Exchange {
         return this.parsePositions (allPositions, symbols);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "market_id": 0,
@@ -2044,7 +2059,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2090,7 +2105,7 @@ export default class lighter extends Exchange {
         return this.parseAccounts (accounts, params);
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: Dict): Account {
         //
         //     {
         //         "code": "0",
@@ -2137,7 +2152,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -2215,7 +2230,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -2487,7 +2502,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2547,7 +2562,7 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2653,7 +2668,7 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2722,7 +2737,7 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -2851,7 +2866,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2904,7 +2919,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3061,7 +3076,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3085,7 +3100,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires an marginMode parameter');
         }
@@ -3097,7 +3112,7 @@ export default class lighter extends Exchange {
         return await this.modifyLeverageAndMarginMode (leverage, marginMode, symbol, params);
     }
 
-    async modifyLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params = {}) {
+    async modifyLeverageAndMarginMode (leverage: int, marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3178,7 +3193,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
         const request: Dict = {
             'tx_type': txType,
@@ -3221,7 +3236,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
         const request: Dict = {
             'tx_type': txType,
@@ -3239,7 +3254,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3279,7 +3294,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         const request: Dict = {
             'direction': 1,
         };
@@ -3295,7 +3310,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         const request: Dict = {
             'direction': 0,
         };
@@ -3313,7 +3328,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async setMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

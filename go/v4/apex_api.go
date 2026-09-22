@@ -8,136 +8,161 @@
 package ccxt
 
 // PublicGetV3Symbols returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Symbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Symbols", args...)
+func (this *Apex) PublicGetV3Symbols(args ...any) <-chan any {
+	return this.Fetch2Async("v3/symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3HistoryFunding returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3HistoryFunding(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3HistoryFunding", args...)
+func (this *Apex) PublicGetV3HistoryFunding(args ...any) <-chan any {
+	return this.Fetch2Async("v3/history-funding", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3Ticker returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Ticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Ticker", args...)
+func (this *Apex) PublicGetV3Ticker(args ...any) <-chan any {
+	return this.Fetch2Async("v3/ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3Klines returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Klines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Klines", args...)
+func (this *Apex) PublicGetV3Klines(args ...any) <-chan any {
+	return this.Fetch2Async("v3/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3Trades returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Trades", args...)
+func (this *Apex) PublicGetV3Trades(args ...any) <-chan any {
+	return this.Fetch2Async("v3/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3Depth returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Depth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Depth", args...)
+func (this *Apex) PublicGetV3Depth(args ...any) <-chan any {
+	return this.Fetch2Async("v3/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3Time returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3Time", args...)
+func (this *Apex) PublicGetV3Time(args ...any) <-chan any {
+	return this.Fetch2Async("v3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV3DataAllTickerInfo returns a channel that yields a JSON object.
-func (this *ApexCore) PublicGetV3DataAllTickerInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV3DataAllTickerInfo", args...)
+func (this *Apex) PublicGetV3DataAllTickerInfo(args ...any) <-chan any {
+	return this.Fetch2Async("v3/data/all-ticker-info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Account returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Account(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Account", args...)
+func (this *Apex) PrivateGetV3Account(args ...any) <-chan any {
+	return this.Fetch2Async("v3/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3AccountBalance returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3AccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3AccountBalance", args...)
+func (this *Apex) PrivateGetV3AccountBalance(args ...any) <-chan any {
+	return this.Fetch2Async("v3/account-balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Fills returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Fills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Fills", args...)
+func (this *Apex) PrivateGetV3Fills(args ...any) <-chan any {
+	return this.Fetch2Async("v3/fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3OrderFills returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3OrderFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3OrderFills", args...)
+func (this *Apex) PrivateGetV3OrderFills(args ...any) <-chan any {
+	return this.Fetch2Async("v3/order-fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Order returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Order", args...)
+func (this *Apex) PrivateGetV3Order(args ...any) <-chan any {
+	return this.Fetch2Async("v3/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3HistoryOrders returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3HistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3HistoryOrders", args...)
+func (this *Apex) PrivateGetV3HistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/history-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3OrderByClientOrderId returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3OrderByClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3OrderByClientOrderId", args...)
+func (this *Apex) PrivateGetV3OrderByClientOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("v3/order-by-client-order-id", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Funding returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Funding(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Funding", args...)
+func (this *Apex) PrivateGetV3Funding(args ...any) <-chan any {
+	return this.Fetch2Async("v3/funding", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3HistoricalPnl returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3HistoricalPnl(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3HistoricalPnl", args...)
+func (this *Apex) PrivateGetV3HistoricalPnl(args ...any) <-chan any {
+	return this.Fetch2Async("v3/historical-pnl", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3OpenOrders returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3OpenOrders", args...)
+func (this *Apex) PrivateGetV3OpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/open-orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Transfers returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Transfers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Transfers", args...)
+func (this *Apex) PrivateGetV3Transfers(args ...any) <-chan any {
+	return this.Fetch2Async("v3/transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetV3Transfer returns a channel that yields a JSON object.
-func (this *ApexCore) PrivateGetV3Transfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV3Transfer", args...)
+func (this *Apex) PrivateGetV3Transfer(args ...any) <-chan any {
+	return this.Fetch2Async("v3/transfer", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetV3StockAccount returns a channel that yields a JSON object.
+func (this *Apex) PrivateGetV3StockAccount(args ...any) <-chan any {
+	return this.Fetch2Async("v3/stock/account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3DeleteOpenOrders returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
+func (this *Apex) PrivatePostV3DeleteOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("v3/delete-open-orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3DeleteClientOrderId returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3DeleteClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3DeleteClientOrderId", args...)
+func (this *Apex) PrivatePostV3DeleteClientOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("v3/delete-client-order-id", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3DeleteOrder returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3DeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3DeleteOrder", args...)
+func (this *Apex) PrivatePostV3DeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("v3/delete-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3Order returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3Order", args...)
+func (this *Apex) PrivatePostV3Order(args ...any) <-chan any {
+	return this.Fetch2Async("v3/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3SetInitialMarginRate returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3SetInitialMarginRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3SetInitialMarginRate", args...)
+func (this *Apex) PrivatePostV3SetInitialMarginRate(args ...any) <-chan any {
+	return this.Fetch2Async("v3/set-initial-margin-rate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3TransferOut returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3TransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3TransferOut", args...)
+func (this *Apex) PrivatePostV3TransferOut(args ...any) <-chan any {
+	return this.Fetch2Async("v3/transfer-out", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV3ContractTransferOut returns a channel that yields a JSON object.
-func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
+func (this *Apex) PrivatePostV3ContractTransferOut(args ...any) <-chan any {
+	return this.Fetch2Async("v3/contract-transfer-out", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV3ContractTransferTo returns a channel that yields a JSON object.
+func (this *Apex) PrivatePostV3ContractTransferTo(args ...any) <-chan any {
+	return this.Fetch2Async("v3/contract-transfer-to", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV3SubmitWithdrawClaim returns a channel that yields a JSON object.
+func (this *Apex) PrivatePostV3SubmitWithdrawClaim(args ...any) <-chan any {
+	return this.Fetch2Async("v3/submit-withdraw-claim", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV3StockRegisterAccount returns a channel that yields a JSON object.
+func (this *Apex) PrivatePostV3StockRegisterAccount(args ...any) <-chan any {
+	return this.Fetch2Async("v3/stock/register-account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostV3StockGenerateApi returns a channel that yields a JSON object.
+func (this *Apex) PrivatePostV3StockGenerateApi(args ...any) <-chan any {
+	return this.Fetch2Async("v3/stock/generate-api", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

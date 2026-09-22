@@ -219,6 +219,8 @@ class coinone(Exchange, ImplicitAPI):
                         'transaction/krw/history': {'cost': 1},
                         'transaction/coin/history': {'cost': 1},
                         'transaction/coin/withdrawal/limit': {'cost': 1},
+                        'event/order-reward/programs': {'cost': 1},
+                        'event/order-reward/history': {'cost': 1},
                     },
                 },
             },
@@ -301,7 +303,7 @@ class coinone(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}) -> Currencies:
+    def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -364,7 +366,7 @@ class coinone(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def fetch_markets(self, params={}) -> list[Market]:
+    def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for coinone
 
@@ -413,7 +415,7 @@ class coinone(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'tickers', [])
         result = []
         for i in range(0, len(tickers)):
-            entry = self.safe_value(tickers, i)
+            entry = self.safe_dict(tickers, i)
             id = self.safe_string(entry, 'id')
             baseId = self.safe_string_upper(entry, 'target_currency')
             quoteId = self.safe_string_upper(entry, 'quote_currency')
@@ -490,7 +492,7 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}) -> Balances:
+    def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -504,7 +506,7 @@ class coinone(Exchange, ImplicitAPI):
         response = self.v2PrivatePostAccountBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -551,7 +553,7 @@ class coinone(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'qty')
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -614,7 +616,7 @@ class coinone(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'tickers', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -729,17 +731,17 @@ class coinone(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id": "1701075265708001",
         #         "timestamp": 1701075265708,
         #         "price": "50020000",
         #         "qty": "0.00155177",
-        #         "is_seller_maker": False
+        #         "is_seller_maker": false
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "timestamp": "1416561032",
@@ -788,7 +790,7 @@ class coinone(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -823,7 +825,7 @@ class coinone(Exchange, ImplicitAPI):
         #                 "timestamp": 1701075265708,
         #                 "price": "50020000",
         #                 "qty": "0.00155177",
-        #                 "is_seller_maker": False
+        #                 "is_seller_maker": false
         #             }
         #         ]
         #     }
@@ -831,7 +833,7 @@ class coinone(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'transactions', [])
         return self.parse_trades(data, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -875,7 +877,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
         :param str id: order id
@@ -1036,7 +1038,7 @@ class coinone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1045,7 +1047,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
@@ -1077,7 +1079,7 @@ class coinone(Exchange, ImplicitAPI):
         openOrders = self.safe_list_2(response, 'open_orders', 'limitOrders', [])
         return self.parse_orders(openOrders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1118,7 +1120,7 @@ class coinone(Exchange, ImplicitAPI):
         completeOrders = self.safe_list(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
-    def cancel_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
         :param str id: order id
@@ -1151,7 +1153,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.safe_order(response)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params: dict = {}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
@@ -1184,10 +1186,10 @@ class coinone(Exchange, ImplicitAPI):
             if (value is None) or (value is None) or (value == '') or (value == '-1'):
                 continue
             parts = key.split('_')
-            currencyId = self.safe_value(parts, 0)
-            secondPart = self.safe_value(parts, 1)
+            currencyId = self.safe_string(parts, 0)
+            secondPart = self.safe_string(parts, 1)
             code = self.safe_currency_code(currencyId)
-            depositAddress = self.safe_value(result, code)
+            depositAddress = self.safe_dict(result, code)
             if depositAddress is None:
                 depositAddress = {
                     'info': value,
@@ -1207,7 +1209,7 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = depositAddress
         return result
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'

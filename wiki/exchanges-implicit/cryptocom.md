@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cryptocom API documentation:** [exchange-docs.crypto.com](https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html) · [exchange-docs.crypto.com](https://exchange-docs.crypto.com/spot/index.html) · [exchange-docs.crypto.com](https://exchange-docs.crypto.com/derivatives/index.html)
 
-> 129 implicit endpoints across 4 access groups.
+> 137 implicit endpoints across 4 access groups.
 
 ## base
 
@@ -112,6 +112,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePostPrivateGetDepositHistory` | POST | `private/get-deposit-history` | 3.3333333333333335 |
 | `v1PrivatePostPrivateGetFeeRate` | POST | `private/get-fee-rate` | 2 |
 | `v1PrivatePostPrivateGetInstrumentFeeRate` | POST | `private/get-instrument-fee-rate` | 2 |
+| `v1PrivatePostPrivateGetFeeCreditBalances` | POST | `private/get-fee-credit-balances` | 3.3333333333333335 |
 | `v1PrivatePostPrivateFiatFiatDepositInfo` | POST | `private/fiat/fiat-deposit-info` | 3.3333333333333335 |
 | `v1PrivatePostPrivateFiatFiatDepositHistory` | POST | `private/fiat/fiat-deposit-history` | 3.3333333333333335 |
 | `v1PrivatePostPrivateFiatFiatWithdrawHistory` | POST | `private/fiat/fiat-withdraw-history` | 3.3333333333333335 |
@@ -131,6 +132,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePostPrivateStakingGetConvertHistory` | POST | `private/staking/get-convert-history` | 2 |
 | `v1PrivatePostPrivateCreateIsolatedMarginTransfer` | POST | `private/create-isolated-margin-transfer` | 3.3333333333333335 |
 | `v1PrivatePostPrivateChangeIsolatedMarginLeverage` | POST | `private/change-isolated-margin-leverage` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotCreateTradingBot` | POST | `private/bot/create-trading-bot` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotUpdateTradingBot` | POST | `private/bot/update-trading-bot` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotTerminateTradingBot` | POST | `private/bot/terminate-trading-bot` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotPauseTradingBot` | POST | `private/bot/pause-trading-bot` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotResumeTradingBot` | POST | `private/bot/resume-trading-bot` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotGetTradingBots` | POST | `private/bot/get-trading-bots` | 3.3333333333333335 |
+| `v1PrivatePostPrivateBotGetTradingBotExecutions` | POST | `private/bot/get-trading-bot-executions` | 3.3333333333333335 |
 
 ## v2
 

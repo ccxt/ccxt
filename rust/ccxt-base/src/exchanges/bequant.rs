@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BequantCore {
@@ -189,10 +193,10 @@ impl BequantCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bequant".to_string()));
-        m.insert("name".to_string(), Value::Str("Bequant".to_string()));
+        m.insert("id".to_string(), Value::Str("bequant".into()));
+        m.insert("name".to_string(), Value::Str("Bequant".into()));
         m.insert("pro".to_string(), Value::Bool(true));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("MT".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("MT".into())]));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
@@ -205,17 +209,17 @@ impl BequantCore {
 }));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9".to_string()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9".into()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
-        m.insert("private".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".into()));
+        m.insert("private".to_string(), Value::Str("https://api.bequant.io/api/3".into()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://bequant.io".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.bequant.io/".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://bequant.io/fees-and-limits".to_string())]));
-        m.insert("referral".to_string(), Value::Str("https://bequant.io/referral/dd104e3bee7634ec".to_string()));
+        m.insert("www".to_string(), Value::Str("https://bequant.io".into()));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.bequant.io/".into())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://bequant.io/fees-and-limits".into())]));
+        m.insert("referral".to_string(), Value::Str("https://bequant.io/referral/dd104e3bee7634ec".into()));
     m
 }));
     m

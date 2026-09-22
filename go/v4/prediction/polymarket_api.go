@@ -7,642 +7,644 @@
 
 package ccxtprediction
 
+import ccxt "github.com/ccxt/ccxt/go/v4"
+
 // GammaPublicGetStatus returns a channel that yields a JSON scalar.
-func (this *PolymarketCore) GammaPublicGetStatus(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetStatus", args...)
+func (this *Polymarket) GammaPublicGetStatus(args ...any) <-chan any {
+	return this.Fetch2Async("status", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetComments returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetComments(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetComments", args...)
+func (this *Polymarket) GammaPublicGetComments(args ...any) <-chan any {
+	return this.Fetch2Async("comments", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetCommentsId returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetCommentsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetCommentsId", args...)
+func (this *Polymarket) GammaPublicGetCommentsId(args ...any) <-chan any {
+	return this.Fetch2Async("comments/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetCommentsUserAddressUserAddress returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetCommentsUserAddressUserAddress(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetCommentsUserAddressUserAddress", args...)
+func (this *Polymarket) GammaPublicGetCommentsUserAddressUserAddress(args ...any) <-chan any {
+	return this.Fetch2Async("comments/user_address/{user_address}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEvents returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetEvents(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEvents", args...)
+func (this *Polymarket) GammaPublicGetEvents(args ...any) <-chan any {
+	return this.Fetch2Async("events", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsCreators returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetEventsCreators(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsCreators", args...)
+func (this *Polymarket) GammaPublicGetEventsCreators(args ...any) <-chan any {
+	return this.Fetch2Async("events/creators", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsCreatorsId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsCreatorsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsCreatorsId", args...)
+func (this *Polymarket) GammaPublicGetEventsCreatorsId(args ...any) <-chan any {
+	return this.Fetch2Async("events/creators/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsKeyset returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsKeyset(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsKeyset", args...)
+func (this *Polymarket) GammaPublicGetEventsKeyset(args ...any) <-chan any {
+	return this.Fetch2Async("events/keyset", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsPagination returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsPagination(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsPagination", args...)
+func (this *Polymarket) GammaPublicGetEventsPagination(args ...any) <-chan any {
+	return this.Fetch2Async("events/pagination", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsResults returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetEventsResults(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsResults", args...)
+func (this *Polymarket) GammaPublicGetEventsResults(args ...any) <-chan any {
+	return this.Fetch2Async("events/results", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsSlugSlug returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsSlugSlug(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsSlugSlug", args...)
+func (this *Polymarket) GammaPublicGetEventsSlugSlug(args ...any) <-chan any {
+	return this.Fetch2Async("events/slug/{slug}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsId", args...)
+func (this *Polymarket) GammaPublicGetEventsId(args ...any) <-chan any {
+	return this.Fetch2Async("events/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdCommentsCount returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsIdCommentsCount(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsIdCommentsCount", args...)
+func (this *Polymarket) GammaPublicGetEventsIdCommentsCount(args ...any) <-chan any {
+	return this.Fetch2Async("events/{id}/comments/count", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetEventsIdTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsIdTags", args...)
+func (this *Polymarket) GammaPublicGetEventsIdTags(args ...any) <-chan any {
+	return this.Fetch2Async("events/{id}/tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetEventsIdTweetCount returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetEventsIdTweetCount(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetEventsIdTweetCount", args...)
+func (this *Polymarket) GammaPublicGetEventsIdTweetCount(args ...any) <-chan any {
+	return this.Fetch2Async("events/{id}/tweet-count", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarkets returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarkets", args...)
+func (this *Polymarket) GammaPublicGetMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("markets", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsKeyset returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetMarketsKeyset(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarketsKeyset", args...)
+func (this *Polymarket) GammaPublicGetMarketsKeyset(args ...any) <-chan any {
+	return this.Fetch2Async("markets/keyset", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsSlugSlug returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetMarketsSlugSlug(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarketsSlugSlug", args...)
+func (this *Polymarket) GammaPublicGetMarketsSlugSlug(args ...any) <-chan any {
+	return this.Fetch2Async("markets/slug/{slug}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetMarketsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarketsId", args...)
+func (this *Polymarket) GammaPublicGetMarketsId(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsIdDescription returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetMarketsIdDescription(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarketsIdDescription", args...)
+func (this *Polymarket) GammaPublicGetMarketsIdDescription(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{id}/description", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetMarketsIdTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetMarketsIdTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetMarketsIdTags", args...)
+func (this *Polymarket) GammaPublicGetMarketsIdTags(args ...any) <-chan any {
+	return this.Fetch2Async("markets/{id}/tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetProfilesUserAddressUserAddress returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetProfilesUserAddressUserAddress(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetProfilesUserAddressUserAddress", args...)
+func (this *Polymarket) GammaPublicGetProfilesUserAddressUserAddress(args ...any) <-chan any {
+	return this.Fetch2Async("profiles/user_address/{user_address}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetPublicProfile returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetPublicProfile(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetPublicProfile", args...)
+func (this *Polymarket) GammaPublicGetPublicProfile(args ...any) <-chan any {
+	return this.Fetch2Async("public-profile", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetPublicSearch returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetPublicSearch(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetPublicSearch", args...)
+func (this *Polymarket) GammaPublicGetPublicSearch(args ...any) <-chan any {
+	return this.Fetch2Async("public-search", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeries returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetSeries(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSeries", args...)
+func (this *Polymarket) GammaPublicGetSeries(args ...any) <-chan any {
+	return this.Fetch2Async("series", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesSummarySlugSlug returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetSeriesSummarySlugSlug(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSeriesSummarySlugSlug", args...)
+func (this *Polymarket) GammaPublicGetSeriesSummarySlugSlug(args ...any) <-chan any {
+	return this.Fetch2Async("series-summary/slug/{slug}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesSummaryId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetSeriesSummaryId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSeriesSummaryId", args...)
+func (this *Polymarket) GammaPublicGetSeriesSummaryId(args ...any) <-chan any {
+	return this.Fetch2Async("series-summary/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetSeriesId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSeriesId", args...)
+func (this *Polymarket) GammaPublicGetSeriesId(args ...any) <-chan any {
+	return this.Fetch2Async("series/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSeriesIdCommentsCount returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetSeriesIdCommentsCount(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSeriesIdCommentsCount", args...)
+func (this *Polymarket) GammaPublicGetSeriesIdCommentsCount(args ...any) <-chan any {
+	return this.Fetch2Async("series/{id}/comments/count", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSports returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetSports(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSports", args...)
+func (this *Polymarket) GammaPublicGetSports(args ...any) <-chan any {
+	return this.Fetch2Async("sports", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetSportsMarketTypes returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetSportsMarketTypes(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetSportsMarketTypes", args...)
+func (this *Polymarket) GammaPublicGetSportsMarketTypes(args ...any) <-chan any {
+	return this.Fetch2Async("sports/market-types", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTags", args...)
+func (this *Polymarket) GammaPublicGetTags(args ...any) <-chan any {
+	return this.Fetch2Async("tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlug returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetTagsSlugSlug(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsSlugSlug", args...)
+func (this *Polymarket) GammaPublicGetTagsSlugSlug(args ...any) <-chan any {
+	return this.Fetch2Async("tags/slug/{slug}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlugRelatedTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTagsSlugSlugRelatedTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsSlugSlugRelatedTags", args...)
+func (this *Polymarket) GammaPublicGetTagsSlugSlugRelatedTags(args ...any) <-chan any {
+	return this.Fetch2Async("tags/slug/{slug}/related-tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsSlugSlugRelatedTagsTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTagsSlugSlugRelatedTagsTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsSlugSlugRelatedTagsTags", args...)
+func (this *Polymarket) GammaPublicGetTagsSlugSlugRelatedTagsTags(args ...any) <-chan any {
+	return this.Fetch2Async("tags/slug/{slug}/related-tags/tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetTagsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsId", args...)
+func (this *Polymarket) GammaPublicGetTagsId(args ...any) <-chan any {
+	return this.Fetch2Async("tags/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsIdRelatedTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTagsIdRelatedTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsIdRelatedTags", args...)
+func (this *Polymarket) GammaPublicGetTagsIdRelatedTags(args ...any) <-chan any {
+	return this.Fetch2Async("tags/{id}/related-tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTagsIdRelatedTagsTags returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTagsIdRelatedTagsTags(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTagsIdRelatedTagsTags", args...)
+func (this *Polymarket) GammaPublicGetTagsIdRelatedTagsTags(args ...any) <-chan any {
+	return this.Fetch2Async("tags/{id}/related-tags/tags", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTeams returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicGetTeams(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTeams", args...)
+func (this *Polymarket) GammaPublicGetTeams(args ...any) <-chan any {
+	return this.Fetch2Async("teams", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicGetTeamsId returns a channel that yields a JSON object.
-func (this *PolymarketCore) GammaPublicGetTeamsId(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicGetTeamsId", args...)
+func (this *Polymarket) GammaPublicGetTeamsId(args ...any) <-chan any {
+	return this.Fetch2Async("teams/{id}", []string{"gamma", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicPostMarketsAbridged returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicPostMarketsAbridged(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicPostMarketsAbridged", args...)
+func (this *Polymarket) GammaPublicPostMarketsAbridged(args ...any) <-chan any {
+	return this.Fetch2Async("markets/abridged", []string{"gamma", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // GammaPublicPostMarketsInformation returns a channel that yields a JSON array.
-func (this *PolymarketCore) GammaPublicPostMarketsInformation(args ...any) <-chan any {
-	return this.CallEndpointAsync("gammaPublicPostMarketsInformation", args...)
+func (this *Polymarket) GammaPublicPostMarketsInformation(args ...any) <-chan any {
+	return this.Fetch2Async("markets/information", []string{"gamma", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBook returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetBook(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetBook", args...)
+func (this *Polymarket) ClobPublicGetBook(args ...any) <-chan any {
+	return this.Fetch2Async("book", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBooks returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicGetBooks(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetBooks", args...)
+func (this *Polymarket) ClobPublicGetBooks(args ...any) <-chan any {
+	return this.Fetch2Async("books", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetBuilderTrades returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetBuilderTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetBuilderTrades", args...)
+func (this *Polymarket) ClobPublicGetBuilderTrades(args ...any) <-chan any {
+	return this.Fetch2Async("builder/trades", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetClobMarketsConditionId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetClobMarketsConditionId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetClobMarketsConditionId", args...)
+func (this *Polymarket) ClobPublicGetClobMarketsConditionId(args ...any) <-chan any {
+	return this.Fetch2Async("clob-markets/{condition_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetFeeRate returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetFeeRate(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetFeeRate", args...)
+func (this *Polymarket) ClobPublicGetFeeRate(args ...any) <-chan any {
+	return this.Fetch2Async("fee-rate", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetFeeRateTokenId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetFeeRateTokenId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetFeeRateTokenId", args...)
+func (this *Polymarket) ClobPublicGetFeeRateTokenId(args ...any) <-chan any {
+	return this.Fetch2Async("fee-rate/{token_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetLastTradePrice returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetLastTradePrice(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetLastTradePrice", args...)
+func (this *Polymarket) ClobPublicGetLastTradePrice(args ...any) <-chan any {
+	return this.Fetch2Async("last-trade-price", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetLastTradesPrices returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicGetLastTradesPrices(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetLastTradesPrices", args...)
+func (this *Polymarket) ClobPublicGetLastTradesPrices(args ...any) <-chan any {
+	return this.Fetch2Async("last-trades-prices", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMarketsByTokenTokenId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetMarketsByTokenTokenId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetMarketsByTokenTokenId", args...)
+func (this *Polymarket) ClobPublicGetMarketsByTokenTokenId(args ...any) <-chan any {
+	return this.Fetch2Async("markets-by-token/{token_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMarketsLiveActivityConditionId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetMarketsLiveActivityConditionId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetMarketsLiveActivityConditionId", args...)
+func (this *Polymarket) ClobPublicGetMarketsLiveActivityConditionId(args ...any) <-chan any {
+	return this.Fetch2Async("markets/live-activity/{condition_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMidpoint returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetMidpoint(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetMidpoint", args...)
+func (this *Polymarket) ClobPublicGetMidpoint(args ...any) <-chan any {
+	return this.Fetch2Async("midpoint", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetMidpoints returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetMidpoints(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetMidpoints", args...)
+func (this *Polymarket) ClobPublicGetMidpoints(args ...any) <-chan any {
+	return this.Fetch2Async("midpoints", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetNegRisk returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetNegRisk(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetNegRisk", args...)
+func (this *Polymarket) ClobPublicGetNegRisk(args ...any) <-chan any {
+	return this.Fetch2Async("neg-risk", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetNegRiskTokenId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetNegRiskTokenId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetNegRiskTokenId", args...)
+func (this *Polymarket) ClobPublicGetNegRiskTokenId(args ...any) <-chan any {
+	return this.Fetch2Async("neg-risk/{token_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPrice returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetPrice(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetPrice", args...)
+func (this *Polymarket) ClobPublicGetPrice(args ...any) <-chan any {
+	return this.Fetch2Async("price", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPrices returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetPrices(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetPrices", args...)
+func (this *Polymarket) ClobPublicGetPrices(args ...any) <-chan any {
+	return this.Fetch2Async("prices", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetPricesHistory returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetPricesHistory(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetPricesHistory", args...)
+func (this *Polymarket) ClobPublicGetPricesHistory(args ...any) <-chan any {
+	return this.Fetch2Async("prices-history", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRebatesCurrent returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicGetRebatesCurrent(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetRebatesCurrent", args...)
+func (this *Polymarket) ClobPublicGetRebatesCurrent(args ...any) <-chan any {
+	return this.Fetch2Async("rebates/current", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsCurrent returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetRewardsMarketsCurrent(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetRewardsMarketsCurrent", args...)
+func (this *Polymarket) ClobPublicGetRewardsMarketsCurrent(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/markets/current", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsMulti returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetRewardsMarketsMulti(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetRewardsMarketsMulti", args...)
+func (this *Polymarket) ClobPublicGetRewardsMarketsMulti(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/markets/multi", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetRewardsMarketsConditionId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetRewardsMarketsConditionId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetRewardsMarketsConditionId", args...)
+func (this *Polymarket) ClobPublicGetRewardsMarketsConditionId(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/markets/{condition_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSamplingMarkets returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetSamplingMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetSamplingMarkets", args...)
+func (this *Polymarket) ClobPublicGetSamplingMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("sampling-markets", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSamplingSimplifiedMarkets returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetSamplingSimplifiedMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetSamplingSimplifiedMarkets", args...)
+func (this *Polymarket) ClobPublicGetSamplingSimplifiedMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("sampling-simplified-markets", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSimplifiedMarkets returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetSimplifiedMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetSimplifiedMarkets", args...)
+func (this *Polymarket) ClobPublicGetSimplifiedMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("simplified-markets", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetSpread returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetSpread(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetSpread", args...)
+func (this *Polymarket) ClobPublicGetSpread(args ...any) <-chan any {
+	return this.Fetch2Async("spread", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTickSize returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetTickSize(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetTickSize", args...)
+func (this *Polymarket) ClobPublicGetTickSize(args ...any) <-chan any {
+	return this.Fetch2Async("tick-size", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTickSizeTokenId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicGetTickSizeTokenId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetTickSizeTokenId", args...)
+func (this *Polymarket) ClobPublicGetTickSizeTokenId(args ...any) <-chan any {
+	return this.Fetch2Async("tick-size/{token_id}", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicGetTime returns a channel that yields a JSON scalar.
-func (this *PolymarketCore) ClobPublicGetTime(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicGetTime", args...)
+func (this *Polymarket) ClobPublicGetTime(args ...any) <-chan any {
+	return this.Fetch2Async("time", []string{"clob", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostBatchPricesHistory returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicPostBatchPricesHistory(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostBatchPricesHistory", args...)
+func (this *Polymarket) ClobPublicPostBatchPricesHistory(args ...any) <-chan any {
+	return this.Fetch2Async("batch-prices-history", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostBooks returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicPostBooks(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostBooks", args...)
+func (this *Polymarket) ClobPublicPostBooks(args ...any) <-chan any {
+	return this.Fetch2Async("books", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostLastTradesPrices returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicPostLastTradesPrices(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostLastTradesPrices", args...)
+func (this *Polymarket) ClobPublicPostLastTradesPrices(args ...any) <-chan any {
+	return this.Fetch2Async("last-trades-prices", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostMarketsLiveActivity returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPublicPostMarketsLiveActivity(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostMarketsLiveActivity", args...)
+func (this *Polymarket) ClobPublicPostMarketsLiveActivity(args ...any) <-chan any {
+	return this.Fetch2Async("markets/live-activity", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostMidpoints returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicPostMidpoints(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostMidpoints", args...)
+func (this *Polymarket) ClobPublicPostMidpoints(args ...any) <-chan any {
+	return this.Fetch2Async("midpoints", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostPrices returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicPostPrices(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostPrices", args...)
+func (this *Polymarket) ClobPublicPostPrices(args ...any) <-chan any {
+	return this.Fetch2Async("prices", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPublicPostSpreads returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPublicPostSpreads(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPublicPostSpreads", args...)
+func (this *Polymarket) ClobPublicPostSpreads(args ...any) <-chan any {
+	return this.Fetch2Async("spreads", []string{"clob", "public"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthApiKeys returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetAuthApiKeys(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetAuthApiKeys", args...)
+func (this *Polymarket) ClobPrivateGetAuthApiKeys(args ...any) <-chan any {
+	return this.Fetch2Async("auth/api-keys", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthBanStatusClosedOnly returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetAuthBanStatusClosedOnly(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetAuthBanStatusClosedOnly", args...)
+func (this *Polymarket) ClobPrivateGetAuthBanStatusClosedOnly(args ...any) <-chan any {
+	return this.Fetch2Async("auth/ban-status/closed-only", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthBuilderApiKey returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPrivateGetAuthBuilderApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetAuthBuilderApiKey", args...)
+func (this *Polymarket) ClobPrivateGetAuthBuilderApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/builder-api-key", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetAuthDeriveApiKey returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetAuthDeriveApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetAuthDeriveApiKey", args...)
+func (this *Polymarket) ClobPrivateGetAuthDeriveApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/derive-api-key", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetBalanceAllowance returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetBalanceAllowance(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetBalanceAllowance", args...)
+func (this *Polymarket) ClobPrivateGetBalanceAllowance(args ...any) <-chan any {
+	return this.Fetch2Async("balance-allowance", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetBalanceAllowanceUpdate returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetBalanceAllowanceUpdate(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetBalanceAllowanceUpdate", args...)
+func (this *Polymarket) ClobPrivateGetBalanceAllowanceUpdate(args ...any) <-chan any {
+	return this.Fetch2Async("balance-allowance/update", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataOrderId returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetDataOrderId(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetDataOrderId", args...)
+func (this *Polymarket) ClobPrivateGetDataOrderId(args ...any) <-chan any {
+	return this.Fetch2Async("data/order/{id}", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataOrders returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetDataOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetDataOrders", args...)
+func (this *Polymarket) ClobPrivateGetDataOrders(args ...any) <-chan any {
+	return this.Fetch2Async("data/orders", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetDataTrades returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetDataTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetDataTrades", args...)
+func (this *Polymarket) ClobPrivateGetDataTrades(args ...any) <-chan any {
+	return this.Fetch2Async("data/trades", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetNotifications returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPrivateGetNotifications(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetNotifications", args...)
+func (this *Polymarket) ClobPrivateGetNotifications(args ...any) <-chan any {
+	return this.Fetch2Async("notifications", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetOrderScoring returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetOrderScoring(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetOrderScoring", args...)
+func (this *Polymarket) ClobPrivateGetOrderScoring(args ...any) <-chan any {
+	return this.Fetch2Async("order-scoring", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetOrdersScoring returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetOrdersScoring(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetOrdersScoring", args...)
+func (this *Polymarket) ClobPrivateGetOrdersScoring(args ...any) <-chan any {
+	return this.Fetch2Async("orders-scoring", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUser returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetRewardsUser(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetRewardsUser", args...)
+func (this *Polymarket) ClobPrivateGetRewardsUser(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/user", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserMarkets returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetRewardsUserMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetRewardsUserMarkets", args...)
+func (this *Polymarket) ClobPrivateGetRewardsUserMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/user/markets", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserPercentages returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateGetRewardsUserPercentages(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetRewardsUserPercentages", args...)
+func (this *Polymarket) ClobPrivateGetRewardsUserPercentages(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/user/percentages", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateGetRewardsUserTotal returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPrivateGetRewardsUserTotal(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateGetRewardsUserTotal", args...)
+func (this *Polymarket) ClobPrivateGetRewardsUserTotal(args ...any) <-chan any {
+	return this.Fetch2Async("rewards/user/total", []string{"clob", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostAuthApiKey returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivatePostAuthApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostAuthApiKey", args...)
+func (this *Polymarket) ClobPrivatePostAuthApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/api-key", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostAuthBuilderApiKey returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivatePostAuthBuilderApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostAuthBuilderApiKey", args...)
+func (this *Polymarket) ClobPrivatePostAuthBuilderApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/builder-api-key", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostHeartbeats returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivatePostHeartbeats(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostHeartbeats", args...)
+func (this *Polymarket) ClobPrivatePostHeartbeats(args ...any) <-chan any {
+	return this.Fetch2Async("heartbeats", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostOrder returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivatePostOrder(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostOrder", args...)
+func (this *Polymarket) ClobPrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostOrders returns a channel that yields a JSON array.
-func (this *PolymarketCore) ClobPrivatePostOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostOrders", args...)
+func (this *Polymarket) ClobPrivatePostOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivatePostV1Heartbeats returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivatePostV1Heartbeats(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivatePostV1Heartbeats", args...)
+func (this *Polymarket) ClobPrivatePostV1Heartbeats(args ...any) <-chan any {
+	return this.Fetch2Async("v1/heartbeats", []string{"clob", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteAuthApiKey returns a channel that yields a JSON scalar.
-func (this *PolymarketCore) ClobPrivateDeleteAuthApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteAuthApiKey", args...)
+func (this *Polymarket) ClobPrivateDeleteAuthApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/api-key", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteAuthBuilderApiKey returns a channel that yields a JSON scalar.
-func (this *PolymarketCore) ClobPrivateDeleteAuthBuilderApiKey(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteAuthBuilderApiKey", args...)
+func (this *Polymarket) ClobPrivateDeleteAuthBuilderApiKey(args ...any) <-chan any {
+	return this.Fetch2Async("auth/builder-api-key", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteCancelAll returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateDeleteCancelAll(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteCancelAll", args...)
+func (this *Polymarket) ClobPrivateDeleteCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("cancel-all", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteCancelMarketOrders returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateDeleteCancelMarketOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteCancelMarketOrders", args...)
+func (this *Polymarket) ClobPrivateDeleteCancelMarketOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cancel-market-orders", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteNotifications returns a channel that yields a JSON scalar.
-func (this *PolymarketCore) ClobPrivateDeleteNotifications(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteNotifications", args...)
+func (this *Polymarket) ClobPrivateDeleteNotifications(args ...any) <-chan any {
+	return this.Fetch2Async("notifications", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateDeleteOrder(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteOrder", args...)
+func (this *Polymarket) ClobPrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ClobPrivateDeleteOrders returns a channel that yields a JSON object.
-func (this *PolymarketCore) ClobPrivateDeleteOrders(args ...any) <-chan any {
-	return this.CallEndpointAsync("clobPrivateDeleteOrders", args...)
+func (this *Polymarket) ClobPrivateDeleteOrders(args ...any) <-chan any {
+	return this.Fetch2Async("orders", []string{"clob", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetActivity returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetActivity(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetActivity", args...)
+func (this *Polymarket) DataPublicGetActivity(args ...any) <-chan any {
+	return this.Fetch2Async("activity", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetClosedPositions returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetClosedPositions(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetClosedPositions", args...)
+func (this *Polymarket) DataPublicGetClosedPositions(args ...any) <-chan any {
+	return this.Fetch2Async("closed-positions", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetHolders returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetHolders(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetHolders", args...)
+func (this *Polymarket) DataPublicGetHolders(args ...any) <-chan any {
+	return this.Fetch2Async("holders", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetLiveVolume returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetLiveVolume(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetLiveVolume", args...)
+func (this *Polymarket) DataPublicGetLiveVolume(args ...any) <-chan any {
+	return this.Fetch2Async("live-volume", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetOi returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetOi(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetOi", args...)
+func (this *Polymarket) DataPublicGetOi(args ...any) <-chan any {
+	return this.Fetch2Async("oi", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetOther returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetOther(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetOther", args...)
+func (this *Polymarket) DataPublicGetOther(args ...any) <-chan any {
+	return this.Fetch2Async("other", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetPositions returns a channel that yields a JSON object.
-func (this *PolymarketCore) DataPublicGetPositions(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetPositions", args...)
+func (this *Polymarket) DataPublicGetPositions(args ...any) <-chan any {
+	return this.Fetch2Async("positions", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetRevisions returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetRevisions(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetRevisions", args...)
+func (this *Polymarket) DataPublicGetRevisions(args ...any) <-chan any {
+	return this.Fetch2Async("revisions", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetTraded returns a channel that yields a JSON object.
-func (this *PolymarketCore) DataPublicGetTraded(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetTraded", args...)
+func (this *Polymarket) DataPublicGetTraded(args ...any) <-chan any {
+	return this.Fetch2Async("traded", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetTrades returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetTrades(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetTrades", args...)
+func (this *Polymarket) DataPublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1AccountingSnapshot returns a channel that yields a JSON object.
-func (this *PolymarketCore) DataPublicGetV1AccountingSnapshot(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1AccountingSnapshot", args...)
+func (this *Polymarket) DataPublicGetV1AccountingSnapshot(args ...any) <-chan any {
+	return this.Fetch2Async("v1/accounting/snapshot", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1ActivityCombos returns a channel that yields a JSON object.
-func (this *PolymarketCore) DataPublicGetV1ActivityCombos(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1ActivityCombos", args...)
+func (this *Polymarket) DataPublicGetV1ActivityCombos(args ...any) <-chan any {
+	return this.Fetch2Async("v1/activity/combos", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1BuildersLeaderboard returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetV1BuildersLeaderboard(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1BuildersLeaderboard", args...)
+func (this *Polymarket) DataPublicGetV1BuildersLeaderboard(args ...any) <-chan any {
+	return this.Fetch2Async("v1/builders/leaderboard", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1BuildersVolume returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetV1BuildersVolume(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1BuildersVolume", args...)
+func (this *Polymarket) DataPublicGetV1BuildersVolume(args ...any) <-chan any {
+	return this.Fetch2Async("v1/builders/volume", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1Leaderboard returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetV1Leaderboard(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1Leaderboard", args...)
+func (this *Polymarket) DataPublicGetV1Leaderboard(args ...any) <-chan any {
+	return this.Fetch2Async("v1/leaderboard", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1MarketPositions returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetV1MarketPositions(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1MarketPositions", args...)
+func (this *Polymarket) DataPublicGetV1MarketPositions(args ...any) <-chan any {
+	return this.Fetch2Async("v1/market-positions", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetV1PositionsCombos returns a channel that yields a JSON object.
-func (this *PolymarketCore) DataPublicGetV1PositionsCombos(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetV1PositionsCombos", args...)
+func (this *Polymarket) DataPublicGetV1PositionsCombos(args ...any) <-chan any {
+	return this.Fetch2Async("v1/positions/combos", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DataPublicGetValue returns a channel that yields a JSON array.
-func (this *PolymarketCore) DataPublicGetValue(args ...any) <-chan any {
-	return this.CallEndpointAsync("dataPublicGetValue", args...)
+func (this *Polymarket) DataPublicGetValue(args ...any) <-chan any {
+	return this.Fetch2Async("value", []string{"data", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CombosPublicGetV1RfqComboMarkets returns a channel that yields a JSON object.
-func (this *PolymarketCore) CombosPublicGetV1RfqComboMarkets(args ...any) <-chan any {
-	return this.CallEndpointAsync("combosPublicGetV1RfqComboMarkets", args...)
+func (this *Polymarket) CombosPublicGetV1RfqComboMarkets(args ...any) <-chan any {
+	return this.Fetch2Async("v1/rfq/combo-markets", []string{"combos", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerConfirmations returns a channel that yields a JSON object.
-func (this *PolymarketCore) CombosPrivatePostV1MakerConfirmations(args ...any) <-chan any {
-	return this.CallEndpointAsync("combosPrivatePostV1MakerConfirmations", args...)
+func (this *Polymarket) CombosPrivatePostV1MakerConfirmations(args ...any) <-chan any {
+	return this.Fetch2Async("v1/maker/confirmations", []string{"combos", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerQuotes returns a channel that yields a JSON object.
-func (this *PolymarketCore) CombosPrivatePostV1MakerQuotes(args ...any) <-chan any {
-	return this.CallEndpointAsync("combosPrivatePostV1MakerQuotes", args...)
+func (this *Polymarket) CombosPrivatePostV1MakerQuotes(args ...any) <-chan any {
+	return this.Fetch2Async("v1/maker/quotes", []string{"combos", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CombosPrivatePostV1MakerQuotesCancel returns a channel that yields a JSON object.
-func (this *PolymarketCore) CombosPrivatePostV1MakerQuotesCancel(args ...any) <-chan any {
-	return this.CallEndpointAsync("combosPrivatePostV1MakerQuotesCancel", args...)
+func (this *Polymarket) CombosPrivatePostV1MakerQuotesCancel(args ...any) <-chan any {
+	return this.Fetch2Async("v1/maker/quotes/cancel", []string{"combos", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

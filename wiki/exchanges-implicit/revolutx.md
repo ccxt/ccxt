@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official revolutx API documentation:** [developer.revolut.com](https://developer.revolut.com/docs/api/revolut-x-crypto-exchange)
 
-> 16 implicit endpoints across 2 access groups.
+> 17 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -82,6 +82,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGet10OrdersVenueOrderId` | GET | `1.0/orders/{venue_order_id}` | 1 |
 | `privateGet10OrdersFillsVenueOrderId` | GET | `1.0/orders/fills/{venue_order_id}` | 1 |
 | `privateGet10TradesPrivateSymbol` | GET | `1.0/trades/private/{symbol}` | 1 |
+| `privateGet10Transactions` | GET | `1.0/transactions` | 1 |
 | `privatePost10Orders` | POST | `1.0/orders` | 1 |
 | `privatePut10OrdersVenueOrderId` | PUT | `1.0/orders/{venue_order_id}` | 1 |
 | `privateDelete10Orders` | DELETE | `1.0/orders` | 1 |

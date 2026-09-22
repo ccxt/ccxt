@@ -86,7 +86,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->options['ws']['options']['headers'] = $headers;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -134,30 +134,30 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         //
-        // market $order
+        // market order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_market_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_market_order"
         // }
         //
-        // limit $order
+        // limit order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_order"
         // }
         //
         $code = $this->safe_integer($response, 'code');
@@ -177,7 +177,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -214,15 +214,15 @@ class pacifica extends \ccxt\async\pacifica {
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-        //     "i" => 645954,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223026150,
-        //   "type" => "edit_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        //     "i": 645954,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223026150,
+        //   "type": "edit_order"
         // }
         $code = $this->safe_integer($response, 'code');
         $success = false;
@@ -241,7 +241,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
@@ -278,25 +278,25 @@ class pacifica extends \ccxt\async\pacifica {
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         //
         // {
-        //   "code" => 200,
-        //   "data" => {
-        //     "results" => array(
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 645953,
-        //         "client_order_id" => "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
-        //         "symbol" => "BTC"
-        //       ),
-        //       array(
-        //         "success" => true,
-        //         "order_id" => 645954,
-        //         "symbol" => "ETH"
+        //   "code": 200,
+        //   "data": {
+        //     "results": [
+        //       {
+        //         "success": true,
+        //         "order_id": 645953,
+        //         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
+        //         "symbol": "BTC"
+        //       },
+        //       {
+        //         "success": true,
+        //         "order_id": 645954,
+        //         "symbol": "ETH"
         //       }
-        //     )
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "batch_orders"
+        //     ]
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "batch_orders"
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -321,7 +321,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $ordersToReturn;
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -358,15 +358,15 @@ class pacifica extends \ccxt\async\pacifica {
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         //
         //  {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => null,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "1bb2b72f-f545-4938-8a38-c5cda8823675",
-        //   "t" => 1749223343610,
-        //   "type" => "cancel_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": null,
+        //     "s": "BTC"
+        //   },
+        //   "id": "1bb2b72f-f545-4938-8a38-c5cda8823675",
+        //   "t": 1749223343610,
+        //   "type": "cancel_order"
         // }
         //
         $code = $this->safe_integer($response, 'code');
@@ -386,7 +386,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->safe_order(array( 'id' => $orderId, 'clientOrderId' => $clientOrderId, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
@@ -417,13 +417,13 @@ class pacifica extends \ccxt\async\pacifica {
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
         //  {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "cancelled_count" => 10
-        //   ),
-        //   "id" => "b86b4f45-49da-4191-84e2-93e141acdeab",
-        //   "t" => 1749221787291,
-        //   "type" => "cancel_all_orders"
+        //   "code": 200,
+        //   "data": {
+        //     "cancelled_count": 10
+        //   },
+        //   "id": "b86b4f45-49da-4191-84e2-93e141acdeab",
+        //   "t": 1749221787291,
+        //   "type": "cancel_all_orders"
         // }
         //
         return array(
@@ -511,37 +511,37 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // {
-        //   "channel" => "book",
-        //   "data" => {
-        //     "l" => array(
-        //       array(
-        //         array(
-        //           "a" => "37.86",
-        //           "n" => 4,
-        //           "p" => "157.47"
-        //         ),
-        //         // ... other aggegated bid $levels
-        //       ),
-        //       array(
-        //         array(
-        //           "a" => "12.7",
-        //           "n" => 2,
-        //           "p" => "157.49"
-        //         ),
-        //         array(
-        //           "a" => "44.45",
-        //           "n" => 3,
-        //           "p" => "157.5"
-        //         ),
-        //         // ... other aggregated ask $levels
-        //       )
-        //     ),
-        //     "s" => "SOL",
-        //     "t" => 1749051881187,
-        //     "li" => 1559885104 // sequence id - last order id
+        //   "channel": "book",
+        //   "data": {
+        //     "l": [
+        //       [
+        //         {
+        //           "a": "37.86",
+        //           "n": 4,
+        //           "p": "157.47"
+        //         },
+        //         // ... other aggegated bid levels
+        //       ],
+        //       [
+        //         {
+        //           "a": "12.7",
+        //           "n": 2,
+        //           "p": "157.49"
+        //         },
+        //         {
+        //           "a": "44.45",
+        //           "n": 3,
+        //           "p": "157.5"
+        //         },
+        //         // ... other aggregated ask levels
+        //       ]
+        //     ],
+        //     "s": "SOL",
+        //     "t": 1749051881187,
+        //     "li": 1559885104 // sequence id - last order id
         //   }
         // }
         //
@@ -739,25 +739,25 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message) {
+    public function handle_ws_tickers(Client $client, array $message): bool {
         //
         // {
-        //     "channel" => "prices",
-        //     "data" => array(
+        //     "channel": "prices",
+        //     "data": [
         //         {
-        //             "funding" => "0.0000125",
-        //             "mark" => "105473",
-        //             "mid" => "105476",
-        //             "next_funding" => "0.0000125",
-        //             "open_interest" => "0.00524",
-        //             "oracle" => "105473",
-        //             "symbol" => "BTC",
-        //             "timestamp" => 1749051612681,
-        //             "volume_24h" => "63265.87522",
-        //             "yesterday_price" => "955476"
+        //             "funding": "0.0000125",
+        //             "mark": "105473",
+        //             "mid": "105476",
+        //             "next_funding": "0.0000125",
+        //             "open_interest": "0.00524",
+        //             "oracle": "105473",
+        //             "symbol": "BTC",
+        //             "timestamp": 1749051612681,
+        //             "volume_24h": "63265.87522",
+        //             "yesterday_price": "955476"
         //         }
-        //         // ... other $symbol prices
-        //     ),
+        //         // ... other symbol prices
+        //     ],
         // }
         //
         $parsedTickers = array();
@@ -776,33 +776,33 @@ class pacifica extends \ccxt\async\pacifica {
         return true;
     }
 
-    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(array $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // {
-        //   "channel" => "account_trades",
-        //   "data" => array(
+        //   "channel": "account_trades",
+        //   "data": [
         //     {
-        //       "h" => 80063441, // history id
-        //       "i" => 1559912767, // oid
-        //       "I" => null, // cloid
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
-        //       "s" => "BTC",  // $symbol
-        //       "p" => "89477", // price
-        //       "o" => "89505", // entry price
-        //       "a" => "0.00036", // amount
-        //       "te" => "fulfill_taker",
-        //       "ts" => "close_long",
-        //       "tc" => "normal", // trade type
-        //       "f" => "0.012885", // fee
-        //       "n" => "-0.022965", // pnl
-        //       "t" => 1765018588190,
-        //       "li" => 1559912767
+        //       "h": 80063441, // history id
+        //       "i": 1559912767, // oid
+        //       "I": null, // cloid
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        //       "s": "BTC",  // symbol
+        //       "p": "89477", // price
+        //       "o": "89505", // entry price
+        //       "a": "0.00036", // amount
+        //       "te": "fulfill_taker",
+        //       "ts": "close_long",
+        //       "tc": "normal", // trade type
+        //       "f": "0.012885", // fee
+        //       "n": "-0.022965", // pnl
+        //       "t": 1765018588190,
+        //       "li": 1559912767
         //     }
-        //   )
+        //   ]
         // }
         //
         if ($this->myTrades === null) {
@@ -830,7 +830,7 @@ class pacifica extends \ccxt\async\pacifica {
             $currentMessageHash = 'myTrades:' . $keys[$i];
             $client->resolve($trades, $currentMessageHash);
         }
-        // non-$symbol specific
+        // non-symbol specific
         $messageHash = 'myTrades';
         $client->resolve($trades, $messageHash);
     }
@@ -910,22 +910,22 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
-        //   "channel" => "trades",
-        //   "data" => array(
+        //   "channel": "trades",
+        //   "data": [
         //     {
-        //       "h" => 80062522,
-        //       "s" => "BTC",
-        //       "a" => "0.00001",
-        //       "p" => "89471",
-        //       "d" => "close_short",
-        //       "tc" => "normal",
-        //       "t" => 1765018379085,
-        //       "li" => 1559885104
+        //       "h": 80062522,
+        //       "s": "BTC",
+        //       "a": "0.00001",
+        //       "p": "89471",
+        //       "d": "close_short",
+        //       "tc": "normal",
+        //       "t": 1765018379085,
+        //       "li": 1559885104
         //     }
-        //   )
+        //   ]
         // }
         //
         $entry = $this->safe_list($message, 'data', array());
@@ -953,34 +953,34 @@ class pacifica extends \ccxt\async\pacifica {
         // fetchMyTrades
         //
         //    {
-        //       "h" => 80063441, // history $id
-        //       "i" => 1559912767, // oid
-        //       "I" => null, // cloid
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
-        //       "s" => "BTC",  // $symbol
-        //       "p" => "89477", // $price
-        //       "o" => "89505", // entry $price
-        //       "a" => "0.00036", // $amount
-        //       "te" => "fulfill_taker",
-        //       "ts" => "close_long",
-        //       "tc" => "normal", // $trade type
-        //       "f" => "0.012885", // $fee
-        //       "n" => "-0.022965", // pnl
-        //       "t" => 1765018588190,
-        //       "li" => 1559912767
+        //       "h": 80063441, // history id
+        //       "i": 1559912767, // oid
+        //       "I": null, // cloid
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        //       "s": "BTC",  // symbol
+        //       "p": "89477", // price
+        //       "o": "89505", // entry price
+        //       "a": "0.00036", // amount
+        //       "te": "fulfill_taker",
+        //       "ts": "close_long",
+        //       "tc": "normal", // trade type
+        //       "f": "0.012885", // fee
+        //       "n": "-0.022965", // pnl
+        //       "t": 1765018588190,
+        //       "li": 1559912767
         //     }
         //
         // fetchTrades
         //
         //     {
-        //       "h" => 80062522,
-        //       "s" => "BTC",
-        //       "a" => "0.00001",
-        //       "p" => "89471",
-        //       "d" => "close_short",
-        //       "tc" => "normal",
-        //       "t" => 1765018379085,
-        //       "li" => 1559885104
+        //       "h": 80062522,
+        //       "s": "BTC",
+        //       "a": "0.00001",
+        //       "p": "89471",
+        //       "d": "close_short",
+        //       "tc": "normal",
+        //       "t": 1765018379085,
+        //       "li": 1559885104
         //     }
         //
         $timestamp = $this->safe_integer($trade, 't');
@@ -1007,7 +1007,7 @@ class pacifica extends \ccxt\async\pacifica {
             $takerOrMaker = ($eventType === 'fulfill_maker') ? 'maker' : 'taker';
         }
         $orderId = $this->safe_string($trade, 'i');
-        // public trades have no $orderId
+        // public trades have no orderId
         if ($orderId === null) {
             $takerOrMaker = null;
         }
@@ -1043,7 +1043,7 @@ class pacifica extends \ccxt\async\pacifica {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1084,7 +1084,7 @@ class pacifica extends \ccxt\async\pacifica {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1108,21 +1108,21 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messagehash, $message, $messagehash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
-        //   "channel" => "candle",
-        //   "data" => {
-        //     "t" => 1749052260000,
-        //     "T" => 1749052320000,
-        //     "s" => "SOL",
-        //     "i" => "1m",
-        //     "o" => "157.3",
-        //     "c" => "157.32",
-        //     "h" => "157.32",
-        //     "l" => "157.3",
-        //     "v" => "1.22",
-        //     "n" => 8
+        //   "channel": "candle",
+        //   "data": {
+        //     "t": 1749052260000,
+        //     "T": 1749052320000,
+        //     "s": "SOL",
+        //     "i": "1m",
+        //     "o": "157.3",
+        //     "c": "157.32",
+        //     "h": "157.32",
+        //     "l": "157.3",
+        //     "v": "1.22",
+        //     "n": 8
         //   }
         // }
         //
@@ -1137,7 +1137,7 @@ class pacifica extends \ccxt\async\pacifica {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        $symbolOhlcvs = $this->safe_value($this->ohlcvs, $symbol, array());
+        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
         $ohlcv = $this->safe_value($symbolOhlcvs, $timeframe);
         if ($ohlcv === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -1235,33 +1235,33 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         // not snapshot, only updates
         // {
-        //   "channel" => "account_order_updates",
-        //   "data" => array(
+        //   "channel": "account_order_updates",
+        //   "data": [
         //     {
-        //       "i" => 1559665358,
-        //       "I" => null,
-        //       "u" => "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
-        //       "s" => "BTC",
-        //       "d" => "bid",
-        //       "p" => "89501",
-        //       "ip" => "89501",
-        //       "lp" => "89501",
-        //       "a" => "0.00012",
-        //       "f" => "0.00012",
-        //       "oe" => "fulfill_limit",
-        //       "os" => "filled",
-        //       "ot" => "limit",
-        //       "sp" => null,
-        //       "si" => null,
-        //       "r" => false,
-        //       "ct" => 1765017049008,
-        //       "ut" => 1765017219639,
-        //       "li" => 1559696133
+        //       "i": 1559665358,
+        //       "I": null,
+        //       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",
+        //       "s": "BTC",
+        //       "d": "bid",
+        //       "p": "89501",
+        //       "ip": "89501",
+        //       "lp": "89501",
+        //       "a": "0.00012",
+        //       "f": "0.00012",
+        //       "oe": "fulfill_limit",
+        //       "os": "filled",
+        //       "ot": "limit",
+        //       "sp": null,
+        //       "si": null,
+        //       "r": false,
+        //       "ct": 1765017049008,
+        //       "ut": 1765017219639,
+        //       "li": 1559696133
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($message, 'data', array());
         if ($this->orders === null) {
@@ -1293,10 +1293,10 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
-        // array("id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":array("r":1245,"q":1250,"t":56))
+        // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
         //
         $error = $this->safe_string($message, 'err', '');
         $postType = $this->safe_string($message, 'type', '');
@@ -1387,22 +1387,22 @@ class pacifica extends \ccxt\async\pacifica {
         $this->clean_cache($topicStructure);
     }
 
-    public function handle_subscription_response(Client $client, mixed $message) {
+    public function handle_subscription_response(Client $client, array $message) {
         //  {
-        //      "channel" => "subscribe",
-        //      "data" => {
-        //          "source" => "book",
-        //          "symbol" => "SOL",
-        //          "agg_level" => 1
+        //      "channel": "subscribe",
+        //      "data": {
+        //          "source": "book",
+        //          "symbol": "SOL",
+        //          "agg_level": 1
         //      }
         //  }
         //
         //  {
-        //      "channel" => "unsubscribe",
-        //      "data" => {
-        //          "source" => "book",
-        //          "symbol" => "SOL",
-        //          "agg_level" => 1
+        //      "channel": "unsubscribe",
+        //      "data": {
+        //          "source": "book",
+        //          "symbol": "SOL",
+        //          "agg_level": 1
         //      }
         //  }
         //
@@ -1484,10 +1484,10 @@ class pacifica extends \ccxt\async\pacifica {
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
-        //       "channel" => "pong"
+        //       "channel": "pong"
         //   }
         //
         $client->lastPong = $this->safe_integer($message, 'pong', $this->milliseconds());
@@ -1515,28 +1515,28 @@ class pacifica extends \ccxt\async\pacifica {
         //
         // market order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_market_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_market_order"
         // }
         //
         // limit order
         // {
-        //   "code" => 200,
-        //   "data" => array(
-        //     "I" => "79f948fd-7556-4066-a128-083f3ea49322",
-        //     "i" => 645953,
-        //     "s" => "BTC"
-        //   ),
-        //   "id" => "660065de-8f32-46ad-ba1e-83c93d3e3966",
-        //   "t" => 1749223025962,
-        //   "type" => "create_order"
+        //   "code": 200,
+        //   "data": {
+        //     "I": "79f948fd-7556-4066-a128-083f3ea49322",
+        //     "i": 645953,
+        //     "s": "BTC"
+        //   },
+        //   "id": "660065de-8f32-46ad-ba1e-83c93d3e3966",
+        //   "t": 1749223025962,
+        //   "type": "create_order"
         // }
         //
         $id = $this->safe_string($message, 'id');

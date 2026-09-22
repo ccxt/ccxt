@@ -11,6 +11,111 @@ public partial class alpaca : Exchange
 {
     public alpaca (object args = null): base(args) {}
 
+    /// <summary>Calls the brokerPrivateGetV1AccountsAccountIdTokenizationRequests endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> brokerPrivateGetV1AccountsAccountIdTokenizationRequests (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("brokerPrivateGetV1AccountsAccountIdTokenizationRequests",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1FpslAnalyticsAccountIdLoans endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1FpslAnalyticsAccountIdLoans (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1FpslAnalyticsAccountIdLoans",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1Ipos endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1Ipos (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1Ipos",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1IposOfferingReference endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1IposOfferingReference (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1IposOfferingReference",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1WalletsTravelRuleVasps endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1WalletsTravelRuleVasps (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1WalletsTravelRuleVasps",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1beta1Acats endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1beta1Acats (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1beta1Acats",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1beta1AcatsContrabrokers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1beta1AcatsContrabrokers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1beta1AcatsContrabrokers",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1beta1AcatsAccountId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1beta1AcatsAccountId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1beta1AcatsAccountId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1beta1AcatsAccountIdAcatsId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivateGetV1beta1AcatsAccountIdAcatsId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivateGetV1beta1AcatsAccountIdAcatsId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivatePostV1beta1AcatsAccountId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivatePostV1beta1AcatsAccountId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivatePostV1beta1AcatsAccountId",parameters);
+    }
+
+    /// <summary>Calls the brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo",parameters);
+    }
+
     /// <summary>Calls the traderPrivateGetV2Account endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> traderPrivateGetV2Account (object parameters = null)
@@ -151,6 +256,55 @@ public partial class alpaca : Exchange
         return await this.callAsync<List<object>> ("traderPrivateGetV2WalletsTransfers",parameters);
     }
 
+    /// <summary>Calls the traderPrivateGetV1Locates endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV1Locates (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV1Locates",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV1LocatesLocateId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV1LocatesLocateId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV1LocatesLocateId",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV1LocatesQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV1LocatesQuotes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV1LocatesQuotes",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV2TokenizationRequests endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> traderPrivateGetV2TokenizationRequests (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("traderPrivateGetV2TokenizationRequests",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV2TokenizationRequestsTokenizationRequestId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV2TokenizationRequestsTokenizationRequestId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV2TokenizationRequestsTokenizationRequestId",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV2TokenizationRequestsByClientRequestId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV2TokenizationRequestsByClientRequestId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV2TokenizationRequestsByClientRequestId",parameters);
+    }
+
+    /// <summary>Calls the traderPrivateGetV2WalletsTravelRuleVasps endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivateGetV2WalletsTravelRuleVasps (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivateGetV2WalletsTravelRuleVasps",parameters);
+    }
+
     /// <summary>Calls the traderPrivatePostV2Orders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> traderPrivatePostV2Orders (object parameters = null)
@@ -186,6 +340,13 @@ public partial class alpaca : Exchange
         return await this.callAsync<Dictionary<string, object>> ("traderPrivatePostV2WalletsTransfers",parameters);
     }
 
+    /// <summary>Calls the traderPrivatePostV1Locates endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivatePostV1Locates (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivatePostV1Locates",parameters);
+    }
+
     /// <summary>Calls the traderPrivatePutV2OrdersOrderId endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> traderPrivatePutV2OrdersOrderId (object parameters = null)
@@ -219,6 +380,13 @@ public partial class alpaca : Exchange
     public async Task<Dictionary<string, object>> traderPrivatePatchV2AccountConfigurations (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("traderPrivatePatchV2AccountConfigurations",parameters);
+    }
+
+    /// <summary>Calls the traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo",parameters);
     }
 
     /// <summary>Calls the traderPrivateDeleteV2Orders endpoint.</summary>
@@ -331,6 +499,20 @@ public partial class alpaca : Exchange
     public async Task<Dictionary<string, object>> marketPrivateGetV1beta1CorporateActions (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("marketPrivateGetV1beta1CorporateActions",parameters);
+    }
+
+    /// <summary>Calls the marketPrivateGetV1beta1FixedIncomeLatestPrices endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> marketPrivateGetV1beta1FixedIncomeLatestPrices (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("marketPrivateGetV1beta1FixedIncomeLatestPrices",parameters);
+    }
+
+    /// <summary>Calls the marketPrivateGetV1beta1FixedIncomeLatestQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> marketPrivateGetV1beta1FixedIncomeLatestQuotes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("marketPrivateGetV1beta1FixedIncomeLatestQuotes",parameters);
     }
 
     /// <summary>Calls the marketPrivateGetV1beta1ForexLatestRates endpoint.</summary>

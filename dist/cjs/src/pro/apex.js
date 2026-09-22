@@ -100,7 +100,7 @@ class apex extends apex$1["default"] {
         }
         const trades = await this.watchTopics(url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -127,7 +127,7 @@ class apex extends apex$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeList(message, 'data', []);
         const topic = this.safeString(message, 'topic');
         const trades = data;
         const parts = topic.split('.');
@@ -531,7 +531,7 @@ class apex extends apex$1["default"] {
         //         "type": "snapshot"
         //     }
         //
-        const data = this.safeValue(message, 'data', {});
+        const data = this.safeList(message, 'data', []);
         const topic = this.safeString(message, 'topic');
         const topicParts = topic.split('.');
         const topicLength = topicParts.length;
@@ -946,10 +946,10 @@ class apex extends apex$1["default"] {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], msg, feedback);
                 throw new errors.ExchangeError(feedback);
             }
-            const success = this.safeValue(message, 'success');
+            const success = this.safeBool(message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
-                const request = this.safeValue(message, 'request', {});
+                const request = this.safeDict(message, 'request', {});
                 const op = this.safeString(request, 'op');
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -986,6 +986,12 @@ class apex extends apex$1["default"] {
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message) === true) {
+            return;
+        }
+        const ret_msg = this.safeString(message, 'ret_msg');
+        const pong = this.safeInteger(message, 'pong');
+        if (ret_msg === 'pong' || pong !== undefined) {
+            this.handlePong(client, message);
             return;
         }
         const topic = this.safeString2(message, 'topic', 'op', '');
@@ -1059,6 +1065,7 @@ class apex extends apex$1["default"] {
         return message;
     }
     handlePing(client, message) {
+        client.lastPong = this.milliseconds();
         this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {
@@ -1085,7 +1092,7 @@ class apex extends apex$1["default"] {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        const success = this.safeValue(message, 'success');
+        const success = this.safeBool(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {

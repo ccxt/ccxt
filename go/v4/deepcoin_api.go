@@ -8,266 +8,346 @@
 package ccxt
 
 // PublicGetDeepcoinMarketBooks returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketBooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketBooks", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketBooks(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/books", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketCandles returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketCandles", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketCandles(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketInstruments returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketInstruments", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketInstruments(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketTickers returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketTickers", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketTickers(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketIndexCandles returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketIndexCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketIndexCandles", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketIndexCandles(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/index-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketTrades returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketTrades", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketTrades(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketMarkPriceCandles returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketMarkPriceCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketMarkPriceCandles", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketMarkPriceCandles(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/mark-price-candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetDeepcoinMarketMarkPrice returns a channel that yields a JSON object.
+func (this *Deepcoin) PublicGetDeepcoinMarketMarkPrice(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/mark-price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetDeepcoinMarketOpenInterestVolume returns a channel that yields a JSON object.
+func (this *Deepcoin) PublicGetDeepcoinMarketOpenInterestVolume(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/open-interest-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetDeepcoinMarketLongShortRatio returns a channel that yields a JSON object.
+func (this *Deepcoin) PublicGetDeepcoinMarketLongShortRatio(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/long-short-ratio", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetDeepcoinMarketTakerVolume returns a channel that yields a JSON object.
+func (this *Deepcoin) PublicGetDeepcoinMarketTakerVolume(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/taker-volume", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetDeepcoinMarketStepMargin returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinMarketStepMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinMarketStepMargin", args...)
+func (this *Deepcoin) PublicGetDeepcoinMarketStepMargin(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/market/step-margin", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetDeepcoinTradeFundingRate returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundingRate", args...)
+func (this *Deepcoin) PublicGetDeepcoinTradeFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/funding-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetDeepcoinTradeFundRateCurrentFundingRate returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateCurrentFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateCurrentFundingRate", args...)
+func (this *Deepcoin) PublicGetDeepcoinTradeFundRateCurrentFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/fund-rate/current-funding-rate", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetDeepcoinTradeFundRateHistory returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PublicGetDeepcoinTradeFundRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDeepcoinTradeFundRateHistory", args...)
+func (this *Deepcoin) PublicGetDeepcoinTradeFundRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/fund-rate/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAccountBalances returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountBalances", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAccountBalances(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinAccountAllBalances returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinAccountAllBalances(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/all-balances", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAccountBills returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountBills", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAccountBills(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/bills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAccountPositions returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAccountPositions", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAccountPositions(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/positions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinAccountTradeFee returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinAccountTradeFee(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/trade-fee", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinAccountLeverageInfo returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinAccountLeverageInfo(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/leverage-info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinAccountPositionsHistory returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinAccountPositionsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/positions-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeFills returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFills(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFills", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeFills(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeOrderByID returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrderByID(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeOrderByID", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeOrderByID(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/orderByID", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinTradeOrder returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeFinishOrderByID returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeFinishOrderByID(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeFinishOrderByID", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeFinishOrderByID(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/finishOrderByID", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeOrdersHistory returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeOrdersHistory", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/orders-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeV2OrdersPending returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeV2OrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeV2OrdersPending", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeV2OrdersPending(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/v2/orders-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeTriggerOrdersPending returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersPending(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersPending", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeTriggerOrdersPending(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/trigger-orders-pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinTradeTriggerOrdersHistory returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinTradeTriggerOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinTradeTriggerOrdersHistory", args...)
+func (this *Deepcoin) PrivateGetDeepcoinTradeTriggerOrdersHistory(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/trigger-orders-history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinCopytradingSupportContracts returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingSupportContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingSupportContracts", args...)
+func (this *Deepcoin) PrivateGetDeepcoinCopytradingSupportContracts(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/support-contracts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinCopytradingLeaderPosition returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingLeaderPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingLeaderPosition", args...)
+func (this *Deepcoin) PrivateGetDeepcoinCopytradingLeaderPosition(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/leader-position", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinCopytradingEstimateProfit returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingEstimateProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingEstimateProfit", args...)
+func (this *Deepcoin) PrivateGetDeepcoinCopytradingEstimateProfit(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/estimate-profit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinCopytradingHistoryProfit returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingHistoryProfit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingHistoryProfit", args...)
+func (this *Deepcoin) PrivateGetDeepcoinCopytradingHistoryProfit(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/history-profit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinCopytradingFollowerRank returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinCopytradingFollowerRank(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinCopytradingFollowerRank", args...)
+func (this *Deepcoin) PrivateGetDeepcoinCopytradingFollowerRank(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/follower-rank", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinInternalTransferSupport returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferSupport(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinInternalTransferSupport", args...)
+func (this *Deepcoin) PrivateGetDeepcoinInternalTransferSupport(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/internal-transfer/support", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinInternalTransferHistoryOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinInternalTransferHistoryOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinInternalTransferHistoryOrder", args...)
+func (this *Deepcoin) PrivateGetDeepcoinInternalTransferHistoryOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/internal-transfer/history-order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinRebateConfig returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinRebateConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinRebateConfig", args...)
+func (this *Deepcoin) PrivateGetDeepcoinRebateConfig(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/rebate/config", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAgentsUsers returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsers", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAgentsUsers(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/agents/users", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAgentsUsersRebateList returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebateList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebateList", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAgentsUsersRebateList(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/agents/users/rebate-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAgentsUsersRebates returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAgentsUsersRebates(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAgentsUsersRebates", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAgentsUsersRebates(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/agents/users/rebates", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAssetDepositList returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetDepositList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetDepositList", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAssetDepositList(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/asset/deposit-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAssetWithdrawList returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetWithdrawList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetWithdrawList", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAssetWithdrawList(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/asset/withdraw-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinAssetRechargeChainList returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinAssetRechargeChainList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinAssetRechargeChainList", args...)
+func (this *Deepcoin) PrivateGetDeepcoinAssetRechargeChainList(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/asset/recharge-chain-list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinListenkeyAcquire returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyAcquire(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinListenkeyAcquire", args...)
+func (this *Deepcoin) PrivateGetDeepcoinListenkeyAcquire(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/listenkey/acquire", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeepcoinListenkeyExtend returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyExtend(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeepcoinListenkeyExtend", args...)
+func (this *Deepcoin) PrivateGetDeepcoinListenkeyExtend(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/listenkey/extend", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivateGetDeepcoinSubAccountSubAccountApikey returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivateGetDeepcoinSubAccountSubAccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/sub-account/sub-account-apikey", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinAccountSetLeverage returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinAccountSetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinAccountSetLeverage", args...)
+func (this *Deepcoin) PrivatePostDeepcoinAccountSetLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/account/set-leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeReplaceOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeReplaceOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/replace-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeCancelOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeCancelOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/cancel-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeBatchCancelOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeBatchCancelOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeBatchCancelOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/batch-cancel-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeCancelTriggerOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeCancelTriggerOrder(args ...any) <-chan any {
+func (this *Deepcoin) PrivatePostDeepcoinTradeCancelTriggerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeepcoinTradeCancelTriggerOrder", args...)
 }
 
 // PrivatePostDeepcoinTradeSwapCancelAll returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeSwapCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeSwapCancelAll", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeSwapCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/swap/cancel-all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeTriggerOrder returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeTriggerOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeTriggerOrder", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeTriggerOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/trigger-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinTradeAmendTriggerOrder returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinTradeAmendTriggerOrder(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/amend-trigger-order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeBatchClosePosition returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeBatchClosePosition", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeBatchClosePosition(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/batch-close-position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeReplaceOrderSltp returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrderSltp(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeReplaceOrderSltp", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeReplaceOrderSltp(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/replace-order-sltp", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinTradeClosePositionByIds returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinTradeClosePositionByIds(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinTradeClosePositionByIds", args...)
+func (this *Deepcoin) PrivatePostDeepcoinTradeClosePositionByIds(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/close-position-by-ids", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinTradeIncreasePosition returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinTradeIncreasePosition(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/increase-position", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinTradeMergePositions returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinTradeMergePositions(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/trade/merge-positions", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinCopytradingLeaderSettings returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingLeaderSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinCopytradingLeaderSettings", args...)
+func (this *Deepcoin) PrivatePostDeepcoinCopytradingLeaderSettings(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/leader-settings", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinCopytradingSetContracts returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinCopytradingSetContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinCopytradingSetContracts", args...)
+func (this *Deepcoin) PrivatePostDeepcoinCopytradingSetContracts(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/copytrading/set-contracts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinInternalTransfer returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinInternalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinInternalTransfer", args...)
+func (this *Deepcoin) PrivatePostDeepcoinInternalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/internal-transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinRebateConfig returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinRebateConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinRebateConfig", args...)
+func (this *Deepcoin) PrivatePostDeepcoinRebateConfig(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/rebate/config", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostDeepcoinAssetTransfer returns a channel that yields a JSON object.
-func (this *DeepcoinCore) PrivatePostDeepcoinAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDeepcoinAssetTransfer", args...)
+func (this *Deepcoin) PrivatePostDeepcoinAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/asset/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinSubAccountCreateSubAccount returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinSubAccountCreateSubAccount(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/sub-account/create-sub-account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinSubAccountSubAccountApikey returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinSubAccountSubAccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/sub-account/sub-account-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// PrivatePostDeepcoinSubAccountDeleteSubAccountApikey returns a channel that yields a JSON object.
+func (this *Deepcoin) PrivatePostDeepcoinSubAccountDeleteSubAccountApikey(args ...any) <-chan any {
+	return this.Fetch2Async("deepcoin/sub-account/delete-sub-account-apikey", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }

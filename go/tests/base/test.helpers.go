@@ -173,6 +173,13 @@ func IsEqual(a, b interface{}) bool {
 	return ccxt.IsEqual(a, b)
 }
 
+// the printer's bounds-checked element read wraps its result in DerefScalar() (the go/v4
+// helper of that name); this package keeps the emitted code free of the `ccxt.` qualifier
+// through its local set of wrappers
+func DerefScalar(v any) any {
+	return ccxt.DerefScalar(v)
+}
+
 func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) {
 	return ccxt.NormalizeAndConvert(a, b)
 }
@@ -427,7 +434,14 @@ func Print(v ...interface{}) {
 }
 
 func ReturnPanicError(ch chan interface{}) {
-	ccxt.ReturnPanicError(ch)
+	// recover() only stops a panic when called directly by the deferred function —
+	// delegating to ccxt.ReturnPanicError made its recover() a nested call that
+	// returned nil, so any panic in a test goroutine killed the whole binary
+	if r := recover(); r != nil {
+		if r != "break" {
+			ch <- ccxt.PanicMessage(r)
+		}
+	}
 }
 
 func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {

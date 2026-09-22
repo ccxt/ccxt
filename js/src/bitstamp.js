@@ -174,12 +174,18 @@ export default class bitstamp extends Exchange {
                         'travel_rule/vasps/': { 'cost': 1 },
                         'funding_rate/{market_symbol}/': { 'cost': 1 },
                         'funding_rate_history/{pair}/': { 'cost': 1 },
+                        'derivatives/market_hours/': { 'cost': 1 },
+                        'derivatives/market_hours/{market_symbol}/': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': { 'cost': 1 },
                         'contacts/{contact_uuid}/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': { 'cost': 1 },
+                        'travel_rule/address_verification/': { 'cost': 1 },
+                        'crypto-transactions/deposits/': { 'cost': 1 },
                         'earn/subscriptions/': { 'cost': 1 },
                         'earn/transactions/': { 'cost': 1 },
                         'trade_history/': { 'cost': 1 },
@@ -195,6 +201,7 @@ export default class bitstamp extends Exchange {
                         'user_transactions/': { 'cost': 1 },
                         'user_transactions/{pair}/': { 'cost': 1 },
                         'crypto-transactions/': { 'cost': 1 },
+                        'crypto-transactions/deposits/{deposit_id}/reject/': { 'cost': 1 },
                         'open_order': { 'cost': 1 },
                         'open_orders/all/': { 'cost': 1 },
                         'open_orders/{pair}/': { 'cost': 1 },
@@ -226,6 +233,8 @@ export default class bitstamp extends Exchange {
                         'websockets_token/': { 'cost': 1 },
                         'revoke_all_api_keys/': { 'cost': 1 },
                         'get_max_order_amount/': { 'cost': 1 },
+                        'order_data/': { 'cost': 1 },
+                        'account_order_data/': { 'cost': 1 },
                         // individual coins
                         'btc_withdrawal/': { 'cost': 1 },
                         'btc_address/': { 'cost': 1 },
@@ -390,6 +399,8 @@ export default class bitstamp extends Exchange {
                         'ldo_withdrawal/': { 'cost': 1 },
                         'ldo_address/': { 'cost': 1 },
                         'travel_rule/contacts/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/': { 'cost': 1 },
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': { 'cost': 1 },
                         'earn/subscribe/': { 'cost': 1 },
                         'earn/subscriptions/setting/': { 'cost': 1 },
                         'earn/unsubscribe': { 'cost': 1 },
@@ -782,7 +793,7 @@ export default class bitstamp extends Exchange {
     async fetchMarketsFromCache(params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchMarkets', {});
+        const options = this.safeDict(this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
@@ -1314,6 +1325,7 @@ export default class bitstamp extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1326,15 +1338,27 @@ export default class bitstamp extends Exchange {
             'step': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = (until !== undefined);
         if (limit === undefined) {
+            limit = 1000;
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limit;
+                if (untilIsDefined) {
+                    const end = this.parseToInt(until / 1000);
+                    request['start'] = end - (duration * limit) - 1;
+                    request['end'] = end;
+                }
             }
             else {
-                limit = 1000;
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt(until / 1000);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limit - 1);
+                }
                 request['limit'] = limit;
             }
         }
@@ -1342,10 +1366,20 @@ export default class bitstamp extends Exchange {
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, duration * (limit - 1));
+                let end = this.sum(start, duration * limit - 1);
+                if (untilIsDefined) {
+                    end = Math.min(end, this.parseToInt(until / 1000));
+                }
+                request['end'] = end;
+            }
+            else if (untilIsDefined) {
+                const end = this.parseToInt(until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limit) - 1;
             }
             request['limit'] = Math.min(limit, 1000); // min 1, max 1000
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetOhlcPair(this.extend(request, params));
         //
         //     {
@@ -1359,7 +1393,7 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
@@ -1537,7 +1571,7 @@ export default class bitstamp extends Exchange {
         const ids = Object.keys(currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const fees = this.safeValue(response, i, {});
+            const fees = this.safeDict(response, i, {});
             const code = this.safeCurrencyCode(id);
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
@@ -1938,7 +1972,7 @@ export default class bitstamp extends Exchange {
         //         ]
         //     }
         //
-        const values = this.safeValue(response, 'funding_rate_history', []);
+        const values = this.safeList(response, 'funding_rate_history', []);
         return this.parseFundingRateHistories(values, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2275,7 +2309,7 @@ export default class bitstamp extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '/');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const amount = this.safeString(order, 'amount');
-        const transactions = this.safeValue(order, 'transactions', []);
+        const transactions = this.safeList(order, 'transactions', []);
         const price = this.safeString(order, 'price');
         return this.safeOrder({
             'id': id,
@@ -2467,14 +2501,16 @@ export default class bitstamp extends Exchange {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct(fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString(fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol(marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber(fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber(fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
@@ -2775,7 +2811,7 @@ export default class bitstamp extends Exchange {
                 errors.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push(all[i]);
                 }

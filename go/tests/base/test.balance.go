@@ -23,11 +23,11 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used")
 	var allCodes any = exchange.ArrayConcat(codesTotal, codesFree)
 	allCodes = exchange.ArrayConcat(allCodes, codesUsed)
-	var codesLength int = GetArrayLength(codesTotal)
-	var freeLength int = GetArrayLength(codesFree)
-	var usedLength int = GetArrayLength(codesUsed)
-	Assert(IsTrue((IsEqual(codesLength, freeLength))) || IsTrue((IsEqual(codesLength, usedLength))), Add("free and total and used codes have different lengths", logText))
-	for i := 0; IsLessThan(i, GetArrayLength(allCodes)); i++ {
+	var codesLength int = len(codesTotal)
+	var freeLength int = len(codesFree)
+	var usedLength int = len(codesUsed)
+	Assert((codesLength == freeLength) || (codesLength == usedLength), Add("free and total and used codes have different lengths", logText))
+	for i := 0; i < GetArrayLength(allCodes); i++ {
 		var code any = GetValue(allCodes, i)
 		// AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
 		Assert(InOp(GetValue(entry, "total"), code), Add(Add(Add("code ", code), " not in total"), logText))
@@ -36,13 +36,13 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 		var total any = exchange.SafeString(GetValue(entry, "total"), code)
 		var free any = exchange.SafeString(GetValue(entry, "free"), code)
 		var used any = exchange.SafeString(GetValue(entry, "used"), code)
-		Assert(!IsEqual(total, nil), Add("total is undefined", logText))
-		Assert(!IsEqual(free, nil), Add("free is undefined", logText))
-		Assert(!IsEqual(used, nil), Add("used is undefined", logText))
+		Assert((total != nil), Add("total is undefined", logText))
+		Assert((free != nil), Add("free is undefined", logText))
+		Assert((used != nil), Add("used is undefined", logText))
 		Assert(ccxt.Precise.StringGe(total, "0"), Add("total is not positive", logText))
 		Assert(ccxt.Precise.StringGe(free, "0"), Add("free is not positive", logText))
 		Assert(ccxt.Precise.StringGe(used, "0"), Add("used is not positive", logText))
-		var sumFreeUsed any = ccxt.Precise.StringAdd(free, used)
+		var sumFreeUsed *string = ccxt.Precise.StringAdd(free, used)
 		Assert(ccxt.Precise.StringEq(total, sumFreeUsed), Add("free and used do not sum to total", logText))
 	}
 }

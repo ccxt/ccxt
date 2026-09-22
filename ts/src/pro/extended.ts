@@ -55,7 +55,7 @@ export default class extended extends extendedRest {
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -74,7 +74,7 @@ export default class extended extends extendedRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -179,7 +179,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -207,14 +207,14 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         return await this.watchPrivate ('balance', params);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "type": "BALANCE",
@@ -285,7 +285,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -305,7 +305,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         //     {
         //         "type": "TRADE",
@@ -376,7 +376,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -395,7 +395,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //     {
         //         "type": "POSITION",
@@ -454,7 +454,7 @@ export default class extended extends extendedRest {
         client.resolve (newPositions, 'positions');
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict) {
         //
         //     {
         //         "type": "ORDER",
@@ -527,7 +527,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -545,7 +545,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -565,7 +565,7 @@ export default class extended extends extendedRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate: any, market: Market = undefined, message: any = undefined): FundingRate {
+    parseWsFundingRate (fundingRate: Dict, market: Market = undefined, message: NullableDict = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -601,7 +601,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -620,7 +620,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleMarkPrice (client: Client, message: any) {
+    handleMarkPrice (client: Client, message: Dict) {
         //
         //     {
         //         "type": "MP",
@@ -664,7 +664,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -686,7 +686,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -748,7 +748,7 @@ export default class extended extends extendedRest {
      * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -784,7 +784,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "ts": 1695738675123,
@@ -810,7 +810,7 @@ export default class extended extends extendedRest {
         const candleType = this.safeString (subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString (subscription, 'messageHash');
-        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol as string] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -845,11 +845,11 @@ export default class extended extends extendedRest {
         return undefined;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        const error = this.safeValue (message, 'error');
+        const error = this.safeDict (message, 'error');
         if (error === undefined) {
             return false;
         }
@@ -861,7 +861,7 @@ export default class extended extends extendedRest {
         throw new ExchangeError (feedback);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }

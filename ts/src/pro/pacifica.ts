@@ -103,7 +103,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -185,7 +185,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const batchOperationType = 'edit_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -242,7 +242,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const batchOperationType = 'batch_orders';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -318,7 +318,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const operationType = 'cancel_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -377,7 +377,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -418,7 +418,7 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -477,7 +477,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //   "channel": "book",
@@ -545,7 +545,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -559,7 +559,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -622,7 +622,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
         if (this.markets === undefined) {
@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any) {
+    handleWsTickers (client: Client, message: Dict): boolean {
         //
         // {
         //     "channel": "prices",
@@ -722,11 +722,11 @@ export default class pacifica extends pacificaRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "account_trades",
@@ -792,7 +792,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -848,7 +848,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "trades",
@@ -978,7 +978,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1038,7 +1038,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //   "channel": "candle",
@@ -1067,7 +1067,7 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
         let ohlcv = this.safeValue (symbolOhlcvs, timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1092,7 +1092,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1157,7 +1157,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1215,7 +1215,7 @@ export default class pacifica extends pacificaRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1293,7 +1293,7 @@ export default class pacifica extends pacificaRest {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'orders',
         };
         this.cleanCache (topicStructure);
@@ -1303,13 +1303,13 @@ export default class pacifica extends pacificaRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'myTrades',
         };
         this.cleanCache (topicStructure);
     }
 
-    handleSubscriptionResponse (client: Client, message: any) {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1406,7 +1406,7 @@ export default class pacifica extends pacificaRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //   {
         //       "channel": "pong"

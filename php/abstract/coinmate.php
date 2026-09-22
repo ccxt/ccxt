@@ -394,6 +394,18 @@ abstract class coinmate extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_lightningdeposit($params = array()) {
+        return $this->request('lightningDeposit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_lightningwithdraw($params = array()) {
+        return $this->request('lightningWithdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetOrderBook($params = array()) {
         return $this->request('orderBook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -774,5 +786,17 @@ abstract class coinmate extends \ccxt\Exchange {
      */
     public function privatePostBankWireWithdrawal($params = array()) {
         return $this->request('bankWireWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostLightningDeposit($params = array()) {
+        return $this->request('lightningDeposit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostLightningWithdraw($params = array()) {
+        return $this->request('lightningWithdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

@@ -8,4041 +8,4111 @@
 package ccxt
 
 // SapiGetCopyTradingFuturesUserStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetCopyTradingFuturesUserStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCopyTradingFuturesUserStatus", args...)
+func (this *Binance) SapiGetCopyTradingFuturesUserStatus(args ...any) <-chan any {
+	return this.Fetch2Async("copyTrading/futures/userStatus", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetCopyTradingFuturesLeadSymbol returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetCopyTradingFuturesLeadSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCopyTradingFuturesLeadSymbol", args...)
+func (this *Binance) SapiGetCopyTradingFuturesLeadSymbol(args ...any) <-chan any {
+	return this.Fetch2Async("copyTrading/futures/leadSymbol", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetSystemStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSystemStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetSystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSystemStatus", args...)
 }
 
 // SapiGetAccountSnapshot returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountSnapshot(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetAccountSnapshot", args...)
+func (this *Binance) SapiGetAccountSnapshot(args ...any) <-chan any {
+	return this.Fetch2Async("accountSnapshot", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(240)})
 }
 
 // SapiGetAccountInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountInfo(args ...any) <-chan any {
+func (this *Binance) SapiGetAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountInfo", args...)
 }
 
 // SapiGetMarginAsset returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginAsset", args...)
+func (this *Binance) SapiGetMarginAsset(args ...any) <-chan any {
+	return this.Fetch2Async("margin/asset", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginPair returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginPair(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginPair", args...)
+func (this *Binance) SapiGetMarginPair(args ...any) <-chan any {
+	return this.Fetch2Async("margin/pair", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginAllAssets returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginAllAssets(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginAllAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllAssets", args...)
 }
 
 // SapiGetMarginAllPairs returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginAllPairs(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginAllPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAllPairs", args...)
 }
 
 // SapiGetMarginPriceIndex returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginPriceIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginPriceIndex", args...)
+func (this *Binance) SapiGetMarginPriceIndex(args ...any) <-chan any {
+	return this.Fetch2Async("margin/priceIndex", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSpotDelistSchedule returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSpotDelistSchedule(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSpotDelistSchedule", args...)
+func (this *Binance) SapiGetSpotDelistSchedule(args ...any) <-chan any {
+	return this.Fetch2Async("spot/delist-schedule", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetAssetAssetDividend returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetAssetDividend(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetAssetAssetDividend", args...)
+func (this *Binance) SapiGetAssetAssetDividend(args ...any) <-chan any {
+	return this.Fetch2Async("asset/assetDividend", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetAssetDribblet returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetDribblet(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetDribblet(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetDribblet", args...)
 }
 
 // SapiGetAssetTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetTransfer(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetTransfer", args...)
 }
 
 // SapiGetAssetAssetDetail returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetAssetDetail(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetAssetDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetAssetDetail", args...)
 }
 
 // SapiGetAssetTradeFee returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetTradeFee(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetTradeFee(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetTradeFee", args...)
 }
 
 // SapiGetAssetLedgerTransferCloudMiningQueryByPage returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetLedgerTransferCloudMiningQueryByPage(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetLedgerTransferCloudMiningQueryByPage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetLedgerTransferCloudMiningQueryByPage", args...)
 }
 
 // SapiGetAssetConvertTransferQueryByPage returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetConvertTransferQueryByPage(args ...any) <-chan any {
+func (this *Binance) SapiGetAssetConvertTransferQueryByPage(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAssetConvertTransferQueryByPage", args...)
 }
 
 // SapiGetAssetWalletBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetAssetWalletBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetAssetWalletBalance", args...)
+func (this *Binance) SapiGetAssetWalletBalance(args ...any) <-chan any {
+	return this.Fetch2Async("asset/wallet/balance", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // SapiGetAssetCustodyTransferHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAssetCustodyTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetAssetCustodyTransferHistory", args...)
+func (this *Binance) SapiGetAssetCustodyTransferHistory(args ...any) <-chan any {
+	return this.Fetch2Async("asset/custody/transfer-history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // SapiGetMarginBorrowRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginBorrowRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginBorrowRepay", args...)
+func (this *Binance) SapiGetMarginBorrowRepay(args ...any) <-chan any {
+	return this.Fetch2Async("margin/borrow-repay", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginLoan", args...)
+func (this *Binance) SapiGetMarginLoan(args ...any) <-chan any {
+	return this.Fetch2Async("margin/loan", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginRepay(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginRepay", args...)
+func (this *Binance) SapiGetMarginRepay(args ...any) <-chan any {
+	return this.Fetch2Async("margin/repay", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginAccount", args...)
+func (this *Binance) SapiGetMarginAccount(args ...any) <-chan any {
+	return this.Fetch2Async("margin/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginTransfer(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginTransfer", args...)
 }
 
 // SapiGetMarginInterestHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginInterestHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginInterestHistory", args...)
 }
 
 // SapiGetMarginForceLiquidationRec returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginForceLiquidationRec(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginForceLiquidationRec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginForceLiquidationRec", args...)
 }
 
 // SapiGetMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginOrder", args...)
+func (this *Binance) SapiGetMarginOrder(args ...any) <-chan any {
+	return this.Fetch2Async("margin/order", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginOpenOrders", args...)
+func (this *Binance) SapiGetMarginOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/openOrders", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginAllOrders", args...)
+func (this *Binance) SapiGetMarginAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/allOrders", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // SapiGetMarginMyTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginMyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginMyTrades", args...)
+func (this *Binance) SapiGetMarginMyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("margin/myTrades", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginMaxBorrowable returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginMaxBorrowable(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginMaxBorrowable", args...)
+func (this *Binance) SapiGetMarginMaxBorrowable(args ...any) <-chan any {
+	return this.Fetch2Async("margin/maxBorrowable", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiGetMarginMaxTransferable returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginMaxTransferable(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginMaxTransferable", args...)
+func (this *Binance) SapiGetMarginMaxTransferable(args ...any) <-chan any {
+	return this.Fetch2Async("margin/maxTransferable", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiGetMarginTradeCoeff returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginTradeCoeff(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginTradeCoeff", args...)
+func (this *Binance) SapiGetMarginTradeCoeff(args ...any) <-chan any {
+	return this.Fetch2Async("margin/tradeCoeff", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginIsolatedTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginIsolatedTransfer(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginIsolatedTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedTransfer", args...)
 }
 
 // SapiGetMarginIsolatedAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginIsolatedAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginIsolatedAccount", args...)
+func (this *Binance) SapiGetMarginIsolatedAccount(args ...any) <-chan any {
+	return this.Fetch2Async("margin/isolated/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginIsolatedPair returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginIsolatedPair(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginIsolatedPair", args...)
+func (this *Binance) SapiGetMarginIsolatedPair(args ...any) <-chan any {
+	return this.Fetch2Async("margin/isolated/pair", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginIsolatedAllPairs returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginIsolatedAllPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginIsolatedAllPairs", args...)
+func (this *Binance) SapiGetMarginIsolatedAllPairs(args ...any) <-chan any {
+	return this.Fetch2Async("margin/isolated/allPairs", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginIsolatedAccountLimit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginIsolatedAccountLimit(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginIsolatedAccountLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedAccountLimit", args...)
 }
 
 // SapiGetMarginInterestRateHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginInterestRateHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginInterestRateHistory", args...)
 }
 
 // SapiGetMarginOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginOrderList", args...)
+func (this *Binance) SapiGetMarginOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/orderList", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginAllOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginAllOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginAllOrderList", args...)
+func (this *Binance) SapiGetMarginAllOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/allOrderList", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // SapiGetMarginOpenOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginOpenOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginOpenOrderList", args...)
+func (this *Binance) SapiGetMarginOpenOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/openOrderList", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetMarginCrossMarginData returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginCrossMarginData(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginCrossMarginData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginCrossMarginData", args...)
 }
 
 // SapiGetMarginIsolatedMarginData returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginIsolatedMarginData(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginIsolatedMarginData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedMarginData", args...)
 }
 
 // SapiGetMarginIsolatedMarginTier returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginIsolatedMarginTier(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginIsolatedMarginTier(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginIsolatedMarginTier", args...)
 }
 
 // SapiGetMarginRateLimitOrder returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginRateLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginRateLimitOrder", args...)
+func (this *Binance) SapiGetMarginRateLimitOrder(args ...any) <-chan any {
+	return this.Fetch2Async("margin/rateLimit/order", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetMarginDribblet returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginDribblet(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginDribblet(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginDribblet", args...)
 }
 
 // SapiGetMarginDust returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginDust(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginDust", args...)
 }
 
 // SapiGetMarginCrossMarginCollateralRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginCrossMarginCollateralRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginCrossMarginCollateralRatio", args...)
+func (this *Binance) SapiGetMarginCrossMarginCollateralRatio(args ...any) <-chan any {
+	return this.Fetch2Async("margin/crossMarginCollateralRatio", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetMarginExchangeSmallLiability returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginExchangeSmallLiability(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginExchangeSmallLiability(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiability", args...)
 }
 
 // SapiGetMarginExchangeSmallLiabilityHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginExchangeSmallLiabilityHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginExchangeSmallLiabilityHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginExchangeSmallLiabilityHistory", args...)
 }
 
 // SapiGetMarginNextHourlyInterestRate returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginNextHourlyInterestRate(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginNextHourlyInterestRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginNextHourlyInterestRate", args...)
 }
 
 // SapiGetMarginCapitalFlow returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginCapitalFlow(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginCapitalFlow", args...)
+func (this *Binance) SapiGetMarginCapitalFlow(args ...any) <-chan any {
+	return this.Fetch2Async("margin/capital-flow", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetMarginDelistSchedule returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginDelistSchedule(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetMarginDelistSchedule", args...)
+func (this *Binance) SapiGetMarginDelistSchedule(args ...any) <-chan any {
+	return this.Fetch2Async("margin/delist-schedule", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetMarginAvailableInventory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMarginAvailableInventory(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginAvailableInventory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginAvailableInventory", args...)
 }
 
 // SapiGetMarginLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetMarginLeverageBracket(args ...any) <-chan any {
+func (this *Binance) SapiGetMarginLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMarginLeverageBracket", args...)
 }
 
 // SapiGetLoanVipLoanableData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipLoanableData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanVipLoanableData", args...)
+func (this *Binance) SapiGetLoanVipLoanableData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/vip/loanable/data", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanVipCollateralData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipCollateralData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanVipCollateralData", args...)
+func (this *Binance) SapiGetLoanVipCollateralData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/vip/collateral/data", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanVipRequestData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipRequestData(args ...any) <-chan any {
+func (this *Binance) SapiGetLoanVipRequestData(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipRequestData", args...)
 }
 
 // SapiGetLoanVipRequestInterestRate returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLoanVipRequestInterestRate(args ...any) <-chan any {
+func (this *Binance) SapiGetLoanVipRequestInterestRate(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanVipRequestInterestRate", args...)
 }
 
 // SapiGetLoanIncome returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLoanIncome(args ...any) <-chan any {
+func (this *Binance) SapiGetLoanIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLoanIncome", args...)
 }
 
 // SapiGetLoanOngoingOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanOngoingOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanOngoingOrders", args...)
+func (this *Binance) SapiGetLoanOngoingOrders(args ...any) <-chan any {
+	return this.Fetch2Async("loan/ongoing/orders", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanLtvAdjustmentHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanLtvAdjustmentHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanLtvAdjustmentHistory", args...)
+func (this *Binance) SapiGetLoanLtvAdjustmentHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/ltv/adjustment/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanBorrowHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanBorrowHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanBorrowHistory", args...)
+func (this *Binance) SapiGetLoanBorrowHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/borrow/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanRepayHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanRepayHistory", args...)
+func (this *Binance) SapiGetLoanRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/repay/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanLoanableData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanLoanableData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanLoanableData", args...)
+func (this *Binance) SapiGetLoanLoanableData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/loanable/data", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanCollateralData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanCollateralData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanCollateralData", args...)
+func (this *Binance) SapiGetLoanCollateralData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/collateral/data", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanRepayCollateralRate returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanRepayCollateralRate(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanRepayCollateralRate", args...)
+func (this *Binance) SapiGetLoanRepayCollateralRate(args ...any) <-chan any {
+	return this.Fetch2Async("loan/repay/collateral/rate", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(600)})
 }
 
 // SapiGetLoanFlexibleOngoingOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanFlexibleOngoingOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanFlexibleOngoingOrders", args...)
+func (this *Binance) SapiGetLoanFlexibleOngoingOrders(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/ongoing/orders", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // SapiGetLoanFlexibleBorrowHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanFlexibleBorrowHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanFlexibleBorrowHistory", args...)
+func (this *Binance) SapiGetLoanFlexibleBorrowHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/borrow/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanFlexibleRepayHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanFlexibleRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanFlexibleRepayHistory", args...)
+func (this *Binance) SapiGetLoanFlexibleRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/repay/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanFlexibleLtvAdjustmentHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanFlexibleLtvAdjustmentHistory", args...)
+func (this *Binance) SapiGetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/ltv/adjustment/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanVipOngoingOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipOngoingOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanVipOngoingOrders", args...)
+func (this *Binance) SapiGetLoanVipOngoingOrders(args ...any) <-chan any {
+	return this.Fetch2Async("loan/vip/ongoing/orders", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanVipRepayHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanVipRepayHistory", args...)
+func (this *Binance) SapiGetLoanVipRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/vip/repay/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiGetLoanVipCollateralAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLoanVipCollateralAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetLoanVipCollateralAccount", args...)
+func (this *Binance) SapiGetLoanVipCollateralAccount(args ...any) <-chan any {
+	return this.Fetch2Async("loan/vip/collateral/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(600)})
 }
 
 // SapiGetFiatOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetFiatOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetFiatOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFiatOrders", args...)
 }
 
 // SapiGetFiatPayments returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetFiatPayments(args ...any) <-chan any {
+func (this *Binance) SapiGetFiatPayments(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFiatPayments", args...)
 }
 
 // SapiGetFuturesTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetFuturesTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetFuturesTransfer", args...)
+func (this *Binance) SapiGetFuturesTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("futures/transfer", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetFuturesHistDataLink returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetFuturesHistDataLink(args ...any) <-chan any {
+func (this *Binance) SapiGetFuturesHistDataLink(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetFuturesHistDataLink", args...)
 }
 
 // SapiGetRebateTaxQuery returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetRebateTaxQuery(args ...any) <-chan any {
+func (this *Binance) SapiGetRebateTaxQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetRebateTaxQuery", args...)
 }
 
 // SapiGetCapitalConfigGetall returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalConfigGetall(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCapitalConfigGetall", args...)
+func (this *Binance) SapiGetCapitalConfigGetall(args ...any) <-chan any {
+	return this.Fetch2Async("capital/config/getall", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetCapitalDepositAddress returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetCapitalDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCapitalDepositAddress", args...)
+func (this *Binance) SapiGetCapitalDepositAddress(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/address", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetCapitalDepositAddressList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalDepositAddressList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCapitalDepositAddressList", args...)
+func (this *Binance) SapiGetCapitalDepositAddressList(args ...any) <-chan any {
+	return this.Fetch2Async("capital/deposit/address/list", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetCapitalDepositHisrec returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalDepositHisrec(args ...any) <-chan any {
+func (this *Binance) SapiGetCapitalDepositHisrec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositHisrec", args...)
 }
 
 // SapiGetCapitalDepositSubAddress returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetCapitalDepositSubAddress(args ...any) <-chan any {
+func (this *Binance) SapiGetCapitalDepositSubAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositSubAddress", args...)
 }
 
 // SapiGetCapitalDepositSubHisrec returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalDepositSubHisrec(args ...any) <-chan any {
+func (this *Binance) SapiGetCapitalDepositSubHisrec(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalDepositSubHisrec", args...)
 }
 
 // SapiGetCapitalWithdrawHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCapitalWithdrawHistory", args...)
+func (this *Binance) SapiGetCapitalWithdrawHistory(args ...any) <-chan any {
+	return this.Fetch2Async("capital/withdraw/history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetCapitalWithdrawAddressList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetCapitalWithdrawAddressList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetCapitalWithdrawAddressList", args...)
+func (this *Binance) SapiGetCapitalWithdrawAddressList(args ...any) <-chan any {
+	return this.Fetch2Async("capital/withdraw/address/list", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetCapitalContractConvertibleCoins returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetCapitalContractConvertibleCoins(args ...any) <-chan any {
+func (this *Binance) SapiGetCapitalContractConvertibleCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetCapitalContractConvertibleCoins", args...)
 }
 
 // SapiGetConvertTradeFlow returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetConvertTradeFlow(args ...any) <-chan any {
+func (this *Binance) SapiGetConvertTradeFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertTradeFlow", args...)
 }
 
 // SapiGetConvertExchangeInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetConvertExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetConvertExchangeInfo", args...)
+func (this *Binance) SapiGetConvertExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("convert/exchangeInfo", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // SapiGetConvertAssetInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetConvertAssetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetConvertAssetInfo", args...)
+func (this *Binance) SapiGetConvertAssetInfo(args ...any) <-chan any {
+	return this.Fetch2Async("convert/assetInfo", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // SapiGetConvertOrderStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetConvertOrderStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetConvertOrderStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertOrderStatus", args...)
 }
 
 // SapiGetConvertLimitQueryOpenOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetConvertLimitQueryOpenOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetConvertLimitQueryOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetConvertLimitQueryOpenOrders", args...)
 }
 
 // SapiGetAccountStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetAccountStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountStatus", args...)
 }
 
 // SapiGetAccountApiTradingStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountApiTradingStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetAccountApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiTradingStatus", args...)
 }
 
 // SapiGetAccountApiRestrictionsIpRestriction returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountApiRestrictionsIpRestriction(args ...any) <-chan any {
+func (this *Binance) SapiGetAccountApiRestrictionsIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiRestrictionsIpRestriction", args...)
 }
 
 // SapiGetBnbBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBnbBurn(args ...any) <-chan any {
+func (this *Binance) SapiGetBnbBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBnbBurn", args...)
 }
 
 // SapiGetSubAccountFuturesAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountFuturesAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountFuturesAccount", args...)
+func (this *Binance) SapiGetSubAccountFuturesAccount(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/futures/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountFuturesAccountSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountFuturesAccountSummary(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountFuturesAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesAccountSummary", args...)
 }
 
 // SapiGetSubAccountFuturesPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSubAccountFuturesPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountFuturesPositionRisk", args...)
+func (this *Binance) SapiGetSubAccountFuturesPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/futures/positionRisk", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountFuturesInternalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountFuturesInternalTransfer(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountFuturesInternalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountFuturesInternalTransfer", args...)
 }
 
 // SapiGetSubAccountList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountList(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountList", args...)
 }
 
 // SapiGetSubAccountMarginAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountMarginAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountMarginAccount", args...)
+func (this *Binance) SapiGetSubAccountMarginAccount(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/margin/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountMarginAccountSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountMarginAccountSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountMarginAccountSummary", args...)
+func (this *Binance) SapiGetSubAccountMarginAccountSummary(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/margin/accountSummary", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountSpotSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountSpotSummary(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountSpotSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSpotSummary", args...)
 }
 
 // SapiGetSubAccountStatus returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSubAccountStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountStatus", args...)
+func (this *Binance) SapiGetSubAccountStatus(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/status", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountSubTransferHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSubAccountSubTransferHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountSubTransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSubTransferHistory", args...)
 }
 
 // SapiGetSubAccountTransferSubUserHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSubAccountTransferSubUserHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountTransferSubUserHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountTransferSubUserHistory", args...)
 }
 
 // SapiGetSubAccountUniversalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountUniversalTransfer(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountUniversalTransfer", args...)
 }
 
 // SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", args...)
+func (this *Binance) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetSubAccountTransactionStatistics returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountTransactionStatistics(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountTransactionStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountTransactionStatistics", args...)
 }
 
 // SapiGetSubAccountSubAccountApiIpRestriction returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
+func (this *Binance) SapiGetSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSubAccountSubAccountApiIpRestriction", args...)
 }
 
 // SapiGetManagedSubaccountAsset returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetManagedSubaccountAsset(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountAsset", args...)
 }
 
 // SapiGetManagedSubaccountAccountSnapshot returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountAccountSnapshot(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetManagedSubaccountAccountSnapshot", args...)
+func (this *Binance) SapiGetManagedSubaccountAccountSnapshot(args ...any) <-chan any {
+	return this.Fetch2Async("managed-subaccount/accountSnapshot", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(240)})
 }
 
 // SapiGetManagedSubaccountQueryTransLogForInvestor returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountQueryTransLogForInvestor(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountQueryTransLogForInvestor(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForInvestor", args...)
 }
 
 // SapiGetManagedSubaccountQueryTransLogForTradeParent returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountQueryTransLogForTradeParent(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountQueryTransLogForTradeParent(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLogForTradeParent", args...)
 }
 
 // SapiGetManagedSubaccountFetchFutureAsset returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountFetchFutureAsset(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountFetchFutureAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountFetchFutureAsset", args...)
 }
 
 // SapiGetManagedSubaccountMarginAsset returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountMarginAsset(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountMarginAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountMarginAsset", args...)
 }
 
 // SapiGetManagedSubaccountInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountInfo(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountInfo", args...)
 }
 
 // SapiGetManagedSubaccountDepositAddress returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountDepositAddress(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountDepositAddress", args...)
 }
 
 // SapiGetManagedSubaccountQueryTransLog returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetManagedSubaccountQueryTransLog(args ...any) <-chan any {
+func (this *Binance) SapiGetManagedSubaccountQueryTransLog(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetManagedSubaccountQueryTransLog", args...)
 }
 
 // SapiGetLendingDailyProductList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingDailyProductList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingDailyProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyProductList", args...)
 }
 
 // SapiGetLendingDailyUserLeftQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingDailyUserLeftQuota(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingDailyUserLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyUserLeftQuota", args...)
 }
 
 // SapiGetLendingDailyUserRedemptionQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingDailyUserRedemptionQuota(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingDailyUserRedemptionQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyUserRedemptionQuota", args...)
 }
 
 // SapiGetLendingDailyTokenPosition returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingDailyTokenPosition(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingDailyTokenPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingDailyTokenPosition", args...)
 }
 
 // SapiGetLendingUnionAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingUnionAccount(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingUnionAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionAccount", args...)
 }
 
 // SapiGetLendingUnionPurchaseRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingUnionPurchaseRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingUnionPurchaseRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionPurchaseRecord", args...)
 }
 
 // SapiGetLendingUnionRedemptionRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingUnionRedemptionRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingUnionRedemptionRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionRedemptionRecord", args...)
 }
 
 // SapiGetLendingUnionInterestHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingUnionInterestHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingUnionInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingUnionInterestHistory", args...)
 }
 
 // SapiGetLendingProjectList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingProjectList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingProjectList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingProjectList", args...)
 }
 
 // SapiGetLendingProjectPositionList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingProjectPositionList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingProjectPositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingProjectPositionList", args...)
 }
 
 // SapiGetEthStakingEthHistoryStakingHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthHistoryStakingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthHistoryStakingHistory", args...)
+func (this *Binance) SapiGetEthStakingEthHistoryStakingHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/history/stakingHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingEthHistoryRedemptionHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthHistoryRedemptionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRedemptionHistory", args...)
+func (this *Binance) SapiGetEthStakingEthHistoryRedemptionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/history/redemptionHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingEthHistoryRewardsHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthHistoryRewardsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRewardsHistory", args...)
+func (this *Binance) SapiGetEthStakingEthHistoryRewardsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/history/rewardsHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingEthQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthQuota", args...)
+func (this *Binance) SapiGetEthStakingEthQuota(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/quota", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingEthHistoryRateHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthHistoryRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthHistoryRateHistory", args...)
+func (this *Binance) SapiGetEthStakingEthHistoryRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/history/rateHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingAccount", args...)
+func (this *Binance) SapiGetEthStakingAccount(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingWbethHistoryWrapHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingWbethHistoryWrapHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryWrapHistory", args...)
+func (this *Binance) SapiGetEthStakingWbethHistoryWrapHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/wbeth/history/wrapHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingWbethHistoryUnwrapHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingWbethHistoryUnwrapHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingWbethHistoryUnwrapHistory", args...)
+func (this *Binance) SapiGetEthStakingWbethHistoryUnwrapHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/wbeth/history/unwrapHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetEthStakingEthHistoryWbethRewardsHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEthStakingEthHistoryWbethRewardsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetEthStakingEthHistoryWbethRewardsHistory", args...)
+func (this *Binance) SapiGetEthStakingEthHistoryWbethRewardsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/history/wbethRewardsHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingSolHistoryStakingHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingSolHistoryStakingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingSolHistoryStakingHistory", args...)
+func (this *Binance) SapiGetSolStakingSolHistoryStakingHistory(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/history/stakingHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingSolHistoryRedemptionHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingSolHistoryRedemptionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRedemptionHistory", args...)
+func (this *Binance) SapiGetSolStakingSolHistoryRedemptionHistory(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/history/redemptionHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingSolHistoryBnsolRewardsHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingSolHistoryBnsolRewardsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingSolHistoryBnsolRewardsHistory", args...)
+func (this *Binance) SapiGetSolStakingSolHistoryBnsolRewardsHistory(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/history/bnsolRewardsHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingSolHistoryRateHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingSolHistoryRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingSolHistoryRateHistory", args...)
+func (this *Binance) SapiGetSolStakingSolHistoryRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/history/rateHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingAccount", args...)
+func (this *Binance) SapiGetSolStakingAccount(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSolStakingSolQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSolStakingSolQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSolStakingSolQuota", args...)
+func (this *Binance) SapiGetSolStakingSolQuota(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/quota", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetMiningPubAlgoList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningPubAlgoList(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningPubAlgoList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPubAlgoList", args...)
 }
 
 // SapiGetMiningPubCoinList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningPubCoinList(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningPubCoinList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPubCoinList", args...)
 }
 
 // SapiGetMiningWorkerDetail returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningWorkerDetail(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningWorkerDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningWorkerDetail", args...)
 }
 
 // SapiGetMiningWorkerList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningWorkerList(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningWorkerList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningWorkerList", args...)
 }
 
 // SapiGetMiningPaymentList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningPaymentList(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningPaymentList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPaymentList", args...)
 }
 
 // SapiGetMiningStatisticsUserStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningStatisticsUserStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningStatisticsUserStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningStatisticsUserStatus", args...)
 }
 
 // SapiGetMiningStatisticsUserList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningStatisticsUserList(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningStatisticsUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningStatisticsUserList", args...)
 }
 
 // SapiGetMiningPaymentUid returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetMiningPaymentUid(args ...any) <-chan any {
+func (this *Binance) SapiGetMiningPaymentUid(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetMiningPaymentUid", args...)
 }
 
 // SapiGetBswapPools returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapPools(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapPools(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapPools", args...)
 }
 
 // SapiGetBswapLiquidity returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapLiquidity(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapLiquidity(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapLiquidity", args...)
 }
 
 // SapiGetBswapLiquidityOps returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapLiquidityOps(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapLiquidityOps(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapLiquidityOps", args...)
 }
 
 // SapiGetBswapQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBswapQuote(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapQuote", args...)
 }
 
 // SapiGetBswapSwap returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapSwap(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapSwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapSwap", args...)
 }
 
 // SapiGetBswapPoolConfigure returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapPoolConfigure(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapPoolConfigure(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapPoolConfigure", args...)
 }
 
 // SapiGetBswapAddLiquidityPreview returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBswapAddLiquidityPreview(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapAddLiquidityPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapAddLiquidityPreview", args...)
 }
 
 // SapiGetBswapRemoveLiquidityPreview returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBswapRemoveLiquidityPreview(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapRemoveLiquidityPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapRemoveLiquidityPreview", args...)
 }
 
 // SapiGetBswapUnclaimedRewards returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBswapUnclaimedRewards(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapUnclaimedRewards(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapUnclaimedRewards", args...)
 }
 
 // SapiGetBswapClaimedHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBswapClaimedHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetBswapClaimedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBswapClaimedHistory", args...)
 }
 
 // SapiGetBlvtTokenInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBlvtTokenInfo(args ...any) <-chan any {
+func (this *Binance) SapiGetBlvtTokenInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtTokenInfo", args...)
 }
 
 // SapiGetBlvtSubscribeRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBlvtSubscribeRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetBlvtSubscribeRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtSubscribeRecord", args...)
 }
 
 // SapiGetBlvtRedeemRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBlvtRedeemRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetBlvtRedeemRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtRedeemRecord", args...)
 }
 
 // SapiGetBlvtUserLimit returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBlvtUserLimit(args ...any) <-chan any {
+func (this *Binance) SapiGetBlvtUserLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetBlvtUserLimit", args...)
 }
 
 // SapiGetApiReferralIfNewUser returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetApiReferralIfNewUser(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralIfNewUser", args...)
+func (this *Binance) SapiGetApiReferralIfNewUser(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/ifNewUser", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralCustomization returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetApiReferralCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralCustomization", args...)
+func (this *Binance) SapiGetApiReferralCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/customization", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralUserCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetApiReferralUserCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralUserCustomization", args...)
+func (this *Binance) SapiGetApiReferralUserCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/userCustomization", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralRebateRecentRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetApiReferralRebateRecentRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralRebateRecentRecord", args...)
+func (this *Binance) SapiGetApiReferralRebateRecentRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/rebate/recentRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralRebateHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetApiReferralRebateHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralRebateHistoricalRecord", args...)
+func (this *Binance) SapiGetApiReferralRebateHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/rebate/historicalRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralKickbackRecentRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetApiReferralKickbackRecentRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralKickbackRecentRecord", args...)
+func (this *Binance) SapiGetApiReferralKickbackRecentRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/kickback/recentRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetApiReferralKickbackHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetApiReferralKickbackHistoricalRecord", args...)
+func (this *Binance) SapiGetApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/kickback/historicalRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountApi returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerSubAccountApi(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountApi", args...)
+func (this *Binance) SapiGetBrokerSubAccountApi(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccount returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerSubAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccount", args...)
+func (this *Binance) SapiGetBrokerSubAccount(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountApiCommissionFutures returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionFutures", args...)
+func (this *Binance) SapiGetBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/commission/futures", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountApiCommissionCoinFutures returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountApiCommissionCoinFutures", args...)
+func (this *Binance) SapiGetBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/commission/coinFutures", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerInfo", args...)
+func (this *Binance) SapiGetBrokerInfo(args ...any) <-chan any {
+	return this.Fetch2Async("broker/info", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerTransfer returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerTransfer", args...)
+func (this *Binance) SapiGetBrokerTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("broker/transfer", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerTransferFutures returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerTransferFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerTransferFutures", args...)
+func (this *Binance) SapiGetBrokerTransferFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/transfer/futures", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerRebateRecentRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerRebateRecentRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerRebateRecentRecord", args...)
+func (this *Binance) SapiGetBrokerRebateRecentRecord(args ...any) <-chan any {
+	return this.Fetch2Async("broker/rebate/recentRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerRebateHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerRebateHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerRebateHistoricalRecord", args...)
+func (this *Binance) SapiGetBrokerRebateHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("broker/rebate/historicalRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountBnbBurnStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerSubAccountBnbBurnStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountBnbBurnStatus", args...)
+func (this *Binance) SapiGetBrokerSubAccountBnbBurnStatus(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/bnbBurn/status", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountDepositHist returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerSubAccountDepositHist(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountDepositHist", args...)
+func (this *Binance) SapiGetBrokerSubAccountDepositHist(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/depositHist", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountSpotSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerSubAccountSpotSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountSpotSummary", args...)
+func (this *Binance) SapiGetBrokerSubAccountSpotSummary(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/spotSummary", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountMarginSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerSubAccountMarginSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountMarginSummary", args...)
+func (this *Binance) SapiGetBrokerSubAccountMarginSummary(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/marginSummary", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountFuturesSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerSubAccountFuturesSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountFuturesSummary", args...)
+func (this *Binance) SapiGetBrokerSubAccountFuturesSummary(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/futuresSummary", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerRebateFuturesRecentRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerRebateFuturesRecentRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerRebateFuturesRecentRecord", args...)
+func (this *Binance) SapiGetBrokerRebateFuturesRecentRecord(args ...any) <-chan any {
+	return this.Fetch2Async("broker/rebate/futures/recentRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerSubAccountApiIpRestriction returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerSubAccountApiIpRestriction", args...)
+func (this *Binance) SapiGetBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/ipRestriction", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetBrokerUniversalTransfer returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetBrokerUniversalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetBrokerUniversalTransfer", args...)
+func (this *Binance) SapiGetBrokerUniversalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("broker/universalTransfer", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiGetAccountApiRestrictions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccountApiRestrictions(args ...any) <-chan any {
+func (this *Binance) SapiGetAccountApiRestrictions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccountApiRestrictions", args...)
 }
 
 // SapiGetC2cOrderMatchListUserOrderHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetC2cOrderMatchListUserOrderHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetC2cOrderMatchListUserOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetC2cOrderMatchListUserOrderHistory", args...)
 }
 
 // SapiGetNftHistoryTransactions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetNftHistoryTransactions(args ...any) <-chan any {
+func (this *Binance) SapiGetNftHistoryTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryTransactions", args...)
 }
 
 // SapiGetNftHistoryDeposit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetNftHistoryDeposit(args ...any) <-chan any {
+func (this *Binance) SapiGetNftHistoryDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryDeposit", args...)
 }
 
 // SapiGetNftHistoryWithdraw returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetNftHistoryWithdraw(args ...any) <-chan any {
+func (this *Binance) SapiGetNftHistoryWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftHistoryWithdraw", args...)
 }
 
 // SapiGetNftUserGetAsset returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetNftUserGetAsset(args ...any) <-chan any {
+func (this *Binance) SapiGetNftUserGetAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetNftUserGetAsset", args...)
 }
 
 // SapiGetPayTransactions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPayTransactions(args ...any) <-chan any {
+func (this *Binance) SapiGetPayTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPayTransactions", args...)
 }
 
 // SapiGetGiftcardVerify returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetGiftcardVerify(args ...any) <-chan any {
+func (this *Binance) SapiGetGiftcardVerify(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardVerify", args...)
 }
 
 // SapiGetGiftcardCryptographyRsaPublicKey returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetGiftcardCryptographyRsaPublicKey(args ...any) <-chan any {
+func (this *Binance) SapiGetGiftcardCryptographyRsaPublicKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardCryptographyRsaPublicKey", args...)
 }
 
 // SapiGetGiftcardBuyCodeTokenLimit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetGiftcardBuyCodeTokenLimit(args ...any) <-chan any {
+func (this *Binance) SapiGetGiftcardBuyCodeTokenLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetGiftcardBuyCodeTokenLimit", args...)
 }
 
 // SapiGetAlgoSpotOpenOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoSpotOpenOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoSpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotOpenOrders", args...)
 }
 
 // SapiGetAlgoSpotHistoricalOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoSpotHistoricalOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoSpotHistoricalOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotHistoricalOrders", args...)
 }
 
 // SapiGetAlgoSpotSubOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoSpotSubOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoSpotSubOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoSpotSubOrders", args...)
 }
 
 // SapiGetAlgoFuturesOpenOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoFuturesOpenOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoFuturesOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesOpenOrders", args...)
 }
 
 // SapiGetAlgoFuturesHistoricalOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoFuturesHistoricalOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoFuturesHistoricalOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesHistoricalOrders", args...)
 }
 
 // SapiGetAlgoFuturesSubOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAlgoFuturesSubOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetAlgoFuturesSubOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAlgoFuturesSubOrders", args...)
 }
 
 // SapiGetPortfolioAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioAccount(args ...any) <-chan any {
+func (this *Binance) SapiGetPortfolioAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioAccount", args...)
 }
 
 // SapiGetPortfolioCollateralRate returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioCollateralRate(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioCollateralRate", args...)
+func (this *Binance) SapiGetPortfolioCollateralRate(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/collateralRate", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiGetPortfolioPmLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioPmLoan(args ...any) <-chan any {
+func (this *Binance) SapiGetPortfolioPmLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioPmLoan", args...)
 }
 
 // SapiGetPortfolioInterestHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioInterestHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetPortfolioInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioInterestHistory", args...)
 }
 
 // SapiGetPortfolioAssetIndexPrice returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioAssetIndexPrice(args ...any) <-chan any {
+func (this *Binance) SapiGetPortfolioAssetIndexPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioAssetIndexPrice", args...)
 }
 
 // SapiGetPortfolioRepayFuturesSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioRepayFuturesSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioRepayFuturesSwitch", args...)
+func (this *Binance) SapiGetPortfolioRepayFuturesSwitch(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/repay-futures-switch", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // SapiGetPortfolioMarginAssetLeverage returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioMarginAssetLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioMarginAssetLeverage", args...)
+func (this *Binance) SapiGetPortfolioMarginAssetLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/margin-asset-leverage", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiGetPortfolioBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioBalance", args...)
+func (this *Binance) SapiGetPortfolioBalance(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/balance", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetPortfolioNegativeBalanceExchangeRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetPortfolioNegativeBalanceExchangeRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioNegativeBalanceExchangeRecord", args...)
+func (this *Binance) SapiGetPortfolioNegativeBalanceExchangeRecord(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/negative-balance-exchange-record", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiGetPortfolioPmloanHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioPmloanHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioPmloanHistory", args...)
+func (this *Binance) SapiGetPortfolioPmloanHistory(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/pmloan-history", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiGetPortfolioEarnAssetBalance returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioEarnAssetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
+func (this *Binance) SapiGetPortfolioEarnAssetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/earn-asset-balance", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiGetPortfolioDeltaMode returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetPortfolioDeltaMode(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
+func (this *Binance) SapiGetPortfolioDeltaMode(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/delta-mode", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
+}
+
+// SapiGetPortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *Binance) SapiGetPortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/margin-call-level", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiGetStakingProductList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetStakingProductList(args ...any) <-chan any {
+func (this *Binance) SapiGetStakingProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
 
 // SapiGetStakingPosition returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetStakingPosition(args ...any) <-chan any {
+func (this *Binance) SapiGetStakingPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingPosition", args...)
 }
 
 // SapiGetStakingStakingRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetStakingStakingRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetStakingStakingRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingStakingRecord", args...)
 }
 
 // SapiGetStakingPersonalLeftQuota returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetStakingPersonalLeftQuota(args ...any) <-chan any {
+func (this *Binance) SapiGetStakingPersonalLeftQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingPersonalLeftQuota", args...)
 }
 
 // SapiGetLendingAutoInvestTargetAssetList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestTargetAssetList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestTargetAssetList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetList", args...)
 }
 
 // SapiGetLendingAutoInvestTargetAssetRoiList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingAutoInvestTargetAssetRoiList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestTargetAssetRoiList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestTargetAssetRoiList", args...)
 }
 
 // SapiGetLendingAutoInvestAllAsset returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestAllAsset(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestAllAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestAllAsset", args...)
 }
 
 // SapiGetLendingAutoInvestSourceAssetList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestSourceAssetList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestSourceAssetList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestSourceAssetList", args...)
 }
 
 // SapiGetLendingAutoInvestPlanList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestPlanList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestPlanList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanList", args...)
 }
 
 // SapiGetLendingAutoInvestPlanId returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestPlanId(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestPlanId(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestPlanId", args...)
 }
 
 // SapiGetLendingAutoInvestHistoryList returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingAutoInvestHistoryList(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestHistoryList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestHistoryList", args...)
 }
 
 // SapiGetLendingAutoInvestIndexInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestIndexInfo(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestIndexInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexInfo", args...)
 }
 
 // SapiGetLendingAutoInvestIndexUserSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestIndexUserSummary(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestIndexUserSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestIndexUserSummary", args...)
 }
 
 // SapiGetLendingAutoInvestOneOffStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetLendingAutoInvestOneOffStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestOneOffStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestOneOffStatus", args...)
 }
 
 // SapiGetLendingAutoInvestRedeemHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingAutoInvestRedeemHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestRedeemHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestRedeemHistory", args...)
 }
 
 // SapiGetLendingAutoInvestRebalanceHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetLendingAutoInvestRebalanceHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetLendingAutoInvestRebalanceHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetLendingAutoInvestRebalanceHistory", args...)
 }
 
 // SapiGetSimpleEarnFlexibleList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleList", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleList(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/list", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedList", args...)
+func (this *Binance) SapiGetSimpleEarnLockedList(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/list", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexiblePersonalLeftQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexiblePersonalLeftQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePersonalLeftQuota", args...)
+func (this *Binance) SapiGetSimpleEarnFlexiblePersonalLeftQuota(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/personalLeftQuota", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedPersonalLeftQuota returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedPersonalLeftQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedPersonalLeftQuota", args...)
+func (this *Binance) SapiGetSimpleEarnLockedPersonalLeftQuota(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/personalLeftQuota", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleSubscriptionPreview returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleSubscriptionPreview(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleSubscriptionPreview", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleSubscriptionPreview(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/subscriptionPreview", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedSubscriptionPreview returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetSimpleEarnLockedSubscriptionPreview(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedSubscriptionPreview", args...)
+func (this *Binance) SapiGetSimpleEarnLockedSubscriptionPreview(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/subscriptionPreview", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleHistoryRateHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleHistoryRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRateHistory", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleHistoryRateHistory(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/history/rateHistory", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexiblePosition returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexiblePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexiblePosition", args...)
+func (this *Binance) SapiGetSimpleEarnFlexiblePosition(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/position", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedPosition returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedPosition", args...)
+func (this *Binance) SapiGetSimpleEarnLockedPosition(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/position", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnAccount", args...)
+func (this *Binance) SapiGetSimpleEarnAccount(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/account", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleHistorySubscriptionRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/history/subscriptionRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedHistorySubscriptionRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedHistorySubscriptionRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistorySubscriptionRecord", args...)
+func (this *Binance) SapiGetSimpleEarnLockedHistorySubscriptionRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/history/subscriptionRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleHistoryRedemptionRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/history/redemptionRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedHistoryRedemptionRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedHistoryRedemptionRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRedemptionRecord", args...)
+func (this *Binance) SapiGetSimpleEarnLockedHistoryRedemptionRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/history/redemptionRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleHistoryRewardsRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleHistoryRewardsRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", args...)
+func (this *Binance) SapiGetSimpleEarnFlexibleHistoryRewardsRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/history/rewardsRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnLockedHistoryRewardsRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnLockedHistoryRewardsRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiGetSimpleEarnLockedHistoryRewardsRecord", args...)
+func (this *Binance) SapiGetSimpleEarnLockedHistoryRewardsRecord(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/history/rewardsRecord", "sapi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiGetSimpleEarnFlexibleHistoryCollateralRecord returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetSimpleEarnFlexibleHistoryCollateralRecord(args ...any) <-chan any {
+func (this *Binance) SapiGetSimpleEarnFlexibleHistoryCollateralRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", args...)
 }
 
 // SapiGetDciProductList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetDciProductList(args ...any) <-chan any {
+func (this *Binance) SapiGetDciProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductList", args...)
 }
 
 // SapiGetDciProductPositions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetDciProductPositions(args ...any) <-chan any {
+func (this *Binance) SapiGetDciProductPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductPositions", args...)
 }
 
 // SapiGetDciProductAccounts returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetDciProductAccounts(args ...any) <-chan any {
+func (this *Binance) SapiGetDciProductAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
 // SapiGetAccumulatorProductList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccumulatorProductList(args ...any) <-chan any {
+func (this *Binance) SapiGetAccumulatorProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccumulatorProductList", args...)
 }
 
 // SapiGetAccumulatorProductPositionList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccumulatorProductPositionList(args ...any) <-chan any {
+func (this *Binance) SapiGetAccumulatorProductPositionList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccumulatorProductPositionList", args...)
 }
 
 // SapiGetAccumulatorProductSumHolding returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetAccumulatorProductSumHolding(args ...any) <-chan any {
+func (this *Binance) SapiGetAccumulatorProductSumHolding(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
 }
 
 // SapiGetEquityMarketExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityMarketExchangeInfo(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityMarketExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityMarketExchangeInfo", args...)
 }
 
 // SapiGetEquityMarketTokenizedAssets returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityMarketTokenizedAssets(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityMarketTokenizedAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityMarketTokenizedAssets", args...)
 }
 
 // SapiGetEquityMarketQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityMarketQuote(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityMarketQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityMarketQuote", args...)
 }
 
 // SapiGetEquityOrderOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiGetEquityOrderOpenOrders(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityOrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityOrderOpenOrders", args...)
 }
 
 // SapiGetEquityOrderHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityOrderHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityOrderHistory", args...)
 }
 
 // SapiGetEquityOrderDetail returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityOrderDetail(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityOrderDetail", args...)
 }
 
 // SapiGetEquityTradeHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityTradeHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityTradeHistory", args...)
 }
 
 // SapiGetEquityTokenizedConvertStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityTokenizedConvertStatus(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityTokenizedConvertStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityTokenizedConvertStatus", args...)
 }
 
 // SapiGetEquityTokenizedHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiGetEquityTokenizedHistory(args ...any) <-chan any {
+func (this *Binance) SapiGetEquityTokenizedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetEquityTokenizedHistory", args...)
 }
 
 // SapiPostAssetDust returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAssetDust(args ...any) <-chan any {
+func (this *Binance) SapiPostAssetDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
 
 // SapiPostAssetDustBtc returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAssetDustBtc(args ...any) <-chan any {
+func (this *Binance) SapiPostAssetDustBtc(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetDustBtc", args...)
 }
 
 // SapiPostAssetTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAssetTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetTransfer", args...)
 }
 
 // SapiPostAssetGetFundingAsset returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiPostAssetGetFundingAsset(args ...any) <-chan any {
+func (this *Binance) SapiPostAssetGetFundingAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetGetFundingAsset", args...)
 }
 
 // SapiPostAssetConvertTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAssetConvertTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostAssetConvertTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAssetConvertTransfer", args...)
 }
 
 // SapiPostAccountDisableFastWithdrawSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAccountDisableFastWithdrawSwitch(args ...any) <-chan any {
+func (this *Binance) SapiPostAccountDisableFastWithdrawSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccountDisableFastWithdrawSwitch", args...)
 }
 
 // SapiPostAccountEnableFastWithdrawSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAccountEnableFastWithdrawSwitch(args ...any) <-chan any {
+func (this *Binance) SapiPostAccountEnableFastWithdrawSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccountEnableFastWithdrawSwitch", args...)
 }
 
 // SapiPostCapitalWithdrawApply returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostCapitalWithdrawApply(args ...any) <-chan any {
+func (this *Binance) SapiPostCapitalWithdrawApply(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalWithdrawApply", args...)
 }
 
 // SapiPostCapitalContractConvertibleCoins returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostCapitalContractConvertibleCoins(args ...any) <-chan any {
+func (this *Binance) SapiPostCapitalContractConvertibleCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalContractConvertibleCoins", args...)
 }
 
 // SapiPostCapitalDepositCreditApply returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostCapitalDepositCreditApply(args ...any) <-chan any {
+func (this *Binance) SapiPostCapitalDepositCreditApply(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostCapitalDepositCreditApply", args...)
 }
 
 // SapiPostMarginBorrowRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginBorrowRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginBorrowRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginBorrowRepay", args...)
 }
 
 // SapiPostMarginTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginTransfer", args...)
 }
 
 // SapiPostMarginLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginLoan(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginLoan(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginLoan", args...)
 }
 
 // SapiPostMarginRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginRepay", args...)
 }
 
 // SapiPostMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginOrder(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginOrder", args...)
 }
 
 // SapiPostMarginOrderOco returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginOrderOco(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginOrderOco(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginOrderOco", args...)
 }
 
 // SapiPostMarginDust returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginDust(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginDust(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginDust", args...)
 }
 
 // SapiPostMarginExchangeSmallLiability returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginExchangeSmallLiability(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginExchangeSmallLiability(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginExchangeSmallLiability", args...)
 }
 
 // SapiPostMarginIsolatedTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginIsolatedTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginIsolatedTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginIsolatedTransfer", args...)
 }
 
 // SapiPostMarginIsolatedAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginIsolatedAccount(args ...any) <-chan any {
+func (this *Binance) SapiPostMarginIsolatedAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMarginIsolatedAccount", args...)
 }
 
 // SapiPostMarginMaxLeverage returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMarginMaxLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostMarginMaxLeverage", args...)
+func (this *Binance) SapiPostMarginMaxLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("margin/max-leverage", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
 }
 
 // SapiPostBnbBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBnbBurn(args ...any) <-chan any {
+func (this *Binance) SapiPostBnbBurn(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBnbBurn", args...)
 }
 
 // SapiPostSubAccountVirtualSubAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountVirtualSubAccount(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountVirtualSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountVirtualSubAccount", args...)
 }
 
 // SapiPostSubAccountMarginTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountMarginTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountMarginTransfer", args...)
 }
 
 // SapiPostSubAccountMarginEnable returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountMarginEnable(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountMarginEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountMarginEnable", args...)
 }
 
 // SapiPostSubAccountFuturesEnable returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountFuturesEnable(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountFuturesEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesEnable", args...)
 }
 
 // SapiPostSubAccountFuturesTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountFuturesTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesTransfer", args...)
 }
 
 // SapiPostSubAccountFuturesInternalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountFuturesInternalTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountFuturesInternalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountFuturesInternalTransfer", args...)
 }
 
 // SapiPostSubAccountTransferSubToSub returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountTransferSubToSub(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountTransferSubToSub(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountTransferSubToSub", args...)
 }
 
 // SapiPostSubAccountTransferSubToMaster returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountTransferSubToMaster(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountTransferSubToMaster(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountTransferSubToMaster", args...)
 }
 
 // SapiPostSubAccountUniversalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountUniversalTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountUniversalTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountUniversalTransfer", args...)
 }
 
 // SapiPostSubAccountOptionsEnable returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSubAccountOptionsEnable(args ...any) <-chan any {
+func (this *Binance) SapiPostSubAccountOptionsEnable(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSubAccountOptionsEnable", args...)
 }
 
 // SapiPostManagedSubaccountDeposit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostManagedSubaccountDeposit(args ...any) <-chan any {
+func (this *Binance) SapiPostManagedSubaccountDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostManagedSubaccountDeposit", args...)
 }
 
 // SapiPostManagedSubaccountWithdraw returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostManagedSubaccountWithdraw(args ...any) <-chan any {
+func (this *Binance) SapiPostManagedSubaccountWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostManagedSubaccountWithdraw", args...)
 }
 
 // SapiPostUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostUserDataStream(args ...any) <-chan any {
+func (this *Binance) SapiPostUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostUserDataStream", args...)
 }
 
 // SapiPostUserDataStreamIsolated returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostUserDataStreamIsolated(args ...any) <-chan any {
+func (this *Binance) SapiPostUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
 }
 
 // SapiPostUserListenToken returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostUserListenToken(args ...any) <-chan any {
+func (this *Binance) SapiPostUserListenToken(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostUserListenToken", args...)
 }
 
 // SapiPostFuturesTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostFuturesTransfer(args ...any) <-chan any {
+func (this *Binance) SapiPostFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostFuturesTransfer", args...)
 }
 
 // SapiPostLendingCustomizedFixedPurchase returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingCustomizedFixedPurchase(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingCustomizedFixedPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingCustomizedFixedPurchase", args...)
 }
 
 // SapiPostLendingDailyPurchase returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingDailyPurchase(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingDailyPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingDailyPurchase", args...)
 }
 
 // SapiPostLendingDailyRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingDailyRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingDailyRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingDailyRedeem", args...)
 }
 
 // SapiPostBswapLiquidityAdd returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBswapLiquidityAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBswapLiquidityAdd", args...)
+func (this *Binance) SapiPostBswapLiquidityAdd(args ...any) <-chan any {
+	return this.Fetch2Async("bswap/liquidityAdd", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // SapiPostBswapLiquidityRemove returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBswapLiquidityRemove(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBswapLiquidityRemove", args...)
+func (this *Binance) SapiPostBswapLiquidityRemove(args ...any) <-chan any {
+	return this.Fetch2Async("bswap/liquidityRemove", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // SapiPostBswapSwap returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBswapSwap(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBswapSwap", args...)
+func (this *Binance) SapiPostBswapSwap(args ...any) <-chan any {
+	return this.Fetch2Async("bswap/swap", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // SapiPostBswapClaimRewards returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBswapClaimRewards(args ...any) <-chan any {
+func (this *Binance) SapiPostBswapClaimRewards(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBswapClaimRewards", args...)
 }
 
 // SapiPostBlvtSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBlvtSubscribe(args ...any) <-chan any {
+func (this *Binance) SapiPostBlvtSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBlvtSubscribe", args...)
 }
 
 // SapiPostBlvtRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBlvtRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostBlvtRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostBlvtRedeem", args...)
 }
 
 // SapiPostApiReferralCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostApiReferralCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostApiReferralCustomization", args...)
+func (this *Binance) SapiPostApiReferralCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/customization", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostApiReferralUserCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostApiReferralUserCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostApiReferralUserCustomization", args...)
+func (this *Binance) SapiPostApiReferralUserCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/userCustomization", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostApiReferralRebateHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiPostApiReferralRebateHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostApiReferralRebateHistoricalRecord", args...)
+func (this *Binance) SapiPostApiReferralRebateHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/rebate/historicalRecord", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostApiReferralKickbackHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiPostApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostApiReferralKickbackHistoricalRecord", args...)
+func (this *Binance) SapiPostApiReferralKickbackHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/kickback/historicalRecord", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccount", args...)
+func (this *Binance) SapiPostBrokerSubAccount(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountMargin returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountMargin", args...)
+func (this *Binance) SapiPostBrokerSubAccountMargin(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/margin", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountFutures returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountFutures", args...)
+func (this *Binance) SapiPostBrokerSubAccountFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/futures", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApi returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApi(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApi", args...)
+func (this *Binance) SapiPostBrokerSubAccountApi(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiPermission returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiPermission(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermission", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiPermission(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/permission", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiCommission returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiCommission(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommission", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiCommission(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/commission", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiCommissionFutures returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionFutures", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiCommissionFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/commission/futures", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiCommissionCoinFutures returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiCommissionCoinFutures", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiCommissionCoinFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/commission/coinFutures", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerTransfer", args...)
+func (this *Binance) SapiPostBrokerTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("broker/transfer", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerTransferFutures returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerTransferFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerTransferFutures", args...)
+func (this *Binance) SapiPostBrokerTransferFutures(args ...any) <-chan any {
+	return this.Fetch2Async("broker/transfer/futures", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerRebateHistoricalRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiPostBrokerRebateHistoricalRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerRebateHistoricalRecord", args...)
+func (this *Binance) SapiPostBrokerRebateHistoricalRecord(args ...any) <-chan any {
+	return this.Fetch2Async("broker/rebate/historicalRecord", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountBnbBurnSpot returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountBnbBurnSpot(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnSpot", args...)
+func (this *Binance) SapiPostBrokerSubAccountBnbBurnSpot(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/bnbBurn/spot", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountBnbBurnMarginInterest returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountBnbBurnMarginInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountBnbBurnMarginInterest", args...)
+func (this *Binance) SapiPostBrokerSubAccountBnbBurnMarginInterest(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/bnbBurn/marginInterest", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountBlvt returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountBlvt(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountBlvt", args...)
+func (this *Binance) SapiPostBrokerSubAccountBlvt(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccount/blvt", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiIpRestriction returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestriction", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiIpRestriction(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/ipRestriction", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiIpRestrictionIpList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiIpRestrictionIpList", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/ipRestriction/ipList", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerUniversalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerUniversalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerUniversalTransfer", args...)
+func (this *Binance) SapiPostBrokerUniversalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("broker/universalTransfer", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiPermissionUniversalTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiPermissionUniversalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiPermissionUniversalTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/permission/universalTransfer", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostBrokerSubAccountApiPermissionVanillaOptions returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostBrokerSubAccountApiPermissionVanillaOptions(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostBrokerSubAccountApiPermissionVanillaOptions", args...)
+func (this *Binance) SapiPostBrokerSubAccountApiPermissionVanillaOptions(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/permission/vanillaOptions", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiPostGiftcardCreateCode returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostGiftcardCreateCode(args ...any) <-chan any {
+func (this *Binance) SapiPostGiftcardCreateCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardCreateCode", args...)
 }
 
 // SapiPostGiftcardRedeemCode returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostGiftcardRedeemCode(args ...any) <-chan any {
+func (this *Binance) SapiPostGiftcardRedeemCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardRedeemCode", args...)
 }
 
 // SapiPostGiftcardBuyCode returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostGiftcardBuyCode(args ...any) <-chan any {
+func (this *Binance) SapiPostGiftcardBuyCode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostGiftcardBuyCode", args...)
 }
 
 // SapiPostAlgoSpotNewOrderTwap returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAlgoSpotNewOrderTwap(args ...any) <-chan any {
+func (this *Binance) SapiPostAlgoSpotNewOrderTwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoSpotNewOrderTwap", args...)
 }
 
 // SapiPostAlgoFuturesNewOrderVp returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAlgoFuturesNewOrderVp(args ...any) <-chan any {
+func (this *Binance) SapiPostAlgoFuturesNewOrderVp(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderVp", args...)
 }
 
 // SapiPostAlgoFuturesNewOrderTwap returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAlgoFuturesNewOrderTwap(args ...any) <-chan any {
+func (this *Binance) SapiPostAlgoFuturesNewOrderTwap(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAlgoFuturesNewOrderTwap", args...)
 }
 
 // SapiPostStakingPurchase returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostStakingPurchase(args ...any) <-chan any {
+func (this *Binance) SapiPostStakingPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingPurchase", args...)
 }
 
 // SapiPostStakingRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostStakingRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostStakingRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingRedeem", args...)
 }
 
 // SapiPostStakingSetAutoStaking returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostStakingSetAutoStaking(args ...any) <-chan any {
+func (this *Binance) SapiPostStakingSetAutoStaking(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostStakingSetAutoStaking", args...)
 }
 
 // SapiPostEthStakingEthStake returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEthStakingEthStake(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostEthStakingEthStake", args...)
+func (this *Binance) SapiPostEthStakingEthStake(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/stake", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostEthStakingEthRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEthStakingEthRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostEthStakingEthRedeem", args...)
+func (this *Binance) SapiPostEthStakingEthRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/redeem", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostEthStakingWbethWrap returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEthStakingWbethWrap(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostEthStakingWbethWrap", args...)
+func (this *Binance) SapiPostEthStakingWbethWrap(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/wbeth/wrap", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostSolStakingSolStake returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSolStakingSolStake(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostSolStakingSolStake", args...)
+func (this *Binance) SapiPostSolStakingSolStake(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/stake", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostSolStakingSolRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSolStakingSolRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostSolStakingSolRedeem", args...)
+func (this *Binance) SapiPostSolStakingSolRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("sol-staking/sol/redeem", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostMiningHashTransferConfig returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMiningHashTransferConfig(args ...any) <-chan any {
+func (this *Binance) SapiPostMiningHashTransferConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMiningHashTransferConfig", args...)
 }
 
 // SapiPostMiningHashTransferConfigCancel returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostMiningHashTransferConfigCancel(args ...any) <-chan any {
+func (this *Binance) SapiPostMiningHashTransferConfigCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostMiningHashTransferConfigCancel", args...)
 }
 
 // SapiPostPortfolioRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostPortfolioRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioRepay", args...)
 }
 
 // SapiPostLoanVipRenew returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanVipRenew(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanVipRenew(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipRenew", args...)
 }
 
 // SapiPostLoanVipBorrow returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanVipBorrow(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanVipBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipBorrow", args...)
 }
 
 // SapiPostLoanBorrow returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanBorrow(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanBorrow", args...)
 }
 
 // SapiPostLoanRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanRepay", args...)
 }
 
 // SapiPostLoanAdjustLtv returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanAdjustLtv(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanAdjustLtv", args...)
 }
 
 // SapiPostLoanCustomizeMarginCall returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanCustomizeMarginCall(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanCustomizeMarginCall(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanCustomizeMarginCall", args...)
 }
 
 // SapiPostLoanFlexibleRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanFlexibleRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanFlexibleRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanFlexibleRepay", args...)
 }
 
 // SapiPostLoanFlexibleAdjustLtv returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanFlexibleAdjustLtv(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanFlexibleAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanFlexibleAdjustLtv", args...)
 }
 
 // SapiPostLoanVipRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLoanVipRepay(args ...any) <-chan any {
+func (this *Binance) SapiPostLoanVipRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLoanVipRepay", args...)
 }
 
 // SapiPostConvertGetQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostConvertGetQuote(args ...any) <-chan any {
+func (this *Binance) SapiPostConvertGetQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertGetQuote", args...)
 }
 
 // SapiPostConvertAcceptQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostConvertAcceptQuote(args ...any) <-chan any {
+func (this *Binance) SapiPostConvertAcceptQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertAcceptQuote", args...)
 }
 
 // SapiPostConvertLimitPlaceOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostConvertLimitPlaceOrder(args ...any) <-chan any {
+func (this *Binance) SapiPostConvertLimitPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertLimitPlaceOrder", args...)
 }
 
 // SapiPostConvertLimitCancelOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostConvertLimitCancelOrder(args ...any) <-chan any {
+func (this *Binance) SapiPostConvertLimitCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostConvertLimitCancelOrder", args...)
 }
 
 // SapiPostPortfolioAutoCollection returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioAutoCollection(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioAutoCollection", args...)
+func (this *Binance) SapiPostPortfolioAutoCollection(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/auto-collection", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostPortfolioAssetCollection returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioAssetCollection(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioAssetCollection", args...)
+func (this *Binance) SapiPostPortfolioAssetCollection(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/asset-collection", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // SapiPostPortfolioBnbTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioBnbTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioBnbTransfer", args...)
+func (this *Binance) SapiPostPortfolioBnbTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/bnb-transfer", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostPortfolioRepayFuturesSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioRepayFuturesSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesSwitch", args...)
+func (this *Binance) SapiPostPortfolioRepayFuturesSwitch(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/repay-futures-switch", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostPortfolioRepayFuturesNegativeBalance returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioRepayFuturesNegativeBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioRepayFuturesNegativeBalance", args...)
+func (this *Binance) SapiPostPortfolioRepayFuturesNegativeBalance(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/repay-futures-negative-balance", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostPortfolioMint returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioMint(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioMint", args...)
+func (this *Binance) SapiPostPortfolioMint(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/mint", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // SapiPostPortfolioRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioRedeem(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioRedeem", args...)
+func (this *Binance) SapiPostPortfolioRedeem(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/redeem", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // SapiPostPortfolioEarnAssetTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioEarnAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
+func (this *Binance) SapiPostPortfolioEarnAssetTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/earn-asset-transfer", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostPortfolioDeltaMode returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostPortfolioDeltaMode(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
+func (this *Binance) SapiPostPortfolioDeltaMode(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/delta-mode", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
+}
+
+// SapiPostPortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *Binance) SapiPostPortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/margin-call-level", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // SapiPostLendingAutoInvestPlanAdd returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingAutoInvestPlanAdd(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingAutoInvestPlanAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
 
 // SapiPostLendingAutoInvestPlanEdit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingAutoInvestPlanEdit(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingAutoInvestPlanEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEdit", args...)
 }
 
 // SapiPostLendingAutoInvestPlanEditStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingAutoInvestPlanEditStatus(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingAutoInvestPlanEditStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanEditStatus", args...)
 }
 
 // SapiPostLendingAutoInvestOneOff returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingAutoInvestOneOff(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingAutoInvestOneOff(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestOneOff", args...)
 }
 
 // SapiPostLendingAutoInvestRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostLendingAutoInvestRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostLendingAutoInvestRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestRedeem", args...)
 }
 
 // SapiPostSimpleEarnFlexibleSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnFlexibleSubscribe(args ...any) <-chan any {
+func (this *Binance) SapiPostSimpleEarnFlexibleSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSubscribe", args...)
 }
 
 // SapiPostSimpleEarnLockedSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnLockedSubscribe(args ...any) <-chan any {
+func (this *Binance) SapiPostSimpleEarnLockedSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedSubscribe", args...)
 }
 
 // SapiPostSimpleEarnFlexibleRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnFlexibleRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostSimpleEarnFlexibleRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleRedeem", args...)
 }
 
 // SapiPostSimpleEarnLockedRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnLockedRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostSimpleEarnLockedRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostSimpleEarnLockedRedeem", args...)
 }
 
 // SapiPostSimpleEarnFlexibleSetAutoSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnFlexibleSetAutoSubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostSimpleEarnFlexibleSetAutoSubscribe", args...)
+func (this *Binance) SapiPostSimpleEarnFlexibleSetAutoSubscribe(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/flexible/setAutoSubscribe", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostSimpleEarnLockedSetAutoSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnLockedSetAutoSubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetAutoSubscribe", args...)
+func (this *Binance) SapiPostSimpleEarnLockedSetAutoSubscribe(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/setAutoSubscribe", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiPostSimpleEarnLockedSetRedeemOption returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostSimpleEarnLockedSetRedeemOption(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiPostSimpleEarnLockedSetRedeemOption", args...)
+func (this *Binance) SapiPostSimpleEarnLockedSetRedeemOption(args ...any) <-chan any {
+	return this.Fetch2Async("simple-earn/locked/setRedeemOption", "sapi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // SapiPostDciProductSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostDciProductSubscribe(args ...any) <-chan any {
+func (this *Binance) SapiPostDciProductSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostDciProductSubscribe", args...)
 }
 
 // SapiPostDciProductAutoCompoundEdit returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostDciProductAutoCompoundEdit(args ...any) <-chan any {
+func (this *Binance) SapiPostDciProductAutoCompoundEdit(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
 }
 
 // SapiPostAccumulatorProductSubscribe returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostAccumulatorProductSubscribe(args ...any) <-chan any {
+func (this *Binance) SapiPostAccumulatorProductSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
 }
 
 // SapiPostEquityOrderPlace returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityOrderPlace(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityOrderPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityOrderPlace", args...)
 }
 
 // SapiPostEquityOrderCancel returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityOrderCancel(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityOrderCancel", args...)
 }
 
 // SapiPostEquityOrderCancelAll returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityOrderCancelAll(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityOrderCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityOrderCancelAll", args...)
 }
 
 // SapiPostEquityTokenizedMint returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityTokenizedMint(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityTokenizedMint(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityTokenizedMint", args...)
 }
 
 // SapiPostEquityTokenizedRedeem returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityTokenizedRedeem(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityTokenizedRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityTokenizedRedeem", args...)
 }
 
 // SapiPostEquityAccountDisclaimer returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityAccountDisclaimer(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityAccountDisclaimer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityAccountDisclaimer", args...)
 }
 
 // SapiPostEquityListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPostEquityListenKey(args ...any) <-chan any {
+func (this *Binance) SapiPostEquityListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostEquityListenKey", args...)
 }
 
 // SapiPutUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPutUserDataStream(args ...any) <-chan any {
+func (this *Binance) SapiPutUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPutUserDataStream", args...)
 }
 
 // SapiPutUserDataStreamIsolated returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiPutUserDataStreamIsolated(args ...any) <-chan any {
+func (this *Binance) SapiPutUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPutUserDataStreamIsolated", args...)
 }
 
+// SapiDeletePortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *Binance) SapiDeletePortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/margin-call-level", "sapi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
+}
+
 // SapiDeleteMarginOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiDeleteMarginOpenOrders(args ...any) <-chan any {
+func (this *Binance) SapiDeleteMarginOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOpenOrders", args...)
 }
 
 // SapiDeleteMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteMarginOrder(args ...any) <-chan any {
+func (this *Binance) SapiDeleteMarginOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOrder", args...)
 }
 
 // SapiDeleteMarginOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteMarginOrderList(args ...any) <-chan any {
+func (this *Binance) SapiDeleteMarginOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginOrderList", args...)
 }
 
 // SapiDeleteMarginIsolatedAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteMarginIsolatedAccount(args ...any) <-chan any {
+func (this *Binance) SapiDeleteMarginIsolatedAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteMarginIsolatedAccount", args...)
 }
 
 // SapiDeleteUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteUserDataStream(args ...any) <-chan any {
+func (this *Binance) SapiDeleteUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteUserDataStream", args...)
 }
 
 // SapiDeleteUserDataStreamIsolated returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteUserDataStreamIsolated(args ...any) <-chan any {
+func (this *Binance) SapiDeleteUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteUserDataStreamIsolated", args...)
 }
 
 // SapiDeleteBrokerSubAccountApi returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteBrokerSubAccountApi(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApi", args...)
+func (this *Binance) SapiDeleteBrokerSubAccountApi(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi", "sapi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiDeleteBrokerSubAccountApiIpRestrictionIpList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", args...)
+func (this *Binance) SapiDeleteBrokerSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
+	return this.Fetch2Async("broker/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiDeleteAlgoSpotOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteAlgoSpotOrder(args ...any) <-chan any {
+func (this *Binance) SapiDeleteAlgoSpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteAlgoSpotOrder", args...)
 }
 
 // SapiDeleteAlgoFuturesOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteAlgoFuturesOrder(args ...any) <-chan any {
+func (this *Binance) SapiDeleteAlgoFuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteAlgoFuturesOrder", args...)
 }
 
 // SapiDeleteSubAccountSubAccountApiIpRestrictionIpList returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
+func (this *Binance) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", args...)
 }
 
 // SapiV2GetEthStakingAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetEthStakingAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetEthStakingAccount", args...)
+func (this *Binance) SapiV2GetEthStakingAccount(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/account", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiV2GetSubAccountFuturesAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetSubAccountFuturesAccount(args ...any) <-chan any {
+func (this *Binance) SapiV2GetSubAccountFuturesAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccount", args...)
 }
 
 // SapiV2GetSubAccountFuturesAccountSummary returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetSubAccountFuturesAccountSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetSubAccountFuturesAccountSummary", args...)
+func (this *Binance) SapiV2GetSubAccountFuturesAccountSummary(args ...any) <-chan any {
+	return this.Fetch2Async("sub-account/futures/accountSummary", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SapiV2GetSubAccountFuturesPositionRisk returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetSubAccountFuturesPositionRisk(args ...any) <-chan any {
+func (this *Binance) SapiV2GetSubAccountFuturesPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2GetSubAccountFuturesPositionRisk", args...)
 }
 
 // SapiV2GetLoanFlexibleOngoingOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleOngoingOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleOngoingOrders", args...)
+func (this *Binance) SapiV2GetLoanFlexibleOngoingOrders(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/ongoing/orders", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // SapiV2GetLoanFlexibleBorrowHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleBorrowHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleBorrowHistory", args...)
+func (this *Binance) SapiV2GetLoanFlexibleBorrowHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/borrow/history", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiV2GetLoanFlexibleRepayHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleRepayHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleRepayHistory", args...)
+func (this *Binance) SapiV2GetLoanFlexibleRepayHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/repay/history", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiV2GetLoanFlexibleLtvAdjustmentHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleLtvAdjustmentHistory", args...)
+func (this *Binance) SapiV2GetLoanFlexibleLtvAdjustmentHistory(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/ltv/adjustment/history", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiV2GetLoanFlexibleLoanableData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleLoanableData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleLoanableData", args...)
+func (this *Binance) SapiV2GetLoanFlexibleLoanableData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/loanable/data", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiV2GetLoanFlexibleCollateralData returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetLoanFlexibleCollateralData(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetLoanFlexibleCollateralData", args...)
+func (this *Binance) SapiV2GetLoanFlexibleCollateralData(args ...any) <-chan any {
+	return this.Fetch2Async("loan/flexible/collateral/data", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // SapiV2GetPortfolioAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2GetPortfolioAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2GetPortfolioAccount", args...)
+func (this *Binance) SapiV2GetPortfolioAccount(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/account", "sapiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // SapiV2PostEthStakingEthStake returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2PostEthStakingEthStake(args ...any) <-chan any {
-	return this.callEndpointAsync("sapiV2PostEthStakingEthStake", args...)
+func (this *Binance) SapiV2PostEthStakingEthStake(args ...any) <-chan any {
+	return this.Fetch2Async("eth-staking/eth/stake", "sapiV2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // SapiV2PostSubAccountSubAccountApiIpRestriction returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2PostSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
+func (this *Binance) SapiV2PostSubAccountSubAccountApiIpRestriction(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostSubAccountSubAccountApiIpRestriction", args...)
 }
 
 // SapiV2PostLoanFlexibleBorrow returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2PostLoanFlexibleBorrow(args ...any) <-chan any {
+func (this *Binance) SapiV2PostLoanFlexibleBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleBorrow", args...)
 }
 
 // SapiV2PostLoanFlexibleRepay returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2PostLoanFlexibleRepay(args ...any) <-chan any {
+func (this *Binance) SapiV2PostLoanFlexibleRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleRepay", args...)
 }
 
 // SapiV2PostLoanFlexibleAdjustLtv returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV2PostLoanFlexibleAdjustLtv(args ...any) <-chan any {
+func (this *Binance) SapiV2PostLoanFlexibleAdjustLtv(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV2PostLoanFlexibleAdjustLtv", args...)
 }
 
 // SapiV3GetSubAccountAssets returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV3GetSubAccountAssets(args ...any) <-chan any {
+func (this *Binance) SapiV3GetSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV3GetSubAccountAssets", args...)
 }
 
 // SapiV3PostAssetGetUserAsset returns a channel that yields a JSON array.
-func (this *BinanceCore) SapiV3PostAssetGetUserAsset(args ...any) <-chan any {
+func (this *Binance) SapiV3PostAssetGetUserAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV3PostAssetGetUserAsset", args...)
 }
 
 // SapiV4GetSubAccountAssets returns a channel that yields a JSON object.
-func (this *BinanceCore) SapiV4GetSubAccountAssets(args ...any) <-chan any {
+func (this *Binance) SapiV4GetSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV4GetSubAccountAssets", args...)
 }
 
 // DapiPublicGetPing returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetPing", args...)
+func (this *Binance) DapiPublicGetPing(args ...any) <-chan any {
+	return this.Fetch2Async("ping", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetTime returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetTime", args...)
+func (this *Binance) DapiPublicGetTime(args ...any) <-chan any {
+	return this.Fetch2Async("time", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetExchangeInfo", args...)
+func (this *Binance) DapiPublicGetExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("exchangeInfo", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetDepth returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetDepth", args...)
+func (this *Binance) DapiPublicGetDepth(args ...any) <-chan any {
+	return this.Fetch2Async("depth", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // DapiPublicGetTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetTrades", args...)
+func (this *Binance) DapiPublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPublicGetHistoricalTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetHistoricalTrades", args...)
+func (this *Binance) DapiPublicGetHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historicalTrades", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // DapiPublicGetAggTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetAggTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetAggTrades", args...)
+func (this *Binance) DapiPublicGetAggTrades(args ...any) <-chan any {
+	return this.Fetch2Async("aggTrades", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // DapiPublicGetPremiumIndex returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetPremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetPremiumIndex", args...)
+func (this *Binance) DapiPublicGetPremiumIndex(args ...any) <-chan any {
+	return this.Fetch2Async("premiumIndex", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // DapiPublicGetFundingRate returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetFundingRate", args...)
+func (this *Binance) DapiPublicGetFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("fundingRate", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetKlines", args...)
+func (this *Binance) DapiPublicGetKlines(args ...any) <-chan any {
+	return this.Fetch2Async("klines", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetContinuousKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetContinuousKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetContinuousKlines", args...)
+func (this *Binance) DapiPublicGetContinuousKlines(args ...any) <-chan any {
+	return this.Fetch2Async("continuousKlines", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetIndexPriceKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetIndexPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetIndexPriceKlines", args...)
+func (this *Binance) DapiPublicGetIndexPriceKlines(args ...any) <-chan any {
+	return this.Fetch2Async("indexPriceKlines", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetMarkPriceKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetMarkPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetMarkPriceKlines", args...)
+func (this *Binance) DapiPublicGetMarkPriceKlines(args ...any) <-chan any {
+	return this.Fetch2Async("markPriceKlines", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetPremiumIndexKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetPremiumIndexKlines", args...)
+func (this *Binance) DapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
+	return this.Fetch2Async("premiumIndexKlines", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) DapiPublicGetTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetTicker24hr", args...)
+func (this *Binance) DapiPublicGetTicker24hr(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/24hr", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetTickerPrice returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetTickerPrice", args...)
+func (this *Binance) DapiPublicGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetTickerBookTicker returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetTickerBookTicker", args...)
+func (this *Binance) DapiPublicGetTickerBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/bookTicker", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // DapiPublicGetConstituents returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetConstituents(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetConstituents", args...)
+func (this *Binance) DapiPublicGetConstituents(args ...any) <-chan any {
+	return this.Fetch2Async("constituents", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // DapiPublicGetOpenInterest returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPublicGetOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetOpenInterest", args...)
+func (this *Binance) DapiPublicGetOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("openInterest", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetFundingInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPublicGetFundingInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPublicGetFundingInfo", args...)
+func (this *Binance) DapiPublicGetFundingInfo(args ...any) <-chan any {
+	return this.Fetch2Async("fundingInfo", "dapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetDeliveryPrice returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetDeliveryPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetDeliveryPrice", args...)
+func (this *Binance) DapiDataGetDeliveryPrice(args ...any) <-chan any {
+	return this.Fetch2Async("delivery-price", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetOpenInterestHist returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetOpenInterestHist(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetOpenInterestHist", args...)
+func (this *Binance) DapiDataGetOpenInterestHist(args ...any) <-chan any {
+	return this.Fetch2Async("openInterestHist", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetTopLongShortAccountRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetTopLongShortAccountRatio", args...)
+func (this *Binance) DapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
+	return this.Fetch2Async("topLongShortAccountRatio", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetTopLongShortPositionRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetTopLongShortPositionRatio", args...)
+func (this *Binance) DapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
+	return this.Fetch2Async("topLongShortPositionRatio", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetGlobalLongShortAccountRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetGlobalLongShortAccountRatio", args...)
+func (this *Binance) DapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
+	return this.Fetch2Async("globalLongShortAccountRatio", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetTakerBuySellVol returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetTakerBuySellVol(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetTakerBuySellVol", args...)
+func (this *Binance) DapiDataGetTakerBuySellVol(args ...any) <-chan any {
+	return this.Fetch2Async("takerBuySellVol", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiDataGetBasis returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiDataGetBasis(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiDataGetBasis", args...)
+func (this *Binance) DapiDataGetBasis(args ...any) <-chan any {
+	return this.Fetch2Async("basis", "dapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetPositionSideDual", args...)
+func (this *Binance) DapiPrivateGetPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // DapiPrivateGetOrderAmendment returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetOrderAmendment(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetOrderAmendment", args...)
+func (this *Binance) DapiPrivateGetOrderAmendment(args ...any) <-chan any {
+	return this.Fetch2Async("orderAmendment", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetOrder", args...)
+func (this *Binance) DapiPrivateGetOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetOpenOrder", args...)
+func (this *Binance) DapiPrivateGetOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("openOrder", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetOpenOrders", args...)
+func (this *Binance) DapiPrivateGetOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetOpenAlgoOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetOpenAlgoOrders", args...)
+func (this *Binance) DapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openAlgoOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetAllOrders", args...)
+func (this *Binance) DapiPrivateGetAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetBalance", args...)
+func (this *Binance) DapiPrivateGetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetAccount", args...)
+func (this *Binance) DapiPrivateGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetPositionMarginHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetPositionMarginHistory", args...)
+func (this *Binance) DapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
+	return this.Fetch2Async("positionMargin/history", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetPositionRisk", args...)
+func (this *Binance) DapiPrivateGetPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("positionRisk", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateGetUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetUserTrades", args...)
+func (this *Binance) DapiPrivateGetUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("userTrades", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetIncome returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetIncome", args...)
+func (this *Binance) DapiPrivateGetIncome(args ...any) <-chan any {
+	return this.Fetch2Async("income", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // DapiPrivateGetLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetLeverageBracket(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetLeverageBracket", args...)
+func (this *Binance) DapiPrivateGetLeverageBracket(args ...any) <-chan any {
+	return this.Fetch2Async("leverageBracket", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // DapiPrivateGetForceOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetForceOrders", args...)
+func (this *Binance) DapiPrivateGetForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("forceOrders", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // DapiPrivateGetAdlQuantile returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateGetAdlQuantile(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetAdlQuantile", args...)
+func (this *Binance) DapiPrivateGetAdlQuantile(args ...any) <-chan any {
+	return this.Fetch2Async("adlQuantile", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetCommissionRate returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetCommissionRate", args...)
+func (this *Binance) DapiPrivateGetCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("commissionRate", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // DapiPrivateGetIncomeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetIncomeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetIncomeAsyn", args...)
+func (this *Binance) DapiPrivateGetIncomeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetIncomeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetIncomeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateGetIncomeAsynId", args...)
+func (this *Binance) DapiPrivateGetIncomeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn/id", "dapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateGetTradeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetTradeAsyn(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetTradeAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetTradeAsyn", args...)
 }
 
 // DapiPrivateGetTradeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetTradeAsynId(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetTradeAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetTradeAsynId", args...)
 }
 
 // DapiPrivateGetOrderAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetOrderAsyn(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetOrderAsyn(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrderAsyn", args...)
 }
 
 // DapiPrivateGetOrderAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetOrderAsynId(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetOrderAsynId(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOrderAsynId", args...)
 }
 
 // DapiPrivateGetPmExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetPmExchangeInfo(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetPmExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPmExchangeInfo", args...)
 }
 
 // DapiPrivateGetPmAccountInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateGetPmAccountInfo(args ...any) <-chan any {
+func (this *Binance) DapiPrivateGetPmAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetPmAccountInfo", args...)
 }
 
 // DapiPrivatePostPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostPositionSideDual", args...)
+func (this *Binance) DapiPrivatePostPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePostOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostOrder", args...)
+func (this *Binance) DapiPrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // DapiPrivatePostAlgoOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostAlgoOrder", args...)
+func (this *Binance) DapiPrivatePostAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algoOrder", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePostBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivatePostBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostBatchOrders", args...)
+func (this *Binance) DapiPrivatePostBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivatePostCountdownCancelAll returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostCountdownCancelAll", args...)
+func (this *Binance) DapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("countdownCancelAll", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // DapiPrivatePostLeverage returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostLeverage", args...)
+func (this *Binance) DapiPrivatePostLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("leverage", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePostMarginType returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostMarginType", args...)
+func (this *Binance) DapiPrivatePostMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("marginType", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePostPositionMargin returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostPositionMargin", args...)
+func (this *Binance) DapiPrivatePostPositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("positionMargin", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePostListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePostListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePostListenKey", args...)
+func (this *Binance) DapiPrivatePostListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "dapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePutListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePutListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePutListenKey", args...)
+func (this *Binance) DapiPrivatePutListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "dapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePutOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivatePutOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePutOrder", args...)
+func (this *Binance) DapiPrivatePutOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "dapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivatePutBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivatePutBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivatePutBatchOrders", args...)
+func (this *Binance) DapiPrivatePutBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "dapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateDeleteOrder", args...)
+func (this *Binance) DapiPrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateDeleteAlgoOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateDeleteAlgoOrder", args...)
+func (this *Binance) DapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algoOrder", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateDeleteAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateDeleteAllOpenOrders", args...)
+func (this *Binance) DapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOpenOrders", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateDeleteBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateDeleteBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateDeleteBatchOrders", args...)
+func (this *Binance) DapiPrivateDeleteBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // DapiPrivateDeleteListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) DapiPrivateDeleteListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateDeleteListenKey", args...)
+func (this *Binance) DapiPrivateDeleteListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "dapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DapiPrivateV2GetLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) DapiPrivateV2GetLeverageBracket(args ...any) <-chan any {
-	return this.callEndpointAsync("dapiPrivateV2GetLeverageBracket", args...)
+func (this *Binance) DapiPrivateV2GetLeverageBracket(args ...any) <-chan any {
+	return this.Fetch2Async("leverageBracket", "dapiPrivateV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetPing returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetPing", args...)
+func (this *Binance) FapiPublicGetPing(args ...any) <-chan any {
+	return this.Fetch2Async("ping", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetTime returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTime", args...)
+func (this *Binance) FapiPublicGetTime(args ...any) <-chan any {
+	return this.Fetch2Async("time", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetExchangeInfo", args...)
+func (this *Binance) FapiPublicGetExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("exchangeInfo", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetDepth returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetDepth", args...)
+func (this *Binance) FapiPublicGetDepth(args ...any) <-chan any {
+	return this.Fetch2Async("depth", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // FapiPublicGetRpiDepth returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetRpiDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetRpiDepth", args...)
+func (this *Binance) FapiPublicGetRpiDepth(args ...any) <-chan any {
+	return this.Fetch2Async("rpiDepth", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPublicGetTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTrades", args...)
+func (this *Binance) FapiPublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPublicGetHistoricalTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetHistoricalTrades", args...)
+func (this *Binance) FapiPublicGetHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historicalTrades", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPublicGetAggTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetAggTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetAggTrades", args...)
+func (this *Binance) FapiPublicGetAggTrades(args ...any) <-chan any {
+	return this.Fetch2Async("aggTrades", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPublicGetKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetKlines", args...)
+func (this *Binance) FapiPublicGetKlines(args ...any) <-chan any {
+	return this.Fetch2Async("klines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetContinuousKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetContinuousKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetContinuousKlines", args...)
+func (this *Binance) FapiPublicGetContinuousKlines(args ...any) <-chan any {
+	return this.Fetch2Async("continuousKlines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetMarkPriceKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetMarkPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetMarkPriceKlines", args...)
+func (this *Binance) FapiPublicGetMarkPriceKlines(args ...any) <-chan any {
+	return this.Fetch2Async("markPriceKlines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetIndexPriceKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetIndexPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetIndexPriceKlines", args...)
+func (this *Binance) FapiPublicGetIndexPriceKlines(args ...any) <-chan any {
+	return this.Fetch2Async("indexPriceKlines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetPremiumIndexKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetPremiumIndexKlines", args...)
+func (this *Binance) FapiPublicGetPremiumIndexKlines(args ...any) <-chan any {
+	return this.Fetch2Async("premiumIndexKlines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetFundingRate returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetFundingRate", args...)
+func (this *Binance) FapiPublicGetFundingRate(args ...any) <-chan any {
+	return this.Fetch2Async("fundingRate", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetFundingInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetFundingInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetFundingInfo", args...)
+func (this *Binance) FapiPublicGetFundingInfo(args ...any) <-chan any {
+	return this.Fetch2Async("fundingInfo", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetPremiumIndex returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetPremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetPremiumIndex", args...)
+func (this *Binance) FapiPublicGetPremiumIndex(args ...any) <-chan any {
+	return this.Fetch2Async("premiumIndex", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) FapiPublicGetTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTicker24hr", args...)
+func (this *Binance) FapiPublicGetTicker24hr(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/24hr", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetTickerPrice returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) FapiPublicGetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTickerPrice", args...)
+func (this *Binance) FapiPublicGetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetTickerBookTicker returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) FapiPublicGetTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTickerBookTicker", args...)
+func (this *Binance) FapiPublicGetTickerBookTicker(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/bookTicker", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // FapiPublicGetOpenInterest returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetOpenInterest", args...)
+func (this *Binance) FapiPublicGetOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("openInterest", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetIndexInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetIndexInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetIndexInfo", args...)
+func (this *Binance) FapiPublicGetIndexInfo(args ...any) <-chan any {
+	return this.Fetch2Async("indexInfo", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetAssetIndex returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetAssetIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetAssetIndex", args...)
+func (this *Binance) FapiPublicGetAssetIndex(args ...any) <-chan any {
+	return this.Fetch2Async("assetIndex", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetConstituents returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetConstituents(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetConstituents", args...)
+func (this *Binance) FapiPublicGetConstituents(args ...any) <-chan any {
+	return this.Fetch2Async("constituents", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // FapiPublicGetApiTradingStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetApiTradingStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetApiTradingStatus", args...)
+func (this *Binance) FapiPublicGetApiTradingStatus(args ...any) <-chan any {
+	return this.Fetch2Async("apiTradingStatus", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetLvtKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetLvtKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetLvtKlines", args...)
+func (this *Binance) FapiPublicGetLvtKlines(args ...any) <-chan any {
+	return this.Fetch2Async("lvtKlines", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetConvertExchangeInfo returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetConvertExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetConvertExchangeInfo", args...)
+func (this *Binance) FapiPublicGetConvertExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("convert/exchangeInfo", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // FapiPublicGetInsuranceBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPublicGetInsuranceBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
+func (this *Binance) FapiPublicGetInsuranceBalance(args ...any) <-chan any {
+	return this.Fetch2Async("insuranceBalance", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetSymbolAdlRisk returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetSymbolAdlRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetSymbolAdlRisk", args...)
+func (this *Binance) FapiPublicGetSymbolAdlRisk(args ...any) <-chan any {
+	return this.Fetch2Async("symbolAdlRisk", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicGetTradingSchedule returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPublicGetTradingSchedule(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicGetTradingSchedule", args...)
+func (this *Binance) FapiPublicGetTradingSchedule(args ...any) <-chan any {
+	return this.Fetch2Async("tradingSchedule", "fapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiDataGetDeliveryPrice returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetDeliveryPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetDeliveryPrice", args...)
+func (this *Binance) FapiDataGetDeliveryPrice(args ...any) <-chan any {
+	return this.Fetch2Async("delivery-price", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetOpenInterestHist returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetOpenInterestHist(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetOpenInterestHist", args...)
+func (this *Binance) FapiDataGetOpenInterestHist(args ...any) <-chan any {
+	return this.Fetch2Async("openInterestHist", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetTopLongShortAccountRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetTopLongShortAccountRatio", args...)
+func (this *Binance) FapiDataGetTopLongShortAccountRatio(args ...any) <-chan any {
+	return this.Fetch2Async("topLongShortAccountRatio", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetTopLongShortPositionRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetTopLongShortPositionRatio", args...)
+func (this *Binance) FapiDataGetTopLongShortPositionRatio(args ...any) <-chan any {
+	return this.Fetch2Async("topLongShortPositionRatio", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetGlobalLongShortAccountRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetGlobalLongShortAccountRatio", args...)
+func (this *Binance) FapiDataGetGlobalLongShortAccountRatio(args ...any) <-chan any {
+	return this.Fetch2Async("globalLongShortAccountRatio", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetTakerlongshortRatio returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetTakerlongshortRatio(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetTakerlongshortRatio", args...)
+func (this *Binance) FapiDataGetTakerlongshortRatio(args ...any) <-chan any {
+	return this.Fetch2Async("takerlongshortRatio", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiDataGetBasis returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiDataGetBasis(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiDataGetBasis", args...)
+func (this *Binance) FapiDataGetBasis(args ...any) <-chan any {
+	return this.Fetch2Async("basis", "fapiData", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetForceOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetForceOrders", args...)
+func (this *Binance) FapiPrivateGetForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("forceOrders", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPrivateGetAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAllOrders", args...)
+func (this *Binance) FapiPrivateGetAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOrders", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOpenOrder", args...)
+func (this *Binance) FapiPrivateGetOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("openOrder", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOpenOrders", args...)
+func (this *Binance) FapiPrivateGetOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openOrders", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOrder", args...)
+func (this *Binance) FapiPrivateGetOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAccount", args...)
+func (this *Binance) FapiPrivateGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetBalance", args...)
+func (this *Binance) FapiPrivateGetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetLeverageBracket(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetLeverageBracket", args...)
+func (this *Binance) FapiPrivateGetLeverageBracket(args ...any) <-chan any {
+	return this.Fetch2Async("leverageBracket", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetPositionMarginHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetPositionMarginHistory", args...)
+func (this *Binance) FapiPrivateGetPositionMarginHistory(args ...any) <-chan any {
+	return this.Fetch2Async("positionMargin/history", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetPositionRisk", args...)
+func (this *Binance) FapiPrivateGetPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("positionRisk", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetPositionSideDual", args...)
+func (this *Binance) FapiPrivateGetPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // FapiPrivateGetUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetUserTrades", args...)
+func (this *Binance) FapiPrivateGetUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("userTrades", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetIncome returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetIncome", args...)
+func (this *Binance) FapiPrivateGetIncome(args ...any) <-chan any {
+	return this.Fetch2Async("income", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // FapiPrivateGetCommissionRate returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetCommissionRate", args...)
+func (this *Binance) FapiPrivateGetCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("commissionRate", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPrivateGetRateLimitOrder returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetRateLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetRateLimitOrder", args...)
+func (this *Binance) FapiPrivateGetRateLimitOrder(args ...any) <-chan any {
+	return this.Fetch2Async("rateLimit/order", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiTradingStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetApiTradingStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiTradingStatus", args...)
+func (this *Binance) FapiPrivateGetApiTradingStatus(args ...any) <-chan any {
+	return this.Fetch2Async("apiTradingStatus", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetMultiAssetsMargin returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetMultiAssetsMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetMultiAssetsMargin", args...)
+func (this *Binance) FapiPrivateGetMultiAssetsMargin(args ...any) <-chan any {
+	return this.Fetch2Async("multiAssetsMargin", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // FapiPrivateGetApiReferralIfNewUser returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetApiReferralIfNewUser(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralIfNewUser", args...)
+func (this *Binance) FapiPrivateGetApiReferralIfNewUser(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/ifNewUser", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralCustomization returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetApiReferralCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralCustomization", args...)
+func (this *Binance) FapiPrivateGetApiReferralCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/customization", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralUserCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetApiReferralUserCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralUserCustomization", args...)
+func (this *Binance) FapiPrivateGetApiReferralUserCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/userCustomization", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralTraderNum returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetApiReferralTraderNum(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderNum", args...)
+func (this *Binance) FapiPrivateGetApiReferralTraderNum(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/traderNum", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralOverview returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetApiReferralOverview(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralOverview", args...)
+func (this *Binance) FapiPrivateGetApiReferralOverview(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/overview", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralTradeVol returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetApiReferralTradeVol(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralTradeVol", args...)
+func (this *Binance) FapiPrivateGetApiReferralTradeVol(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/tradeVol", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralRebateVol returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetApiReferralRebateVol(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralRebateVol", args...)
+func (this *Binance) FapiPrivateGetApiReferralRebateVol(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/rebateVol", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetApiReferralTraderSummary returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetApiReferralTraderSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetApiReferralTraderSummary", args...)
+func (this *Binance) FapiPrivateGetApiReferralTraderSummary(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/traderSummary", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetAdlQuantile returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetAdlQuantile(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAdlQuantile", args...)
+func (this *Binance) FapiPrivateGetAdlQuantile(args ...any) <-chan any {
+	return this.Fetch2Async("adlQuantile", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetPmAccountInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetPmAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetPmAccountInfo", args...)
+func (this *Binance) FapiPrivateGetPmAccountInfo(args ...any) <-chan any {
+	return this.Fetch2Async("pmAccountInfo", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetOrderAmendment returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetOrderAmendment(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOrderAmendment", args...)
+func (this *Binance) FapiPrivateGetOrderAmendment(args ...any) <-chan any {
+	return this.Fetch2Async("orderAmendment", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetIncomeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetIncomeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetIncomeAsyn", args...)
+func (this *Binance) FapiPrivateGetIncomeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1000)})
 }
 
 // FapiPrivateGetIncomeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetIncomeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetIncomeAsynId", args...)
+func (this *Binance) FapiPrivateGetIncomeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn/id", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // FapiPrivateGetOrderAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetOrderAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOrderAsyn", args...)
+func (this *Binance) FapiPrivateGetOrderAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("order/asyn", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1000)})
 }
 
 // FapiPrivateGetOrderAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetOrderAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOrderAsynId", args...)
+func (this *Binance) FapiPrivateGetOrderAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("order/asyn/id", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // FapiPrivateGetTradeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetTradeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetTradeAsyn", args...)
+func (this *Binance) FapiPrivateGetTradeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("trade/asyn", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1000)})
 }
 
 // FapiPrivateGetTradeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetTradeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetTradeAsynId", args...)
+func (this *Binance) FapiPrivateGetTradeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("trade/asyn/id", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // FapiPrivateGetFeeBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetFeeBurn(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetFeeBurn", args...)
+func (this *Binance) FapiPrivateGetFeeBurn(args ...any) <-chan any {
+	return this.Fetch2Async("feeBurn", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetSymbolConfig returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetSymbolConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetSymbolConfig", args...)
+func (this *Binance) FapiPrivateGetSymbolConfig(args ...any) <-chan any {
+	return this.Fetch2Async("symbolConfig", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetAccountConfig returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAccountConfig", args...)
+func (this *Binance) FapiPrivateGetAccountConfig(args ...any) <-chan any {
+	return this.Fetch2Async("accountConfig", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetConvertOrderStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetConvertOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetConvertOrderStatus", args...)
+func (this *Binance) FapiPrivateGetConvertOrderStatus(args ...any) <-chan any {
+	return this.Fetch2Async("convert/orderStatus", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetAlgoOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAlgoOrder", args...)
+func (this *Binance) FapiPrivateGetAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algoOrder", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetOpenAlgoOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetOpenAlgoOrders", args...)
+func (this *Binance) FapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openAlgoOrders", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateGetAllAlgoOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateGetAllAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetAllAlgoOrders", args...)
+func (this *Binance) FapiPrivateGetAllAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allAlgoOrders", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateGetStockContract returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateGetStockContract(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateGetStockContract", args...)
+func (this *Binance) FapiPrivateGetStockContract(args ...any) <-chan any {
+	return this.Fetch2Async("stock/contract", "fapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // FapiPrivatePostBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivatePostBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostBatchOrders", args...)
+func (this *Binance) FapiPrivatePostBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivatePostPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostPositionSideDual", args...)
+func (this *Binance) FapiPrivatePostPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("positionSide/dual", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostPositionMargin returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostPositionMargin", args...)
+func (this *Binance) FapiPrivatePostPositionMargin(args ...any) <-chan any {
+	return this.Fetch2Async("positionMargin", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostMarginType returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostMarginType", args...)
+func (this *Binance) FapiPrivatePostMarginType(args ...any) <-chan any {
+	return this.Fetch2Async("marginType", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostOrder", args...)
+func (this *Binance) FapiPrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // FapiPrivatePostOrderTest returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostOrderTest(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostOrderTest", args...)
+func (this *Binance) FapiPrivatePostOrderTest(args ...any) <-chan any {
+	return this.Fetch2Async("order/test", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostLeverage returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostLeverage", args...)
+func (this *Binance) FapiPrivatePostLeverage(args ...any) <-chan any {
+	return this.Fetch2Async("leverage", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostListenKey", args...)
+func (this *Binance) FapiPrivatePostListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostCountdownCancelAll returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostCountdownCancelAll", args...)
+func (this *Binance) FapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("countdownCancelAll", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // FapiPrivatePostMultiAssetsMargin returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostMultiAssetsMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostMultiAssetsMargin", args...)
+func (this *Binance) FapiPrivatePostMultiAssetsMargin(args ...any) <-chan any {
+	return this.Fetch2Async("multiAssetsMargin", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostApiReferralCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostApiReferralCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostApiReferralCustomization", args...)
+func (this *Binance) FapiPrivatePostApiReferralCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/customization", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostApiReferralUserCustomization returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostApiReferralUserCustomization(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostApiReferralUserCustomization", args...)
+func (this *Binance) FapiPrivatePostApiReferralUserCustomization(args ...any) <-chan any {
+	return this.Fetch2Async("apiReferral/userCustomization", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostFeeBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostFeeBurn(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostFeeBurn", args...)
+func (this *Binance) FapiPrivatePostFeeBurn(args ...any) <-chan any {
+	return this.Fetch2Async("feeBurn", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePostConvertGetQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostConvertGetQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostConvertGetQuote", args...)
+func (this *Binance) FapiPrivatePostConvertGetQuote(args ...any) <-chan any {
+	return this.Fetch2Async("convert/getQuote", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(200)})
 }
 
 // FapiPrivatePostConvertAcceptQuote returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostConvertAcceptQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostConvertAcceptQuote", args...)
+func (this *Binance) FapiPrivatePostConvertAcceptQuote(args ...any) <-chan any {
+	return this.Fetch2Async("convert/acceptQuote", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // FapiPrivatePostAlgoOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePostAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePostAlgoOrder", args...)
+func (this *Binance) FapiPrivatePostAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algoOrder", "fapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePutListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePutListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePutListenKey", args...)
+func (this *Binance) FapiPrivatePutListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "fapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePutOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivatePutOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePutOrder", args...)
+func (this *Binance) FapiPrivatePutOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "fapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivatePutBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivatePutBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivatePutBatchOrders", args...)
+func (this *Binance) FapiPrivatePutBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "fapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // FapiPrivateDeleteBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateDeleteBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteBatchOrders", args...)
+func (this *Binance) FapiPrivateDeleteBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteOrder", args...)
+func (this *Binance) FapiPrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateDeleteAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteAllOpenOrders", args...)
+func (this *Binance) FapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOpenOrders", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateDeleteListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateDeleteListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteListenKey", args...)
+func (this *Binance) FapiPrivateDeleteListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateDeleteAlgoOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteAlgoOrder", args...)
+func (this *Binance) FapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("algoOrder", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateDeleteAlgoOpenOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateDeleteAlgoOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateDeleteAlgoOpenOrders", args...)
+func (this *Binance) FapiPrivateDeleteAlgoOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("algoOpenOrders", "fapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPublicV2GetTickerPrice returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) FapiPublicV2GetTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPublicV2GetTickerPrice", args...)
+func (this *Binance) FapiPublicV2GetTickerPrice(args ...any) <-chan any {
+	return this.Fetch2Async("ticker/price", "fapiPublicV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(0)})
 }
 
 // FapiPrivateV2GetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateV2GetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV2GetAccount", args...)
+func (this *Binance) FapiPrivateV2GetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "fapiPrivateV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateV2GetBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateV2GetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV2GetBalance", args...)
+func (this *Binance) FapiPrivateV2GetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", "fapiPrivateV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateV2GetPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateV2GetPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV2GetPositionRisk", args...)
+func (this *Binance) FapiPrivateV2GetPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("positionRisk", "fapiPrivateV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateV3GetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) FapiPrivateV3GetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV3GetAccount", args...)
+func (this *Binance) FapiPrivateV3GetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "fapiPrivateV3", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateV3GetBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateV3GetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV3GetBalance", args...)
+func (this *Binance) FapiPrivateV3GetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", "fapiPrivateV3", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // FapiPrivateV3GetPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) FapiPrivateV3GetPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("fapiPrivateV3GetPositionRisk", args...)
+func (this *Binance) FapiPrivateV3GetPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("positionRisk", "fapiPrivateV3", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetPing returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetPing", args...)
+func (this *Binance) EapiPublicGetPing(args ...any) <-chan any {
+	return this.Fetch2Async("ping", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetTime returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetTime", args...)
+func (this *Binance) EapiPublicGetTime(args ...any) <-chan any {
+	return this.Fetch2Async("time", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetExchangeInfo", args...)
+func (this *Binance) EapiPublicGetExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("exchangeInfo", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetIndex returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetIndex", args...)
+func (this *Binance) EapiPublicGetIndex(args ...any) <-chan any {
+	return this.Fetch2Async("index", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetTicker returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetTicker", args...)
+func (this *Binance) EapiPublicGetTicker(args ...any) <-chan any {
+	return this.Fetch2Async("ticker", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPublicGetMark returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetMark(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetMark", args...)
+func (this *Binance) EapiPublicGetMark(args ...any) <-chan any {
+	return this.Fetch2Async("mark", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPublicGetDepth returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetDepth", args...)
+func (this *Binance) EapiPublicGetDepth(args ...any) <-chan any {
+	return this.Fetch2Async("depth", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetKlines", args...)
+func (this *Binance) EapiPublicGetKlines(args ...any) <-chan any {
+	return this.Fetch2Async("klines", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPublicGetTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetTrades", args...)
+func (this *Binance) EapiPublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPublicGetHistoricalTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetHistoricalTrades", args...)
+func (this *Binance) EapiPublicGetHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historicalTrades", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // EapiPublicGetExerciseHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPublicGetExerciseHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetExerciseHistory", args...)
+func (this *Binance) EapiPublicGetExerciseHistory(args ...any) <-chan any {
+	return this.Fetch2Async("exerciseHistory", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // EapiPublicGetOpenInterest returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPublicGetOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPublicGetOpenInterest", args...)
+func (this *Binance) EapiPublicGetOpenInterest(args ...any) <-chan any {
+	return this.Fetch2Async("openInterest", "eapiPublic", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // EapiPrivateGetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetAccount", args...)
+func (this *Binance) EapiPrivateGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // EapiPrivateGetPosition returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetPosition", args...)
+func (this *Binance) EapiPrivateGetPosition(args ...any) <-chan any {
+	return this.Fetch2Async("position", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetOpenOrders", args...)
+func (this *Binance) EapiPrivateGetOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("openOrders", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateGetHistoryOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetHistoryOrders", args...)
+func (this *Binance) EapiPrivateGetHistoryOrders(args ...any) <-chan any {
+	return this.Fetch2Async("historyOrders", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // EapiPrivateGetUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetUserTrades", args...)
+func (this *Binance) EapiPrivateGetUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("userTrades", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetExerciseRecord returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetExerciseRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetExerciseRecord", args...)
+func (this *Binance) EapiPrivateGetExerciseRecord(args ...any) <-chan any {
+	return this.Fetch2Async("exerciseRecord", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetBill returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetBill(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetBill", args...)
+func (this *Binance) EapiPrivateGetBill(args ...any) <-chan any {
+	return this.Fetch2Async("bill", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateGetIncomeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetIncomeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetIncomeAsyn", args...)
+func (this *Binance) EapiPrivateGetIncomeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetIncomeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetIncomeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetIncomeAsynId", args...)
+func (this *Binance) EapiPrivateGetIncomeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("income/asyn/id", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetMarginAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetMarginAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetMarginAccount", args...)
+func (this *Binance) EapiPrivateGetMarginAccount(args ...any) <-chan any {
+	return this.Fetch2Async("marginAccount", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // EapiPrivateGetMmp returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetMmp(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetMmp", args...)
+func (this *Binance) EapiPrivateGetMmp(args ...any) <-chan any {
+	return this.Fetch2Async("mmp", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateGetCountdownCancelAll returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetCountdownCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetCountdownCancelAll", args...)
+func (this *Binance) EapiPrivateGetCountdownCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("countdownCancelAll", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateGetOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetOrder", args...)
+func (this *Binance) EapiPrivateGetOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateGetBlockOrderOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetBlockOrderOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetBlockOrderOrders", args...)
+func (this *Binance) EapiPrivateGetBlockOrderOrders(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/orders", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetBlockOrderExecute returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetBlockOrderExecute(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetBlockOrderExecute", args...)
+func (this *Binance) EapiPrivateGetBlockOrderExecute(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/execute", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetBlockUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetBlockUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetBlockUserTrades", args...)
+func (this *Binance) EapiPrivateGetBlockUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("block/user-trades", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetBlockTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateGetBlockTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetBlockTrades", args...)
+func (this *Binance) EapiPrivateGetBlockTrades(args ...any) <-chan any {
+	return this.Fetch2Async("blockTrades", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateGetComission returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateGetComission(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateGetComission", args...)
+func (this *Binance) EapiPrivateGetComission(args ...any) <-chan any {
+	return this.Fetch2Async("comission", "eapiPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivatePostOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostOrder", args...)
+func (this *Binance) EapiPrivatePostOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePostBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivatePostBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostBatchOrders", args...)
+func (this *Binance) EapiPrivatePostBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivatePostListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostListenKey", args...)
+func (this *Binance) EapiPrivatePostListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePostMmpSet returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostMmpSet(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostMmpSet", args...)
+func (this *Binance) EapiPrivatePostMmpSet(args ...any) <-chan any {
+	return this.Fetch2Async("mmpSet", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePostMmpReset returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostMmpReset(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostMmpReset", args...)
+func (this *Binance) EapiPrivatePostMmpReset(args ...any) <-chan any {
+	return this.Fetch2Async("mmpReset", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePostCountdownCancelAll returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAll", args...)
+func (this *Binance) EapiPrivatePostCountdownCancelAll(args ...any) <-chan any {
+	return this.Fetch2Async("countdownCancelAll", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePostCountdownCancelAllHeartBeat returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostCountdownCancelAllHeartBeat(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostCountdownCancelAllHeartBeat", args...)
+func (this *Binance) EapiPrivatePostCountdownCancelAllHeartBeat(args ...any) <-chan any {
+	return this.Fetch2Async("countdownCancelAllHeartBeat", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // EapiPrivatePostBlockOrderCreate returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostBlockOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostBlockOrderCreate", args...)
+func (this *Binance) EapiPrivatePostBlockOrderCreate(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/create", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivatePostBlockOrderExecute returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePostBlockOrderExecute(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePostBlockOrderExecute", args...)
+func (this *Binance) EapiPrivatePostBlockOrderExecute(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/execute", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
+// EapiPrivatePostStockContract returns a channel that yields a JSON object.
+func (this *Binance) EapiPrivatePostStockContract(args ...any) <-chan any {
+	return this.Fetch2Async("stock/contract", "eapiPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // EapiPrivatePutListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePutListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePutListenKey", args...)
+func (this *Binance) EapiPrivatePutListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "eapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivatePutBlockOrderCreate returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivatePutBlockOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivatePutBlockOrderCreate", args...)
+func (this *Binance) EapiPrivatePutBlockOrderCreate(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/create", "eapiPrivate", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // EapiPrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteOrder", args...)
+func (this *Binance) EapiPrivateDeleteOrder(args ...any) <-chan any {
+	return this.Fetch2Async("order", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateDeleteBatchOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateDeleteBatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteBatchOrders", args...)
+func (this *Binance) EapiPrivateDeleteBatchOrders(args ...any) <-chan any {
+	return this.Fetch2Async("batchOrders", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateDeleteAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) EapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrders", args...)
+func (this *Binance) EapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOpenOrders", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateDeleteAllOpenOrdersByUnderlying returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateDeleteAllOpenOrdersByUnderlying(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteAllOpenOrdersByUnderlying", args...)
+func (this *Binance) EapiPrivateDeleteAllOpenOrdersByUnderlying(args ...any) <-chan any {
+	return this.Fetch2Async("allOpenOrdersByUnderlying", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateDeleteListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateDeleteListenKey(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteListenKey", args...)
+func (this *Binance) EapiPrivateDeleteListenKey(args ...any) <-chan any {
+	return this.Fetch2Async("listenKey", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // EapiPrivateDeleteBlockOrderCreate returns a channel that yields a JSON object.
-func (this *BinanceCore) EapiPrivateDeleteBlockOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("eapiPrivateDeleteBlockOrderCreate", args...)
+func (this *Binance) EapiPrivateDeleteBlockOrderCreate(args ...any) <-chan any {
+	return this.Fetch2Async("block/order/create", "eapiPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetPing returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetPing(args ...any) <-chan any {
+func (this *Binance) PublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPing", args...)
 }
 
 // PublicGetTime returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetTime(args ...any) <-chan any {
+func (this *Binance) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
 // PublicGetDepth returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDepth", args...)
+func (this *Binance) PublicGetDepth(args ...any) <-chan any {
+	return this.Fetch2Async("depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *Binance) PublicGetTrades(args ...any) <-chan any {
+	return this.Fetch2Async("trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetAggTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetAggTrades(args ...any) <-chan any {
+func (this *Binance) PublicGetAggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAggTrades", args...)
 }
 
 // PublicGetHistoricalTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetHistoricalTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHistoricalTrades", args...)
+func (this *Binance) PublicGetHistoricalTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historicalTrades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetKlines(args ...any) <-chan any {
+func (this *Binance) PublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetKlines", args...)
 }
 
 // PublicGetUiKlines returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetUiKlines(args ...any) <-chan any {
+func (this *Binance) PublicGetUiKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUiKlines", args...)
 }
 
 // PublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) PublicGetTicker24hr(args ...any) <-chan any {
+func (this *Binance) PublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker24hr", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetTicker(args ...any) <-chan any {
+func (this *Binance) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickerTradingDay returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetTickerTradingDay(args ...any) <-chan any {
+func (this *Binance) PublicGetTickerTradingDay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerTradingDay", args...)
 }
 
 // PublicGetTickerPrice returns a channel that yields a JSON object or a JSON array.
-func (this *BinanceCore) PublicGetTickerPrice(args ...any) <-chan any {
+func (this *Binance) PublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
 // PublicGetTickerBookTicker returns a channel that yields a JSON array.
-func (this *BinanceCore) PublicGetTickerBookTicker(args ...any) <-chan any {
+func (this *Binance) PublicGetTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerBookTicker", args...)
 }
 
 // PublicGetExchangeInfo returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangeInfo", args...)
+func (this *Binance) PublicGetExchangeInfo(args ...any) <-chan any {
+	return this.Fetch2Async("exchangeInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
+}
+
+// PublicGetExecutionRules returns a channel that yields a JSON object.
+func (this *Binance) PublicGetExecutionRules(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExecutionRules", args...)
 }
 
 // PublicGetAvgPrice returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicGetAvgPrice(args ...any) <-chan any {
+func (this *Binance) PublicGetAvgPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAvgPrice", args...)
 }
 
+// PublicGetReferencePrice returns a channel that yields a JSON object.
+func (this *Binance) PublicGetReferencePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReferencePrice", args...)
+}
+
+// PublicGetReferencePriceCalculation returns a channel that yields a JSON object.
+func (this *Binance) PublicGetReferencePriceCalculation(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReferencePriceCalculation", args...)
+}
+
+// PublicGetHistoricalBlockTrades returns a channel that yields a JSON array.
+func (this *Binance) PublicGetHistoricalBlockTrades(args ...any) <-chan any {
+	return this.Fetch2Async("historicalBlockTrades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+}
+
 // PublicPutUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicPutUserDataStream(args ...any) <-chan any {
+func (this *Binance) PublicPutUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPutUserDataStream", args...)
 }
 
 // PublicPostUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicPostUserDataStream(args ...any) <-chan any {
+func (this *Binance) PublicPostUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostUserDataStream", args...)
 }
 
 // PublicDeleteUserDataStream returns a channel that yields a JSON object.
-func (this *BinanceCore) PublicDeleteUserDataStream(args ...any) <-chan any {
+func (this *Binance) PublicDeleteUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("publicDeleteUserDataStream", args...)
 }
 
 // PrivateGetAllOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetAllOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAllOrderList", args...)
+func (this *Binance) PrivateGetAllOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("allOrderList", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetOpenOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetOpenOrderList(args ...any) <-chan any {
+func (this *Binance) PrivateGetOpenOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenOrderList", args...)
 }
 
 // PrivateGetOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateGetOrderList(args ...any) <-chan any {
+func (this *Binance) PrivateGetOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderList", args...)
 }
 
 // PrivateGetOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateGetOrder(args ...any) <-chan any {
+func (this *Binance) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
 // PrivateGetOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetOpenOrders(args ...any) <-chan any {
+func (this *Binance) PrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
 // PrivateGetAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAllOrders", args...)
+func (this *Binance) PrivateGetAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("allOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccount", args...)
+func (this *Binance) PrivateGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetMyTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetMyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMyTrades", args...)
+func (this *Binance) PrivateGetMyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("myTrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetRateLimitOrder returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetRateLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRateLimitOrder", args...)
+func (this *Binance) PrivateGetRateLimitOrder(args ...any) <-chan any {
+	return this.Fetch2Async("rateLimit/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
 // PrivateGetMyPreventedMatches returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetMyPreventedMatches(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMyPreventedMatches", args...)
+func (this *Binance) PrivateGetMyPreventedMatches(args ...any) <-chan any {
+	return this.Fetch2Async("myPreventedMatches", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetMyAllocations returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateGetMyAllocations(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetMyAllocations", args...)
+func (this *Binance) PrivateGetMyAllocations(args ...any) <-chan any {
+	return this.Fetch2Async("myAllocations", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivateGetAccountCommission returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateGetAccountCommission(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountCommission", args...)
+func (this *Binance) PrivateGetAccountCommission(args ...any) <-chan any {
+	return this.Fetch2Async("account/commission", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PrivatePostOrderOco returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderOco(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderOco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOco", args...)
 }
 
 // PrivatePostOrderListOco returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderListOco(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderListOco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOco", args...)
 }
 
 // PrivatePostOrderListOto returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderListOto(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderListOto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOto", args...)
 }
 
 // PrivatePostOrderListOtoco returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderListOtoco(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderListOtoco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOtoco", args...)
 }
 
 // PrivatePostOrderListOpo returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderListOpo(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderListOpo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOpo", args...)
 }
 
 // PrivatePostOrderListOpoco returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderListOpoco(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderListOpoco(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderListOpoco", args...)
 }
 
 // PrivatePostSorOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostSorOrder(args ...any) <-chan any {
+func (this *Binance) PrivatePostSorOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSorOrder", args...)
 }
 
 // PrivatePostSorOrderTest returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostSorOrderTest(args ...any) <-chan any {
+func (this *Binance) PrivatePostSorOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSorOrderTest", args...)
 }
 
 // PrivatePostOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrder(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
 // PrivatePostOrderCancelReplace returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderCancelReplace(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderCancelReplace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderCancelReplace", args...)
 }
 
 // PrivatePostOrderTest returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivatePostOrderTest(args ...any) <-chan any {
+func (this *Binance) PrivatePostOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderTest", args...)
 }
 
 // PrivateDeleteOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PrivateDeleteOpenOrders(args ...any) <-chan any {
+func (this *Binance) PrivateDeleteOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOpenOrders", args...)
 }
 
 // PrivateDeleteOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateDeleteOrderList(args ...any) <-chan any {
+func (this *Binance) PrivateDeleteOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrderList", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PrivateDeleteOrder(args ...any) <-chan any {
+func (this *Binance) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
 // PapiGetPing returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetPing(args ...any) <-chan any {
+func (this *Binance) PapiGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetPing", args...)
 }
 
 // PapiGetUmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOrder", args...)
+func (this *Binance) PapiGetUmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/order", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOpenOrder", args...)
+func (this *Binance) PapiGetUmOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/openOrder", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOpenOrders", args...)
+func (this *Binance) PapiGetUmOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/openOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmAllOrders", args...)
+func (this *Binance) PapiGetUmAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/allOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetCmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmOrder", args...)
+func (this *Binance) PapiGetCmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/order", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmOpenOrder", args...)
+func (this *Binance) PapiGetCmOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/openOrder", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmOpenOrders", args...)
+func (this *Binance) PapiGetCmOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/openOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmAllOrders", args...)
+func (this *Binance) PapiGetCmAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/allOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PapiGetUmConditionalOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmConditionalOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmConditionalOpenOrder", args...)
+func (this *Binance) PapiGetUmConditionalOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/openOrder", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmConditionalOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmConditionalOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmConditionalOpenOrders", args...)
+func (this *Binance) PapiGetUmConditionalOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/openOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmConditionalOrderHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmConditionalOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmConditionalOrderHistory", args...)
+func (this *Binance) PapiGetUmConditionalOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/orderHistory", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmConditionalAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmConditionalAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmConditionalAllOrders", args...)
+func (this *Binance) PapiGetUmConditionalAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/allOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiGetUmAlgoAlgoOrder returns a channel that yields a JSON object.
+func (this *Binance) PapiGetUmAlgoAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/algoOrder", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiGetUmAlgoOpenAlgoOrders returns a channel that yields a JSON array.
+func (this *Binance) PapiGetUmAlgoOpenAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/openAlgoOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiGetUmAlgoAllAlgoOrders returns a channel that yields a JSON array.
+func (this *Binance) PapiGetUmAlgoAllAlgoOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/allAlgoOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetCmConditionalOpenOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmConditionalOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmConditionalOpenOrder", args...)
+func (this *Binance) PapiGetCmConditionalOpenOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/openOrder", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmConditionalOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmConditionalOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmConditionalOpenOrders", args...)
+func (this *Binance) PapiGetCmConditionalOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/openOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmConditionalOrderHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmConditionalOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmConditionalOrderHistory", args...)
+func (this *Binance) PapiGetCmConditionalOrderHistory(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/orderHistory", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmConditionalAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmConditionalAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmConditionalAllOrders", args...)
+func (this *Binance) PapiGetCmConditionalAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/allOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // PapiGetMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginOrder", args...)
+func (this *Binance) PapiGetMarginOrder(args ...any) <-chan any {
+	return this.Fetch2Async("margin/order", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PapiGetMarginOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetMarginOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginOpenOrders", args...)
+func (this *Binance) PapiGetMarginOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/openOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetMarginAllOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetMarginAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginAllOrders", args...)
+func (this *Binance) PapiGetMarginAllOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/allOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PapiGetMarginOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginOrderList", args...)
+func (this *Binance) PapiGetMarginOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/orderList", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetMarginAllOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetMarginAllOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginAllOrderList", args...)
+func (this *Binance) PapiGetMarginAllOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/allOrderList", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PapiGetMarginOpenOrderList returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetMarginOpenOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginOpenOrderList", args...)
+func (this *Binance) PapiGetMarginOpenOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/openOrderList", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetMarginMyTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetMarginMyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginMyTrades", args...)
+func (this *Binance) PapiGetMarginMyTrades(args ...any) <-chan any {
+	return this.Fetch2Async("margin/myTrades", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetBalance returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetBalance", args...)
+func (this *Binance) PapiGetBalance(args ...any) <-chan any {
+	return this.Fetch2Async("balance", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PapiGetAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetAccount", args...)
+func (this *Binance) PapiGetAccount(args ...any) <-chan any {
+	return this.Fetch2Async("account", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PapiGetMarginMaxBorrowable returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginMaxBorrowable(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginMaxBorrowable", args...)
+func (this *Binance) PapiGetMarginMaxBorrowable(args ...any) <-chan any {
+	return this.Fetch2Async("margin/maxBorrowable", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetMarginMaxWithdraw returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginMaxWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginMaxWithdraw", args...)
+func (this *Binance) PapiGetMarginMaxWithdraw(args ...any) <-chan any {
+	return this.Fetch2Async("margin/maxWithdraw", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmPositionRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmPositionRisk", args...)
+func (this *Binance) PapiGetUmPositionRisk(args ...any) <-chan any {
+	return this.Fetch2Async("um/positionRisk", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmPositionRisk returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmPositionRisk(args ...any) <-chan any {
+func (this *Binance) PapiGetCmPositionRisk(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmPositionRisk", args...)
 }
 
 // PapiGetUmPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmPositionSideDual", args...)
+func (this *Binance) PapiGetUmPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("um/positionSide/dual", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiGetCmPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmPositionSideDual(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmPositionSideDual", args...)
+func (this *Binance) PapiGetCmPositionSideDual(args ...any) <-chan any {
+	return this.Fetch2Async("cm/positionSide/dual", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiGetUmUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmUserTrades", args...)
+func (this *Binance) PapiGetUmUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("um/userTrades", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetCmUserTrades returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmUserTrades", args...)
+func (this *Binance) PapiGetCmUserTrades(args ...any) <-chan any {
+	return this.Fetch2Async("cm/userTrades", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PapiGetUmLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmLeverageBracket(args ...any) <-chan any {
+func (this *Binance) PapiGetUmLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmLeverageBracket", args...)
 }
 
 // PapiGetCmLeverageBracket returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmLeverageBracket(args ...any) <-chan any {
+func (this *Binance) PapiGetCmLeverageBracket(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetCmLeverageBracket", args...)
 }
 
 // PapiGetMarginForceOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginForceOrders", args...)
+func (this *Binance) PapiGetMarginForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/forceOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmForceOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmForceOrders", args...)
+func (this *Binance) PapiGetUmForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/forceOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PapiGetCmForceOrders returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmForceOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmForceOrders", args...)
+func (this *Binance) PapiGetCmForceOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/forceOrders", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PapiGetUmApiTradingStatus returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmApiTradingStatus(args ...any) <-chan any {
+func (this *Binance) PapiGetUmApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmApiTradingStatus", args...)
 }
 
 // PapiGetUmCommissionRate returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmCommissionRate", args...)
+func (this *Binance) PapiGetUmCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("um/commissionRate", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PapiGetCmCommissionRate returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmCommissionRate", args...)
+func (this *Binance) PapiGetCmCommissionRate(args ...any) <-chan any {
+	return this.Fetch2Async("cm/commissionRate", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(4)})
 }
 
 // PapiGetMarginMarginLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginMarginLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginMarginLoan", args...)
+func (this *Binance) PapiGetMarginMarginLoan(args ...any) <-chan any {
+	return this.Fetch2Async("margin/marginLoan", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiGetMarginRepayLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginRepayLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetMarginRepayLoan", args...)
+func (this *Binance) PapiGetMarginRepayLoan(args ...any) <-chan any {
+	return this.Fetch2Async("margin/repayLoan", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiGetMarginMarginInterestHistory returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetMarginMarginInterestHistory(args ...any) <-chan any {
+func (this *Binance) PapiGetMarginMarginInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetMarginMarginInterestHistory", args...)
 }
 
 // PapiGetPortfolioInterestHistory returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetPortfolioInterestHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetPortfolioInterestHistory", args...)
+func (this *Binance) PapiGetPortfolioInterestHistory(args ...any) <-chan any {
+	return this.Fetch2Async("portfolio/interest-history", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PapiGetUmIncome returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmIncome", args...)
+func (this *Binance) PapiGetUmIncome(args ...any) <-chan any {
+	return this.Fetch2Async("um/income", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiGetCmIncome returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmIncome", args...)
+func (this *Binance) PapiGetCmIncome(args ...any) <-chan any {
+	return this.Fetch2Async("cm/income", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiGetUmAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmAccount", args...)
+func (this *Binance) PapiGetUmAccount(args ...any) <-chan any {
+	return this.Fetch2Async("um/account", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmAccount", args...)
+func (this *Binance) PapiGetCmAccount(args ...any) <-chan any {
+	return this.Fetch2Async("cm/account", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetRepayFuturesSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetRepayFuturesSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetRepayFuturesSwitch", args...)
+func (this *Binance) PapiGetRepayFuturesSwitch(args ...any) <-chan any {
+	return this.Fetch2Async("repay-futures-switch", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiGetUmAdlQuantile returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmAdlQuantile(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmAdlQuantile", args...)
+func (this *Binance) PapiGetUmAdlQuantile(args ...any) <-chan any {
+	return this.Fetch2Async("um/adlQuantile", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetCmAdlQuantile returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmAdlQuantile(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmAdlQuantile", args...)
+func (this *Binance) PapiGetCmAdlQuantile(args ...any) <-chan any {
+	return this.Fetch2Async("cm/adlQuantile", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiGetUmTradeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmTradeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmTradeAsyn", args...)
+func (this *Binance) PapiGetUmTradeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("um/trade/asyn", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
 }
 
 // PapiGetUmTradeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmTradeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmTradeAsynId", args...)
+func (this *Binance) PapiGetUmTradeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("um/trade/asyn/id", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiGetUmOrderAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmOrderAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOrderAsyn", args...)
+func (this *Binance) PapiGetUmOrderAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("um/order/asyn", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
 }
 
 // PapiGetUmOrderAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmOrderAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOrderAsynId", args...)
+func (this *Binance) PapiGetUmOrderAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("um/order/asyn/id", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiGetUmIncomeAsyn returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmIncomeAsyn(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmIncomeAsyn", args...)
+func (this *Binance) PapiGetUmIncomeAsyn(args ...any) <-chan any {
+	return this.Fetch2Async("um/income/asyn", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(300)})
 }
 
 // PapiGetUmIncomeAsynId returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmIncomeAsynId(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmIncomeAsynId", args...)
+func (this *Binance) PapiGetUmIncomeAsynId(args ...any) <-chan any {
+	return this.Fetch2Async("um/income/asyn/id", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiGetUmOrderAmendment returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmOrderAmendment(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmOrderAmendment", args...)
+func (this *Binance) PapiGetUmOrderAmendment(args ...any) <-chan any {
+	return this.Fetch2Async("um/orderAmendment", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmOrderAmendment returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetCmOrderAmendment(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmOrderAmendment", args...)
+func (this *Binance) PapiGetCmOrderAmendment(args ...any) <-chan any {
+	return this.Fetch2Async("cm/orderAmendment", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmFeeBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmFeeBurn(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmFeeBurn", args...)
+func (this *Binance) PapiGetUmFeeBurn(args ...any) <-chan any {
+	return this.Fetch2Async("um/feeBurn", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // PapiGetUmAccountConfig returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetUmAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmAccountConfig", args...)
+func (this *Binance) PapiGetUmAccountConfig(args ...any) <-chan any {
+	return this.Fetch2Async("um/accountConfig", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetUmSymbolConfig returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetUmSymbolConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetUmSymbolConfig", args...)
+func (this *Binance) PapiGetUmSymbolConfig(args ...any) <-chan any {
+	return this.Fetch2Async("um/symbolConfig", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmAccountConfig returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmAccountConfig", args...)
+func (this *Binance) PapiGetCmAccountConfig(args ...any) <-chan any {
+	return this.Fetch2Async("cm/accountConfig", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetCmSymbolConfig returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiGetCmSymbolConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetCmSymbolConfig", args...)
+func (this *Binance) PapiGetCmSymbolConfig(args ...any) <-chan any {
+	return this.Fetch2Async("cm/symbolConfig", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiGetRateLimitOrder returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiGetRateLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiGetRateLimitOrder", args...)
+func (this *Binance) PapiGetRateLimitOrder(args ...any) <-chan any {
+	return this.Fetch2Async("rateLimit/order", "papi", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostUmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostUmOrder", args...)
+func (this *Binance) PapiPostUmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostUmConditionalOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmConditionalOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostUmConditionalOrder", args...)
+func (this *Binance) PapiPostUmConditionalOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiPostUmAlgoOrder returns a channel that yields a JSON object.
+func (this *Binance) PapiPostUmAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostCmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostCmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostCmOrder", args...)
+func (this *Binance) PapiPostCmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostCmConditionalOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostCmConditionalOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostCmConditionalOrder", args...)
+func (this *Binance) PapiPostCmConditionalOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostMarginOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostMarginOrder", args...)
+func (this *Binance) PapiPostMarginOrder(args ...any) <-chan any {
+	return this.Fetch2Async("margin/order", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostMarginLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostMarginLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostMarginLoan", args...)
+func (this *Binance) PapiPostMarginLoan(args ...any) <-chan any {
+	return this.Fetch2Async("marginLoan", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PapiPostRepayLoan returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostRepayLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostRepayLoan", args...)
+func (this *Binance) PapiPostRepayLoan(args ...any) <-chan any {
+	return this.Fetch2Async("repayLoan", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PapiPostMarginOrderOco returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostMarginOrderOco(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostMarginOrderOco", args...)
+func (this *Binance) PapiPostMarginOrderOco(args ...any) <-chan any {
+	return this.Fetch2Async("margin/order/oco", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostUmLeverage returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmLeverage(args ...any) <-chan any {
+func (this *Binance) PapiPostUmLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmLeverage", args...)
 }
 
 // PapiPostCmLeverage returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostCmLeverage(args ...any) <-chan any {
+func (this *Binance) PapiPostCmLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmLeverage", args...)
 }
 
 // PapiPostUmPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmPositionSideDual(args ...any) <-chan any {
+func (this *Binance) PapiPostUmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmPositionSideDual", args...)
 }
 
 // PapiPostCmPositionSideDual returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostCmPositionSideDual(args ...any) <-chan any {
+func (this *Binance) PapiPostCmPositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmPositionSideDual", args...)
 }
 
 // PapiPostAutoCollection returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostAutoCollection(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostAutoCollection", args...)
+func (this *Binance) PapiPostAutoCollection(args ...any) <-chan any {
+	return this.Fetch2Async("auto-collection", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // PapiPostBnbTransfer returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostBnbTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostBnbTransfer", args...)
+func (this *Binance) PapiPostBnbTransfer(args ...any) <-chan any {
+	return this.Fetch2Async("bnb-transfer", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // PapiPostRepayFuturesSwitch returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostRepayFuturesSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostRepayFuturesSwitch", args...)
+func (this *Binance) PapiPostRepayFuturesSwitch(args ...any) <-chan any {
+	return this.Fetch2Async("repay-futures-switch", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // PapiPostRepayFuturesNegativeBalance returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostRepayFuturesNegativeBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostRepayFuturesNegativeBalance", args...)
+func (this *Binance) PapiPostRepayFuturesNegativeBalance(args ...any) <-chan any {
+	return this.Fetch2Async("repay-futures-negative-balance", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(150)})
 }
 
 // PapiPostListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostListenKey(args ...any) <-chan any {
+func (this *Binance) PapiPostListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostListenKey", args...)
 }
 
 // PapiPostAssetCollection returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostAssetCollection(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostAssetCollection", args...)
+func (this *Binance) PapiPostAssetCollection(args ...any) <-chan any {
+	return this.Fetch2Async("asset-collection", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // PapiPostMarginRepayDebt returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostMarginRepayDebt(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostMarginRepayDebt", args...)
+func (this *Binance) PapiPostMarginRepayDebt(args ...any) <-chan any {
+	return this.Fetch2Async("margin/repay-debt", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3000)})
 }
 
 // PapiPostUmFeeBurn returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmFeeBurn(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostUmFeeBurn", args...)
+func (this *Binance) PapiPostUmFeeBurn(args ...any) <-chan any {
+	return this.Fetch2Async("um/feeBurn", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPostUmStockContract returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPostUmStockContract(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPostUmStockContract", args...)
+func (this *Binance) PapiPostUmStockContract(args ...any) <-chan any {
+	return this.Fetch2Async("um/stock/contract", "papi", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPutListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPutListenKey(args ...any) <-chan any {
+func (this *Binance) PapiPutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPutListenKey", args...)
 }
 
 // PapiPutUmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPutUmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPutUmOrder", args...)
+func (this *Binance) PapiPutUmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/order", "papi", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiPutCmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiPutCmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiPutCmOrder", args...)
+func (this *Binance) PapiPutCmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/order", "papi", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteUmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteUmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteUmOrder", args...)
+func (this *Binance) PapiDeleteUmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteUmConditionalOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteUmConditionalOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteUmConditionalOrder", args...)
+func (this *Binance) PapiDeleteUmConditionalOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteUmAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiDeleteUmAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteUmAllOpenOrders", args...)
+func (this *Binance) PapiDeleteUmAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteUmConditionalAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiDeleteUmConditionalAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteUmConditionalAllOpenOrders", args...)
+func (this *Binance) PapiDeleteUmConditionalAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/conditional/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiDeleteUmAlgoOrder returns a channel that yields a JSON object.
+func (this *Binance) PapiDeleteUmAlgoOrder(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PapiDeleteUmAlgoAllOpenOrders returns a channel that yields a JSON array.
+func (this *Binance) PapiDeleteUmAlgoAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("um/algo/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteCmOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteCmOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteCmOrder", args...)
+func (this *Binance) PapiDeleteCmOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteCmConditionalOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteCmConditionalOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteCmConditionalOrder", args...)
+func (this *Binance) PapiDeleteCmConditionalOrder(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteCmAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiDeleteCmAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteCmAllOpenOrders", args...)
+func (this *Binance) PapiDeleteCmAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteCmConditionalAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiDeleteCmConditionalAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteCmConditionalAllOpenOrders", args...)
+func (this *Binance) PapiDeleteCmConditionalAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("cm/conditional/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PapiDeleteMarginOrder returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteMarginOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteMarginOrder", args...)
+func (this *Binance) PapiDeleteMarginOrder(args ...any) <-chan any {
+	return this.Fetch2Async("margin/order", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiDeleteMarginAllOpenOrders returns a channel that yields a JSON array.
-func (this *BinanceCore) PapiDeleteMarginAllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteMarginAllOpenOrders", args...)
+func (this *Binance) PapiDeleteMarginAllOpenOrders(args ...any) <-chan any {
+	return this.Fetch2Async("margin/allOpenOrders", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PapiDeleteMarginOrderList returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteMarginOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("papiDeleteMarginOrderList", args...)
+func (this *Binance) PapiDeleteMarginOrderList(args ...any) <-chan any {
+	return this.Fetch2Async("margin/orderList", "papi", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PapiDeleteListenKey returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiDeleteListenKey(args ...any) <-chan any {
+func (this *Binance) PapiDeleteListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteListenKey", args...)
 }
 
 // PapiV2GetUmAccount returns a channel that yields a JSON object.
-func (this *BinanceCore) PapiV2GetUmAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("papiV2GetUmAccount", args...)
+func (this *Binance) PapiV2GetUmAccount(args ...any) <-chan any {
+	return this.Fetch2Async("um/account", "papiV2", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

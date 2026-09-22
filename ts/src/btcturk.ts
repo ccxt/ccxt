@@ -141,6 +141,7 @@ export default class btcturk extends Exchange {
                     'get': {
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'ticker/currency': { 'cost': 0.1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,   // ?last=COUNT (max 50)
                         'ohlc': { 'cost': 1 } as Endpoint<Dict>,
                         'server/exchangeinfo': { 'cost': 1 } as Endpoint<Dict>,
@@ -151,13 +152,18 @@ export default class btcturk extends Exchange {
                         'users/balances': { 'cost': 1 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
                         'users/transactions/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
                         'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
                         'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
                         'order': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto-deposit-declarations/confirm': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'order': { 'cost': 1 } as Endpoint<Dict>,
@@ -259,7 +265,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetServerExchangeinfo (params);
         //
         //    {
@@ -309,7 +315,7 @@ export default class btcturk extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    override parseMarket (entry: any): Market {
+    override parseMarket (entry: Dict): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'numerator');
         const quoteId = this.safeString (entry, 'denominator');
@@ -414,7 +420,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -448,7 +454,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -532,7 +538,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -550,12 +556,12 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol) as Ticker;
+        return this.safeDict (tickers, symbol) as Ticker;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -632,7 +638,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -711,7 +717,7 @@ export default class btcturk extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'resolution': this.safeValue (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         request['to'] = this.parseToInt ((until / 1000));
@@ -809,7 +815,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -843,7 +849,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'id': id,
         };
@@ -871,7 +877,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -899,7 +905,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1027,7 +1033,7 @@ export default class btcturk extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1065,11 +1071,11 @@ export default class btcturk extends Exchange {
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }

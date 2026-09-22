@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List, OpenInterest, OpenInterests } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ export default class nado extends Exchange {
                         },
                         'post': {
                             'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
@@ -123,6 +124,7 @@ export default class nado extends Exchange {
                             'tickers': { 'cost': 1 } as Endpoint<Dict>,
                             'contracts': { 'cost': 1 } as Endpoint<Dict>,
                             'trades': { 'cost': 1 } as Endpoint<List>,
+                            'symbols': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -181,6 +183,7 @@ export default class nado extends Exchange {
                     '1002': RestrictedLocation,
                     '1003': RestrictedLocation,
                     '1004': OnMaintenance,
+                    '1005': BadRequest,
                     '2000': InvalidOrder,
                     '2001': InvalidOrder,
                     '2002': InvalidOrder,
@@ -304,6 +307,7 @@ export default class nado extends Exchange {
                     '2123': BadRequest,
                     '2124': InvalidOrder,
                     '2125': OperationRejected,
+                    '2126': OrderNotFound,
                     '3000': BadRequest,
                     '3001': BadRequest,
                     '3002': ArgumentsRequired,
@@ -344,11 +348,11 @@ export default class nado extends Exchange {
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-     * @param {string} [params.triggerDirection] trigger direction, above, below
+     * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -388,7 +392,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    async createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Dict> {
+    async createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         const market = this.market (symbol);
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' createOrder() supports limit orders only');
@@ -439,14 +443,13 @@ export default class nado extends Exchange {
         const isStopOrder = triggerPrice !== undefined;
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
-            const triggerDirection = this.safeStringLower (params, 'triggerDirection');
-            if (triggerDirection === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
-            }
+            let triggerDirection: Str = undefined;
+            [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params);
+            const directionSuffix = (triggerDirection === 'ascending') ? 'above' : 'below';
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
-            const trigger = {
+            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
+            const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
                 },
@@ -463,7 +466,7 @@ export default class nado extends Exchange {
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
             priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18;
-            const trigger = {
+            const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
                 },
@@ -508,9 +511,10 @@ export default class nado extends Exchange {
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
      * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -545,10 +549,14 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    async editOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Dict> {
+    async editOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         const market = this.market (symbol);
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' editOrder() supports limit orders only');
+        }
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (triggerPrice !== undefined) {
+            throw new NotSupported (this.id + ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead');
         }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
@@ -640,7 +648,7 @@ export default class nado extends Exchange {
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const orders = await this.cancelOrders ([ id ], symbol, params);
         return this.safeDict (orders, 0) as Order;
     }
@@ -657,7 +665,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -723,7 +731,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    async cancelAllOrdersRequest (symbol: Str = undefined, params = {}): Promise<Dict> {
+    async cancelAllOrdersRequest (symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         const productIds: number[] = [];
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -776,7 +784,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
@@ -843,7 +851,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    async cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}): Promise<Dict> {
+    async cancelOrdersRequest (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         const market = this.market (symbol);
         const productId = this.parseToInt (market['id']);
         let subaccount: Str = undefined;
@@ -901,7 +909,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -944,12 +952,12 @@ export default class nado extends Exchange {
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const productIds: number[] = [];
         let market: Market = undefined;
@@ -967,7 +975,7 @@ export default class nado extends Exchange {
         }
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'recvWindow', 5000);
-        const tx = {
+        const tx: Dict = {
             'sender': sender,
             'recvTime': this.numberToString (this.milliseconds () + recvWindow),
         };
@@ -977,7 +985,7 @@ export default class nado extends Exchange {
             'product_ids': productIds,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 500);
         }
         const contracts = await this.queryContracts ();
         const chainId = this.safeString (contracts, 'chain_id');
@@ -1033,7 +1041,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires walletAddress');
         }
@@ -1043,7 +1051,7 @@ export default class nado extends Exchange {
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
-            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            return await this.fetchOrders (symbol, since, limit, this.extend (params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
                 ],
@@ -1053,7 +1061,7 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'sender': sender,
             'type': 'subaccount_orders',
             'product_id': this.parseToInt (market['id']),
@@ -1106,7 +1114,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires walletAddress');
         }
@@ -1120,7 +1128,7 @@ export default class nado extends Exchange {
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
-            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            return await this.fetchOrders (symbol, since, limit, this.extend (params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ],
@@ -1138,7 +1146,7 @@ export default class nado extends Exchange {
         if (limit !== undefined) {
             ordersRequest['limit'] = Math.min (limit, 500);
         }
-        const request = {
+        const request: Dict = {
             'orders': ordersRequest,
         };
         const response = await this.archivePost (this.deepExtend (request, params));
@@ -1175,17 +1183,17 @@ export default class nado extends Exchange {
     /**
      * @method
      * @name nado#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'trigger': true,
             'status_types': [
                 'cancelled', 'internal_error',
             ],
@@ -1195,17 +1203,17 @@ export default class nado extends Exchange {
     /**
      * @method
      * @name nado#fetchCanceledAndClosedOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'trigger': true,
             'status_types': [
                 'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
             ],
@@ -1225,7 +1233,7 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires walletAddress');
         }
@@ -1302,7 +1310,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires walletAddress');
         }
@@ -1350,7 +1358,7 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.queryTransactionsByEventType ('deposit_collateral', 'deposit', 'fetchDeposits', code, since, limit, params);
     }
 
@@ -1367,11 +1375,11 @@ export default class nado extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         return await this.queryTransactionsByEventType ('withdraw_collateral', 'withdrawal', 'fetchWithdrawals', code, since, limit, params);
     }
 
-    async queryTransactionsByEventType (eventType: string, transactionType: string, methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async queryTransactionsByEventType (eventType: string, transactionType: string, methodName: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires walletAddress');
         }
@@ -1468,7 +1476,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires walletAddress');
         }
@@ -1542,7 +1550,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const request: Dict = {
             'type': 'time',
         };
@@ -1566,7 +1574,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Status> {
+    override async fetchStatus (params: Dict = {}): Promise<Status> {
         const request: Dict = {
             'type': 'status',
         };
@@ -1598,7 +1606,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const symbolsRequest = this.gatewayPublicGetSymbols (params);
         const pairsRequest = this.gatewayV2PublicGetPairs (params);
         const assetsRequest = this.gatewayV2PublicGetAssets (params);
@@ -1746,7 +1754,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
         const result: Dict = {};
         const assets = this.toArray (response);
@@ -1782,7 +1790,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.archiveV2PublicGetTickers (params);
@@ -1813,15 +1821,16 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const tickers = await this.fetchTickers ([ symbol ], params);
-        const ticker = this.safeDict (tickers, symbol);
+        const ticker = this.safeDict (tickers, symbol) as Ticker;
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() ticker not found for ' + symbol);
         }
-        return this.safeTicker (ticker, market);
+        return ticker;
     }
 
     /**
@@ -1881,7 +1890,7 @@ export default class nado extends Exchange {
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
@@ -1941,7 +1950,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true);
         const response = await this.archiveV2PublicGetContracts (params);
@@ -1987,7 +1996,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap'] !== true) {
@@ -2032,7 +2041,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true);
         const response = await this.archiveV2PublicGetContracts (params);
@@ -2078,7 +2087,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tickerId = this.safeString (market['info'], 'ticker_id');
@@ -2118,7 +2127,7 @@ export default class nado extends Exchange {
      * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tickerId = this.safeString (market['info'], 'ticker_id');
@@ -2154,12 +2163,12 @@ export default class nado extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
@@ -2171,7 +2180,7 @@ export default class nado extends Exchange {
             },
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = limit;
+            request['candlesticks']['limit'] = Math.min (limit, 500);
         }
         if (until !== undefined) {
             request['candlesticks']['max_time'] = this.parseToInt (until / 1000);
@@ -2405,7 +2414,7 @@ export default class nado extends Exchange {
         };
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "product_id": 1,
@@ -2904,19 +2913,24 @@ export default class nado extends Exchange {
         return Precise.stringDiv (Precise.stringMul (value, '1000000000000000000'), '1', 0);
     }
 
-    parseX18 (value: any) {
+    parseX18 (value: Str) {
         if (value === undefined) {
             return undefined;
         }
         return this.parseNumber (Precise.stringDiv (value, '1000000000000000000'));
     }
 
-    createOrderNonce (recvWindow: any) {
+    createOrderNonce (recvWindow: Int): Str {
         const expires = this.sum (this.milliseconds (), recvWindow);
-        return Precise.stringMul (this.numberToString (expires), '1048576');
+        const highBits = Precise.stringMul (this.numberToString (expires), '1048576');
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        const entropy = this.randNumber (6);
+        return Precise.stringAdd (highBits, this.numberToString (entropy));
     }
 
-    createOrderAppendix (isTriggerOrder: any, params = {}) {
+    createOrderAppendix (isTriggerOrder: boolean, params: Dict = {}): Str {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -2971,7 +2985,7 @@ export default class nado extends Exchange {
         return '0x' + address + this.padHex (encoded, 24, false);
     }
 
-    async queryContracts (params = {}) {
+    async queryContracts (params: Dict = {}): Promise<Dict> {
         const cachedContracts = this.safeDict (this.options, 'gatewayContracts');
         if (cachedContracts !== undefined) {
             return cachedContracts;
@@ -2989,7 +3003,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
-    padHex (value: string, length: Int, left = true) {
+    padHex (value: string, length: Int, left: boolean = true): string {
         if (length === undefined) {
             throw new ArgumentsRequired (this.id + ' padHex() requires length');
         }
@@ -3002,7 +3016,7 @@ export default class nado extends Exchange {
         return padded.slice (0, length);
     }
 
-    signOrder (order: any, productId: Int, chainId: any) {
+    signOrder (order: Dict, productId: Int, chainId: Str): string {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3024,7 +3038,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signCancellation (cancellation: any, chainId: any, endpointAddress: string) {
+    signCancellation (cancellation: Dict, chainId: Str, endpointAddress: Str): string {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3044,7 +3058,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signCancellationProducts (cancellation: any, chainId: any, endpointAddress: string) {
+    signCancellationProducts (cancellation: Dict, chainId: Str, endpointAddress: Str): string {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3063,7 +3077,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signFetchTriggerOrders (tx: any, chainId: any, endpointAddress: any) {
+    signFetchTriggerOrders (tx: Dict, chainId: Str, endpointAddress: Str): string {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3102,7 +3116,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = api[0];
         if (typeof api === 'string') {
             endpoint = api;

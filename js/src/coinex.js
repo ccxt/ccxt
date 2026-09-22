@@ -328,6 +328,7 @@ export default class coinex extends Exchange {
                             'futures/basis-history': { 'cost': 1 },
                             'assets/deposit-withdraw-config': { 'cost': 1 },
                             'assets/all-deposit-withdraw-config': { 'cost': 1 },
+                            'assets/info': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -439,6 +440,8 @@ export default class coinex extends Exchange {
                             'futures/adjust-position-leverage': { 'cost': 20 },
                             'futures/set-position-stop-loss': { 'cost': 20 },
                             'futures/set-position-take-profit': { 'cost': 20 },
+                            'futures/modify-position-stop-loss': { 'cost': 20 },
+                            'futures/modify-position-take-profit': { 'cost': 20 },
                         },
                     },
                 },
@@ -1168,7 +1171,7 @@ export default class coinex extends Exchange {
         symbols = this.marketSymbols(symbols);
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
@@ -1605,7 +1608,7 @@ export default class coinex extends Exchange {
         return result;
     }
     parseTradingFee(fee, market = undefined) {
-        const marketId = this.safeValue(fee, 'market');
+        const marketId = this.safeString(fee, 'market');
         const symbol = this.safeSymbol(marketId, market);
         return {
             'info': fee,
@@ -2585,9 +2588,9 @@ export default class coinex extends Exchange {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             if (type !== 'limit') {
                 throw new NotSupported(this.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted');
             }
@@ -3123,8 +3126,8 @@ export default class coinex extends Exchange {
                 orderSymbols.push(marketId);
             }
             const id = this.safeString(rawOrder, 'id');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
             let marginMode = undefined;
             [marginMode, orderParams] = this.handleMarginModeAndParams('editOrders', orderParams);
@@ -4941,7 +4944,7 @@ export default class coinex extends Exchange {
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             if (market['swap'] !== true) {
                 throw new BadSymbol(this.id + ' fetchFundingRates() supports swap contracts only');
@@ -5296,7 +5299,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString(transfer, 'ccy');
         const fromId = this.safeString(transfer, 'from_account_type');
         const toId = this.safeString(transfer, 'to_account_type');
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
+        const accountsById = this.safeDict(this.options, 'accountsById', {});
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -5615,7 +5618,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const rows = this.safeValue(response, 'data', []);
+        const rows = this.safeList(response, 'data', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

@@ -189,6 +189,7 @@ export default class bitteam extends Exchange {
                         'trade/api/pairs': { 'cost': 1 } as Endpoint<Dict>, // not unified
                         'trade/api/pairs/precisions': { 'cost': 1 } as Endpoint<Dict>, // not unified
                         'trade/api/rates': { 'cost': 1 } as Endpoint<Dict>, // not unified
+                        'trade/api/stats': { 'cost': 1 } as Endpoint<Dict>, // not unified
                         'trade/api/trade/{id}': { 'cost': 1 } as Endpoint<Dict>, // not unified
                         'trade/api/trades': { 'cost': 1 } as Endpoint<Dict>, // not unified
                         'trade/api/ccxt/pairs': { 'cost': 1 } as Endpoint<Dict>,
@@ -364,7 +365,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetTradeApiCcxtPairs (params);
         //
         //     {
@@ -452,8 +453,8 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'pairs', []);
+        const result = this.safeDict (response, 'result', {});
+        const markets = this.safeList (result, 'pairs', []);
         return this.parseMarkets (markets);
     }
 
@@ -465,14 +466,14 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const active = this.safeValue (market, 'active');
+        const active = this.safeBool (market, 'active');
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
         const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd === true) {
-            const settings = this.safeValue (market, 'settings', {});
+            const settings = this.safeDict (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
@@ -535,7 +536,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetTradeApiCurrencies (params);
         //
         //     {
@@ -627,8 +628,8 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const responseResult = this.safeValue (response, 'result', {});
-        const currencies = this.safeValue (responseResult, 'currencies', []);
+        const responseResult = this.safeDict (response, 'result', {});
+        const currencies = this.safeList (responseResult, 'currencies', []);
         // using another endpoint to fetch statuses of deposits and withdrawals
         let statusesResponse = await this.publicGetTradeApiCmcAssets ();
         //
@@ -659,18 +660,18 @@ export default class bitteam extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const statusesResponse = this.safeValue (this.options, '_temp_currencies_statuses', {});
+        const statusesResponse = this.safeDict (this.options, '_temp_currencies_statuses', {});
         const id = this.safeString (currency, 'symbol');
         const numericId = this.safeInteger (currency, 'id');
         const code = this.safeCurrencyCode (id);
         const active = this.safeBool (currency, 'active', false);
         const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
-        const txLimits = this.safeValue (currency, 'txLimits', {});
+        const txLimits = this.safeDict (currency, 'txLimits', {});
         const minWithdraw = this.safeString (txLimits, 'minWithdraw');
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');
         let fee: Num = undefined;
-        const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {});
+        const withdrawCommissionFixed = this.safeDict (txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId: Dict = {};
         const blockChain = this.safeString (currency, 'blockChain');
         // if only one blockChain
@@ -680,9 +681,9 @@ export default class bitteam extends Exchange {
         } else {
             feesByNetworkId = withdrawCommissionFixed;
         }
-        const statuses = this.safeValue (statusesResponse, numericId, {});
-        const deposit = this.safeValue (statuses, 'depositStatus');
-        const withdraw = this.safeValue (statuses, 'withdrawStatus');
+        const statuses = this.safeDict (statusesResponse, numericId, {});
+        const deposit = this.safeBool (statuses, 'depositStatus');
+        const withdraw = this.safeBool (statuses, 'withdrawStatus');
         const networkIds = Object.keys (feesByNetworkId);
         const networks: Dict = {};
         const networkPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
@@ -759,7 +760,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -797,7 +798,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
@@ -833,7 +834,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -886,7 +887,7 @@ export default class bitteam extends Exchange {
      * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -985,7 +986,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const orders = this.safeList (result, 'orders', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1000,7 +1001,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1064,7 +1065,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1085,7 +1086,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1106,7 +1107,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1129,7 +1130,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1185,7 +1186,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1214,7 +1215,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1235,7 +1236,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const orders = [ result ];
         return this.parseOrders (orders, market);
     }
@@ -1342,7 +1343,7 @@ export default class bitteam extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
-        const feeRaw = this.safeValue (order, 'fee');
+        const feeRaw = this.safeDict (order, 'fee');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
@@ -1396,7 +1397,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (status: any) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'market': 'market',
             'limit': 'limit',
@@ -1404,7 +1405,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: any, valueKey: any, preciseObject: any, precisionKey: any) {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: any, precisionKey: string) {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
@@ -1423,7 +1424,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1481,7 +1482,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1673,7 +1674,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const pair = this.safeDict (result, 'pair', {}) as Dict;
         return this.parseTicker (pair, market);
     }
@@ -1764,13 +1765,13 @@ export default class bitteam extends Exchange {
         let bestAskPrice: Str = undefined;
         let bestBidVolume: Str = undefined;
         let bestAskVolume: Str = undefined;
-        const bids = this.safeValue (ticker, 'bids');
-        const asks = this.safeValue (ticker, 'asks');
+        const bids = this.safeList (ticker, 'bids');
+        const asks = this.safeList (ticker, 'asks');
         if ((bids !== undefined) && (Array.isArray (bids)) && (asks !== undefined) && (Array.isArray (asks))) {
-            const bestBid = this.safeValue (bids, 0, {});
+            const bestBid = this.safeDict (bids, 0, {});
             bestBidPrice = this.safeString (bestBid, 'price');
             bestBidVolume = this.safeString (bestBid, 'quantity');
-            const bestAsk = this.safeValue (asks, 0, {});
+            const bestAsk = this.safeDict (asks, 0, {});
             bestAskPrice = this.safeString (bestAsk, 'price');
             bestAskVolume = this.safeString (bestAsk, 'quantity');
         } else {
@@ -1817,7 +1818,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1861,7 +1862,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2008,7 +2009,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
@@ -2091,10 +2092,10 @@ export default class bitteam extends Exchange {
                 side = 'sell';
             }
             order = this.safeString (trade, 'makerOrderId');
-            feeInfo = this.safeValue (trade, 'feeMaker', {});
+            feeInfo = this.safeDict (trade, 'feeMaker', {});
         } else if (takerOrMaker === 'taker') {
             order = this.safeString (trade, 'takerOrderId');
-            feeInfo = this.safeValue (trade, 'feeTaker', {});
+            feeInfo = this.safeDict (trade, 'feeTaker', {});
         }
         const feeCurrencyId = this.safeString (feeInfo, 'symbol');
         const feeCost = this.safeString (feeInfo, 'amount');
@@ -2128,7 +2129,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2178,18 +2179,17 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds ();
         const balance: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const balanceByCurrencies = this.omit (result, [ 'free', 'used', 'total' ]);
         const rawCurrencyIds = Object.keys (balanceByCurrencies);
         for (let i = 0; i < rawCurrencyIds.length; i++) {
             const rawCurrencyId = rawCurrencyIds[i];
-            const currencyBalance = this.safeValue (result, rawCurrencyId);
+            const currencyBalance = this.safeDict (result, rawCurrencyId);
             const free = this.safeString (currencyBalance, 'free');
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
@@ -2216,7 +2216,7 @@ export default class bitteam extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2318,7 +2318,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const transactions = this.safeList (result, 'transactions', []) as List;
         return this.parseTransactions (transactions, currency, since, limit);
     }
@@ -2371,17 +2371,17 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const currencyObject = this.safeValue (transaction, 'currency');
+        const currencyObject = this.safeDict (transaction, 'currency');
         const currencyId = this.safeString (currencyObject, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
         const id = this.safeString (transaction, 'id');
-        const params = this.safeValue (transaction, 'params');
+        const params = this.safeDict (transaction, 'params');
         const txid = this.safeString (params, 'tx_id');
         const timestamp = this.safeInteger (transaction, 'timestamp');
         let networkId = this.safeString (transaction, 'blockChain');
         if (networkId === undefined) {
-            const links = this.safeValue (currencyObject, 'links', []);
-            const blockChain = this.safeValue (links, 0, {});
+            const links = this.safeList (currencyObject, 'links', []);
+            const blockChain = this.safeDict (links, 0, {});
             networkId = this.safeString (blockChain, 'blockChain');
         }
         const addressFrom = this.safeString (transaction, 'sender');
@@ -2389,7 +2389,7 @@ export default class bitteam extends Exchange {
         const tag = this.safeString (transaction, 'message');
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const amount = this.parseValueToPricision (transaction, 'amount', currencyObject, 'decimals');
-        const status = this.parseTransactionStatus (this.safeValue (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
             'id': id,
@@ -2414,7 +2414,7 @@ export default class bitteam extends Exchange {
         };
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -2430,7 +2430,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;

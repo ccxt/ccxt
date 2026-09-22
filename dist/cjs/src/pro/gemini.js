@@ -220,7 +220,7 @@ class gemini extends gemini$1["default"] {
         //
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const trades = this.safeValue(message, 'trades');
+        const trades = this.safeList(message, 'trades');
         if (trades !== undefined) {
             const symbol = market['symbol'];
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -335,13 +335,13 @@ class gemini extends gemini$1["default"] {
         const marketId = this.safeString(message, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
         const symbol = this.safeSymbol(marketId, market);
-        const changes = this.safeValue(message, 'changes', []);
+        const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
+        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -398,7 +398,7 @@ class gemini extends gemini$1["default"] {
     }
     handleOrderBook(client, message) {
         const isInitial = ('auction_events' in message) && ('trades' in message) && ('changes' in message);
-        const changes = this.safeValue(message, 'changes', []);
+        const changes = this.safeList(message, 'changes', []);
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];

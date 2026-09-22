@@ -6,8 +6,6 @@
 //   * routes `--baseTests` to the base-test suites, and
 //   * otherwise hands off to `TestMainClass::init(exchange, symbol, method)`.
 
-#![allow(dead_code)]
-
 use std::process::ExitCode;
 use ccxt::Value;
 use ccxt::runtime::is_true;
@@ -16,7 +14,6 @@ use futures::FutureExt;
 mod generated_cores;      // GENERATED: every dispatchable Core + the for_each_* macros
 mod assertions;
 mod base_tests;
-mod fixtures;
 mod language_specific;
 mod registry;
 pub mod tests_support;       // public so transpiled base/ tests can reach it
@@ -65,11 +62,29 @@ async fn main() -> ExitCode {
     // `--prediction` makes the `hyperliquid` id resolve to its prediction-market
     // Core (it also exists as a regular exchange). Prediction-only venues
     // (kalshi/…) resolve unambiguously and need no flag.
-    live_dispatch::set_prediction_mode(is_true(&getCliArgValue(Value::Str("--prediction".to_string()))));
-    let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".to_string())));
-    let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".to_string())));
-    let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".to_string())))
-                      || is_true(&getCliArgValue(Value::Str("-v".to_string())));
+    live_dispatch::set_prediction_mode(is_true(&getCliArgValue(Value::Str("--prediction".into()))));
+    let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".into())));
+    // The OrderRouter suite runs on its own flag rather than inside --baseTests,
+    // so `npm run test-order-router-rust` can drive just it — the same split the
+    // C# runner uses for the same reason.
+    let run_order_router_tests =
+        is_true(&getCliArgValue(Value::Str("--orderRouterTests".into())));
+    if run_order_router_tests {
+        match ccxt::order_router_selftest::run() {
+            Ok(passed) => {
+                println!("[rust] OrderRouter: {passed} passed, 0 failed");
+                println!("OrderRouter tests passed!");
+                return ExitCode::SUCCESS;
+            }
+            Err(message) => {
+                eprintln!("[rust] OrderRouter FAILED — {message}");
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+    let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".into())));
+    let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".into())))
+                      || is_true(&getCliArgValue(Value::Str("-v".into())));
 
     // ── base tests ──────────────────────────────────────────────────
     // Mirrors `go/tests/main.go`: run the transpiled `baseTestsInit()`

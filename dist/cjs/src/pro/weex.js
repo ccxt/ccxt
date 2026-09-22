@@ -399,7 +399,7 @@ class weex extends weex$1["default"] {
         }
         const trades = await this.subscribePublic(messageHashes, channels, isContract, params);
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -515,6 +515,13 @@ class weex extends weex$1["default"] {
         //
         const timestamp = this.safeInteger(trade, 'T');
         const symbol = (market === undefined) ? undefined : market['symbol'];
+        const isBuyerMaker = this.safeBool(trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let side = undefined;
+        let takerOrMaker = undefined;
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 't'),
@@ -523,8 +530,8 @@ class weex extends weex$1["default"] {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': this.safeString(trade, 'v'),
@@ -1588,7 +1595,7 @@ class weex extends weex$1["default"] {
             'type': type,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];

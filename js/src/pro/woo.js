@@ -77,7 +77,7 @@ export default class woo extends wooRest {
         });
     }
     requestId(url) {
-        const options = this.safeValue(this.options, 'requestId', {});
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
@@ -276,7 +276,7 @@ export default class woo extends wooRest {
             const limit = this.safeInteger(subscription, 'limit', defaultLimit);
             const params = this.safeValue(subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe(symbol, limit, params);
-            if (this.safeValue(this.orderbooks, symbol) === undefined) {
+            if (this.safeDict(this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;
             }
@@ -310,8 +310,8 @@ export default class woo extends wooRest {
     }
     handleOrderBookMessage(client, message, orderbook) {
         const data = this.safeDict(message, 'data');
-        this.handleDeltas(orderbook['asks'], this.safeValue(data, 'asks', []));
-        this.handleDeltas(orderbook['bids'], this.safeValue(data, 'bids', []));
+        this.handleDeltas(orderbook['asks'], this.safeList(data, 'asks', []));
+        this.handleDeltas(orderbook['bids'], this.safeList(data, 'bids', []));
         const timestamp = this.safeInteger(message, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
@@ -697,7 +697,7 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const topic = this.safeValue(message, 'topic');
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
@@ -712,8 +712,8 @@ export default class woo extends wooRest {
             this.safeFloat(data, 'close'),
             this.safeFloat(data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
@@ -787,7 +787,7 @@ export default class woo extends wooRest {
         //
         const topic = this.safeString(message, 'topic');
         const timestamp = this.safeInteger(message, 'ts');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data');
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1189,8 +1189,8 @@ export default class woo extends wooRest {
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue(orders, orderId);
+            const orders = this.safeDict(cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict(orders, orderId);
             if (order !== undefined) {
                 const fee = this.safeValue(order, 'fee');
                 if (fee !== undefined) {
@@ -1361,8 +1361,8 @@ export default class woo extends wooRest {
         //        }
         //    }
         //
-        const data = this.safeValue(message, 'data', {});
-        const rawPositions = this.safeValue(data, 'positions', {});
+        const data = this.safeDict(message, 'data', {});
+        const rawPositions = this.safeDict(data, 'positions', {});
         const postitionsIds = Object.keys(rawPositions);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide();
@@ -1643,7 +1643,7 @@ export default class woo extends wooRest {
         //
         const id = this.safeString(message, 'id');
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeValue(subscriptionsById, id, {});
+        const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
             method.call(this, client, message, subscription);
@@ -1659,7 +1659,7 @@ export default class woo extends wooRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue(message, 'success');
+        const success = this.safeBool(message, 'success');
         if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');

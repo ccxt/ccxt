@@ -173,7 +173,9 @@ export default class indodax extends Exchange {
                         'openOrders': { 'cost': 4 },
                         'orderHistory': { 'cost': 4 },
                         'getOrder': { 'cost': 4 },
+                        'getOrderByClientOrderId': { 'cost': 4 },
                         'cancelOrder': { 'cost': 4 },
+                        'cancelByClientOrderId': { 'cost': 4 },
                         'withdrawFee': { 'cost': 4 },
                         'withdrawCoin': { 'cost': 4 },
                         'listDownline': { 'cost': 4 },
@@ -434,9 +436,9 @@ export default class indodax extends Exchange {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'return', {});
-        const free = this.safeValue(balances, 'balance', {});
-        const used = this.safeValue(balances, 'balance_hold', {});
+        const balances = this.safeDict(response, 'return', {});
+        const free = this.safeDict(balances, 'balance', {});
+        const used = this.safeDict(balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp(balances, 'server_time');
         const result = {
             'info': response,
@@ -1024,7 +1026,7 @@ export default class indodax extends Exchange {
             request[market['baseId']] = this.amountToPrecision(symbol, amount);
         }
         const result = await this.privatePostTrade(this.extend(request, params));
-        const data = this.safeValue(result, 'return', {});
+        const data = this.safeDict(result, 'return', {});
         const id = this.safeString(data, 'order_id');
         return this.safeOrder({
             'info': result,
@@ -1109,7 +1111,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'return', {});
+        const data = this.safeDict(response, 'return', {});
         const currencyId = this.safeString(data, 'currency');
         return {
             'info': response,
@@ -1230,9 +1232,9 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'return', {});
-        const withdraw = this.safeValue(data, 'withdraw', {});
-        const deposit = this.safeValue(data, 'deposit', {});
+        const data = this.safeDict(response, 'return', {});
+        const withdraw = this.safeDict(data, 'withdraw', {});
+        const deposit = this.safeDict(data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {
@@ -1249,8 +1251,8 @@ export default class indodax extends Exchange {
         }
         else {
             currency = this.currency(code);
-            const withdraws = this.safeValue(withdraw, currency['id'], []);
-            const deposits = this.safeValue(deposit, currency['id'], []);
+            const withdraws = this.safeList(withdraw, currency['id'], []);
+            const deposits = this.safeList(deposit, currency['id'], []);
             transactions = this.arrayConcat(withdraws, deposits);
         }
         return this.parseTransactions(transactions, currency, since, limit);
@@ -1529,7 +1531,7 @@ export default class indodax extends Exchange {
         if (Array.isArray(response)) {
             return undefined; // public endpoints may return []-arrays
         }
-        const error = this.safeValue(response, 'error', '');
+        const error = this.safeString(response, 'error', '');
         if (!('success' in response) && error === '') {
             return undefined; // no 'success' property on public responses
         }

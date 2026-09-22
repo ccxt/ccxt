@@ -76,17 +76,17 @@ class paradex extends \ccxt\async\paradex {
         return Async\await($future);
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
         $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            // $client->resolve(true, messageHash);
+            // client.resolve (true, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             if ($future !== null) {
                 $future->resolve(true);
@@ -135,21 +135,21 @@ class paradex extends \ccxt\async\paradex {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.ALL",
-        //             "data" => {
-        //                 "id" => "1718179273230201709233240002",
-        //                 "market" => "kBONK-USD-PERP",
-        //                 "side" => "BUY",
-        //                 "size" => "34028",
-        //                 "price" => "0.028776",
-        //                 "created_at" => 1718179273230,
-        //                 "trade_type" => "FILL"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.ALL",
+        //             "data": {
+        //                 "id": "1718179273230201709233240002",
+        //                 "market": "kBONK-USD-PERP",
+        //                 "side": "BUY",
+        //                 "size": "34028",
+        //                 "price": "0.028776",
+        //                 "created_at": 1718179273230,
+        //                 "trade_type": "FILL"
         //             }
         //         }
         //     }
@@ -201,32 +201,32 @@ class paradex extends \ccxt\async\paradex {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "order_book.BTC-USD-PERP.snapshot@15@50ms",
-        //             "data" => {
-        //                 "seq_no" => 14127815,
-        //                 "market" => "BTC-USD-PERP",
-        //                 "last_updated_at" => 1718267837265,
-        //                 "update_type" => "s",
-        //                 "inserts" => array(
-        //                     array(
-        //                         "side" => "BUY",
-        //                         "price" => "67629.7",
-        //                         "size" => "0.992"
-        //                     ),
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "order_book.BTC-USD-PERP.snapshot@15@50ms",
+        //             "data": {
+        //                 "seq_no": 14127815,
+        //                 "market": "BTC-USD-PERP",
+        //                 "last_updated_at": 1718267837265,
+        //                 "update_type": "s",
+        //                 "inserts": [
         //                     {
-        //                         "side" => "SELL",
-        //                         "price" => "69378.6",
-        //                         "size" => "3.137"
+        //                         "side": "BUY",
+        //                         "price": "67629.7",
+        //                         "size": "0.992"
+        //                     },
+        //                     {
+        //                         "side": "SELL",
+        //                         "price": "69378.6",
+        //                         "size": "3.137"
         //                     }
-        //                 ),
-        //                 "updates" => array(),
-        //                 "deletes" => array()
+        //                 ],
+        //                 "updates": [],
+        //                 "deletes": []
         //             }
         //         }
         //     }
@@ -385,30 +385,30 @@ class paradex extends \ccxt\async\paradex {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "orders.ALL",
-        //             "data" => {
-        //                 "account" => "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
-        //                 "avg_fill_price" => "26000",
-        //                 "client_id" => "x1234",
-        //                 "cancel_reason" => "",
-        //                 "created_at" => 1681493746016,
-        //                 "flags" => ["REDUCE_ONLY"],
-        //                 "id" => "123456",
-        //                 "instruction" => "GTC",
-        //                 "last_updated_at" => 1681493746016,
-        //                 "market" => "BTC-USD-PERP",
-        //                 "price" => "26000",
-        //                 "remaining_size" => "0",
-        //                 "side" => "BUY",
-        //                 "size" => "0.05",
-        //                 "status" => "NEW",
-        //                 "type" => "LIMIT"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "orders.ALL",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price": "26000",
+        //                 "client_id": "x1234",
+        //                 "cancel_reason": "",
+        //                 "created_at": 1681493746016,
+        //                 "flags": ["REDUCE_ONLY"],
+        //                 "id": "123456",
+        //                 "instruction": "GTC",
+        //                 "last_updated_at": 1681493746016,
+        //                 "market": "BTC-USD-PERP",
+        //                 "price": "26000",
+        //                 "remaining_size": "0",
+        //                 "side": "BUY",
+        //                 "size": "0.05",
+        //                 "status": "NEW",
+        //                 "type": "LIMIT"
         //             }
         //         }
         //     }
@@ -430,27 +430,27 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "markets_summary",
-        //             "data" => {
-        //                 "symbol" => "ORDI-USD-PERP",
-        //                 "oracle_price" => "49.80885481",
-        //                 "mark_price" => "49.80885481",
-        //                 "last_traded_price" => "62.038",
-        //                 "bid" => "49.822",
-        //                 "ask" => "58.167",
-        //                 "volume_24h" => "0",
-        //                 "total_volume" => "54542628.66054200416",
-        //                 "created_at" => 1718334307698,
-        //                 "underlying_price" => "47.93",
-        //                 "open_interest" => "6999.5",
-        //                 "funding_rate" => "0.03919997509811",
-        //                 "price_change_rate_24h" => ""
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "markets_summary",
+        //             "data": {
+        //                 "symbol": "ORDI-USD-PERP",
+        //                 "oracle_price": "49.80885481",
+        //                 "mark_price": "49.80885481",
+        //                 "last_traded_price": "62.038",
+        //                 "bid": "49.822",
+        //                 "ask": "58.167",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "54542628.66054200416",
+        //                 "created_at": 1718334307698,
+        //                 "underlying_price": "47.93",
+        //                 "open_interest": "6999.5",
+        //                 "funding_rate": "0.03919997509811",
+        //                 "price_change_rate_24h": ""
         //             }
         //         }
         //     }
@@ -550,21 +550,21 @@ class paradex extends \ccxt\async\paradex {
         return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "funding_data",
-        //             "data" => {
-        //                 "market" => "TRUMP-USD-PERP",
-        //                 "funding_index" => "-0.551694014226244835",
-        //                 "funding_premium" => "-0.000509914923994872836",
-        //                 "funding_rate" => "-0.00014969570582",
-        //                 "funding_rate_8h" => "-0.00014969",
-        //                 "funding_period_hours" => 8,
-        //                 "created_at" => 1771506636154
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "funding_data",
+        //             "data": {
+        //                 "market": "TRUMP-USD-PERP",
+        //                 "funding_index": "-0.551694014226244835",
+        //                 "funding_premium": "-0.000509914923994872836",
+        //                 "funding_rate": "-0.00014969570582",
+        //                 "funding_rate_8h": "-0.00014969",
+        //                 "funding_period_hours": 8,
+        //                 "created_at": 1771506636154
         //             }
         //         }
         //     }
@@ -579,16 +579,16 @@ class paradex extends \ccxt\async\paradex {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_funding_rate_ws(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_ws(array $contract, ?array $market = null): array {
         //
         //     {
-        //         "market" => "TRUMP-USD-PERP",
-        //         "funding_index" => "-0.551694014226244835",
-        //         "funding_premium" => "-0.000509914923994872836",
-        //         "funding_rate" => "-0.00014969570582",
-        //         "funding_rate_8h" => "-0.00014969",
-        //         "funding_period_hours" => 8,
-        //         "created_at" => 1771506636154
+        //         "market": "TRUMP-USD-PERP",
+        //         "funding_index": "-0.551694014226244835",
+        //         "funding_premium": "-0.000509914923994872836",
+        //         "funding_rate": "-0.00014969570582",
+        //         "funding_rate_8h": "-0.00014969",
+        //         "funding_period_hours": 8,
+        //         "created_at": 1771506636154
         //     }
         //
         $marketId = $this->safe_string($contract, 'market');
@@ -617,19 +617,19 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 0,
-        //         "error" => array(
-        //             "code" => -32600,
-        //             "message" => "invalid subscribe request",
-        //             "data" => "invalid channel"
-        //         ),
-        //         "usIn" => 1718179125962419,
-        //         "usDiff" => 76,
-        //         "usOut" => 1718179125962495
+        //         "jsonrpc": "2.0",
+        //         "id": 0,
+        //         "error": {
+        //             "code": -32600,
+        //             "message": "invalid subscribe request",
+        //             "data": "invalid channel"
+        //         },
+        //         "usIn": 1718179125962419,
+        //         "usDiff": 76,
+        //         "usOut": 1718179125962495
         //     }
         //
         $error = $this->safe_dict($message, 'error');
@@ -649,7 +649,7 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
@@ -657,31 +657,31 @@ class paradex extends \ccxt\async\paradex {
         // auth response
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "id" => 1,
-        //         "result" => array( "node_id" => "73cf456f7cb78d59" )
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        // subscription $message
+        // subscription message
         //
         //     {
-        //         "jsonrpc" => "2.0",
-        //         "method" => "subscription",
-        //         "params" => {
-        //             "channel" => "trades.ALL",
-        //             "data" => {
-        //                 "id" => "1718179273230201709233240002",
-        //                 "market" => "kBONK-USD-PERP",
-        //                 "side" => "BUY",
-        //                 "size" => "34028",
-        //                 "price" => "0.028776",
-        //                 "created_at" => 1718179273230,
-        //                 "trade_type" => "FILL"
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "trades.ALL",
+        //             "data": {
+        //                 "id": "1718179273230201709233240002",
+        //                 "market": "kBONK-USD-PERP",
+        //                 "side": "BUY",
+        //                 "size": "34028",
+        //                 "price": "0.028776",
+        //                 "created_at": 1718179273230,
+        //                 "trade_type": "FILL"
         //             }
         //         }
         //     }
         //
-        $result = $this->safe_value($message, 'result');
+        $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
             $this->handle_authentication_message($client, $message);
             return;

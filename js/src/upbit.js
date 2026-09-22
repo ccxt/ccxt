@@ -154,6 +154,11 @@ export default class upbit extends Exchange {
                         'travel_rule/vasps': { 'cost': 0.67 },
                         'status/wallet': { 'cost': 0.67 },
                         'api_keys': { 'cost': 0.67 }, // Upbit KR only
+                        'pockets': { 'cost': 0.67 },
+                        'pockets/api_keys': { 'cost': 0.67 },
+                        'pockets/assets': { 'cost': 0.67 },
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'post': {
                         'orders': { 'cost': 2.5 }, // RPS: 8
@@ -165,6 +170,8 @@ export default class upbit extends Exchange {
                         'deposits/generate_coin_address': { 'cost': 0.67 },
                         'travel_rule/deposit/uuid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'delete': {
                         'order': { 'cost': 0.67 },
@@ -337,13 +344,13 @@ export default class upbit extends Exchange {
         //         }
         //     }
         //
-        const memberInfo = this.safeValue(response, 'member_level', {});
-        const currencyInfo = this.safeValue(response, 'currency', {});
-        const withdrawLimits = this.safeValue(response, 'withdraw_limit', {});
-        const canWithdraw = this.safeValue(withdrawLimits, 'can_withdraw');
+        const memberInfo = this.safeDict(response, 'member_level', {});
+        const currencyInfo = this.safeDict(response, 'currency', {});
+        const withdrawLimits = this.safeDict(response, 'withdraw_limit', {});
+        const canWithdraw = this.safeBool(withdrawLimits, 'can_withdraw');
         const walletState = this.safeString(currencyInfo, 'wallet_state');
-        const walletLocked = this.safeValue(memberInfo, 'wallet_locked');
-        const locked = this.safeValue(memberInfo, 'locked');
+        const walletLocked = this.safeBool(memberInfo, 'wallet_locked');
+        const locked = this.safeBool(memberInfo, 'locked');
         let active = true;
         if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
             active = false;
@@ -433,9 +440,9 @@ export default class upbit extends Exchange {
         //         }
         //     }
         //
-        const marketInfo = this.safeValue(response, 'market');
-        const bid = this.safeValue(marketInfo, 'bid');
-        const ask = this.safeValue(marketInfo, 'ask');
+        const marketInfo = this.safeDict(response, 'market');
+        const bid = this.safeDict(marketInfo, 'bid');
+        const ask = this.safeDict(marketInfo, 'ask');
         const marketId = this.safeString(marketInfo, 'id');
         const baseId = this.safeString(ask, 'currency');
         const quoteId = this.safeString(bid, 'currency');
@@ -1216,7 +1223,7 @@ export default class upbit extends Exchange {
     }
     calcOrderPrice(symbol, amount, price = undefined, params = {}) {
         let quoteAmount = undefined;
-        const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice');
+        const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
@@ -1919,7 +1926,7 @@ export default class upbit extends Exchange {
         let feeCost = this.safeString(order, 'paid_fee');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
-        let trades = this.safeValue(order, 'trades', []);
+        let trades = this.safeList(order, 'trades', []);
         trades = this.parseTrades(trades, market, undefined, undefined, {
             'order': id,
             'type': type,
@@ -1938,7 +1945,7 @@ export default class upbit extends Exchange {
                 const trade = trades[i];
                 cost = Precise.stringAdd(cost, this.safeString(trade, 'cost'));
                 if (getFeesFromTrades) {
-                    const tradeFee = this.safeValue(trades[i], 'fee', {});
+                    const tradeFee = this.safeDict(trades[i], 'fee', {});
                     const tradeFeeCost = this.safeString(tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
                         feeCost = Precise.stringAdd(feeCost, tradeFeeCost);
@@ -2458,7 +2465,7 @@ export default class upbit extends Exchange {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        const error = this.safeValue(response, 'error');
+        const error = this.safeDict(response, 'error');
         if (error !== undefined) {
             const message = this.safeString(error, 'message');
             const name = this.safeString(error, 'name');

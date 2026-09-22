@@ -152,7 +152,7 @@ class limitless extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,   // Limitless API key
                 'secret' => true,
-                'privateKey' => true,   // embedded/trading wallet key — createOrder signs with it (env-$loading needs this true)
+                'privateKey' => true,   // embedded/trading wallet key — createOrder signs with it (env-var loading needs this true)
             ),
             'fees' => array(
                 'trading' => array(
@@ -205,14 +205,15 @@ class limitless extends Exchange {
          */
         $queries = $this->parse_search_queries($params);
         $rest = $this->omit($params, array( 'query', 'queries', 'limit' ));
-        // scope the listing => without a search query loadMarkets would otherwise $page through
-        // every active limitless market. Cap the total number of $markets collected.
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every active limitless market. Cap the total number of markets collected.
         $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
         $allRaw = array();
         $queriesLength = count($queries);
         if ($queriesLength > 0) {
             $requestedLimit = $this->safe_integer($params, 'limit', 50);
-            // the search endpoint rejects $limit > 50 - cap the per-query $request and             // $maxMarkets bound the overall collection
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
             $limit = min($requestedLimit, 50);
             $searchRest = $this->omit($rest, array( 'limit' ));
             $seen = array();
@@ -289,7 +290,7 @@ class limitless extends Exchange {
         }
         $markets = array();
         $eventGroups = array();
-        // group rows carry their tradeable children in a nested `$markets` list — expand them
+        // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
         $expandedRaw = $this->expand_group_rows($allRaw);
         for ($i = 0; $i < count($expandedRaw); $i++) {
@@ -305,7 +306,7 @@ class limitless extends Exchange {
                 $eventGroup = $eventGroups[$eventKey];
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on $eventGroup['markets'] loses the element in go
+                // direct push on eventGroup['markets'] loses the element in go
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;
                 $eventGroup['markets'] = $groupMarkets;
@@ -333,72 +334,72 @@ class limitless extends Exchange {
         //   "automationType":"manual",
         //   "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         //   "negRiskRequestId":null,
-        //   "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 ($i->e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-        //   "collateralToken":array(
+        //   "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //   "collateralToken":{
         //       "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         //       "decimals":"6",
         //       "symbol":"USDC"
-        //   ),
-        //   "title":"💎 Trump out before 2027?",
+        //   },
+        //   "title":"💎 Trump out as President before 2027?",
         //   "proxyTitle":null,
         //   "expirationDate":"Jan 1, 2027",
         //   "expirationTimestamp":"1798779540000",
         //   "createdAt":"2026-01-20T18:17:48.298Z",
         //   "updatedAt":"2026-02-24T17:00:11.833Z",
-        //   "categories":array(
+        //   "categories":[
         //       "Politics"
-        //   ),
+        //   ],
         //   "status":"FUNDED",
         //   "expired":false,
         //   "hidden":false,
-        //   "creator":array(
+        //   "creator":{
         //       "name":"Limitless",
         //       "imageURI":"https://limitless.exchange/assets/images/logo.svg",
         //       "link":"https://x.com/trylimitless"
-        //   ),
-        //   "tags":array(
+        //   },
+        //   "tags":[
         //       "Limitless"
-        //   ),
+        //   ],
         //   "volume":"290091252",
         //   "volumeFormatted":"290.091252",
-        //   "tokens":array(
+        //   "tokens":{
         //       "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
         //       "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //   ),
-        //   "prices":array(
+        //   },
+        //   "prices":[
         //       0.164,
         //       0.836
-        //   ),
+        //   ],
         //   "isOther":false,
         //   "isRewardable":true,
         //   "slug":"trump-out-as-president-before-2027-1768933068297",
         //   "tradeType":"clob",
-        //   "venue":array(
+        //   "venue":{
         //       "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
         //       "adapter":null
-        //   ),
+        //   },
         //   "marketType":"single",
         //   "priorityIndex":"0",
         //   "winningOutcomeIndex":null,
-        //   "metadata":array(
+        //   "metadata":{
         //       "fee":true,
         //       "isBannered":false,
         //       "isPolyArbitrage":true
-        //   ),
+        //   },
         //   "trends":{
-        //       "hourly":array(
+        //       "hourly":{
         //           "value":"3",
         //           "rank":"395"
         //       }
-        //   ),
-        //   "settings":array(
+        //   },
+        //   "settings":{
         //       "minSize":"100000000",
         //       "maxSpread":"0.035",
         //       "dailyReward":"5",
         //       "rewardsEpoch":"0.003472222222222222",
         //       "c":"3",
         //       "rebateRate":"0"
-        //   ),
+        //   },
         //   "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
         //   "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
         // }
@@ -406,26 +407,26 @@ class limitless extends Exchange {
         $slug = $this->safe_string($raw, 'slug');
         $address = $this->safe_string($raw, 'address', $slug);
         // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
-        // the child's own numeric $groupId so symbols/handles derive from the readable $slug
+        // the child's own numeric groupId so symbols/handles derive from the readable slug
         $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $slug);
         // CTF condition id — needed to redeem a resolved winning position
         $conditionId = $this->safe_string($raw, 'conditionId');
-        $tokens = $this->safe_value($raw, 'tokens', array());
-        // the listing exposes `expired` . `status` (FUNDED/RESOLVED/…), not an `$active` flag; a
+        $tokens = $this->safe_dict($raw, 'tokens', array());
+        // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         $isExpired = $this->safe_bool($raw, 'expired', false);
         $marketStatus = $this->safe_string($raw, 'status');
         $active = ($isExpired !== true) && ($marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         $expiryTimestamp = $this->safe_integer($raw, 'expirationTimestamp');
-        // limitless reports lifetime volume (is_array(`volumeFormatted`) && array_key_exists(human-readable ?? '', `volumeFormatted`)), not a 24h figure
+        // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
         $volume24h = $this->safe_number($raw, 'volumeFormatted');
-        // resolution => $winningOutcomeIndex is null until the market resolves, then the winning outcome index
+        // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         $winningOutcomeIndex = $this->safe_integer($raw, 'winningOutcomeIndex');
         $marketResolved = ($winningOutcomeIndex !== null);
         $resolvedOutcome = null;
         $marketSymbol = $this->slug_to_market_symbol($groupId, $slug);
-        // amount $precision comes from the collateral token decimals (USDC, 6); limitless does not
+        // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         $collateralToken = $this->safe_dict($raw, 'collateralToken', array());
         $collateralDecimals = $this->safe_integer($collateralToken, 'decimals', $this->safe_integer($this->options, 'usdcDecimals', 6));
@@ -440,10 +441,10 @@ class limitless extends Exchange {
             $tokenData = $tokens[$outcomeLabel];
             $tokenId = $tokenData;
             $outcomeHandle = $this->slug_to_outcome_symbol($groupId, $slug, $outcomeLabel);
-            // $winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
+            // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
-            // label rather than by loop position — otherwise Go/Java flag the wrong $winner
+            // label rather than by loop position — otherwise Go/Java flag the wrong winner
             $labelLower = strtolower($outcomeLabel);
             $legIndex = $i;
             if ($labelLower === 'yes') {
@@ -484,7 +485,7 @@ class limitless extends Exchange {
             );
         }
         $outcomesLength = count($outcomes);
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
+        // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $slug,
@@ -554,9 +555,9 @@ class limitless extends Exchange {
          */
         $request = array( 'addressOrSlug' => $id );
         $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)));
-        // a group $response carries its tradeable children in `markets` (each a full market row
+        // a group response carries its tradeable children in `markets` (each a full market row
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        // and wraps own one-market $event, which parseEvent's loop then parses
+        // and wraps as its own one-market event, which parseEvent's loop then parses
         $rows = $this->expand_group_rows(array( $response ));
         $wrapped = $this->extend($response, array( 'markets' => $rows ));
         $event = $this->parse_event($wrapped);
@@ -584,7 +585,7 @@ class limitless extends Exchange {
                 $groupTitle = $this->safe_string($raw, 'title', $groupSlug);
                 $nestedMarketsLength = count($nestedMarkets);
                 for ($j = 0; $j < $nestedMarketsLength; $j++) {
-                    // extend copies — the $raw child stays untouched
+                    // extend copies — the raw child stays untouched
                     $tagged = $this->extend($nestedMarkets[$j], array( 'groupSlug' => $groupSlug, 'groupTitle' => $groupTitle ));
                     $result[] = $tagged;
                 }
@@ -598,82 +599,82 @@ class limitless extends Exchange {
     public function parse_event(array $event): mixed {
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
-        //    "title":"💎 Trump out before 2027?",
+        //    "title":"💎 Trump out as President before 2027?",
         //    "raw":{
         //       "id":"36814",
         //       "automationType":"manual",
         //       "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         //       "negRiskRequestId":null,
-        //       "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 ($i->e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-        //       "collateralToken":array(
+        //       "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //       "collateralToken":{
         //          "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         //          "decimals":"6",
         //          "symbol":"USDC"
-        //       ),
-        //       "title":"💎 Trump out before 2027?",
+        //       },
+        //       "title":"💎 Trump out as President before 2027?",
         //       "proxyTitle":null,
         //       "expirationDate":"Jan 1, 2027",
         //       "expirationTimestamp":"1798779540000",
         //       "createdAt":"2026-01-20T18:17:48.298Z",
         //       "updatedAt":"2026-02-24T17:00:11.833Z",
-        //       "categories":array(
+        //       "categories":[
         //          "Politics"
-        //       ),
+        //       ],
         //       "status":"FUNDED",
         //       "expired":false,
         //       "hidden":false,
-        //       "creator":array(
+        //       "creator":{
         //          "name":"Limitless",
         //          "imageURI":"https://limitless.exchange/assets/images/logo.svg",
         //          "link":"https://x.com/trylimitless"
-        //       ),
-        //       "tags":array(
+        //       },
+        //       "tags":[
         //          "Limitless"
-        //       ),
+        //       ],
         //       "volume":"290091252",
         //       "volumeFormatted":"290.091252",
-        //       "tokens":array(
+        //       "tokens":{
         //          "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
         //          "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //       ),
-        //       "prices":array(
+        //       },
+        //       "prices":[
         //          0.164,
         //          0.836
-        //       ),
+        //       ],
         //       "isOther":false,
         //       "isRewardable":true,
         //       "slug":"trump-out-as-president-before-2027-1768933068297",
         //       "tradeType":"clob",
-        //       "venue":array(
+        //       "venue":{
         //          "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
         //          "adapter":null
-        //       ),
+        //       },
         //       "marketType":"single",
         //       "priorityIndex":"0",
         //       "winningOutcomeIndex":null,
-        //       "metadata":array(
+        //       "metadata":{
         //          "fee":true,
         //          "isBannered":false,
         //          "isPolyArbitrage":true
-        //       ),
-        //       "trends":array(
-        //          "hourly":array(
+        //       },
+        //       "trends":{
+        //          "hourly":{
         //             "value":"3",
         //             "rank":"395"
         //          }
-        //       ),
-        //       "settings":array(
+        //       },
+        //       "settings":{
         //          "minSize":"100000000",
         //          "maxSpread":"0.035",
         //          "dailyReward":"5",
         //          "rewardsEpoch":"0.003472222222222222",
         //          "c":"3",
         //          "rebateRate":"0"
-        //       ),
+        //       },
         //       "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
         //       "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
-        //    ),
-        //    "markets":array(
+        //    },
+        //    "markets":[
         //       {
         //          "id":"trump-out-as-president-before-2027-1768933068297",
         //          "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297",
@@ -695,39 +696,39 @@ class limitless extends Exchange {
         //          "percentage":true,
         //          "tierBased":false,
         //          "feeSide":"get",
-        //          "precision":array(
+        //          "precision":{
         //             "amount":0.000001,
         //             "price":0.001
-        //          ),
+        //          },
         //          "limits":{
-        //             "leverage":array(
+        //             "leverage":{
         //                "min":1,
         //                "max":1
-        //             ),
-        //             "amount":array(
+        //             },
+        //             "amount":{
         //                "min":0
-        //             ),
-        //             "price":array(
+        //             },
+        //             "price":{
         //                "min":0.001,
         //                "max":0.999
-        //             ),
-        //             "cost":array(
+        //             },
+        //             "cost":{
         //             }
-        //          ),
-        //          "outcomes":array(
+        //          },
+        //          "outcomes":[
         //             {
         //                "id":"trump-out-as-president-before-2027-1768933068297/yes",
         //                "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297:YES",
         //                "marketSymbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297",
         //                "label":"yes",
         //                "active":true,
-        //                "info":array(
+        //                "info":{
         //                   "slug":"trump-out-as-president-before-2027-1768933068297",
         //                   "address":"trump-out-as-president-before-2027-1768933068297",
         //                   "outcomeLabel":"yes",
         //                   "tokenId":"trump-out-as-president-before-2027-1768933068297/yes"
         //                }
-        //             ),
+        //             },
         //             {
         //                "id":"trump-out-as-president-before-2027-1768933068297/no",
         //                "symbol":"TRUMP_OUT_PRESIDENT_2027_1768933068297:NO",
@@ -741,84 +742,84 @@ class limitless extends Exchange {
         //                   "tokenId":"trump-out-as-president-before-2027-1768933068297/no"
         //                }
         //             }
-        //          ),
+        //          ],
         //          "info":{
         //             "id":"36814",
         //             "automationType":"manual",
         //             "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         //             "negRiskRequestId":null,
-        //             "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 ($i->e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-        //             "collateralToken":array(
+        //             "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //             "collateralToken":{
         //                "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         //                "decimals":"6",
         //                "symbol":"USDC"
-        //             ),
-        //             "title":"💎 Trump out before 2027?",
+        //             },
+        //             "title":"💎 Trump out as President before 2027?",
         //             "proxyTitle":null,
         //             "expirationDate":"Jan 1, 2027",
         //             "expirationTimestamp":"1798779540000",
         //             "createdAt":"2026-01-20T18:17:48.298Z",
         //             "updatedAt":"2026-02-24T17:00:11.833Z",
-        //             "categories":array(
+        //             "categories":[
         //                "Politics"
-        //             ),
+        //             ],
         //             "status":"FUNDED",
         //             "expired":false,
         //             "hidden":false,
-        //             "creator":array(
+        //             "creator":{
         //                "name":"Limitless",
         //                "imageURI":"https://limitless.exchange/assets/images/logo.svg",
         //                "link":"https://x.com/trylimitless"
-        //             ),
-        //             "tags":array(
+        //             },
+        //             "tags":[
         //                "Limitless"
-        //             ),
+        //             ],
         //             "volume":"290091252",
         //             "volumeFormatted":"290.091252",
-        //             "tokens":array(
+        //             "tokens":{
         //                "yes":"56154308742753982686710750162015444986563701968079760676518531584453506363044",
         //                "no":"32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //             ),
-        //             "prices":array(
+        //             },
+        //             "prices":[
         //                0.164,
         //                0.836
-        //             ),
+        //             ],
         //             "isOther":false,
         //             "isRewardable":true,
         //             "slug":"trump-out-as-president-before-2027-1768933068297",
         //             "tradeType":"clob",
-        //             "venue":array(
+        //             "venue":{
         //                "exchange":"0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
         //                "adapter":null
-        //             ),
+        //             },
         //             "marketType":"single",
         //             "priorityIndex":"0",
         //             "winningOutcomeIndex":null,
-        //             "metadata":array(
+        //             "metadata":{
         //                "fee":true,
         //                "isBannered":false,
         //                "isPolyArbitrage":true
-        //             ),
+        //             },
         //             "trends":{
-        //                "hourly":array(
+        //                "hourly":{
         //                   "value":"3",
         //                   "rank":"395"
         //                }
-        //             ),
-        //             "settings":array(
+        //             },
+        //             "settings":{
         //                "minSize":"100000000",
         //                "maxSpread":"0.035",
         //                "dailyReward":"5",
         //                "rewardsEpoch":"0.003472222222222222",
         //                "c":"3",
         //                "rebateRate":"0"
-        //             ),
+        //             },
         //             "imageUrl":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
         //             "logo":"https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
         //             "address":"trump-out-as-president-before-2027-1768933068297"
         //          }
         //       }
-        //    )
+        //    ]
         // }
         $groupId = $this->safe_string($event, 'address', $this->safe_string($event, 'groupId', $this->safe_string($event, 'slug')));
         $endDate = $this->safe_string($event, 'deadline', $this->safe_string($event, 'expiresAt'));
@@ -829,12 +830,12 @@ class limitless extends Exchange {
         $endTimestamp = $hasEndDate ? $this->parse8601($endDate) : null;
         $markets = array();
         $rawMarkets = $this->safe_list($event, 'markets', array());
-        // aggregate 24h volume across the $markets so sort by volume works
+        // aggregate 24h volume across the markets so sort by volume works
         $totalVolume = 0;
         for ($i = 0; $i < count($rawMarkets); $i++) {
             $rawMarket = $rawMarkets[$i];
-            // an already-parsed ccxt market row carries the unified 'market' handle . outcomes
-            // with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
+            // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             $marketSymbol = $this->safe_string_2($rawMarket, 'market', 'symbol');
             $marketOutcomes = $this->safe_list($rawMarket, 'outcomes');
             if ($marketSymbol !== null && $marketOutcomes !== null) {
@@ -844,7 +845,7 @@ class limitless extends Exchange {
             }
             $marketInfo = $this->safe_dict($rawMarket, 'info', $rawMarket);
             // use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
-            // make the $event volume 1,000,000x too big and useless for cross-venue ranking
+            // make the event volume 1,000,000x too big and useless for cross-venue ranking
             $totalVolume = $this->sum($totalVolume, $this->safe_number($marketInfo, 'volumeFormatted', 0));
         }
         return $this->extend(array(
@@ -901,65 +902,65 @@ class limitless extends Exchange {
         $response = $responses[0];
         //
         //     {
-        //         "id" => "36814",
-        //         "automationType" => "manual",
-        //         "conditionId" => "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
-        //         "negRiskRequestId" => null,
-        //         "description" => "<p>This market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-        //         "collateralToken" => array(
-        //             "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        //             "decimals" => "6",
-        //             "symbol" => "USDC"
-        //         ),
-        //         "title" => "Trump out before 2027?",
-        //         "proxyTitle" => null,
-        //         "expirationDate" => "Jan 1, 2027",
-        //         "expirationTimestamp" => "1798779540000",
-        //         "createdAt" => "2026-01-20T18:17:48.298Z",
-        //         "updatedAt" => "2026-04-09T10:47:02.254Z",
-        //         "categories" => array( "Politics" ),
-        //         "status" => "FUNDED",
-        //         "expired" => false,
-        //         "hidden" => false,
-        //         "creator" => array(
-        //             "name" => "Limitless",
-        //             "imageURI" => "https://limitless.exchange/assets/images/logo.svg",
-        //             "link" => "https://x.com/trylimitless"
-        //         ),
-        //         "tags" => array( "Limitless" ),
-        //         "volume" => "1032001807",
-        //         "volumeFormatted" => "1032.001807",
-        //         "tokens" => array(
-        //             "yes" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-        //             "no" => "32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //         ),
-        //         "prices" => array( 0.155, 0.845 ),
-        //         "tradePrices" => array(
-        //             "buy" => array( "market" => [Array], "limit" => [Array] ),
-        //             "sell" => array( "market" => [Array], "limit" => [Array] )
-        //         ),
-        //         "isOther" => false,
-        //         "isRewardable" => true,
-        //         "slug" => "trump-out-as-president-before-2027-1768933068297",
-        //         "tradeType" => "clob",
-        //         "venue" => array(
-        //             "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-        //             "adapter" => null
-        //         ),
-        //         "marketType" => "single",
-        //         "priorityIndex" => "0",
-        //         "winningOutcomeIndex" => null,
-        //         "metadata" => array( "fee" => true, "isBannered" => false, "isPolyArbitrage" => true ),
-        //         "settings" => array(
-        //             "minSize" => "100000000",
-        //             "maxSpread" => "0.035",
-        //             "dailyReward" => "5",
-        //             "rewardsEpoch" => "0.003472222222222222",
-        //             "c" => "3",
-        //             "rebateRate" => "0"
-        //         ),
-        //         "imageUrl" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
-        //         "logo" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
         //     }
         //
         $tickerInput = array( 'market' => $response, 'book' => $responses[1] );
@@ -976,68 +977,68 @@ class limitless extends Exchange {
          */
         //
         //     {
-        //         "id" => "36814",
-        //         "automationType" => "manual",
-        //         "conditionId" => "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
-        //         "negRiskRequestId" => null,
-        //         "description" => "<p>This $market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this $market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this $market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this $market will be a consensus of credible reporting.</p>",
-        //         "collateralToken" => array(
-        //             "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        //             "decimals" => "6",
-        //             "symbol" => "USDC"
-        //         ),
-        //         "title" => "Trump out before 2027?",
-        //         "proxyTitle" => null,
-        //         "expirationDate" => "Jan 1, 2027",
-        //         "expirationTimestamp" => "1798779540000",
-        //         "createdAt" => "2026-01-20T18:17:48.298Z",
-        //         "updatedAt" => "2026-04-09T10:47:02.254Z",
-        //         "categories" => array( "Politics" ),
-        //         "status" => "FUNDED",
-        //         "expired" => false,
-        //         "hidden" => false,
-        //         "creator" => array(
-        //             "name" => "Limitless",
-        //             "imageURI" => "https://limitless.exchange/assets/images/logo.svg",
-        //             "link" => "https://x.com/trylimitless"
-        //         ),
-        //         "tags" => array( "Limitless" ),
-        //         "volume" => "1032001807",
-        //         "volumeFormatted" => "1032.001807",
-        //         "tokens" => array(
-        //             "yes" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-        //             "no" => "32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //         ),
-        //         "prices" => array( 0.155, 0.845 ),
-        //         "tradePrices" => array(
-        //             "buy" => array( "market" => [Array], "limit" => [Array] ),
-        //             "sell" => array( "market" => [Array], "limit" => [Array] )
-        //         ),
-        //         "isOther" => false,
-        //         "isRewardable" => true,
-        //         "slug" => "trump-out-as-president-before-2027-1768933068297",
-        //         "tradeType" => "clob",
-        //         "venue" => array(
-        //             "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-        //             "adapter" => null
-        //         ),
-        //         "marketType" => "single",
-        //         "priorityIndex" => "0",
-        //         "winningOutcomeIndex" => null,
-        //         "metadata" => array( "fee" => true, "isBannered" => false, "isPolyArbitrage" => true ),
-        //         "settings" => array(
-        //             "minSize" => "100000000",
-        //             "maxSpread" => "0.035",
-        //             "dailyReward" => "5",
-        //             "rewardsEpoch" => "0.003472222222222222",
-        //             "c" => "3",
-        //             "rebateRate" => "0"
-        //         ),
-        //         "imageUrl" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
-        //         "logo" => "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
         //     }
         //
-        // $ticker is either a plain $raw $market object, or a composite dict array( 'market' => rawMarket, 'book' => rawOrderbook )
+        // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         $raw = $ticker;
         $book = null;
         if (is_array($ticker) && array_key_exists('market' ?? '', $ticker)) {
@@ -1053,7 +1054,7 @@ class limitless extends Exchange {
         $lastStr = null;
         $midStr = null;
         if ($book !== null) {
-            // the $book endpoint is quoted in the yes token, the no side mirrors at 1 - price
+            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             $rawBids = $this->safe_list($book, 'bids', array());
             $rawAsks = $this->safe_list($book, 'asks', array());
             $rawBidsLength = count($rawBids);
@@ -1095,7 +1096,7 @@ class limitless extends Exchange {
         if (($lastStr === null) && ($pricesLength > 0)) {
             $lastStr = ($isYes) ? $this->safe_string($prices, 0) : $this->safe_string($prices, 1);
         }
-        // volume and $book sizes are in USDC micro-units (6 decimals)
+        // volume and book sizes are in USDC micro-units (6 decimals)
         $rawVolume = $this->safe_string($raw, 'volume');
         $volumeStr = null;
         if ($rawVolume !== null) {
@@ -1107,15 +1108,14 @@ class limitless extends Exchange {
         if ($askSizeStr !== null) {
             $askSizeStr = Precise::string_div($askSizeStr, '1000000');
         }
-        $now = $this->milliseconds();
         $outcomeSymbol = $this->safe_outcome_symbol(null, $market);
         return $this->safe_prediction_ticker(array(
             'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $this->parse_number($bidStr),
@@ -1155,8 +1155,8 @@ class limitless extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         $result = array();
-        // resolve the uncached $outcomes first, then group by parent market to fetch each
-        // market and $book only once
+        // resolve the uncached outcomes first, then group by parent market to fetch each
+        // market and book only once
         Async\await($this->load_outcomes($outcomes));
         $outcomesBySlug = array();
         $slugs = array();
@@ -1228,29 +1228,29 @@ class limitless extends Exchange {
             'slug' => $slug,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 100);
         }
         $response = Async\await($this->limitlessPublicGetMarketsSlugEvents($this->extend($request, $params)));
         //
         //     {
-        //         "events" => array(
+        //         "events": [
         //             {
-        //                 "createdAt" => "2026-06-12T15:24:25.617Z",
-        //                 "makerAmount" => "19996200",
-        //                 "matchedSize" => "2500000",
-        //                 "price" => 0.332,
-        //                 "profile" => array( "account" => "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" ),
-        //                 "side" => 0,
-        //                 "takerAmount" => "830000",
-        //                 "title" => "",
-        //                 "tokenId" => "34504808738227095158010759634880534083339296329182698784451980951930485131851",
-        //                 "txHash" => "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
+        //                 "createdAt": "2026-06-12T15:24:25.617Z",
+        //                 "makerAmount": "19996200",
+        //                 "matchedSize": "2500000",
+        //                 "price": 0.332,
+        //                 "profile": { "account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" },
+        //                 "side": 0,
+        //                 "takerAmount": "830000",
+        //                 "title": "",
+        //                 "tokenId": "34504808738227095158010759634880534083339296329182698784451980951930485131851",
+        //                 "txHash": "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
         //             }
-        //         ),
-        //         "limit" => 30,
-        //         "page" => 1,
-        //         "totalPages" => 1,
-        //         "totalRows" => 13
+        //         ],
+        //         "limit": 30,
+        //         "page": 1,
+        //         "totalPages": 1,
+        //         "totalRows": 13
         //     }
         //
         $rows = $this->safe_list($response, 'events', array());
@@ -1290,33 +1290,32 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPublicGetMarketsSlugOrderbook($this->extend($request, $params)));
         //
         //     {
-        //         "bids" => array(
-        //             array( "price" => "0.14", "size" => "12360330000", "side" => "BUY" ),
-        //             array( "price" => "0.1", "size" => "1000000", "side" => "BUY" ),
-        //             array( "price" => "0.003", "size" => "500000000", "side" => "BUY" )
-        //         ),
-        //         "asks" => array(
-        //             array( "price" => "0.161", "size" => "222000000", "side" => "SELL" ),
-        //             array( "price" => "0.996", "size" => "5555000000", "side" => "SELL" ),
-        //             array( "price" => "0.997", "size" => "500000000", "side" => "SELL" )
-        //         ),
-        //         "tokenId" => "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-        //         "adjustedMidpoint" => "0.1505",
-        //         "midpoint" => "0.1505",
-        //         "maxSpread" => "0.035",
-        //         "minSize" => "100000000",
-        //         "lastTradePrice" => "0.161"
+        //         "bids": [
+        //             { "price": "0.14", "size": "12360330000", "side": "BUY" },
+        //             { "price": "0.1", "size": "1000000", "side": "BUY" },
+        //             { "price": "0.003", "size": "500000000", "side": "BUY" }
+        //         ],
+        //         "asks": [
+        //             { "price": "0.161", "size": "222000000", "side": "SELL" },
+        //             { "price": "0.996", "size": "5555000000", "side": "SELL" },
+        //             { "price": "0.997", "size": "500000000", "side": "SELL" }
+        //         ],
+        //         "tokenId": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //         "adjustedMidpoint": "0.1505",
+        //         "midpoint": "0.1505",
+        //         "maxSpread": "0.035",
+        //         "minSize": "100000000",
+        //         "lastTradePrice": "0.161"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
-        // sizes are scaled by 10^$decimals, USDC uses 6 $decimals
+        // sizes are scaled by 10^decimals, USDC uses 6 decimals
         $scaleStr = $this->parse_precision($this->number_to_string(-$decimals));
         $outcomeLabel = $this->safe_string_lower($outcomeObj['info'], 'outcomeLabel', 'yes');
         $isYes = $outcomeLabel !== 'no';
         $rawBids = $this->safe_list($response, 'bids', array());
         $rawAsks = $this->safe_list($response, 'asks', array());
-        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with $bids and $asks swapped
+        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         $bidsSource = ($isYes) ? $rawBids : $rawAsks;
         $asksSource = ($isYes) ? $rawAsks : $rawBids;
         $bids = array();
@@ -1347,8 +1346,8 @@ class limitless extends Exchange {
             'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
@@ -1369,7 +1368,7 @@ class limitless extends Exchange {
          * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
          * @param {int} [$limit] the maximum number of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1382,35 +1381,35 @@ class limitless extends Exchange {
         ), $params)));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                  "timestamp" => 1705318200000,
-        //                  "price" => 0.1655
-        //             ),
-        //         )
+        //         "data": [
+        //             {
+        //                  "timestamp": 1705318200000,
+        //                  "price": 0.1655
+        //             },
+        //         ]
         //     }
         //
         //
-        //     array(
-        //         array(
-        //             "title" => "YES Token",
-        //             "prices" => array(
-        //                 array(
-        //                     "price" => 0.75,
-        //                     "timestamp" => "2024-01-15T10:30:00Z"
-        //                 ),
-        //             )
-        //         ),
+        //     [
         //         {
-        //             "title" => "NO Token",
-        //             "prices" => array(
+        //             "title": "YES Token",
+        //             "prices": [
         //                 {
-        //                     "price" => 0.25,
-        //                     "timestamp" => "2024-01-15T10:30:00Z"
+        //                     "price": 0.75,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
+        //                 },
+        //             ]
+        //         },
+        //         {
+        //             "title": "NO Token",
+        //             "prices": [
+        //                 {
+        //                     "price": 0.25,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
         //                 }
-        //             )
+        //             ]
         //         }
-        //     )
+        //     ]
         //
         $responseRows = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -1439,8 +1438,8 @@ class limitless extends Exchange {
                 $history = $this->safe_list($selectedSeries, 'prices', array());
             }
         }
-        // the endpoint returns raw price points, not $candles - $bucket them into
-        // $timeframe-aligned $candles (single points would carry unaligned timestamps)
+        // the endpoint returns raw price points, not candles - bucket them into
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
         $pseudoTrades = array();
         for ($i = 0; $i < count($history); $i++) {
             $point = $history[$i];
@@ -1457,9 +1456,9 @@ class limitless extends Exchange {
                 $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
             }
         }
-        // the endpoint returns points NEWEST-$first, so sort ascending by timestamp before bucketing —
-        // otherwise $candles come back descending and open/close are inverted within each $bucket
-        // — the $first $point seen would be the latest, not the earliest. sortBy is stable, so equal
+        // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
+        // otherwise candles come back descending and open/close are inverted within each bucket
+        // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         // timestamps keep their relative order consistently across languages
         $sorted = $this->sort_by($pseudoTrades, 'timestamp');
         $ms = $this->parse_timeframe($timeframe) * 1000;
@@ -1526,27 +1525,27 @@ class limitless extends Exchange {
         }
         $response = Async\await($this->limitlessPrivateGetMarketsSlugUserOrders($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "createdAt" => "2026-05-04T08:57:06.448Z",
-        //             "id" => "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
-        //             "ownerId" => 1315134,
-        //             "marketId" => "112523",
-        //             "token" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //             "type" => "GTC",
-        //             "status" => "LIVE",
-        //             "side" => "BUY",
-        //             "makerAmount" => "1000040",
-        //             "takerAmount" => "10870000",
-        //             "price" => "0.092",
-        //             "originalSize" => "10870000",
-        //             "remainingSize" => "10870000"
+        //             "createdAt": "2026-05-04T08:57:06.448Z",
+        //             "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //             "ownerId": 1315134,
+        //             "marketId": "112523",
+        //             "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //             "type": "GTC",
+        //             "status": "LIVE",
+        //             "side": "BUY",
+        //             "makerAmount": "1000040",
+        //             "takerAmount": "10870000",
+        //             "price": "0.092",
+        //             "originalSize": "10870000",
+        //             "remainingSize": "10870000"
         //         }
-        //     )
+        //     ]
         //
-        // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
-        // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
-        // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
+        // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
+        // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
+        // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return $this->parse_prediction_orders($this->to_array($response), null, $since, $limit);
     }
 
@@ -1638,98 +1637,98 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPrivatePostOrdersStatusBatch($this->extend($request, $params)));
         //
         //     {
-        //         "results" => array(
+        //         "results": [
         //             {
-        //                 "index" => 0,
-        //                 "status" => "found",
-        //                 "orderId" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-        //                 "data" => {
-        //                     "order" => {
-        //                         "createdAt" => "2026-05-04T10:26:01.334Z",
-        //                         "id" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-        //                         "makerAmount" => "9999360",
-        //                         "takerAmount" => "10752000",
-        //                         "expiration" => null,
-        //                         "signatureType" => 2,
-        //                         "salt" => "277966495716",
-        //                         "maker" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-        //                         "signer" => "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
-        //                         "taker" => "0x0000000000000000000000000000000000000000",
-        //                         "tokenId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //                         "side" => 0,
-        //                         "feeRateBps" => 300,
-        //                         "nonce" => "0",
-        //                         "signature" => "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
-        //                         "orderType" => "FAK",
-        //                         "price" => "0.93",
-        //                         "marketId" => 112523,
-        //                         "ownerId" => 1315134,
-        //                         "market" => array(
-        //                             "id" => 112523,
-        //                             "slug" => "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
-        //                             "title" => "DOGE above $0.10859 on May 4, 20:00 UTC?",
-        //                             "status" => "FUNDED",
-        //                             "yesPositionId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //                             "noPositionId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879"
-        //                         ),
-        //                         "owner" => array(
-        //                             "id" => 1315134,
-        //                             "account" => "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
-        //                             "client" => "eoa",
-        //                             "tradeWalletOption" => "smartWallet",
-        //                             "smartWallet" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-        //                             "points" => 0,
-        //                             "referredUsersCount" => 0
+        //                 "index": 0,
+        //                 "status": "found",
+        //                 "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "data": {
+        //                     "order": {
+        //                         "createdAt": "2026-05-04T10:26:01.334Z",
+        //                         "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                         "makerAmount": "9999360",
+        //                         "takerAmount": "10752000",
+        //                         "expiration": null,
+        //                         "signatureType": 2,
+        //                         "salt": "277966495716",
+        //                         "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                         "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                         "taker": "0x0000000000000000000000000000000000000000",
+        //                         "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                         "side": 0,
+        //                         "feeRateBps": 300,
+        //                         "nonce": "0",
+        //                         "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                         "orderType": "FAK",
+        //                         "price": "0.93",
+        //                         "marketId": 112523,
+        //                         "ownerId": 1315134,
+        //                         "market": {
+        //                             "id": 112523,
+        //                             "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                             "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                             "status": "FUNDED",
+        //                             "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                             "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                         },
+        //                         "owner": {
+        //                             "id": 1315134,
+        //                             "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                             "client": "eoa",
+        //                             "tradeWalletOption": "smartWallet",
+        //                             "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                             "points": 0,
+        //                             "referredUsersCount": 0
         //                         }
-        //                     ),
-        //                     "makerMatches" => array(
+        //                     },
+        //                     "makerMatches": [
         //                         {
-        //                             "id" => "be44a183-ec56-4076-a69c-10283321abd6",
-        //                             "matchedSize" => "10752000",
-        //                             "fillPrice" => "0.93",
-        //                             "fillCost" => "9999360",
-        //                             "orderId" => "3255c786-3f30-4115-a99f-72be478f2e44",
-        //                             "order" => {
-        //                                 "id" => "3255c786-3f30-4115-a99f-72be478f2e44",
-        //                                 "maker" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                                 "price" => "0.07",
-        //                                 "side" => 0,
-        //                                 "tokenId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879",
-        //                                 "owner" => {
-        //                                     "id" => 202602,
-        //                                     "account" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                                     "client" => "eoa",
-        //                                     "tradeWalletOption" => null,
-        //                                     "smartWallet" => null,
-        //                                     "username" => null,
-        //                                     "displayName" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                                     "pfpUrl" => null,
-        //                                     "socialUrl" => null,
-        //                                     "points" => 0,
-        //                                     "referredUsersCount" => 0
+        //                             "id": "be44a183-ec56-4076-a69c-10283321abd6",
+        //                             "matchedSize": "10752000",
+        //                             "fillPrice": "0.93",
+        //                             "fillCost": "9999360",
+        //                             "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                             "order": {
+        //                                 "id": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                                 "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                 "price": "0.07",
+        //                                 "side": 0,
+        //                                 "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                                 "owner": {
+        //                                     "id": 202602,
+        //                                     "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "client": "eoa",
+        //                                     "tradeWalletOption": null,
+        //                                     "smartWallet": null,
+        //                                     "username": null,
+        //                                     "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "pfpUrl": null,
+        //                                     "socialUrl": null,
+        //                                     "points": 0,
+        //                                     "referredUsersCount": 0
         //                                 }
         //                             }
         //                         }
-        //                     ),
-        //                     "execution" => {
-        //                         "feeRateBps" => 300,
-        //                         "effectiveFeeBps" => 59,
-        //                         "matched" => true,
-        //                         "settlementStatus" => "MINED",
-        //                         "tradeEventId" => "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
-        //                         "txHash" => "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
-        //                         "totalsRaw" => {
-        //                             "contractsGross" => "10752000",
-        //                             "contractsFee" => "63436",
-        //                             "contractsNet" => "10688564",
-        //                             "usdGross" => "9999360",
-        //                             "usdFee" => "0",
-        //                             "usdNet" => "9999360"
+        //                     ],
+        //                     "execution": {
+        //                         "feeRateBps": 300,
+        //                         "effectiveFeeBps": 59,
+        //                         "matched": true,
+        //                         "settlementStatus": "MINED",
+        //                         "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                         "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                         "totalsRaw": {
+        //                             "contractsGross": "10752000",
+        //                             "contractsFee": "63436",
+        //                             "contractsNet": "10688564",
+        //                             "usdGross": "9999360",
+        //                             "usdFee": "0",
+        //                             "usdNet": "9999360"
         //                         }
         //                     }
         //                 }
         //             }
-        //         )
+        //         ]
         //     }
         //
         $results = $this->safe_list($response, 'results', array());
@@ -1781,115 +1780,115 @@ class limitless extends Exchange {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //     {
-        //         "createdAt" => "2026-05-04T08:57:06.448Z",
-        //         "id" => "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
-        //         "ownerId" => 1315134,
-        //         "marketId" => "112523",
-        //         "token" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //         "type" => "GTC",
-        //         "status" => "LIVE",
-        //         "side" => "BUY",
-        //         "makerAmount" => "1000040",
-        //         "takerAmount" => "10870000",
-        //         "price" => "0.092",
-        //         "originalSize" => "10870000",
-        //         "remainingSize" => "10870000"
+        //         "createdAt": "2026-05-04T08:57:06.448Z",
+        //         "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //         "ownerId": 1315134,
+        //         "marketId": "112523",
+        //         "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //         "type": "GTC",
+        //         "status": "LIVE",
+        //         "side": "BUY",
+        //         "makerAmount": "1000040",
+        //         "takerAmount": "10870000",
+        //         "price": "0.092",
+        //         "originalSize": "10870000",
+        //         "remainingSize": "10870000"
         //     }
         //
         // fetchOrdersByIds, fetchOrder
         //     {
-        //         "index" => 0,
-        //         "status" => "found",
-        //         "orderId" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-        //         "data" => {
-        //             "order" => {
-        //                 "createdAt" => "2026-05-04T10:26:01.334Z",
-        //                 "id" => "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-        //                 "makerAmount" => "9999360",
-        //                 "takerAmount" => "10752000",
-        //                 "expiration" => null,
-        //                 "signatureType" => 2,
-        //                 "salt" => "277966495716",
-        //                 "maker" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-        //                 "signer" => "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
-        //                 "taker" => "0x0000000000000000000000000000000000000000",
-        //                 "tokenId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //                 "side" => 0,
-        //                 "feeRateBps" => 300,
-        //                 "nonce" => "0",
-        //                 "signature" => "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
-        //                 "orderType" => "FAK",
-        //                 "price" => "0.93",
-        //                 "marketId" => 112523,
-        //                 "ownerId" => 1315134,
-        //                 "market" => array(
-        //                     "id" => 112523,
-        //                     "slug" => "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
-        //                     "title" => "DOGE above $0.10859 on May 4, 20:00 UTC?",
-        //                     "status" => "FUNDED",
-        //                     "yesPositionId" => "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-        //                     "noPositionId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879"
-        //                 ),
-        //                 "owner" => array(
-        //                     "id" => 1315134,
-        //                     "account" => "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
-        //                     "client" => "eoa",
-        //                     "tradeWalletOption" => "smartWallet",
-        //                     "smartWallet" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-        //                     "points" => 0,
-        //                     "referredUsersCount" => 0
+        //         "index": 0,
+        //         "status": "found",
+        //         "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //         "data": {
+        //             "order": {
+        //                 "createdAt": "2026-05-04T10:26:01.334Z",
+        //                 "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "makerAmount": "9999360",
+        //                 "takerAmount": "10752000",
+        //                 "expiration": null,
+        //                 "signatureType": 2,
+        //                 "salt": "277966495716",
+        //                 "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                 "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                 "taker": "0x0000000000000000000000000000000000000000",
+        //                 "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                 "side": 0,
+        //                 "feeRateBps": 300,
+        //                 "nonce": "0",
+        //                 "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                 "orderType": "FAK",
+        //                 "price": "0.93",
+        //                 "marketId": 112523,
+        //                 "ownerId": 1315134,
+        //                 "market": {
+        //                     "id": 112523,
+        //                     "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                     "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                     "status": "FUNDED",
+        //                     "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                     "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                 },
+        //                 "owner": {
+        //                     "id": 1315134,
+        //                     "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                     "client": "eoa",
+        //                     "tradeWalletOption": "smartWallet",
+        //                     "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                     "points": 0,
+        //                     "referredUsersCount": 0
         //                 }
-        //             ),
-        //             "makerMatches" => array(
+        //             },
+        //             "makerMatches": [
         //                 {
-        //                     "id" => "be44a183-ec56-4076-a69c-10283321abd6",
-        //                     "matchedSize" => "10752000",
-        //                     "fillPrice" => "0.93",
-        //                     "fillCost" => "9999360",
-        //                     "orderId" => "3255c786-3f30-4115-a99f-72be478f2e44",
-        //                     "order" => {
-        //                         "id" => "3255c786-3f30-4115-a99f-72be478f2e44",
-        //                         "maker" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                         "price" => "0.07",
-        //                         "side" => 0,
-        //                         "tokenId" => "101714389600295994108208140228744407174156865974966685440205519669272948152879",
-        //                         "owner" => {
-        //                             "id" => 202602,
-        //                             "account" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                             "client" => "eoa",
-        //                             "tradeWalletOption" => null,
-        //                             "smartWallet" => null,
-        //                             "username" => null,
-        //                             "displayName" => "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-        //                             "pfpUrl" => null,
-        //                             "socialUrl" => null,
-        //                             "points" => 0,
-        //                             "referredUsersCount" => 0
+        //                     "id": "be44a183-ec56-4076-a69c-10283321abd6",
+        //                     "matchedSize": "10752000",
+        //                     "fillPrice": "0.93",
+        //                     "fillCost": "9999360",
+        //                     "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                     "order": {
+        //                         "id": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                         "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                         "price": "0.07",
+        //                         "side": 0,
+        //                         "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                         "owner": {
+        //                             "id": 202602,
+        //                             "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                             "client": "eoa",
+        //                             "tradeWalletOption": null,
+        //                             "smartWallet": null,
+        //                             "username": null,
+        //                             "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                             "pfpUrl": null,
+        //                             "socialUrl": null,
+        //                             "points": 0,
+        //                             "referredUsersCount": 0
         //                         }
         //                     }
         //                 }
-        //             ),
-        //             "execution" => {
-        //                 "feeRateBps" => 300,
-        //                 "effectiveFeeBps" => 59,
-        //                 "matched" => true,
-        //                 "settlementStatus" => "MINED",
-        //                 "tradeEventId" => "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
-        //                 "txHash" => "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
-        //                 "totalsRaw" => {
-        //                     "contractsGross" => "10752000",
-        //                     "contractsFee" => "63436",
-        //                     "contractsNet" => "10688564",
-        //                     "usdGross" => "9999360",
-        //                     "usdFee" => "0",
-        //                     "usdNet" => "9999360"
+        //             ],
+        //             "execution": {
+        //                 "feeRateBps": 300,
+        //                 "effectiveFeeBps": 59,
+        //                 "matched": true,
+        //                 "settlementStatus": "MINED",
+        //                 "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                 "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                 "totalsRaw": {
+        //                     "contractsGross": "10752000",
+        //                     "contractsFee": "63436",
+        //                     "contractsNet": "10688564",
+        //                     "usdGross": "9999360",
+        //                     "usdFee": "0",
+        //                     "usdNet": "9999360"
         //                 }
         //             }
         //         }
         //     }
         $data = $this->safe_dict($order, 'data');
         $rawOrder = $this->safe_dict($data, 'order', $order);
-        // createOrder returns the $order nested under an 'order' key
+        // createOrder returns the order nested under an 'order' key
         $wrappedOrder = $this->safe_dict($rawOrder, 'order');
         if ($wrappedOrder !== null) {
             $rawOrder = $wrappedOrder;
@@ -1973,7 +1972,7 @@ class limitless extends Exchange {
         $statuses = array(
             'LIVE' => 'open',
             'MATCHED' => 'closed',
-            // 'UNMATCHED' => 'open', - both open and closed orders can have unmatched $status, so we can't reliably map it to one or the other
+            // 'UNMATCHED': 'open', - both open and closed orders can have unmatched status, so we can't reliably map it to one or the other
             'PENDING' => 'pending',
             'MINED' => 'closed',
             'CONFIRMED' => 'closed',
@@ -2072,8 +2071,8 @@ class limitless extends Exchange {
         $outcomeObj = $this->outcome($outcome);
         $account = $this->safe_dict($accounts, 0);
         $accountInfo = $this->safe_dict($account, 'info');
-        // the trade wallet is chosen by `$tradeWalletOption` => 'smartWallet' profiles trade through
-        // the `smartWallet` address, plain 'eoa' profiles trade directly from `$account`. the
+        // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
+        // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
         $usesSmartWallet = ($tradeWalletOption === 'smartWallet');
@@ -2117,7 +2116,7 @@ class limitless extends Exchange {
         }
         $sideValue = $this->safe_integer($sides, strtolower($side));
         $rank = $this->safe_dict($accountInfo, 'rank');
-        // $signatureType => 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
+        // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         $signatureType = $isSmartWallet ? 2 : 0;
         list($signatureType, $params) = $this->handle_option_and_params($params, 'createOrder', 'signatureType', $signatureType);
         $signRequest = array(
@@ -2131,7 +2130,7 @@ class limitless extends Exchange {
             'side' => $sideValue,
             'signatureType' => $signatureType,
         );
-        // the contract expects expiration uint256; non-zero values are rejected by the API (GTC orders use 0)
+        // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
         $expirationInt = $this->safe_integer($params, 'expiration');
         if ($expirationInt !== null) {
             $params = $this->omit($params, 'expiration');
@@ -2180,12 +2179,12 @@ class limitless extends Exchange {
                 $takerAmount = $this->cost_to_prediction_precision($outcome, $calculatedCost);
             }
         }
-        // amounts must be integers (uint256) => parseNumber yields a float that the Python EIP-712 encoder rejects
+        // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         $signRequest['makerAmount'] = $this->parse_to_int($this->apply_scale($makerAmount, true));
         $signRequest['takerAmount'] = $isMarket ? 1 : $this->parse_to_int($this->apply_scale($takerAmount, true));
         $signature = $this->sign_order_request($signRequest, $marketSymbol);
         $signRequest['signature'] = $signature;
-        // $price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
+        // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if (!$isMarket && ($price !== null)) {
             $signRequest['price'] = $this->parse_number($priceString);
         }
@@ -2201,7 +2200,7 @@ class limitless extends Exchange {
         }
         $response = Async\await($this->limitlessPrivatePostOrders($this->extend($request, $params)));
         $parsedOrder = $this->parse_prediction_order($response, $outcomeObj);
-        // the create-order $response omits a status field; a freshly accepted order is open
+        // the create-order response omits a status field; a freshly accepted order is open
         if ($parsedOrder['status'] === null) {
             $parsedOrder['status'] = 'open';
         }
@@ -2263,7 +2262,7 @@ class limitless extends Exchange {
     }
 
     public function sign_evm_transaction(array $tx, string $privateKey): string {
-        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw $tx hex
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         $accessList = $this->rlp_encode_list(array());
         $fields = array(
             $this->rlp_encode_bytes($this->int_to_rlp_hex($this->safe_integer($tx, 'chainId'))),
@@ -2328,13 +2327,13 @@ class limitless extends Exchange {
         $amount = $this->safe_string($params, 'amount');
         if ($amount !== null) {
             $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
-            // scale the human USDC $amount to base units ($amount / 10^-$decimals = $amount * 10^$decimals)
+            // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
             $scaled = Precise::string_div($amount, $this->parse_precision($this->number_to_string($decimals)));
             $amountInt = $this->parse_to_int($scaled);
             $amountBase16 = $this->int_to_base16($amountInt);
             $amountHex = str_pad($amountBase16, 64, '0', STR_PAD_LEFT);
         }
-        // approve($spender, $amount) -> selector 0x095ea7b3
+        // approve(spender, amount) -> selector 0x095ea7b3
         $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $amountHex;
         $txHash = Async\await($this->send_evm_transaction($rpcUrl, $chainId, $owner, $token, '0x0', $approveData, $gasLimit));
         return Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
@@ -2362,7 +2361,7 @@ class limitless extends Exchange {
             'order_id' => $id,
         );
         $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId($this->extend($request, $params)));
-        // the delete $response carries no $order body, so backfill the $id and the resulting status
+        // the delete response carries no order body, so backfill the id and the resulting status
         $order = $this->parse_prediction_order($response);
         if ($order['id'] === null) {
             $order['id'] = $id;
@@ -2398,7 +2397,7 @@ class limitless extends Exchange {
             $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
         }
         if ($conditionId === null) {
-            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId(a bytes32 hex string)');
+            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId (a bytes32 hex string)');
         }
         $request = array(
             'conditionId' => $conditionId,
@@ -2478,7 +2477,7 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPrivateDeleteOrdersAllSlug($this->extend($request, $params)));
         //
         //     {
-        //         "message" => "Orders canceled successfully"
+        //         "message": "Orders canceled successfully"
         //     }
         //
         return array( $this->safe_prediction_order(array( 'info' => $response )) );
@@ -2520,69 +2519,69 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPrivateGetPortfolioHistory($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "action" => "loss",
-        //                 "blockTimestamp" => 1778144400,
-        //                 "collateralAmount" => "2",
-        //                 "collateralSymbol" => "USDC",
-        //                 "collateralToken" => "7",
-        //                 "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //                 "market" => array(
-        //                     "closed" => true,
-        //                     "collateral" => array(
-        //                     "symbol" => "USDC",
-        //                     "id" => "7",
-        //                     "decimals" => 6),
-        //                     "group" => null,
-        //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //                     "funding" => "0",
-        //                     "id" => "117515",
-        //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
-        //                     "title" => "DOGE Up or Down - 1 hour",
-        //                     "expirationDate" => "2026-05-07T09:00:00.000Z"
-        //                 ),
-        //                 "outcomeIndex" => 1,
-        //                 "pnl" => "-2000000",
-        //                 "title" => "DOGE Up or Down - 1 hour"
-        //             ),
+        //         "data": [
         //             {
-        //                 "blockTimestamp" => 1778144137,
-        //                 "collateralAmount" => "2",
-        //                 "market" => array(
-        //                     "closed" => true,
-        //                     "collateral" => array(
-        //                         "symbol" => "USDC",
-        //                         "id" => "7",
-        //                         "decimals" => 6
-        //                     ),
-        //                     "group" => null,
-        //                     "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //                     "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //                     "funding" => "0",
-        //                     "id" => "117515",
-        //                     "slug" => "doge-up-or-down-1-hour-1778140801775",
-        //                     "title" => "DOGE Up or Down - 1 hour",
-        //                      "expirationDate" => "2026-05-07T09:00:00.000Z"
-        //                 ),
-        //                 "outcomeTokenAmount" => "10",
-        //                 "outcomeTokenAmounts" => array(
+        //                 "action": "loss",
+        //                 "blockTimestamp": 1778144400,
+        //                 "collateralAmount": "2",
+        //                 "collateralSymbol": "USDC",
+        //                 "collateralToken": "7",
+        //                 "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                     "symbol": "USDC",
+        //                     "id": "7",
+        //                     "decimals": 6},
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                     "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeIndex": 1,
+        //                 "pnl": "-2000000",
+        //                 "title": "DOGE Up or Down - 1 hour"
+        //             },
+        //             {
+        //                 "blockTimestamp": 1778144137,
+        //                 "collateralAmount": "2",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                         "symbol": "USDC",
+        //                         "id": "7",
+        //                         "decimals": 6
+        //                     },
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                      "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeTokenAmount": "10",
+        //                 "outcomeTokenAmounts": [
         //                     "10",
         //                     "0"
-        //                 ),
-        //                 "outcomeIndex" => 0,
-        //                 "outcomeTokenPrice" => "0.2",
-        //                 "strategy" => "Limit Buy",
-        //                 "transactionHash" => "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //                 ],
+        //                 "outcomeIndex": 0,
+        //                 "outcomeTokenPrice": "0.2",
+        //                 "strategy": "Limit Buy",
+        //                 "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
         //             }
-        //         ),
-        //         "nextCursor" => null
+        //         ],
+        //         "nextCursor": null
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        // $response contains both trade, settlement, split and merge history
-        // we filter out the settlements here and only return the $trades
+        // response contains both trade, settlement, split and merge history
+        // we filter out the settlements here and only return the trades
         $trades = array();
         for ($i = 0; $i < count($data); $i++) {
             $item = $this->safe_dict($data, $i);
@@ -2609,7 +2608,7 @@ class limitless extends Exchange {
          */
         $matchedSize = $this->safe_string($trade, 'matchedSize');
         if ($matchedSize !== null) {
-            // public $market events feed $trade, see fetchTrades for the response sample
+            // public market events feed trade, see fetchTrades for the response sample
             $ts = $this->parse8601($this->safe_string($trade, 'createdAt'));
             $sideRaw = $this->safe_string($trade, 'side');
             $feedSide = null;
@@ -2646,33 +2645,33 @@ class limitless extends Exchange {
         }
         //
         //     {
-        //         "blockTimestamp" => 1778144137,
-        //         "collateralAmount" => "2",
-        //         "market" => array(
-        //             "closed" => true,
-        //             "collateral" => array(
-        //                 "symbol" => "USDC",
-        //                 "id" => "7",
-        //                 "decimals" => 6
-        //             ),
-        //             "group" => null,
-        //             "condition_id" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //             "conditionId" => "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-        //             "funding" => "0",
-        //             "id" => "117515",
-        //             "slug" => "doge-up-or-down-1-hour-1778140801775",
-        //             "title" => "DOGE Up or Down - 1 hour",
-        //             "expirationDate" => "2026-05-07T09:00:00.000Z"
-        //         ),
-        //         "outcomeTokenAmount" => "10",
-        //         "outcomeTokenAmounts" => array(
+        //         "blockTimestamp": 1778144137,
+        //         "collateralAmount": "2",
+        //         "market": {
+        //             "closed": true,
+        //             "collateral": {
+        //                 "symbol": "USDC",
+        //                 "id": "7",
+        //                 "decimals": 6
+        //             },
+        //             "group": null,
+        //             "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //             "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //             "funding": "0",
+        //             "id": "117515",
+        //             "slug": "doge-up-or-down-1-hour-1778140801775",
+        //             "title": "DOGE Up or Down - 1 hour",
+        //             "expirationDate": "2026-05-07T09:00:00.000Z"
+        //         },
+        //         "outcomeTokenAmount": "10",
+        //         "outcomeTokenAmounts": [
         //             "10",
         //             "0"
-        //         ),
-        //         "outcomeIndex" => 0,
-        //         "outcomeTokenPrice" => "0.2",
-        //         "strategy" => "Limit Buy",
-        //         "transactionHash" => "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //         ],
+        //         "outcomeIndex": 0,
+        //         "outcomeTokenPrice": "0.2",
+        //         "strategy": "Limit Buy",
+        //         "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
         //     }
         //
         $id = $this->safe_string($trade, 'transactionHash');
@@ -2694,9 +2693,9 @@ class limitless extends Exchange {
         if (mb_strpos($rawSide, 'limit') !== false) {
             $type = 'limit';
             $takerOrMaker = 'maker';
-        if ($rawSide === null) {
-            throw new ExchangeError($this->id . ' method() missing rawSide');
-        }
+            if ($rawSide === null) {
+                throw new ExchangeError($this->id . ' method() missing rawSide');
+            }
         } elseif (mb_strpos($rawSide, 'market') !== false) {
             $type = 'market';
             $takerOrMaker = 'taker';
@@ -2761,87 +2760,87 @@ class limitless extends Exchange {
         if ($symbolsLength > 0) {
             Async\await($this->load_outcomes($outcomes));
         }
-        // no bulk warm-up on the unfiltered path => the portfolio request is self-contained and
-        // $labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
         $response = Async\await($this->limitlessPrivateGetPortfolioPositions($params));
         //
         //     {
-        //         "rewards" => array(
-        //                 "todaysRewards" => "0",
-        //                 "totalUnpaidRewards" => "0",
-        //                 "totalUserRewardsLastEpoch" => "0",
-        //                 "rewardsChartData" => array(),
-        //                 "rewardsByEpoch" => array()
-        //         ),
-        //         "points" => "0.00000000",
-        //         "accumulativePoints" => "0.00000000",
-        //         "amm" => array(),
-        //         "group" => array(),
-        //         "clob" => array(
+        //         "rewards": {
+        //                 "todaysRewards": "0",
+        //                 "totalUnpaidRewards": "0",
+        //                 "totalUserRewardsLastEpoch": "0",
+        //                 "rewardsChartData": [],
+        //                 "rewardsByEpoch": []
+        //         },
+        //         "points": "0.00000000",
+        //         "accumulativePoints": "0.00000000",
+        //         "amm": [],
+        //         "group": [],
+        //         "clob": [
         //             {
-        //                 "market" => array(
-        //                     "slug" => "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
-        //                     "status" => "FUNDED",
-        //                     "title" => "BTC Up or Down - 1 week",
-        //                     "conditionId" => "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
-        //                     "id" => 113280,
-        //                     "address" => null,
-        //                     "closed" => false,
-        //                     "expirationDate" => "2026-05-11T10:00:00.000Z",
-        //                     "deadline" => "2026-05-11T10:00:00.000Z",
-        //                     "negRiskRequestId" => null,
-        //                     "winningOutcomeIndex" => null,
-        //                     "yesPositionId" => "93872239373494820196551522390839917813776244436120184186867916673676200558660",
-        //                     "noPositionId" => "63415751165356883207530164011662686422066216695676262832702521399916548381548",
-        //                     "collateralToken" => array(
-        //                         "id" => 7,
-        //                         "decimals" => 6,
-        //                         "symbol" => "USDC",
-        //                         "address" => "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-        //                     ),
-        //                     "venue" => array(
-        //                         "exchange" => "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-        //                         "adapter" => null,
-        //                         "operator" => null
-        //                     ),
-        //                     "group" => array()
-        //                 ),
-        //                 "latestTrade" => array(
-        //                     "outcomeTokenPrice" => 0.991,
-        //                     "latestNoPrice" => 0.009,
-        //                     "latestYesPrice" => 0.991
-        //                 ),
-        //                 "orders" => array(
-        //                     "liveOrders" => array(),
-        //                     "totalCollateralLocked" => "0"
-        //                 ),
-        //                 "positions" => {
-        //                     "no" => array(
-        //                         "cost" => "0",
-        //                         "fillPrice" => "0",
-        //                         "marketValue" => "0",
-        //                         "realisedPnl" => "0",
-        //                         "unrealizedPnl" => "0"
-        //                     ),
-        //                     "yes" => array(
-        //                         "cost" => "995720",
-        //                         "fillPrice" => "991000",
-        //                         "marketValue" => "999919",
-        //                         "realisedPnl" => "0",
-        //                         "unrealizedPnl" => "0"
+        //                 "market": {
+        //                     "slug": "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
+        //                     "status": "FUNDED",
+        //                     "title": "BTC Up or Down - 1 week",
+        //                     "conditionId": "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
+        //                     "id": 113280,
+        //                     "address": null,
+        //                     "closed": false,
+        //                     "expirationDate": "2026-05-11T10:00:00.000Z",
+        //                     "deadline": "2026-05-11T10:00:00.000Z",
+        //                     "negRiskRequestId": null,
+        //                     "winningOutcomeIndex": null,
+        //                     "yesPositionId": "93872239373494820196551522390839917813776244436120184186867916673676200558660",
+        //                     "noPositionId": "63415751165356883207530164011662686422066216695676262832702521399916548381548",
+        //                     "collateralToken": {
+        //                         "id": 7,
+        //                         "decimals": 6,
+        //                         "symbol": "USDC",
+        //                         "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        //                     },
+        //                     "venue": {
+        //                         "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //                         "adapter": null,
+        //                         "operator": null
+        //                     },
+        //                     "group": {}
+        //                 },
+        //                 "latestTrade": {
+        //                     "outcomeTokenPrice": 0.991,
+        //                     "latestNoPrice": 0.009,
+        //                     "latestYesPrice": 0.991
+        //                 },
+        //                 "orders": {
+        //                     "liveOrders": [],
+        //                     "totalCollateralLocked": "0"
+        //                 },
+        //                 "positions": {
+        //                     "no": {
+        //                         "cost": "0",
+        //                         "fillPrice": "0",
+        //                         "marketValue": "0",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
+        //                     },
+        //                     "yes": {
+        //                         "cost": "995720",
+        //                         "fillPrice": "991000",
+        //                         "marketValue": "999919",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
         //                     }
-        //                 ),
-        //                 "tokensBalance" => array(
-        //                     "no" => "0",
-        //                     "yes" => "1004763"
-        //                 ),
-        //                 "rewards" => array(
-        //                     "isEarning" => false,
-        //                     "epochs" => array()
-        //                 ),
-        //                 "makerAddress" => "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
+        //                 },
+        //                 "tokensBalance": {
+        //                     "no": "0",
+        //                     "yes": "1004763"
+        //                 },
+        //                 "rewards": {
+        //                     "isEarning": false,
+        //                     "epochs": []
+        //                 },
+        //                 "makerAddress": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $clob = $this->safe_list($response, 'clob', array());
@@ -2896,11 +2895,11 @@ class limitless extends Exchange {
          */
         //
         //     {
-        //         "cost" => "995720",
-        //         "fillPrice" => "991000",
-        //         "marketValue" => "999919",
-        //         "realisedPnl" => "0",
-        //         "unrealizedPnl" => "0"
+        //         "cost": "995720",
+        //         "fillPrice": "991000",
+        //         "marketValue": "999919",
+        //         "realisedPnl": "0",
+        //         "unrealizedPnl": "0"
         //     }
         //
         $outcomeSymbol = $this->safe_string($market, 'outcome');
@@ -2967,12 +2966,12 @@ class limitless extends Exchange {
         $queriesLength = count($queries);
         $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status' ));
         $eventId = $this->safe_string_2($params, 'eventId', 'slug');
-        // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches, an
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
         // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
         $rawMarkets = array();
         if ($queriesLength > 0) {
             $requestedLimit = $this->safe_integer($params, 'limit', 50);
-            // the search endpoint rejects $limit > 50 - cap the per-query request
+            // the search endpoint rejects limit > 50 - cap the per-query request
             $limit = min($requestedLimit, 50);
             $seen = array();
             for ($i = 0; $i < count($queries); $i++) {
@@ -2998,7 +2997,7 @@ class limitless extends Exchange {
             $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend(array( 'addressOrSlug' => $eventId ), $rest)));
             $rawMarkets[] = $response;
         } else {
-            // tags scope => resolve the tags to limitless categories and page only those
+            // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             $requestedTags = $this->safe_list($params, 'tags', array());
             $listRaw = Async\await($this->fetch_raw_markets_by_tags($requestedTags, $params));
@@ -3034,7 +3033,7 @@ class limitless extends Exchange {
                 $eventGroup = $eventGroups[$eventKey];
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on $eventGroup['markets'] loses the element in go
+                // direct push on eventGroup['markets'] loses the element in go
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;
                 $eventGroup['markets'] = $groupMarkets;
@@ -3052,10 +3051,10 @@ class limitless extends Exchange {
         $this->set_events($result);
         $this->populate_outcomes();
         // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
-        // for $queries that match nothing — so default searchIn to 'both' to post-filter the
-        // results literally by title/description (an explicit $params->searchIn still wins).
+        // for queries that match nothing — so default searchIn to 'both' to post-filter the
+        // results literally by title/description (an explicit params.searchIn still wins).
         // tags were already applied server-side (category-scoped listing); strip them before the
-        // client-side pass — events built from $raw markets carry venue tags, not category names,
+        // client-side pass — events built from raw markets carry venue tags, not category names,
         // so the base tag filter would wrongly drop server-matched events
         $searchParams = $this->extend(array( 'searchIn' => 'both' ), $params);
         $postParams = $this->omit($searchParams, array( 'tags' ));
@@ -3172,20 +3171,20 @@ class limitless extends Exchange {
         return $allRaw;
     }
 
-    public function sign(mixed $path, mixed $section = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the lmts authentication $headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$section] the api group and $access level
+         * @param {string|string[]} [$api] the $api group and $access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @param {array} [$headers] request $headers
          * @param {array} [$body] request $body
          * @return {array} a dictionary with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($section) === 'string' ? $section : $section[0];
-        $access = gettype($section) === 'string' ? 'public' : $section[1];
+        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $access = gettype($api) === 'string' ? 'public' : $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);
@@ -3214,10 +3213,13 @@ class limitless extends Exchange {
             $payload = $timestamp . $newline . $method . $newline . $url . $newline . $bodyString;
             $signature = $this->hmac($this->encode($payload), base64_decode($this->secret), 'sha256', 'base64');
             $headers = $this->extend($headers, array(
-                'lmts-api-key' => $this->apiKey,
                 'lmts-timestamp' => $timestamp,
                 'lmts-signature' => $signature,
             ));
+            $headerKey = 'lmts-api' . '-key'; // concatenating because of the php version
+            $headersKey = array();
+            $headersKey[$headerKey] = $this->apiKey;
+            $headers = $this->extend($headers, $headersKey);
         }
         $url = $baseUrl . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -3235,14 +3237,14 @@ class limitless extends Exchange {
             return null;
         }
         $feedback = $this->id . ' ' . $responseBody;
-        // the API returns either a string $message or an array of field-validation errors
+        // the API returns either a string message or an array of field-validation errors
         $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         }
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $responseBody, $feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
-        // resolved"), not a transport outage — throw BadRequest with the exchange $message instead
+        // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
         if ($statusCode === 400) {
             throw new BadRequest($feedback);
