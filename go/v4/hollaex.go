@@ -598,7 +598,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = GetValue(networkIds, j).(string)
 		var networkEntry any = this.SafeDict(rawNetworks, networkId)
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -2436,7 +2436,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var value map[string]any = MapTyped(GetValue(withdrawalFees, key))
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
-			var networkCode any = this.NetworkIdToCode(key, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(key, currencyCode)
 			if networkCode == nil {
 				panic(ArgumentsRequired(this.Id + " requires a networkCode argument"))
 			}

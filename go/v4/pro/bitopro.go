@@ -320,7 +320,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades any = this.MyTrades
-	var parsed any = this.ParseWsTrade(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	trades.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
@@ -462,11 +462,11 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var event *string = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
-	var result any = this.ParseTicker(message, market)
-	ccxt.AddElementToObject(result, "symbol", this.SafeString(market, "symbol")) // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
+	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
+	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(result, "timestamp", timestamp)
-	ccxt.AddElementToObject(result, "datetime", this.Iso8601(timestamp)) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
+	result["timestamp"] = timestamp
+	result["datetime"] = this.Iso8601(timestamp) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
 	ccxt.AddElementToObject(this.Tickers, symbol, result)
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }

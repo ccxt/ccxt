@@ -3900,7 +3900,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 				if GetLength(result) > 0 {
 					result = Add(result, "&")
 				}
-				result = Add(result, Add(Add(encodedKey, "="), this.EncodeURIComponent(valueString)))
+				result = Add(result, encodedKey+"="+this.EncodeURIComponent(valueString))
 			}
 		} else {
 			if GetLength(result) > 0 {

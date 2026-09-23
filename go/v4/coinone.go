@@ -636,11 +636,11 @@ func (this *Coinone) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.Omit(response, []any{"errorCode", "result", "normalWallets"})
+	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance map[string]any = MapTyped(GetValue(balances, currencyId))
+		var balance map[string]any = MapTyped(balances[currencyId])
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "avail")

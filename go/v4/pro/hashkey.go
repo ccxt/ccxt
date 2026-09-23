@@ -187,7 +187,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	}
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var klineType *string = this.SafeString(params, "klineType")
-	var timeframe any = this.FindTimeframe(klineType)
+	var timeframe *string = this.FindTimeframe(klineType)
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
@@ -284,8 +284,8 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeList(message, "data", []any{})
-	var ticker any = this.ParseTicker(this.SafeDict(data, 0, map[string]any{}))
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
+	var symbol any = ticker["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -373,7 +373,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 		data = this.SortBy(data, "t")
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var trade any = this.SafeDict(data, i)
-			var parsed any = this.ParseWsTrade(trade, market)
+			var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	}
@@ -550,12 +550,12 @@ func (this *Hashkey) HandleOrder(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var parsed any = this.ParseWsOrder(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsed)
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol any = parsed["symbol"]
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
@@ -683,12 +683,12 @@ func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var tradesArray any = this.MyTrades
-	var parsed any = this.ParseWsTrade(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
 	tradesArray.(ccxt.Appender).Append(parsed)
 	this.MyTrades = tradesArray
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol any = parsed["symbol"]
 	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, symbolSpecificMessageHash)
 }

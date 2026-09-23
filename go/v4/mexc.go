@@ -1554,7 +1554,7 @@ func (this *Mexc) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString2(chain, "netWork", "network")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      chain,
@@ -2343,7 +2343,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var options map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var timeframes map[string]any = SafeMapTyped(options, market["type"])
 	var timeframeValue *string = this.SafeString(timeframes, timeframe)
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": timeframeValue,
@@ -3045,14 +3045,14 @@ func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar any, side
 	//         "transactTime": 1661992652132
 	//     }
 	//
-	var order any = this.ParseOrder(response, market)
-	AddElementToObject(order, "side", side)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	order["side"] = side
+	order["type"] = typeVar
 	if this.SafeString(order, "price") == nil {
-		AddElementToObject(order, "price", price)
+		order["price"] = price
 	}
 	if this.SafeString(order, "amount") == nil {
-		AddElementToObject(order, "amount", amount)
+		order["amount"] = amount
 	}
 
 	ch <- order
@@ -5811,9 +5811,15 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 	var networkId any = nil
 	if networkCode != nil {
 		// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-		var networkUnified any = this.NetworkIdToCode(networkCode, code)
+		var networkUnified *string = this.NetworkIdToCode(networkCode, code)
 		var networks map[string]any = SafeMapTyped(currency, "networks")
-		if (networkUnified != nil) && (InOp(networks, networkUnified)) {
+		if (networkUnified != nil) && (func() bool {
+			if networkUnified == nil {
+				return false
+			}
+			_, ok := networks[*networkUnified]
+			return ok
+		}()) {
 			var network any = func() any {
 				if networkUnified == nil {
 					return map[string]any{}
@@ -5884,9 +5890,15 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 	}
 	// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 	var networkId any = nil
-	var networkUnified any = this.NetworkIdToCode(networkCode, code)
+	var networkUnified *string = this.NetworkIdToCode(networkCode, code)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
-	if (networkUnified != nil) && (InOp(networks, networkUnified)) {
+	if (networkUnified != nil) && (func() bool {
+		if networkUnified == nil {
+			return false
+		}
+		_, ok := networks[*networkUnified]
+		return ok
+	}()) {
 		var network any = func() any {
 			if networkUnified == nil {
 				return map[string]any{}
@@ -5942,7 +5954,7 @@ func (this *Mexc) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 	PanicOnError(addressStructures)
 	var result any = nil
 	if network != nil {
-		var netCode any = this.NetworkIdToCode(network, code)
+		var netCode *string = this.NetworkIdToCode(network, code)
 		result = func() any {
 			if netCode == nil {
 				return nil
@@ -6195,7 +6207,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 		currencyId = GetValue(Split(currencyWithNetwork, "-"), 0)
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var network any = nil
+	var network *string = nil
 	var rawNetwork *string = this.SafeString(transaction, "network")
 	if rawNetwork != nil {
 		network = this.NetworkIdToCode(rawNetwork, code)
@@ -7275,7 +7287,7 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			return nil
 		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
-		var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
+		var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {
 			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
 				"withdraw": map[string]any{

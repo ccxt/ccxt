@@ -3153,7 +3153,7 @@ func (this *Okx) ParseCurrency(currency any) any {
 		var idParts []string = Split(networkId, "-")
 		var parts any = this.ArraySlice(idParts, 1)
 		var chainPart string = Join(parts, "-")
-		var networkCode any = this.NetworkIdToCode(chainPart, code)
+		var networkCode *string = this.NetworkIdToCode(chainPart, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -3930,9 +3930,9 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		}() // default 300, only 100 if 'mark' or 'index'
 		limit = mathMin(limit, maxLimit)
 	}
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var bar any = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
-	if (timezone != nil && *timezone == "UTC") && (IsGreaterThanOrEqual(duration, 21600)) {
+	if (timezone != nil && *timezone == "UTC") && (duration >= 21600) {
 		bar = Add(bar, ToLower(timezone))
 	}
 	var request map[string]any = map[string]any{
@@ -3943,7 +3943,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var defaultType any = "Candles"
 	if since != nil {
 		var now int64 = this.Milliseconds()
-		var durationInMilliseconds any = Multiply(duration, 1000)
+		var durationInMilliseconds int64 = duration * 1000
 		// switch to history candles if since is past the cutoff for current candles
 		var historyBorder any = Subtract(now, (Multiply((Subtract(1440, 1)), durationInMilliseconds)))
 		if IsLessThan(since, historyBorder) {
@@ -4912,9 +4912,9 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
-	var order any = this.ParseOrder(first, market)
-	AddElementToObject(order, "type", typeVar)
-	AddElementToObject(order, "side", side)
+	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	order["type"] = typeVar
+	order["side"] = side
 
 	ch <- order
 	return nil
@@ -5206,9 +5206,9 @@ func (this *Okx) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
-	var order any = this.ParseOrder(first, market)
-	AddElementToObject(order, "type", typeVar)
-	AddElementToObject(order, "side", side)
+	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	order["type"] = typeVar
+	order["side"] = side
 
 	ch <- order
 	return nil
@@ -7128,7 +7128,7 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 		networkData = this.SafeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon")
 	}
 	var network *string = this.SafeString(networkData, "network")
-	var networkCode any = this.NetworkIdToCode(network, code)
+	var networkCode *string = this.NetworkIdToCode(network, code)
 	this.CheckAddress(address)
 	return map[string]any{
 		"info":     depositAddress,
@@ -7225,7 +7225,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	var rawNetwork *string = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
 	params = MapTyped(this.Omit(params, "network"))
 	code = DerefScalar(this.SafeCurrencyCode(code))
-	var network any = this.NetworkIdToCode(rawNetwork, code)
+	var network *string = this.NetworkIdToCode(rawNetwork, code)
 
 	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, params))
 	PanicOnError(responseRaw)
@@ -7233,13 +7233,13 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	if network != nil {
 		var result any = this.SafeDict(response, network)
 		if IsEqual(result, nil) {
-			panic(InvalidAddress(Add(Add(Add(this.Id+" fetchDepositAddress() cannot find ", network), " deposit address for "), code)))
+			panic(InvalidAddress(Add(this.Id+" fetchDepositAddress() cannot find "+*network+" deposit address for ", code)))
 		}
 
 		ch <- result
 		return nil
 	}
-	var codeNetwork any = this.NetworkIdToCode(code, code)
+	var codeNetwork *string = this.NetworkIdToCode(code, code)
 	if (codeNetwork != nil) && (InOp(response, codeNetwork)) {
 
 		ch <- GetValue(response, codeNetwork)
@@ -7308,7 +7308,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		currencies := (<-this.FetchCurrenciesAsync())
 		PanicOnError(currencies)
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-		var networkCodeResolved any = this.NetworkIdToCode(network, currency["code"])
+		var networkCodeResolved *string = this.NetworkIdToCode(network, currency["code"])
 		var targetNetwork any = func() any {
 			if networkCodeResolved == nil {
 				return map[string]any{}
@@ -7768,7 +7768,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var currencyId *string = this.SafeString(transaction, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var network any = nil
+	var network *string = nil
 	var chain *string = this.SafeString(transaction, "chain")
 	if chain != nil {
 		var chainParts []string = Split(chain, "-")
@@ -10607,7 +10607,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 				"fee":        nil,
 				"percentage": nil,
 			}
-			var networkCode any = this.NetworkIdToCode(networkId, code)
+			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
 				AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 					"withdraw": withdrawResult,
@@ -11866,8 +11866,8 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var response any = nil
 	var now int64 = this.Milliseconds()
-	var oneWeekAgo any = now - 604800000
-	var threeMonthsAgo any = now - 7776000000
+	var oneWeekAgo int64 = now - 604800000
+	var threeMonthsAgo int64 = now - 7776000000
 	if (since == nil) || (IsGreaterThan(since, oneWeekAgo)) {
 
 		response = (<-this.PrivateGetAccountBills(this.Extend(request, params))).Raw

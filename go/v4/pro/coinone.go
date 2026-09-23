@@ -229,8 +229,8 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var ticker any = this.ParseWsTicker(data)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
+	var symbol any = ticker["symbol"]
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -362,8 +362,8 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var trade any = this.ParseWsTrade(data)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var symbol any = trade["symbol"]
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

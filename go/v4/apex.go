@@ -639,7 +639,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(networks, networkCode, map[string]any{
 						"info":      chain,

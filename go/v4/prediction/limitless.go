@@ -1834,7 +1834,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	// — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
 	// timestamps keep their relative order consistently across languages
 	var sorted []any = this.SortBy(pseudoTrades, "timestamp")
-	var ms any = ccxt.Multiply(this.ParseTimeframe(timeframe), 1000)
+	var ms int64 = this.ParseTimeframe(timeframe) * 1000
 	var candles map[string]any = map[string]any{}
 	var bucketOrder []any = []any{}
 	for i := 0; i < len(sorted); i++ {
@@ -1849,7 +1849,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 		if pTs == nil {
 			panic(ccxt.ExchangeError(this.Id + " method() missing pTs"))
 		}
-		var bucket any = ccxt.Multiply(this.ParseToInt(ccxt.Divide(pTs, ms)), ms)
+		var bucket int64 = this.ParseToInt(ccxt.Divide(pTs, ms)) * ms
 		var key string = ccxt.ToString(bucket)
 		if !(func() bool { _, ok := candles[key]; return ok }()) {
 			candles[key] = []any{bucket, pPrice, pPrice, pPrice, pPrice, 0}
@@ -2866,8 +2866,8 @@ func (this *Limitless) SignHash(hash any, privateKey any) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	var rPadded string = ccxt.PadStart(r, 64, "0")
 	var sPadded string = ccxt.PadStart(s, 64, "0")
-	var result any = "0x" + rPadded + sPadded + v
-	return ccxt.ToLower(result)
+	var result string = "0x" + rPadded + sPadded + v
+	return strings.ToLower(result)
 }
 func (this *Limitless) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
@@ -3846,7 +3846,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var searchParams map[string]any = this.Extend(map[string]any{
 		"searchIn": "both",
 	}, params)
-	var postParams any = this.Omit(searchParams, []any{"tags"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(searchParams, []any{"tags"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, queries)
 	return nil
@@ -4087,7 +4087,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 		})
 		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
-		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
+		headersKey[headerKey] = this.ApiKey
 		headers = this.Extend(headers, headersKey)
 	}
 	url = ccxt.Add(baseUrl, url)

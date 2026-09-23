@@ -444,7 +444,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	for j := 0; j < len(keys); j++ {
 		var networkId string = GetValue(keys, j).(string)
 		var rawNetwork any = rawNetworks[networkId]
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit bool = (this.SafeString(rawNetwork, "deposit") != nil && *this.SafeString(rawNetwork, "deposit") == "enabled")
 		var withdraw bool = (this.SafeString(rawNetwork, "withdrawal") != nil && *this.SafeString(rawNetwork, "withdrawal") == "enabled")
 		if networkCode != nil {

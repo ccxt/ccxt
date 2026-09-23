@@ -1232,7 +1232,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 		if networkId == nil {
 			continue
 		}
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		var dwStatuses []any = SafeListTypedDefault(indexed["statuses"], networkId, []any{})
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
@@ -3362,7 +3362,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var feeCost *string = nil
 	var txid *string = nil
 	var addressTo *string = nil
-	var network any = nil
+	var network *string = nil
 	var comment *string = nil
 	if transactionLength == 8 {
 		var data []any = SafeListTypedDefault(transaction, 4, []any{})

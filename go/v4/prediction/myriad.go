@@ -1616,8 +1616,8 @@ func (this *Myriad) SignOrderbookTypedData(types any, message any, networkId any
 	var r string = ccxt.PadStart(rRaw, 64, "0")
 	var s string = ccxt.PadStart(sRaw, 64, "0")
 	var v any = this.Sum(27, signature["v"])
-	var sigHex any = "0x" + r + s + this.IntToBase16(v)
-	return ccxt.ToLower(sigHex)
+	var sigHex string = "0x" + r + s + this.IntToBase16(v)
+	return strings.ToLower(sigHex)
 }
 
 /**
@@ -5269,7 +5269,7 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 		// ts/src/test/static/request/prediction/myriad.json
 		var headerKey string = "x-api" + "-key"
 		var headersKey map[string]any = map[string]any{}
-		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
+		headersKey[headerKey] = this.ApiKey
 		headers = this.Extend(headers, headersKey)
 	}
 	return map[string]any{

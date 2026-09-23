@@ -5054,7 +5054,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
 		var pricePrecision int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
-		var pricePrecisionPlusOne any = pricePrecision + 1
+		var pricePrecisionPlusOne int = pricePrecision + 1
 		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
@@ -5307,7 +5307,7 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var nonce any = this.Milliseconds() * 1000
+	var nonce int64 = this.Milliseconds() * 1000
 	var request map[string]any = map[string]any{
 		"asset":     currency["id"],
 		"receiver":  address,
@@ -5488,7 +5488,7 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "sapiPrivate")) {
 		this.CheckRequiredCredentials()
-		var nonce any = this.Milliseconds() * 1000
+		var nonce int64 = this.Milliseconds() * 1000
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
 		var zeroAddress *string = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId *int64 = this.SafeInteger(this.Options, "v3ChainId", 1666)

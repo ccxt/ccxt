@@ -4864,7 +4864,7 @@ func (this *Binance) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var network *string = this.SafeString(networkItem, "network")
-		var networkCode any = this.NetworkIdToCode(network, code)
+		var networkCode *string = this.NetworkIdToCode(network, code)
 		isETF = (network != nil && *network == "ETF") // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
 		// const name = this.safeString (networkItem, 'name');
 		var withdrawFee *float64 = this.SafeNumber(networkItem, "withdrawFee")
@@ -6699,8 +6699,8 @@ func (this *Binance) ParseTickersForRolling(response any, symbols any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var marketId *string = this.SafeString(GetValue(response, i), "symbol")
 		var tickerMarket map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "spot"))
-		var parsedTicker any = this.ParseTicker(GetValue(response, i))
-		AddElementToObject(parsedTicker, "symbol", tickerMarket["symbol"])
+		var parsedTicker map[string]any = MapTyped(this.ParseTicker(GetValue(response, i)))
+		parsedTicker["symbol"] = tickerMarket["symbol"]
 		results = append(results, parsedTicker)
 	}
 	return this.FilterByArray(results, "symbol", symbols)
@@ -6991,7 +6991,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		//
 		if GetValue(market, "inverse") == true {
 			if *since > 0 {
-				var duration any = this.ParseTimeframe(timeframe)
+				var duration int64 = this.ParseTimeframe(timeframe)
 				var endTime any = this.Sum(since, Subtract(Multiply(Multiply(limit, duration), 1000), 1))
 				var now int64 = this.Milliseconds()
 				request["endTime"] = mathMin(now, endTime)
@@ -12240,7 +12240,7 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 		}()
 	}
 	var networkId *string = this.SafeString(transaction, "network")
-	var network any = this.NetworkIdToCode(networkId, code)
+	var network *string = this.NetworkIdToCode(networkId, code)
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -12994,7 +12994,7 @@ func (this *Binance) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			return nil
 		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault *bool = this.SafeBool(networkEntry, "isDefault")
 		if isDefault != nil && *isDefault == true {
@@ -14056,7 +14056,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
 		var pricePrecision int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
-		var pricePrecisionPlusOne any = pricePrecision + 1
+		var pricePrecisionPlusOne int = pricePrecision + 1
 		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
@@ -17593,7 +17593,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 		if limit == nil {
 			limit = Int64PtrTyped(30) // Exchange default
 		}
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		request["endTime"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 	}
 	var response any = nil

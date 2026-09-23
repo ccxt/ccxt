@@ -3242,8 +3242,8 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 		var eoaSig any = this.SignMessage(encoded, this.PrivateKey)
 		// lowercase: intToBase16 emits uppercase hex in some target languages, but the
 		// signature is case-insensitive bytes and the rest of the hex is lowercase
-		var eoaSignature any = "0x" + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "r")) + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
-		return ccxt.ToLower(eoaSignature)
+		var eoaSignature string = "0x" + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "r")) + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
+		return strings.ToLower(eoaSignature)
 	}
 	// POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
 	// ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
@@ -3301,7 +3301,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	var wrappedSignature string = "0x" + innerSig + this.Remove0xPrefix(appDomainSep) + this.Remove0xPrefix(contentsHash) + orderTypeStringHex + lenHex
 	// lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
 	// uppercase hex in some targets); the signature is case-insensitive bytes
-	return ccxt.ToLower(wrappedSignature)
+	return strings.ToLower(wrappedSignature)
 }
 
 /**

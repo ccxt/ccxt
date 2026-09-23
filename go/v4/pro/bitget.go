@@ -360,8 +360,8 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	this.HandleBidAsk(client, message)
-	var ticker any = this.ParseWsTicker(message)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message))
+	var symbol any = ticker["symbol"]
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -850,7 +850,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 		isUta = true
 	}
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
-	var timeframe any = this.FindTimeframe(interval, timeframes)
+	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	if timeframe == nil {
 		return
 	}
@@ -874,7 +874,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	if isUta == true {
 		messageHash = ccxt.Add("kline:", symbol)
 	} else {
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+		messageHash = ccxt.Add("candles:"+*timeframe+":", symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -971,11 +971,11 @@ func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var channel any = "books"
+	var channel string = "books"
 	var limit *int64 = this.SafeInteger(params, "limit")
 	if (limit != nil && *limit == 1) || (limit != nil && *limit == 5) || (limit != nil && *limit == 15) || (limit != nil && *limit == 50) {
 		params = ccxt.MapTyped(this.Omit(params, "limit"))
-		channel = ccxt.Add(channel, ccxt.ToString(limit))
+		channel += ccxt.ToString(limit)
 	}
 
 	retRes77315 := (<-this.UnWatchChannelAsync(symbol, channel, "orderbook", "watchOrderBook", params))
@@ -1059,10 +1059,10 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var channel any = "books"
+	var channel string = "books"
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
-		channel = ccxt.Add(channel, ccxt.ToString(limit))
+		channel += ccxt.ToString(limit)
 		incrementalFeed = false
 	}
 	var topics []any = []any{}
@@ -1504,7 +1504,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < length; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(length, i), 1)
 		var rawTrade any = ccxt.GetValue(data, index)
-		var parsed any = this.ParseWsTrade(rawTrade, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add("trade:", symbol)
@@ -2261,9 +2261,9 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		var order any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market any = this.SafeMarket(marketId, nil, nil, marketType)
-		var parsed any = this.ParseWsOrder(order, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 		stored.(ccxt.Appender).Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(marketSymbols, symbol, true)
 		}
@@ -2792,9 +2792,9 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 			var marketId *string = this.SafeString2(trade, "instId", "symbol")
 			market = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		}
-		var parsed any = this.ParseWsTrade(trade, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 		stored.(ccxt.Appender).Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol any = parsed["symbol"]
 		var symbolSpecificMessageHash any = ccxt.Add("myTrades:", symbol)
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	}
@@ -3593,7 +3593,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 		isUta = true
 	}
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
-	var timeframe any = this.FindTimeframe(interval, timeframes)
+	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
 	var symbol any = market["symbol"]
 	var messageHash any = nil

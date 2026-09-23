@@ -71,8 +71,8 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(IsEqual(GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId), networkCode), Add(Add(Add(Add(Add(Add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId)), "\""))
 				// check networkIdToCode conversion back
-				var networkCodeConverted any = exchange.NetworkIdToCode(networkId)
-				Assert(IsEqual(networkCode, networkCodeConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
+				var networkCodeConverted *string = exchange.NetworkIdToCode(networkId)
+				Assert((networkCodeConverted != nil && *networkCodeConverted == networkCode), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
 			}
 		}
 	}

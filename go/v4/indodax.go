@@ -770,7 +770,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market any = this.SafeMarket(marketId)
-		var parsed any = this.ParseTicker(rawTicker, market)
+		var parsed map[string]any = MapTyped(this.ParseTicker(rawTicker, market))
 		parsedTickers[marketId] = parsed
 	}
 
@@ -902,7 +902,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if since != nil {
 		request["from"] = MathFloor(Divide(since, 1000))
 	} else {
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		request["from"] = Subtract(Subtract(now, Multiply(limit, duration)), 1)
 	}
 
@@ -1071,10 +1071,10 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	response := (<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var orders map[string]any = SafeMapTyped(response, "return")
-	var order any = this.ParseOrder(this.Extend(map[string]any{
+	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, orders["order"]), market)
-	AddElementToObject(order, "info", response)
+	}, orders["order"]), market))
+	order["info"] = response
 
 	ch <- order
 	return nil
@@ -1826,13 +1826,13 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 					}
 					var networkIds []string = Split(networkId, ",")
 					for j := 0; j < len(networkIds); j++ {
-						var _netIdTmp any = this.NetworkIdToCode(GetValue(networkIds, j), code)
+						var _netIdTmp *string = this.NetworkIdToCode(GetValue(networkIds, j), code)
 						if _netIdTmp != nil {
 							AppendToArray(&network, ToUpper(_netIdTmp))
 						}
 					}
 				} else {
-					var _netIdTmp any = this.NetworkIdToCode(networkId, code)
+					var _netIdTmp *string = this.NetworkIdToCode(networkId, code)
 					if _netIdTmp != nil {
 						network = ToUpper(_netIdTmp)
 					}

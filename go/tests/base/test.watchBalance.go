@@ -15,8 +15,8 @@ func testWatchBalanceBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	defer ReturnPanicError(ch)
 	var method string = "watchBalance"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
-	for IsLessThan(now, ends) {
+	var ends int64 = now + 15000
+	for now < ends {
 		var response any = map[string]any{}
 		var success bool = true
 

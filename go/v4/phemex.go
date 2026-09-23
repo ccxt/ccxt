@@ -1733,7 +1733,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var response any = nil
 	if (GetValue(market, "linear") == true) || isStableSettled {
 		if (until != nil) || (since != nil) {
-			var candleDuration any = this.ParseTimeframe(timeframe)
+			var candleDuration int64 = this.ParseTimeframe(timeframe)
 			if since != nil {
 				since = MathRound(Divide(since, 1000))
 				request["from"] = since
@@ -1765,7 +1765,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		if since != nil {
 			// phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
 			// we do not send since param to the exchange, instead we calculate appropriate limit param
-			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var timeDelta any = Subtract(this.Milliseconds(), since)
 			limit = this.ParseToInt(Divide(timeDelta, duration)) // setting limit to the number of candles after since
 		}

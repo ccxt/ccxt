@@ -483,7 +483,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id", "")
 	var part []string = ccxt.Split(id, "/")
 	var interval *string = this.SafeString(part, 1)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var marketId *string = this.SafeString(part, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")

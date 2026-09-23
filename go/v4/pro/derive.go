@@ -560,7 +560,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i))
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(data, i)))
 		tradesArray.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
@@ -752,7 +752,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseOrder(data)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")
 		if symbol != nil {
@@ -771,15 +771,15 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			if !ccxt.IsEqual(order, nil) {
 				var fee any = this.SafeValue(order, "fee")
 				if !ccxt.IsEqual(fee, nil) {
-					ccxt.AddElementToObject(parsed, "fee", fee)
+					parsed["fee"] = fee
 				}
 				var fees any = this.SafeValue(order, "fees")
 				if !ccxt.IsEqual(fees, nil) {
 					ccxt.AddElementToObject(parsed, "fees", fees)
 				}
-				ccxt.AddElementToObject(parsed, "trades", this.SafeValue(order, "trades"))
-				ccxt.AddElementToObject(parsed, "timestamp", this.SafeInteger(order, "timestamp"))
-				ccxt.AddElementToObject(parsed, "datetime", this.SafeString(order, "datetime"))
+				parsed["trades"] = this.SafeValue(order, "trades")
+				parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+				parsed["datetime"] = this.SafeString(order, "datetime")
 			}
 			cachedOrders.(ccxt.Appender).Append(parsed)
 			var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
@@ -865,7 +865,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades []any = ccxt.SafeListTyped(params, "data")
 	for i := 0; i < len(rawTrades); i++ {
-		var trade any = this.ParseTrade(message)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
 		var messageHash any = ccxt.Add(topic, this.SafeString(trade, "symbol", ""))

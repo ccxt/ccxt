@@ -2949,9 +2949,9 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	//
 	var data []any = SafeListTypedDefault(response, "trades", []any{})
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
-	var ticker any = this.ParseTicker(first, market)
-	AddElementToObject(ticker, "bid", this.SafeNumber(response, "best_bid"))
-	AddElementToObject(ticker, "ask", this.SafeNumber(response, "best_ask"))
+	var ticker map[string]any = MapTyped(this.ParseTicker(first, market))
+	ticker["bid"] = this.SafeNumber(response, "best_bid")
+	ticker["ask"] = this.SafeNumber(response, "best_ask")
 
 	ch <- ticker
 	return nil
@@ -4927,7 +4927,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end")
 	params = MapTyped(this.Omit(params, []any{"until"}))
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var requestedDuration any = Multiply(limit, duration)
 	var sinceString any = nil
 	if since != nil {

@@ -205,7 +205,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
-		var trade any = this.ParseWsTrade(data)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash any = ccxt.Add("trade:", symbol)

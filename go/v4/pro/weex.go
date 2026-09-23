@@ -420,7 +420,7 @@ func (this *Weex) HandleTicker(client any, message any) {
 	}
 	var tickers any = this.SafeList(message, "d", []any{})
 	var data any = this.SafeDict(tickers, 0, map[string]any{})
-	var ticker any = this.ParseWsTicker(data, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("ticker::", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -685,7 +685,7 @@ func (this *Weex) HandleTrade(client any, message any) {
 	var newTrades []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var rawTrade any = this.SafeDict(data, i, map[string]any{})
-		var trade any = this.ParseWsTrade(rawTrade, market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade, market))
 		newTrades = append(newTrades, trade)
 	}
 	var sorted []any = this.SortBy(newTrades, "timestamp")
@@ -998,7 +998,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 	var data any = this.SafeList(message, "d", []any{})
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1858,9 +1858,9 @@ func (this *Weex) HandleOrders(client any, message any) {
 	var orders any = this.Orders
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var rawOrder any = this.SafeDict(data, i, map[string]any{})
-		var parsed any = this.ParseWsOrder(rawOrder)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(rawOrder))
 		orders.(ccxt.Appender).Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}

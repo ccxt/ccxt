@@ -740,7 +740,7 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var networkId *string = this.SafeString(rawCurrency, 9)
 	var networkCode any = nil
 	if networkId != nil {
-		networkCode = this.NetworkIdToCode(networkId, code)
+		networkCode = DerefScalar(this.NetworkIdToCode(networkId, code))
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -872,7 +872,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = strings.Split(amountPrecisionString, " ")
 		var idLength int64 = Subtract(GetArrayLength(marketId), 0).(int64)
-		var startingIndex any = idLength - 3
+		var startingIndex int64 = idLength - 3
 		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
 		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))

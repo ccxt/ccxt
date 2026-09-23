@@ -904,7 +904,7 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(entry, "chain")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      entry,
@@ -3420,7 +3420,7 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}())
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
-			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{

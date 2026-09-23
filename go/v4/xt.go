@@ -1356,7 +1356,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 				return nil
 			}()
 			var networkId *string = this.SafeString(rawNetwork, "chain")
-			var networkCode any = this.NetworkIdToCode(networkId, code)
+			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
 				AddElementToObject(networks, networkCode, map[string]any{
 					"info":      rawNetwork,
@@ -1931,7 +1931,7 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 		// xt rounds startTime down to the candle boundary, which makes a mid-candle
 		// window start return one pre-since candle, shifting paginated windows and
 		// dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["startTime"] = Multiply(MathCeil(Divide(since, duration)), duration)
 	}
 	if limit != nil {
@@ -2370,13 +2370,13 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market)
-		var symbol any = GetValue(ticker, "symbol")
+		}(), market))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2499,8 +2499,8 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			return "spot"
 		}()
 		var marketInner any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker any = this.ParseTicker(rawTicker, marketInner)
-		var symbol any = GetValue(ticker, "symbol")
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker, marketInner))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}

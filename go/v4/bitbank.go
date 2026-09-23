@@ -756,8 +756,8 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if limit == nil {
 			limit = Int64PtrTyped(1000) // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 		}
-		var duration any = this.ParseTimeframe(timeframe)
-		since = Subtract(this.Milliseconds(), Multiply(Multiply(duration, 1000), limit))
+		var duration int64 = this.ParseTimeframe(timeframe)
+		since = Subtract(this.Milliseconds(), Multiply(duration*1000, limit))
 	}
 	if this.Markets == nil {
 

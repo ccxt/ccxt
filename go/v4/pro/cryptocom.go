@@ -862,8 +862,8 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseWsTicker(ticker, market)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		}
@@ -1114,7 +1114,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(message, "interval")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -1287,7 +1287,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 		},
 		"nonce": id,
 	}
-	var messageHash any = "positions"
+	var messageHash string = "positions"
 	symbols = this.MarketSymbols(symbols)
 	if !this.IsEmpty(symbols) {
 		if symbols == nil {
@@ -1403,7 +1403,7 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position any = this.ParsePosition(rawPosition)
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -1626,7 +1626,7 @@ func (this *Cryptocom) HandleOrder(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var rawOrder any = this.SafeDict(message, "result", map[string]any{})
-	var order any = this.ParseOrder(rawOrder)
+	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 

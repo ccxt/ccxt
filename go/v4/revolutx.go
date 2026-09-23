@@ -640,7 +640,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(data); i++ {
 		var tickerData any = this.SafeDict(data, i, map[string]any{})
 		AddElementToObject(tickerData, "timestamp", timestamp)
-		var ticker any = this.ParseTicker(tickerData)
+		var ticker map[string]any = MapTyped(this.ParseTicker(tickerData))
 		var symbol *string = this.SafeString(ticker, "symbol", "")
 		if symbol != nil && *symbol == "" {
 			continue
@@ -1229,13 +1229,13 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}()
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     venueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market)
+	}), market))
 
 	ch <- order
 	return nil
@@ -1790,13 +1790,13 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	}()
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
-	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
+	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     newVenueOrderId,
 		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
-	}), market)
+	}), market))
 
 	ch <- order
 	return nil

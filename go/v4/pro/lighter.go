@@ -801,7 +801,7 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
-		var trade any = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(data, iReversed), market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash any = this.GetMessageHash("trade", symbol)
@@ -1784,14 +1784,14 @@ func (this *Lighter) HandleOrders(client any, message any) any {
 		var market any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order any = this.ParseOrder(func() any {
+			var order map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
 				if j >= 0 && j < len(orders) {
 					return ccxt.DerefScalar(orders[j])
 				}
 				return nil
-			}(), market)
+			}(), market))
 			stored.(ccxt.Appender).Append(order)
-			var symbol any = ccxt.GetValue(order, "symbol")
+			var symbol any = order["symbol"]
 			if symbol != nil {
 				var symbolSpecificMessageHash any = this.GetMessageHash("orders", symbol)
 				client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)

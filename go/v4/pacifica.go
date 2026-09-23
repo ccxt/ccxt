@@ -1657,10 +1657,10 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
 	if IsEqual(until, nil) {
 		if limit != nil {
-			until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+			until = Subtract(Add(since, (Multiply(limit, (this.ParseTimeframe(tf)*1000)))), 1)
 		}
 		if IsEqual(until, nil) {
-			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (this.ParseTimeframe(tf)*1000)))), 1)
 		}
 		if IsGreaterThan(until, nowMillis) {
 			until = nowMillis
@@ -2847,7 +2847,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var ticker any = this.ParseTicker(info)
+		var ticker map[string]any = MapTyped(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)

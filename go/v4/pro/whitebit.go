@@ -401,7 +401,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawTicker any = this.SafeDict(tickers, 1, map[string]any{})
 	var messageHash any = ccxt.Add("ticker"+":", symbol)
-	var ticker any = this.ParseTicker(rawTicker, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	// watchTicker
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -591,9 +591,9 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
-	var parsed any = this.ParseWsTrade(trade)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade))
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol any = parsed["symbol"]
 	var messageHash any = ccxt.Add("myTrades:", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -755,11 +755,11 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	}
 	var stored any = this.Orders
 	var status *int64 = this.SafeInteger(params, 0)
-	var parsed any = this.ParseWsOrder(this.Extend(data, map[string]any{
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(this.Extend(data, map[string]any{
 		"status": status,
-	}))
+	})))
 	stored.(ccxt.Appender).Append(parsed)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var symbol any = parsed["symbol"]
 	var messageHash any = ccxt.Add("orders:", symbol)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
@@ -906,14 +906,14 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
-	var messageHash any = "wallet:"
+	var messageHash string = "wallet:"
 	var method string
 	if ccxt.IsEqual(typeVar, "spot") {
 		method = "balanceSpot_subscribe"
-		messageHash = ccxt.Add(messageHash, "spot")
+		messageHash += "spot"
 	} else {
 		method = "balanceMargin_subscribe"
-		messageHash = ccxt.Add(messageHash, "margin")
+		messageHash += "margin"
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client ccxt.ClientInterface = this.Client(url)
@@ -1050,16 +1050,16 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	this.Balance = this.SafeBalance(this.Balance)
-	var messageHash any = "wallet:"
+	var messageHash string = "wallet:"
 	if func() int {
 		if method == nil {
 			return -1
 		}
 		return strings.Index(*method, "Spot")
 	}() >= 0 {
-		messageHash = ccxt.Add(messageHash, "spot")
+		messageHash += "spot"
 	} else {
-		messageHash = ccxt.Add(messageHash, "margin")
+		messageHash += "margin"
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }

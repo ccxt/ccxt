@@ -968,7 +968,7 @@ func (this *Kucoin) HandleContractTicker(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var ticker any = this.ParseTicker(data, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
 	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -1424,7 +1424,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = ccxt.Split(topic, "_")
 	var interval *string = this.SafeString(parts, 1)
 	// use a reverse lookup in a static map instead
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
@@ -1471,7 +1471,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(data, "i")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("uta:candles:", symbol), ":"), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -1748,8 +1748,8 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var trade any = this.ParseTrade(data, market)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(data, market))
+	var symbol any = trade["symbol"]
 	var messageHash any = ccxt.Add("trades:", symbol)
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2548,9 +2548,9 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"tradeType": "UNIFIED",
 		})
 		messageHash = ccxt.Add("uta:", messageHash)
-		var channel any = "order"
+		var channel string = "order"
 		if symbol == nil {
-			channel = ccxt.Add(channel, "All")
+			channel += "All"
 		}
 
 		orders = (<-this.SubscribePrivateUtaAsync([]any{messageHash}, messageHash, channel, symbol, params))
@@ -2599,9 +2599,9 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Kucoin) GetOrdersMessageHashSuffix(topic any) any {
-	var suffix any = "-spot"
+	var suffix string = "-spot"
 	if ccxt.IsEqual(topic, "/spotMarket/advancedOrders") {
-		suffix = ccxt.Add(suffix, "-trigger")
+		suffix += "-trigger"
 	} else if ccxt.IsEqual(topic, "/contractMarket/tradeOrders") {
 		suffix = "-contract"
 	} else if ccxt.IsEqual(topic, "/contractMarket/advancedOrders") {
@@ -2838,7 +2838,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)
 	}
-	var parsed any = this.ParseWsOrder(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	var triggerPrice *string = this.SafeString(parsed, "triggerPrice")
@@ -2858,7 +2858,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	var order any = this.SafeDict(orders, orderId)
 	if !ccxt.IsEqual(order, nil) {
 		if ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed") {
-			ccxt.AddElementToObject(parsed, "status", "closed")
+			parsed["status"] = "closed"
 		}
 		// carry the accumulated fill state forward, the raw feed only
 		// carries the match prices on the match messages, and safeOrder
@@ -2866,11 +2866,11 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		// orders filled at better prices, so the accumulated values win on
 		// the non match messages, see https://github.com/ccxt/ccxt/issues/19083
 		if !ccxt.IsEqual(ccxt.GetValue(order, "average"), nil) {
-			ccxt.AddElementToObject(parsed, "average", ccxt.GetValue(order, "average"))
-			ccxt.AddElementToObject(parsed, "cost", ccxt.GetValue(order, "cost"))
+			parsed["average"] = ccxt.GetValue(order, "average")
+			parsed["cost"] = ccxt.GetValue(order, "cost")
 		}
-		if ccxt.IsEqual(ccxt.GetValue(parsed, "filled"), nil) {
-			ccxt.AddElementToObject(parsed, "filled", ccxt.GetValue(order, "filled"))
+		if ccxt.IsEqual(parsed["filled"], nil) {
+			parsed["filled"] = ccxt.GetValue(order, "filled")
 		}
 	}
 	// accumulate the average fill price and cost from the match messages,
@@ -2888,10 +2888,10 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 			return this.NumberToString(this.SafeNumber(order, "cost", 0))
 		}()
 		var costString *string = ccxt.Precise.StringAdd(previousCost, matchCost)
-		ccxt.AddElementToObject(parsed, "cost", this.ParseNumber(costString))
-		var filledString *string = this.NumberToString(ccxt.GetValue(parsed, "filled"))
+		parsed["cost"] = this.ParseNumber(costString)
+		var filledString *string = this.NumberToString(parsed["filled"])
 		if (filledString != nil) && (ccxt.Precise.StringGt(filledString, "0")) {
-			ccxt.AddElementToObject(parsed, "average", this.ParseNumber(ccxt.Precise.StringDiv(costString, filledString)))
+			parsed["average"] = this.ParseNumber(ccxt.Precise.StringDiv(costString, filledString))
 		}
 	}
 	cachedOrders.(ccxt.Appender).Append(parsed)
@@ -3106,7 +3106,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var data any = this.SafeDict(message, "data")
-	var parsed any = this.ParseWsTrade(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)
 	var messageHash string = "myTrades"
@@ -3114,7 +3114,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	var suffix any = this.GetMyTradesMessageHashSuffix(topic)
 	var typeSpecificMessageHash any = ccxt.Add(messageHash, suffix)
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, typeSpecificMessageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", ccxt.GetValue(parsed, "symbol"))
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", parsed["symbol"])
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolSpecificMessageHash)
 }
 func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
@@ -3854,11 +3854,11 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var messageHash string = "position:" + *symbol
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var newPosition any = this.ParsePosition(data)
+	var newPosition map[string]any = ccxt.MapTyped(this.ParsePosition(data))
 	var keys []string = ccxt.ObjectKeys(newPosition)
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.IsEqual(ccxt.GetValue(newPosition, key), nil) {
+		if ccxt.IsEqual(newPosition[key], nil) {
 			ccxt.Remove(newPosition, key)
 		}
 	}
@@ -4311,13 +4311,13 @@ func (this *Kucoin) HandleErrorMessage(client any, message any) any {
 	//
 	var data *string = this.SafeString2(message, "data", "reason", "")
 	if data != nil && *data == "token is expired" {
-		var typeVar any = "public"
+		var typeVar string = "public"
 		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId=private") >= 0 {
 			typeVar = "private"
 		}
 		// Match the negotiation cache key; spot tokens can also contain "Futures".
-		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), ccxt.Add(ccxt.Add("connectId=", typeVar), "Futures")) >= 0 {
-			typeVar = ccxt.Add(typeVar, "Futures")
+		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId="+typeVar+"Futures") >= 0 {
+			typeVar += "Futures"
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
 	}

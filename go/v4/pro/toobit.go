@@ -449,7 +449,7 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = market["symbol"]
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var timeframeId *string = this.SafeString(params, "klineType")
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -627,8 +627,8 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var ticker any = ccxt.GetValue(data, i)
-		var parsed any = this.ParseWsTicker(ticker)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker))
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 		}
@@ -1112,7 +1112,7 @@ func (this *Toobit) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order any = this.ParseWsOrder(message)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	orders.(ccxt.Appender).Append(order)
 	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -1311,7 +1311,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var typeVar string = "swap" // the only account type that carries positions here
-	var messageHash any = ""
+	var messageHash string = ""
 	if !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		if symbols == nil {
@@ -1319,7 +1319,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
-	messageHash = ccxt.Add(typeVar+":positions", messageHash)
+	messageHash = typeVar + ":positions" + messageHash
 	var url any = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)

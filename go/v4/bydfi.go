@@ -1085,7 +1085,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	var now int64 = this.Milliseconds()
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var timeDelta any = Multiply(duration, numberOfCandles)
 	if IsEqual(startTime, nil) && IsEqual(until, nil) {
 		startTime = Subtract(now, timeDelta)

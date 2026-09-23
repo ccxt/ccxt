@@ -339,8 +339,8 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	//   "acc_trade_price_24h": 2.5955306323568927,
 	//   "acc_trade_volume_24h": 118.38798416,
 	//   "stream_type": "SNAPSHOT" }
-	var ticker any = this.ParseTicker(message)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+	var symbol any = ticker["symbol"]
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -421,8 +421,8 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	//   "change_price": 27000,
 	//   "sequential_id": 1584508285000002,
 	//   "stream_type": "REALTIME" }
-	var trade any = this.ParseTrade(message)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
+	var symbol any = trade["symbol"]
 	if symbol == nil {
 		return
 	}
@@ -782,15 +782,15 @@ func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trade any = this.ParseWsTrade(message)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
 	myTrades.(ccxt.Appender).Append(trade)
 	var messageHash any = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
-	messageHash = ccxt.Add("myTrades:", ccxt.GetValue(trade, "symbol"))
+	messageHash = ccxt.Add("myTrades:", trade["symbol"])
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 }
 func (this *Upbit) HandleOrder(client any, message map[string]any) {
-	var parsed any = this.ParseWsOrder(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -813,15 +813,15 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 	if !ccxt.IsEqual(order, nil) {
 		var fee any = this.SafeValue(order, "fee")
 		if !ccxt.IsEqual(fee, nil) {
-			ccxt.AddElementToObject(parsed, "fee", fee)
+			parsed["fee"] = fee
 		}
 		var fees any = this.SafeValue(order, "fees")
 		if !ccxt.IsEqual(fees, nil) {
 			ccxt.AddElementToObject(parsed, "fees", fees)
 		}
-		ccxt.AddElementToObject(parsed, "trades", this.SafeValue(order, "trades"))
-		ccxt.AddElementToObject(parsed, "timestamp", this.SafeInteger(order, "timestamp"))
-		ccxt.AddElementToObject(parsed, "datetime", this.SafeString(order, "datetime"))
+		parsed["trades"] = this.SafeValue(order, "trades")
+		parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+		parsed["datetime"] = this.SafeString(order, "datetime")
 	}
 	cachedOrders.(ccxt.Appender).Append(parsed)
 	var messageHash any = "myOrder"

@@ -1487,7 +1487,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; i < GetArrayLength(response); i++ {
 		var market any = GetValue(response, i)
 		var info any = GetValue(market, "info")
-		var ticker any = this.ParseTicker(info, market)
+		var ticker map[string]any = MapTyped(this.ParseTicker(info, market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		AddElementToObject(result, symbol, ticker)
 	}
@@ -1726,7 +1726,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	if since == nil {
 		if limit != nil {
 			// optimization if limit is provided
-			var timeframeInMilliseconds any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			var timeframeInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
 			since = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), OpNeg(1)))
 			if IsLessThan(since, 0) {
 				since = 0

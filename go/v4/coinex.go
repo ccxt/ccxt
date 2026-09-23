@@ -1259,7 +1259,7 @@ func (this *Coinex) ParseCurrency(coin any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "chain")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkId == nil {
 			continue
 		}
@@ -3320,7 +3320,7 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 			return nil
 		}())
 		var item map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
-		var order any = this.ParseOrder(item, market)
+		var order map[string]any = MapTyped(this.ParseOrder(item, market))
 		results = append(results, order)
 	}
 
@@ -3518,7 +3518,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 			panic(ExchangeError(feedback))
 		}
 		var item map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
-		var order any = this.ParseOrder(item)
+		var order map[string]any = MapTyped(this.ParseOrder(item))
 		result = append(result, order)
 	}
 
@@ -6377,7 +6377,7 @@ func (this *Coinex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			if (networkId != nil) && (networkId == nil || *networkId != "") {
 				var currencyId *string = this.SafeString(asset, "ccy")
 				var feeCode *string = this.SafeCurrencyCode(currencyId, currency)
-				var networkCode any = this.NetworkIdToCode(networkId, feeCode)
+				var networkCode *string = this.NetworkIdToCode(networkId, feeCode)
 				if networkCode != nil {
 					AddElementToObject(result["networks"], networkCode, map[string]any{
 						"withdraw": map[string]any{

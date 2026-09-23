@@ -777,7 +777,7 @@ func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 		if (!IsEqual(market, nil)) && (GetValue(market, "swap") == true) {
 			var additionalId string = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
 			if this.Markets_by_id != nil {
-				AddElementToObject(this.Markets_by_id, additionalId, []any{market}) // some endpoints return swap market id as base+quote
+				this.Markets_by_id.Store(additionalId, []any{market}) // some endpoints return swap market id as base+quote
 			}
 		}
 	}
@@ -916,7 +916,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		if since != nil {
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
-			var duration any = this.ParseTimeframe(timeframe)
+			var duration int64 = this.ParseTimeframe(timeframe)
 			var numberOfCandles any = func() any {
 				if limit == nil {
 					return maxLimit
@@ -1450,7 +1450,7 @@ func (this *Deepcoin) ParseTransaction(transaction any, optionalArgs ...any) any
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var timestamp *int64 = this.SafeTimestamp(transaction, "createTime")
 	var networkId *string = this.SafeString(transaction, "chainName")
-	var network any = this.NetworkIdToCode(networkId, code)
+	var network *string = this.NetworkIdToCode(networkId, code)
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	return map[string]any{
 		"info":        transaction,

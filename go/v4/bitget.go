@@ -4424,7 +4424,7 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "chain")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network any = DerefScalar(this.NetworkIdToCode(networkId, code))
 		if network == nil {
 			panic(ArgumentsRequired(this.Id + " requires a network argument"))
 		}
@@ -4994,17 +4994,17 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
 	//      }
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
-	var result any = this.ParseTransaction(data, currency)
-	AddElementToObject(result, "type", "withdrawal")
+	var result map[string]any = MapTyped(this.ParseTransaction(data, currency))
+	result["type"] = "withdrawal"
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(result, "currency", code)
-		AddElementToObject(result, "amount", amount)
-		AddElementToObject(result, "tag", tag)
-		AddElementToObject(result, "address", address)
-		AddElementToObject(result, "addressTo", address)
-		AddElementToObject(result, "network", networkCode)
+		result["currency"] = code
+		result["amount"] = amount
+		result["tag"] = tag
+		result["address"] = address
+		result["addressTo"] = address
+		result["network"] = networkCode
 	}
 
 	ch <- result
@@ -5395,7 +5395,7 @@ func (this *Bitget) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var currencyId *string = this.SafeString(depositAddress, "coin")
 	var networkId *string = this.SafeString(depositAddress, "chain")
 	var parsedCurrency *string = this.SafeCurrencyCode(currencyId, currency)
-	var network any = nil
+	var network *string = nil
 	if networkId != nil {
 		network = this.NetworkIdToCode(networkId, parsedCurrency)
 	}
@@ -6877,7 +6877,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var msInDay int = 86400000
 	var now int64 = this.Milliseconds()
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var until *int64 = this.SafeInteger(params, "until")
 	var limitDefined bool = (limit != nil)
 	var sinceDefined bool = (since != nil)
@@ -13427,7 +13427,7 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}())
 		var networkId *string = this.SafeString(chain, "chain")
 		var currencyCode *string = this.SafeString(currency, "code")
-		var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+		var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 		if networkCode != nil {
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
@@ -15283,10 +15283,10 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 		} else {
 			if len(ObjectKeys(params)) > 0 {
 				var sortedParams map[string]any = this.Keysort(params)
-				var queryInner any = "?" + this.Urlencode(sortedParams, true)
+				var queryInner string = "?" + this.Urlencode(sortedParams, true)
 				// check #21169 pr
-				if GetIndexOf(queryInner, "%24") > -1 {
-					queryInner = Replace(queryInner, "%24", "$")
+				if strings.Index(queryInner, "%24") > -1 {
+					queryInner = strings.Replace(queryInner, "%24", "$", 1)
 				}
 				url = Add(url, queryInner)
 				// bitget signs the raw (non-percent-encoded) query string, so the

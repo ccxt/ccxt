@@ -996,8 +996,8 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		if since != nil {
 			// check if the requested time range is too large for one request
 			// if so, just omit until for correct paginated calls for not to get an error from the exchange
-			var duration any = this.ParseTimeframe(timeframe)
-			var maxDelta any = Multiply(Multiply(duration, maxLimit), 1000) // parseTimeframe returns seconds, the difference below is in milliseconds
+			var duration int64 = this.ParseTimeframe(timeframe)
+			var maxDelta int64 = Multiply(Multiply(duration, maxLimit), 1000).(int64) // parseTimeframe returns seconds, the difference below is in milliseconds
 			var difference any = Subtract(until, since)
 			if IsLessThan(difference, maxDelta) {
 				request["end"] = this.ParseToInt(Divide(until, 1000))

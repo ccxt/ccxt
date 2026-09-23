@@ -206,7 +206,7 @@ func (this *Gate) createOrderWsBody(ch chan any, symbol any, typeVar any, side a
 
 	rawOrder := (<-this.RequestPrivateAsync(url, request, channel))
 	ccxt.PanicOnError(rawOrder)
-	var order any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder, market))
 
 	ch <- order
 	return nil
@@ -1222,8 +1222,8 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message map[
 		var rawTicker any = ccxt.GetValue(results, i)
 		var marketId *string = this.SafeString(rawTicker, "s")
 		var market any = this.SafeMarket(marketId, nil, "_", marketType)
-		var parsedItem any = this.ParseTicker(rawTicker, market)
-		var symbol any = ccxt.GetValue(parsedItem, "symbol")
+		var parsedItem map[string]any = ccxt.MapTyped(this.ParseTicker(rawTicker, market))
+		var symbol any = parsedItem["symbol"]
 		if isTicker {
 			if symbol != nil {
 				ccxt.AddElementToObject(this.Tickers, symbol, parsedItem)
@@ -1524,7 +1524,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var subscription *string = this.SafeString(ohlcv, "n", "")
 		var parts []string = ccxt.Split(subscription, "_")
 		var timeframeId *string = this.SafeString(parts, 0)
-		var timeframe any = this.FindTimeframe(timeframeId)
+		var timeframe *string = this.FindTimeframe(timeframeId)
 		var prefix any = ccxt.Add(timeframe, "_")
 		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
@@ -1545,7 +1545,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(keys); i++ {
 		var symbol string = ccxt.GetValue(keys, i).(string)
 		var timeframe any = marketIds[symbol]
-		var interval any = this.FindTimeframe(timeframe)
+		var interval *string = this.FindTimeframe(timeframe)
 		var hash any = ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol)
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), interval)
 		client.(ccxt.ClientInterface).Resolve(stored, hash)
@@ -2007,26 +2007,26 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position any = this.ParsePosition(rawPosition)
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		var symbol *string = this.SafeString(position, "symbol")
 		var side *string = this.SafeString(position, "side")
 		// Control when position is closed no side is returned
 		if side == nil {
 			var prevLongPosition any = this.SafeDict(cache, ccxt.Add(symbol, "long"))
 			if !ccxt.IsEqual(prevLongPosition, nil) {
-				ccxt.AddElementToObject(position, "side", ccxt.GetValue(prevLongPosition, "side"))
+				position["side"] = ccxt.GetValue(prevLongPosition, "side")
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			var prevShortPosition any = this.SafeDict(cache, ccxt.Add(symbol, "short"))
 			if !ccxt.IsEqual(prevShortPosition, nil) {
-				ccxt.AddElementToObject(position, "side", ccxt.GetValue(prevShortPosition, "side"))
+				position["side"] = ccxt.GetValue(prevShortPosition, "side")
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			// if no prev position is found, default to long
 			if ccxt.IsEqual(prevLongPosition, nil) && ccxt.IsEqual(prevShortPosition, nil) {
-				ccxt.AddElementToObject(position, "side", "long")
+				position["side"] = "long"
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}

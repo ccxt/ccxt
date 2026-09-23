@@ -441,7 +441,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var data any = this.SafeValue(message, "data")
-	var trade any = this.ParseWsTrade(data, market)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -849,7 +849,7 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	var stored any = this.Orders
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))
-	var parsed any = this.ParseWsOrder(order, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order, market))
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 }

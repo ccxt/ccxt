@@ -1753,8 +1753,8 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
-	var duration any = this.ParseTimeframe(timeframe)
-	var maxDelta any = Multiply(Multiply(1000, duration), maxLimit)
+	var duration int64 = this.ParseTimeframe(timeframe)
+	var maxDelta any = Multiply(1000*duration, maxLimit)
 	var startTime any = since
 	// both of since and until are required
 	if IsEqual(startTime, nil) && IsEqual(until, nil) {
@@ -2004,8 +2004,8 @@ func (this *Bullish) HandlePaginationParams(method any, optionalArgs ...any) any
 	_ = params
 	var ninetyDays int64 = Multiply(Multiply(Multiply(Multiply(90, 24), 60), 60), 1000).(int64)
 	var now int64 = this.Milliseconds()
-	var allowedSince any = now - ninetyDays
-	if (since != nil) && (IsLessThan(since, allowedSince)) {
+	var allowedSince int64 = now - ninetyDays
+	if (since != nil) && (*since < allowedSince) {
 		panic(BadRequest(Add(Add(this.Id+" ", method), "() only allows fetching entries up to 90 days in the past")))
 	}
 	params = MapTyped(this.Omit(params, "paginate"))
@@ -3123,7 +3123,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 			for i := 0; i < len(safeResponse); i++ {
 				var entry any = this.SafeDict(safeResponse, i, map[string]any{})
 				var networkId *string = this.SafeString(entry, "network")
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if IsEqual(network, networkCode) {
 					data = entry
 					break

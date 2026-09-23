@@ -879,23 +879,22 @@ func (e *exampleArrayCache) ToArray() []any {
 	return e.data
 }
 
-func (this *BaseExchange) ParseTimeframe(timeframe any) any {
-	str, ok := timeframe.(string)
+// ParseTimeframe mirrors TS parseTimeframe: seconds as int64; a missing or malformed
+// timeframe throws NotSupported (TS throws) instead of returning an absent value.
+func (this *BaseExchange) ParseTimeframe(timeframe any) int64 {
+	str, ok := derefScalar(timeframe).(string)
 	if !ok {
-		return nil
+		panic(NotSupported("timeframe is required"))
 	}
-
 	if len(str) < 2 {
-		return nil
+		panic(NotSupported("timeframe " + str + " is not supported"))
 	}
-
-	amount, err := strconv.Atoi(str[:len(str)-1])
+	amount, err := strconv.ParseFloat(str[:len(str)-1], 64)
 	if err != nil {
-		return nil
+		panic(NotSupported("timeframe " + str + " is not supported"))
 	}
-
 	unit := str[len(str)-1:]
-	scale := 0
+	var scale float64
 	switch unit {
 	case "y":
 		scale = 60 * 60 * 24 * 365
@@ -912,11 +911,9 @@ func (this *BaseExchange) ParseTimeframe(timeframe any) any {
 	case "s":
 		scale = 1
 	default:
-		return nil
+		panic(NotSupported("timeframe unit " + unit + " is not supported"))
 	}
-
-	result := amount * scale
-	return result
+	return int64(amount * scale)
 }
 
 func Totp(secret any) string {

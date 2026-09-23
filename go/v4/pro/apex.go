@@ -191,7 +191,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var length int = ccxt.GetArrayLength(trades)
 	for j := 0; j < length; j++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(length, j), 1)
-		var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, index), market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add("trade"+":", symbol)
@@ -702,7 +702,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	var topicParts []string = ccxt.Split(topic, ".")
 	var topicLength int = len(topicParts)
 	var timeframeId *string = this.SafeString(topicParts, 1)
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, topicLength-1)
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType string = func() string {
@@ -837,13 +837,13 @@ func (this *Apex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var messageHash any = ""
+	var messageHash string = ""
 	if !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
 	var url any = this.GetWsPrivateUrl()
-	messageHash = ccxt.Add("positions", messageHash)
+	messageHash = "positions" + messageHash
 	var client ccxt.ClientInterface = this.Client(url)
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
@@ -947,8 +947,8 @@ func (this *Apex) HandleMyTrades(client any, lists any) {
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
 		var rawTrade any = ccxt.GetValue(lists, i)
-		var parsed any = this.ParseWsTrade(rawTrade)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var symbol any = parsed["symbol"]
 		ccxt.AddElementToObject(symbols, symbol, true)
 		trades.(ccxt.Appender).Append(parsed)
 	}
@@ -998,8 +998,8 @@ func (this *Apex) HandleOrder(client any, lists any) {
 	var orders any = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
-		var parsed any = this.ParseOrder(ccxt.GetValue(lists, i))
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(lists, i)))
+		var symbol any = parsed["symbol"]
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(parsed)
 	}
@@ -1087,7 +1087,7 @@ func (this *Apex) HandlePositions(client any, lists any) {
 	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
 		var rawPosition any = ccxt.GetValue(lists, i)
-		var position any = this.ParsePosition(rawPosition)
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later
@@ -1095,11 +1095,11 @@ func (this *Apex) HandlePositions(client any, lists any) {
 		if (side == nil) || (side != nil && *side == "") {
 			// closing update, adding both sides to "reset" both sides
 			// since we don't know which side is being closed
-			ccxt.AddElementToObject(position, "side", "long")
+			position["side"] = "long"
 			cache.(ccxt.Appender).Append(position)
-			ccxt.AddElementToObject(position, "side", "short")
+			position["side"] = "short"
 			cache.(ccxt.Appender).Append(position)
-			ccxt.AddElementToObject(position, "side", nil)
+			position["side"] = nil
 		} else {
 			// regular update
 			cache.(ccxt.Appender).Append(position)

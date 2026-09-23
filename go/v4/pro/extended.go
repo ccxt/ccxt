@@ -439,7 +439,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 		return
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(rawTrades, i))
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(rawTrades, i)))
 		var symbol *string = this.SafeString(trade, "symbol")
 		ccxt.AddElementToObject(symbols, symbol, true)
 		stored.(ccxt.Appender).Append(trade)
@@ -491,9 +491,9 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var messageHash any = "positions"
+	var messageHash string = "positions"
 	if symbols != nil {
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
+		messageHash += "::"+ccxt.Join(symbols, ",")
 	}
 
 	positions := (<-this.WatchPrivateAsync(messageHash, map[string]any{
@@ -551,7 +551,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 		if marketId == nil {
 			continue
 		}
-		var position any = this.ParsePosition(rawPosition)
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		stored.(ccxt.Appender).Append(position)
 	}
@@ -617,7 +617,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 		return
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(rawOrders, i)))
 		var symbol *string = this.SafeString(order, "symbol")
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(order)
@@ -893,7 +893,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i), market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(ccxt.GetValue(data, i), market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

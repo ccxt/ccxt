@@ -2188,7 +2188,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var direction any = nil
 	var txId *string = nil
-	var networkCode any = nil
+	var networkCode *string = nil
 	var addressFrom *string = this.SafeString(transaction, "from_account_id")
 	var addressTo *string = this.SafeString(transaction, "to_account_id")
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -2898,7 +2898,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		var size any = leg["size"]
 		var sizeParts []string = Split(size, ".")
 		var sizeDec *string = this.SafeString(sizeParts, 1, "")
-		var sizeDecLength any = GetLength(sizeDec) + 0 // php tr
+		var sizeDecLength int = GetLength(sizeDec) + 0 // php tr
 		var sizeDecLengthStr string = ToString(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
 		var legOrder map[string]any = map[string]any{
@@ -2911,7 +2911,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 			var price any = leg["limit_price"]
 			var limitParts []string = Split(price, ".")
 			var limitDec *string = this.SafeString(limitParts, 1, "")
-			var limitDecLength any = GetLength(limitDec) + 0 // php tr
+			var limitDecLength int = GetLength(limitDec) + 0 // php tr
 			var limitDecLengthStr string = ToString(limitDecLength)
 			var powerNum any = func() any {
 				if limitDecLengthStr == "0" {

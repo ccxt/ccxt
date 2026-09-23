@@ -451,8 +451,8 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var ticker any = this.ParseWsTicker(data)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
+	var symbol any = ticker["symbol"]
 	if symbol == nil {
 		return
 	}
@@ -741,9 +741,9 @@ func (this *Cex) HandleMyTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = stored
 	}
-	var trade any = this.ParseWsTrade(data)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	stored.(ccxt.Appender).Append(trade)
-	var messageHash any = ccxt.Add("myTrades:", ccxt.GetValue(trade, "symbol"))
+	var messageHash any = ccxt.Add("myTrades:", trade["symbol"])
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -1087,8 +1087,8 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 			return nil
 		}()
 		var market any = this.SafeMarket(symbol)
-		var order any = this.ParseOrder(rawOrder, market)
-		ccxt.AddElementToObject(order, "status", "open")
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder, market))
+		order["status"] = "open"
 		myOrders.(ccxt.Appender).Append(order)
 	}
 	this.Orders = myOrders

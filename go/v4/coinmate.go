@@ -781,7 +781,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = MapTyped(this.Market(GetValue(keys, i)))
-		var ticker any = this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market)
+		var ticker map[string]any = MapTyped(this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market))
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
@@ -1070,15 +1070,15 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	//     }
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
-	var transaction any = this.ParseTransaction(data, currency)
+	var transaction map[string]any = MapTyped(this.ParseTransaction(data, currency))
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(transaction, "amount", amount)
-		AddElementToObject(transaction, "currency", code)
-		AddElementToObject(transaction, "address", address)
-		AddElementToObject(transaction, "tag", tag)
-		AddElementToObject(transaction, "type", "withdrawal")
-		AddElementToObject(transaction, "status", "pending")
+		transaction["amount"] = amount
+		transaction["currency"] = code
+		transaction["address"] = address
+		transaction["tag"] = tag
+		transaction["type"] = "withdrawal"
+		transaction["status"] = "pending"
 	}
 
 	ch <- transaction

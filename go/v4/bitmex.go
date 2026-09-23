@@ -780,7 +780,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "asset")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		var withdrawalFeeRaw *string = this.SafeString(chain, "withdrawalFee")
 		var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeRaw, precisionString))
 		var isDepositEnabled *bool = this.SafeBool(chain, "depositEnabled", false)
@@ -2196,12 +2196,12 @@ func (this *Bitmex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(rawTickers) {
 				return DerefScalar(rawTickers[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
@@ -2334,7 +2334,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["endTime"] = this.Iso8601(until)
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var useOpenTimestamp any = nil
 	var useOpenTimestampparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useOpenTimestamp", true)
 	useOpenTimestamp = GetValue(useOpenTimestampparamsVariable, 0)
@@ -2365,7 +2365,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		// we can emulate the open timestamp by shifting all the timestamps one place
 		// so the previous close becomes the current open, and we drop the first candle
 		for i := 0; i < GetArrayLength(result); i++ {
-			AddElementToObject(GetValue(result, i), 0, Subtract(this.ParseToInt(GetValue(GetValue(result, i), 0)), duration))
+			AddElementToObject(GetValue(result, i), 0, this.ParseToInt(GetValue(GetValue(result, i), 0))-duration)
 		}
 	}
 
@@ -3990,7 +3990,7 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}())
 			var networkId *string = this.SafeString(network, "asset")
 			var currencyCode *string = this.SafeString(currency, "code")
-			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			var withdrawalFeeId *string = this.SafeString(network, "withdrawalFee")
 			var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeId, precision))
 			if networkCode != nil {

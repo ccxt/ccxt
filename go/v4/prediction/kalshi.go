@@ -1667,7 +1667,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		"period_interval": periodMin,
 	}
 	var now int64 = this.Seconds()
-	var tf any = this.ParseTimeframe(timeframe)
+	var tf int64 = this.ParseTimeframe(timeframe)
 	if since != nil {
 		var sinceS int64 = this.ParseToInt(ccxt.Divide(since, 1000))
 		request["start_ts"] = sinceS

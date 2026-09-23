@@ -608,10 +608,10 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 			if wsMarketId == nil {
 				continue
 			}
-			var result any = this.ParseWsTicker(ticker)
-			ccxt.AddElementToObject(result, "timestamp", timestamp)
-			ccxt.AddElementToObject(result, "datetime", datetime)
-			var symbol any = ccxt.GetValue(result, "symbol")
+			var result map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker))
+			result["timestamp"] = timestamp
+			result["datetime"] = datetime
+			var symbol any = result["symbol"]
 			if symbol != nil {
 				ccxt.AddElementToObject(this.Tickers, symbol, result)
 			}
@@ -1096,7 +1096,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		}
 		for j := 0; j < ccxt.GetArrayLength(responseOrders); j++ {
 			var responseOrder any = ccxt.GetValue(responseOrders, j)
-			var parsed any = this.ParseWsOrder(responseOrder)
+			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(responseOrder))
 			var cachedOrders any = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {

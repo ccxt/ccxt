@@ -1135,7 +1135,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	}
 	params = MapTyped(this.Omit(params, "price"))
 	if since != nil {
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 		if limit == nil {
 			limit = Int64PtrTyped(2000)
@@ -1146,7 +1146,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
 	} else if limit != nil {
 		limit = Int64PtrTyped(mathMin(limit, 2000))
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		request["to"] = this.Seconds()
 		request["from"] = this.ParseToInt(Subtract(request["to"], (Multiply(duration, limit))))
 	}
@@ -1826,8 +1826,8 @@ func (this *Krakenfutures) editOrderBody(ch chan any, id any, symbol any, typeVa
 	var editStatus map[string]any = MapTyped(this.SafeDict(response, "editStatus", map[string]any{}))
 	var status *string = this.SafeString(editStatus, "status")
 	this.VerifyOrderActionSuccess(status, "editOrder", []any{"filled"})
-	var order any = this.ParseOrder(editStatus)
-	AddElementToObject(order, "info", response)
+	var order map[string]any = MapTyped(this.ParseOrder(editStatus))
+	order["info"] = response
 
 	ch <- order
 	return nil

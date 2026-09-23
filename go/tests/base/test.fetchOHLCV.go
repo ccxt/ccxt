@@ -22,7 +22,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
 	var limit int = 10
-	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
+	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 
 	ohlcvs := (<-exchange.FetchOHLCVAsync(symbol, chosenTimeframeKey, since, limit))

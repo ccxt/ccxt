@@ -3023,7 +3023,7 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "name")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -3685,7 +3685,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 			var networkIds []string = ObjectKeys(withdrawFixOnChains)
 			for j := 0; j < len(networkIds); j++ {
 				var networkId string = GetValue(networkIds, j).(string)
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(withdrawFees, networkCode, this.ParseNumber(GetValue(withdrawFixOnChains, networkId)))
 				}
@@ -3792,7 +3792,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var chainKey string = GetValue(chainKeys, i).(string)
 			var currencyId *string = this.SafeString(fee, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId, currency)
-			var networkCode any = this.NetworkIdToCode(chainKey, code)
+			var networkCode *string = this.NetworkIdToCode(chainKey, code)
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"withdraw": map[string]any{
@@ -4770,7 +4770,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		params = this.Omit(params, "until")
 	}
 	if since != nil {
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 		var distance any = Multiply((Subtract(limit, 1)), duration)
 		var toTimestamp any = this.Sum(GetValue(request, "from"), distance)

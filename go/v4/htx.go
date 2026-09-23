@@ -3128,10 +3128,10 @@ func (this *Htx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//     }
 	//
 	var tick map[string]any = MapTyped(this.SafeDict(response, "tick", map[string]any{}))
-	var ticker any = this.ParseTicker(tick, market)
+	var ticker map[string]any = MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(response, "ts")
-	AddElementToObject(ticker, "timestamp", timestamp)
-	AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
+	ticker["timestamp"] = timestamp
+	ticker["datetime"] = this.Iso8601(timestamp)
 
 	ch <- ticker
 	return nil
@@ -4054,12 +4054,12 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 			return nil
 		}(), "data")
 		for j := 0; j < len(trades); j++ {
-			var trade any = this.ParseTrade(func() any {
+			var trade map[string]any = MapTyped(this.ParseTrade(func() any {
 				if j >= 0 && j < len(trades) {
 					return DerefScalar(trades[j])
 				}
 				return nil
-			}(), market)
+			}(), market))
 			result = append(result, trade)
 		}
 	}
@@ -4157,7 +4157,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 			limit = Int64PtrTyped(2000) // only used for from/to calculation
 		}
 		if priceType == nil {
-			var duration any = this.ParseTimeframe(timeframe)
+			var duration int64 = this.ParseTimeframe(timeframe)
 			var calcualtedEnd any = nil
 			if since == nil {
 				var now int64 = this.Seconds()
@@ -4520,7 +4520,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 		if uniqueChainId != nil {
 			AddElementToObject(GetValue(this.Options, "networkNamesByChainIds"), uniqueChainId, title)
 		}
-		var networkCode any = this.NetworkIdToCode(uniqueChainId, code)
+		var networkCode *string = this.NetworkIdToCode(uniqueChainId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":    chainEntry,
@@ -4572,7 +4572,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 		"networks":  networks,
 	})
 }
-func (this *Htx) NetworkIdToCode(optionalArgs ...any) any {
+func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	// here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
 	networkId := GetArg(optionalArgs, 0, nil)
 	_ = networkId
@@ -4584,7 +4584,7 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " networkIdToCode() - markets need to be loaded at first"))
 	}
 	var networkTitle any = this.SafeValue(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
-	return this.Exchange.NetworkIdToCode(networkTitle, currencyCode)
+	return SafeStringPtr(this.Exchange.NetworkIdToCode(networkTitle, currencyCode))
 }
 func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -10149,7 +10149,7 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var parsed any = this.ParsePosition(position)
+		var parsed map[string]any = MapTyped(this.ParsePosition(position))
 		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
@@ -10254,9 +10254,9 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		position = this.SafeDict(positions, 0)
 	}
 	var timestamp *int64 = this.SafeInteger(response, "ts")
-	var parsed any = this.ParsePosition(this.Extend(position, omitted), market)
-	AddElementToObject(parsed, "timestamp", timestamp)
-	AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
+	var parsed map[string]any = MapTyped(this.ParsePosition(this.Extend(position, omitted), market))
+	parsed["timestamp"] = timestamp
+	parsed["datetime"] = this.Iso8601(timestamp)
 
 	ch <- parsed
 	return nil
@@ -11447,7 +11447,7 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}())
 		var networkId *string = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType *string = this.SafeString(chainEntry, "withdrawFeeType")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = nil
 		var withdrawResult map[string]any = nil
 		if withdrawFeeType != nil && *withdrawFeeType == "fixed" {

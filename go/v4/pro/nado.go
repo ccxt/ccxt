@@ -2015,7 +2015,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 		trades = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, trades)
 	}
-	var trade any = this.ParseWsTrade(message, market)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
@@ -2049,7 +2049,7 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var granularity *int64 = this.SafeInteger(message, "granularity")
-	var timeframe any = this.FindTimeframe(granularity)
+	var timeframe *string = this.FindTimeframe(granularity)
 	if timeframe == nil {
 		return
 	}
@@ -2064,7 +2064,7 @@ func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parsed any = this.ParseOHLCV(message, market)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", timeframe), ":"), symbol)
+	var messageHash any = ccxt.Add("ohlcv:"+*timeframe+":", symbol)
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, stored}, messageHash)
 }
 func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -2138,14 +2138,14 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Nado) HandleOrder(client any, message map[string]any) {
-	var order any = this.ParseWsOrder(message)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(order)
-	var symbol any = ccxt.GetValue(order, "symbol")
+	var symbol any = order["symbol"]
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", symbol))
 }
