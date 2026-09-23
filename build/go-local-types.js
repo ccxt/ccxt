@@ -4678,6 +4678,10 @@ export const CCXT_GO_ASYNC_ELEM_TYPES = {
     'WithdrawWsAsync': 'map[string]any',
     // exchange_helpers.go:1946 `results := make([]any, len(tasks))` ... `ch <- results`; also a `ch <- nil
     'promiseAll': '[]any',
+    // G11: every override sends a safeDict-with-default / applyEventFetchParams list (r13/g11/async-proposal.md)
+    'FetchDydxAccountAsync': 'map[string]any',
+    'FetchExtendedAccountAsync': 'map[string]any',
+    'FetchEventsAsync': '[]any',
 };
 
 // methods whose `return await this.X(..)` forward preserves the value, so X's element type carries over
@@ -4709,10 +4713,7 @@ export const CCXT_GO_ASYNC_ELEM_EXCLUDED = [
     'FetchBuilderApprovalsAsync',
     'FetchCrossBorrowRateAsync',
     'FetchDepositWithdrawFeeAsync',
-    'FetchDydxAccountAsync',
     'FetchEventAsync',
-    'FetchEventsAsync',
-    'FetchExtendedAccountAsync',
     'FetchIsolatedBorrowRateAsync',
     'FetchIsolatedBorrowRatesAsync',
     'FetchLastPricesAsync',
