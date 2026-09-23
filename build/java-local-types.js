@@ -3240,6 +3240,9 @@ const HANDLE_ELEMENT_TYPES = {
     'handleNetworkCodeAndParams': { element0: 'String' },
     'handlePostOnly': { element0: 'Boolean' },
     'handleTriggerAndParams': { element0: 'Boolean' },
+    // element 0 of both is null-or-String on every return path (no other element is named)
+    'handleTriggerDirectionAndParams': { element0: 'String' },
+    'handleTriggerPricesAndParams': { element0: 'String' },
 };
 
 // callee name -> element 1 is the caller's params box: the base tier's tuple producers
