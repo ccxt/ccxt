@@ -8,6 +8,26 @@
     ],
     "options": {},
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "leverage of a perpetual",
+                "method": "fetchLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "leverage of a delivery future",
+                "method": "fetchLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever?symbol=ETH-USDT-25SEP26",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
                 "description": "deposit address of a single chain",

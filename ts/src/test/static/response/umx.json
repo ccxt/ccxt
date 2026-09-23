@@ -8,6 +8,44 @@
     ],
     "options": {},
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "leverage of a perpetual",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "symbol": "ETH-USDT-PERP",
+                        "currency": "",
+                        "lever": "10",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "ts": "1790201521776"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "symbol": "ETH-USDT-PERP",
+                        "currency": "",
+                        "lever": "10",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
                 "description": "deposit addresses of every chain",

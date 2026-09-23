@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ export default class umx extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -588,6 +588,8 @@ export default class umx extends Exchange {
                     '50026': InvalidOrder, // Order already completed, cancellation failed
                     '50032': InvalidOrder, // qty must be positive
                     '50101': NotSupported, // Spot instruments do not support setting leverage
+                    '50102': NotSupported, // Option instruments do not support setting leverage
+                    '50103': BadRequest, // Only one of symbol or currency can be provided
                     '50105': BadRequest, // Leverage cannot exceed the maximum
                     '50106': BadRequest, // Leverage must be a positive integer
                     '50113': InvalidOrder, // post_only orders can only be set to GTC
@@ -2536,6 +2538,61 @@ export default class umx extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchLeverage
+     * @description fetch the leverage the account trades a contract market with
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/get-current-leverage
+     * @param {string} symbol unified symbol of a swap or future market, the venue rejects spot and option instruments, and keeps the spot margin leverage per currency instead, outside of this method
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isSwap = this.safeBool (market, 'swap', false);
+        const isFuture = this.safeBool (market, 'future', false);
+        if (!isSwap && !isFuture) {
+            // the venue answers 50101 for spot and 50102 for options, this saves the round trip
+            throw new NotSupported (this.id + ' fetchLeverage() supports swap and future markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV1TradeLever (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "accountName": "1000000000000000000",
+        //             "symbol": "BTC-USDT-PERP",
+        //             "currency": "",
+        //             "lever": "10",
+        //             "pid": "1000000000000000000",
+        //             "cid": "100000000000002",
+        //             "uid": "100000000000001"
+        //         },
+        //         "ts": "1790201234567"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        // the venue keeps one leverage per market, there are no separate long and short values
+        const leverageValue = this.safeInteger (leverage, 'lever');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     /**
