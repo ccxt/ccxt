@@ -24,7 +24,7 @@ Current feature list:
 - ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
-## Sponsored Promotion
+## CCXT Terminal
 
 [![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/5bfe1227-860c-45ad-b43c-884e899b70e1)](https://terminal.ccxt.com)
 
