@@ -3133,7 +3133,7 @@ export default class hashkey extends Exchange {
             market = this.market (symbol);
         }
         const marketType = 'spot';
-        const [ marketTypeOption ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        const marketTypeOption = this.handleMarketTypeAndParams (methodName, market, params, marketType)[0];
         let response: Dict;
         if (marketTypeOption === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);

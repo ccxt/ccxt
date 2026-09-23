@@ -1002,7 +1002,7 @@ export default class bingx extends bingxRest {
         const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const [ subType ] = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear');
+        const subType = this.handleSubTypeAndParams ('watchOrders', market, paramsMarketType, 'linear')[0];
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1063,7 +1063,7 @@ export default class bingx extends bingxRest {
         const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        const [ subType ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear');
+        const subType = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType, 'linear')[0];
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1148,7 +1148,7 @@ export default class bingx extends bingxRest {
         const client = this.client (url);
         this.setBalanceCache (client, type, subType, subscriptionHash, paramsSubType);
         const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ] = this.handleOptionAndParams (paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
-        const [ awaitBalanceSnapshot ] = this.handleOptionAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.handleOptionAndParams (paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -1163,7 +1163,7 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const [ fetchBalanceSnapshot ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1224,7 +1224,7 @@ export default class bingx extends bingxRest {
         const client = this.client (url);
         this.setPositionsCache (client, type, symbolsNormalized);
         const [ fetchPositionsSnapshot, paramsFetchPositionsSnapshot ] = this.handleOptionAndParams (paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
-        const [ awaitPositionsSnapshot ] = this.handleOptionAndParams (paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
+        const awaitPositionsSnapshot = this.handleOptionAndParams (paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
         const uuid = this.uuid ();
         const subscription: Dict = {
             'unsubscribe': false,

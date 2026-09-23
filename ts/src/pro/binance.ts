@@ -3464,7 +3464,7 @@ export default class binance extends binanceRest {
         // indexes another - the same derive-first shape watchOrders uses
         const [ type, subType, paramsValue ] = this.resolveAuthType ('watchBalance', undefined, params);
         await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, paramsValue));
-        const [ isPortfolioMargin ] = this.handleOptionAndParams2 (paramsValue, 'watchBalance', 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.handleOptionAndParams2 (paramsValue, 'watchBalance', 'papi', 'portfolioMargin', false)[0];
         let url = '';
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
@@ -4327,7 +4327,7 @@ export default class binance extends binanceRest {
         if ((type === 'margin') || ((type === 'spot') && (marginMode !== undefined))) {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
-        const [ isPortfolioMargin ] = this.handleOptionAndParams2 (paramsMarginMode, 'watchOrders', 'papi', 'portfolioMargin', false);
+        const isPortfolioMargin = this.handleOptionAndParams2 (paramsMarginMode, 'watchOrders', 'papi', 'portfolioMargin', false)[0];
         let url = '';
         if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream

@@ -3143,7 +3143,7 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const [ subType ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
+        const subType = this.handleSubTypeAndParams ('fetchTime', undefined, params)[0];
         let response: NullableDict = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTime (query);
@@ -12092,7 +12092,7 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
         }
-        const [ filterClosed ] = this.handleOptionAndParams (paramsPapi, 'fetchAccountPositions', 'filterClosed', false);
+        const filterClosed = this.handleOptionAndParams (paramsPapi, 'fetchAccountPositions', 'filterClosed', false)[0];
         const result = this.parseAccountPositions (response, filterClosed);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized, false);

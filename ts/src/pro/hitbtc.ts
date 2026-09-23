@@ -1251,7 +1251,7 @@ export default class hitbtc extends hitbtcRest {
             request['symbol'] = market['id'];
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        const [ marginMode ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType);
+        const marginMode = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType)[0];
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {

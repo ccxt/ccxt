@@ -4234,7 +4234,7 @@ export default class bybit extends Exchange {
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
         }
-        const [ method ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
+        const method = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod)[0];
         let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop (orderRequest);

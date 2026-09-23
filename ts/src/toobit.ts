@@ -1685,7 +1685,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let response = undefined;
-        const [ marketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const marketType = this.handleMarketTypeAndParams ('fetchBalance', undefined, params)[0];
         if (this.inArray (marketType, [ 'swap', 'future' ])) {
             response = await this.privateGetApiV1FuturesBalance ();
             //
@@ -2334,7 +2334,7 @@ export default class toobit extends Exchange {
             market = this.market (symbol);
             requestUntil['symbol'] = market['id'];
         }
-        const [ marketType ] = this.handleMarketTypeAndParams ('fetchOrders', market, paramsUntil);
+        const marketType = this.handleMarketTypeAndParams ('fetchOrders', market, paramsUntil)[0];
         let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (requestUntil);
@@ -2397,7 +2397,7 @@ export default class toobit extends Exchange {
             request['startTime'] = since;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
-        const [ marketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsUntil);
+        const marketType = this.handleMarketTypeAndParams ('fetchClosedOrders', market, paramsUntil)[0];
         let response: Dict | List = [];
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
