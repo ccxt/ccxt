@@ -89,17 +89,29 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name apex#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -113,14 +125,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -153,6 +164,21 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name apex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -202,7 +228,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public
@@ -217,10 +243,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //         "BT": false
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "id", "v")));
         String marketId = this.safeString2(trade, "s", "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("t", "T", "createdAt")));
         String side = this.safeStringLower2(trade, "S", "side");
@@ -242,7 +267,30 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             put( "fee", null );
         }}), market);
     }
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name apex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
+        }).thenApply(OrderBook::new);
+
+    }
     /**
      * @method
      * @name apex#watchOrderBook
@@ -255,14 +303,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
-
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -275,13 +316,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -313,8 +354,22 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name apex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchOrderBookForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> watchTopics(Object url, Object messageHashes, Object topics, Object... optionalArgs)
+    public CompletableFuture<Object> watchTopics(Object url, Object messageHashes, Object topics, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -324,7 +379,6 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             // connection is now reused across watch* calls, filter to only the
             // topics whose messageHash isn't yet tracked on this client; if all
             // are already subscribed, skip the subscribe entirely.
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
             Object newTopicsCount = 0;
@@ -348,6 +402,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
 
+    }
+    public CompletableFuture<Object> watchTopics(Object url, Object messageHashes, Object topics, Object... optionalArgs)
+    {
+        return this.watchTopics(url, messageHashes, topics, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object getWsPublicUrl()
@@ -466,12 +524,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -486,6 +543,19 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name apex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -496,13 +566,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -530,6 +598,19 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return this.filterByArray(this.tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name apex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    {
+        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -596,20 +677,32 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name apex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -623,14 +716,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -661,6 +751,21 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
+    }
+    /**
+     * @method
+     * @name apex#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    {
+        return this.watchOHLCVForSymbols(symbolsAndTimeframes, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -718,7 +823,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -735,8 +840,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //         "timestamp": 1670363219614
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber2(ohlcv, "volume", "turnover")));
+    }
+    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseWsOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -751,15 +859,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -781,6 +887,22 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name apex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://api-docs.pro.apex.exchange/#private-websocket
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    {
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -793,15 +915,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -833,6 +951,21 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name apex#watchPositions
+     * @see https://api-docs.pro.apex.exchange/#private-websocket
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    {
+        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -845,15 +978,13 @@ public class Apex extends io.github.ccxt.exchanges.Apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -875,6 +1006,21 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name apex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs.pro.apex.exchange/#private-websocket
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleMyTrades(Client client, Object lists)
@@ -977,9 +1123,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(orders, messageHash);
     }
 
-    public void setPositionsCache(Client client, Object... optionalArgs)
+    public void setPositionsCache(Client client, Object symbols)
     {
-        Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (!java.util.Objects.equals(this.positions, null))
         {
             return;
@@ -990,6 +1135,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             client.future(messageHash);
             this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
+    }
+    public void setPositionsCache(Client client, Object... optionalArgs)
+    {
+        this.setPositionsCache(client, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2)
@@ -1092,12 +1241,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         client.resolve(newPositions, "positions");
     }
 
-    public CompletableFuture<Object> authenticate(Object url, Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Object url, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             String timestamp = String.valueOf(this.milliseconds());
             String request_path = "/ws/accounts";
@@ -1131,6 +1279,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
+    }
+    public CompletableFuture<Object> authenticate(Object url, Object... optionalArgs)
+    {
+        return this.authenticate(url, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

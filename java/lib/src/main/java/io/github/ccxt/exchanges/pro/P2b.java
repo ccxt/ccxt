@@ -93,12 +93,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object request, Object... optionalArgs)
+    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object request, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
@@ -109,6 +108,20 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             return (this.watch(url, messageHash, query, messageHash, null)).join();
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @description connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash string to look up in handler
+     * @param {string[]|float[]} request endpoint parameters
+     * @param {object} [params] extra parameters specific to the p2b api
+     * @returns {object} data from the websocket stream
+     */
+    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object request, Object... optionalArgs)
+    {
+        return this.subscribe(name, messageHash, request, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -123,15 +136,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "15m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -154,6 +163,22 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name p2b#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 15m, 30m, 1h or 1d
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "15m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -166,12 +191,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -191,6 +217,21 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name p2b#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -203,13 +244,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params.method] 'state' (default) or 'price'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -240,7 +281,42 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name p2b#watchTickers
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    {
+        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name p2b#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name p2b#watchTrades
@@ -254,15 +330,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
-
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -276,14 +344,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -316,6 +383,21 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name p2b#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -328,13 +410,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit2, Object parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -352,6 +432,21 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name p2b#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] 1-100, default=100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)

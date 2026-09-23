@@ -1170,12 +1170,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object response = (this.fetchMarketsFromCache(parameters)).join();
             //
             //    [
@@ -1315,6 +1314,18 @@ public class Bitstamp extends BitstampApi
         });
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchMarkets
+     * @description retrieves data on all markets for bitstamp
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object constructCurrencyObject(Object id, Object code, Object name, Object precision, Object minCost, Object originalPayload)
     {
@@ -1359,14 +1370,13 @@ public class Bitstamp extends BitstampApi
         }};
     }
 
-    public CompletableFuture<Object> fetchMarketsFromCache(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketsFromCache(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // this method is now redundant
             // currencies are now fetched before markets
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
@@ -1401,6 +1411,10 @@ public class Bitstamp extends BitstampApi
         });
 
     }
+    public CompletableFuture<Object> fetchMarketsFromCache(Object... optionalArgs)
+    {
+        return this.fetchMarketsFromCache(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1410,12 +1424,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object response = (this.fetchMarketsFromCache(parameters)).join();
             //
             //     [
@@ -1434,6 +1447,18 @@ public class Bitstamp extends BitstampApi
             return this.parseCurrencies(response);
         });
 
+    }
+    /**
+     * @method
+     * @name bitstamp#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrencies(Object rawCurrencies)
@@ -1491,13 +1516,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1535,8 +1558,22 @@ public class Bitstamp extends BitstampApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // {
@@ -1554,7 +1591,6 @@ public class Bitstamp extends BitstampApi
         //     "pair": "BTC/USD"
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "pair");
         String symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
@@ -1585,6 +1621,10 @@ public class Bitstamp extends BitstampApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1595,12 +1635,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1629,6 +1668,19 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1639,13 +1691,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1670,6 +1720,19 @@ public class Bitstamp extends BitstampApi
             return this.parseTickers(response, symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name bitstamp#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object getCurrencyIdFromTransaction(Map<String, Object> transaction)
@@ -1734,7 +1797,7 @@ public class Bitstamp extends BitstampApi
         return null;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1775,7 +1838,6 @@ public class Bitstamp extends BitstampApi
         //          "type": 2                       // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
         //      }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(trade, "id", "tid");
         String symbol = null;
         String side = null;
@@ -1794,7 +1856,7 @@ public class Bitstamp extends BitstampApi
                 if (!java.util.Objects.equals(currentKey, "order_id") && ((String)currentKey).indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
-                    market = this.safeMarket(rawMarketId, market, "_");
+                    market = (Map<String, Object>) (this.safeMarket(rawMarketId, market, "_"));
                 }
             }
         }
@@ -1802,7 +1864,7 @@ public class Bitstamp extends BitstampApi
         // try to deduce it from used keys
         if (java.util.Objects.equals(market, null))
         {
-            market = this.getMarketFromTrade((Map<String, Object>) (trade));
+            market = (Map<String, Object>) (this.getMarketFromTrade((Map<String, Object>) (trade)));
         }
         String feeCostString = this.safeString(trade, "fee");
         String feeCurrency = this.safeString(market, "quote");
@@ -1907,6 +1969,10 @@ public class Bitstamp extends BitstampApi
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1919,14 +1985,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1959,8 +2022,23 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1972,8 +2050,11 @@ public class Bitstamp extends BitstampApi
         //         "open": "9040.87"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1989,15 +2070,15 @@ public class Bitstamp extends BitstampApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2075,6 +2156,23 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseBalance(Object response)
     {
@@ -2113,12 +2211,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2139,6 +2236,18 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2149,12 +2258,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2188,10 +2296,22 @@ public class Bitstamp extends BitstampApi
         }).thenApply(TradingFeeInterface::new);
 
     }
-
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitstamp#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
+    {
         String marketId = this.safeString(fee, "market");
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(fee, "fees", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
@@ -2202,6 +2322,10 @@ public class Bitstamp extends BitstampApi
             put( "percentage", null );
             put( "tierBased", null );
         }};
+    }
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    {
+        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseTradingFees(Object fees)
@@ -2229,12 +2353,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2258,6 +2381,18 @@ public class Bitstamp extends BitstampApi
         }).thenApply(TradingFees::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2270,13 +2405,11 @@ public class Bitstamp extends BitstampApi
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(Object... optionalArgs)
+    public CompletableFuture<Object> fetchTransactionFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2296,10 +2429,24 @@ public class Bitstamp extends BitstampApi
         });
 
     }
-
-    public Object parseTransactionFees(Object response, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitstamp#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://www.bitstamp.net/api/#tag/Fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    @Deprecated
+    public CompletableFuture<Object> fetchTransactionFees(Object... optionalArgs)
     {
-        Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchTransactionFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseTransactionFees(Object response, Object codes)
+    {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> currencies = this.indexBy(response, "currency");
         List<Object> ids = new ArrayList<Object>(currencies.keySet());
@@ -2323,6 +2470,10 @@ public class Bitstamp extends BitstampApi
         }
         return result;
     }
+    public Object parseTransactionFees(Object response, Object... optionalArgs)
+    {
+        return this.parseTransactionFees(response, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
     /**
      * @method
@@ -2333,13 +2484,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2360,10 +2509,22 @@ public class Bitstamp extends BitstampApi
         }).thenApply(DepositWithdrawFees::new);
 
     }
-
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitstamp#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    {
         Object result = this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
         for (var j = 0; j < Helpers.getArrayLength(fee); j++)
@@ -2392,6 +2553,10 @@ public class Bitstamp extends BitstampApi
         }
         return result;
     }
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2411,13 +2576,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final Object type3 = type2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2471,6 +2636,28 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#createOrder
+     * @description create a trade order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2489,14 +2676,11 @@ public class Bitstamp extends BitstampApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2522,6 +2706,27 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#editOrder
+     * @description edit a trade order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market to create an order in
+     * @param {string} [type] 'market', 'limit' or 'stop_limit'
+     * @param {string} [side] 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] the price to trigger a stop order
+     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2533,13 +2738,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2561,6 +2764,20 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#cancelOrder
+     * @description cancels an open order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2572,13 +2789,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2615,6 +2830,20 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public String parseOrderStatus(String status)
     {
@@ -2628,13 +2857,11 @@ public class Bitstamp extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public CompletableFuture<String> fetchOrderStatus(String id, Object... optionalArgs)
+    public CompletableFuture<String> fetchOrderStatus(String id, String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2654,6 +2881,10 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> (String) res);
 
     }
+    public CompletableFuture<String> fetchOrderStatus(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderStatus(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2665,13 +2896,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2714,6 +2945,20 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2727,15 +2972,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2764,6 +3007,22 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2779,15 +3038,17 @@ public class Bitstamp extends BitstampApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
@@ -2835,8 +3096,26 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseFundingRateHistory(Object contract, Object... optionalArgs)
+    public Object parseFundingRateHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -2844,7 +3123,6 @@ public class Bitstamp extends BitstampApi
         //         "timestamp": "1644406050"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -2853,6 +3131,10 @@ public class Bitstamp extends BitstampApi
             put( "timestamp", timestamp );
             put( "datetime", Bitstamp.this.iso8601(timestamp) );
         }};
+    }
+    public Object parseFundingRateHistory(Object contract, Object... optionalArgs)
+    {
+        return this.parseFundingRateHistory(contract, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2866,15 +3148,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String code3 = code2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2921,6 +3201,21 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2933,15 +3228,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since2, Long limit, Map<String, Object> parameters)
     {
-
+        final Long since3 = since2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2983,8 +3274,23 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDepositsWithdrawals
@@ -3025,7 +3331,6 @@ public class Bitstamp extends BitstampApi
         //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
         Object currencyId = this.getCurrencyIdFromTransaction((Map<String, Object>) (transaction));
         String code = this.safeCurrencyCode((String) (currencyId), currency);
@@ -3129,6 +3434,10 @@ public class Bitstamp extends BitstampApi
             put( "fee", finalFee );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransactionStatus(String status)
     {
@@ -3146,7 +3455,7 @@ public class Bitstamp extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         //   from fetch order:
@@ -3211,7 +3520,6 @@ public class Bitstamp extends BitstampApi
         //        "status": "Open"
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(order, "id", "order_id");
         String clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
         String side = this.safeString2(order, "type", "order_type");
@@ -3252,6 +3560,10 @@ public class Bitstamp extends BitstampApi
             put( "average", null );
         }}), market);
     }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseLedgerEntryType(String type)
     {
@@ -3264,7 +3576,7 @@ public class Bitstamp extends BitstampApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         //     [
@@ -3292,7 +3604,6 @@ public class Bitstamp extends BitstampApi
         //         },
         //     ]
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (java.util.Objects.equals(type, "trade"))
         {
@@ -3344,7 +3655,7 @@ public class Bitstamp extends BitstampApi
             } else if ((parsedTransaction.containsKey("currency")) && !java.util.Objects.equals(((Map<String, Object>)parsedTransaction).get("currency"), null))
             {
                 String currencyCode = this.safeString(parsedTransaction, "currency");
-                currency = this.currency(currencyCode);
+                currency = (Map<String, Object>) (this.currency(currencyCode));
                 String amount = this.safeString(item, ((Map<String, Object>)currency).get("id"));
                 direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
@@ -3369,6 +3680,10 @@ public class Bitstamp extends BitstampApi
             }}, currency);
         }
     }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3381,15 +3696,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String code3 = code2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3409,6 +3722,21 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3419,12 +3747,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3446,8 +3773,21 @@ public class Bitstamp extends BitstampApi
         }).thenApply(FundingRate::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    {
+        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
-    public Object parseFundingRate(Object fundingRate, Object... optionalArgs)
+    public Object parseFundingRate(Object fundingRate, Map<String, Object> market)
     {
         //
         //     {
@@ -3459,7 +3799,6 @@ public class Bitstamp extends BitstampApi
         //
         // the websocket funding_rate channel additionally carries mark_price and index_price
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
         Long nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
         String marketId = this.safeString(fundingRate, "market");
@@ -3484,6 +3823,10 @@ public class Bitstamp extends BitstampApi
             put( "interval", null );
         }};
     }
+    public Object parseFundingRate(Object fundingRate, Object... optionalArgs)
+    {
+        return this.parseFundingRate(fundingRate, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3497,15 +3840,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
             Object market = null;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3536,6 +3875,22 @@ public class Bitstamp extends BitstampApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public Object getCurrencyName(Object code)
     {
@@ -3562,12 +3917,11 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.isFiat(code)))
             {
                 throw new NotSupported((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
@@ -3589,6 +3943,19 @@ public class Bitstamp extends BitstampApi
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3603,15 +3970,17 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, String tag2, Map<String, Object> parameters2)
     {
         final String code3 = code2;
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
+            Object tag = tag3;
+            Object parameters = parameters3;
             // For fiat withdrawals please provide all required additional parameters in the 'params'
             // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -3656,6 +4025,23 @@ public class Bitstamp extends BitstampApi
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#withdraw
+     * @description make a withdrawal
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3670,14 +4056,13 @@ public class Bitstamp extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Map<String, Object> parameters)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3711,13 +4096,29 @@ public class Bitstamp extends BitstampApi
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name bitstamp#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+     * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         //    { status: 'ok' }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String status = this.safeString(transfer, "status");
         if (java.util.Objects.equals(currency, null))
         {
@@ -3737,6 +4138,10 @@ public class Bitstamp extends BitstampApi
         }};
         return result;
     }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransferStatus(String status)
     {
@@ -3752,13 +4157,8 @@ public class Bitstamp extends BitstampApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
         url = Helpers.add(url, (this.version + "/"));
         url = Helpers.add(url, this.implodeParams(path, parameters));
@@ -3788,7 +4188,7 @@ public class Bitstamp extends BitstampApi
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
-                    body = this.urlencode(query);
+                    body = (String) (this.urlencode(query));
                     contentType = "application/x-www-form-urlencoded";
                     ((Map<String, Object>)headers).put("Content-Type", contentType);
                 } else
@@ -3797,9 +4197,9 @@ public class Bitstamp extends BitstampApi
                     // an API0020 error returned by the exchange
                     // therefore for empty requests we send a dummy object
                     // https://github.com/ccxt/ccxt/issues/6846
-                    body = this.urlencode(new HashMap<String, Object>() {{
+                    body = (String) (this.urlencode(new HashMap<String, Object>() {{
                         put( "foo", "bar" );
-                    }});
+                    }}));
                     contentType = "application/x-www-form-urlencoded";
                     ((Map<String, Object>)headers).put("Content-Type", contentType);
                 }
@@ -3819,6 +4219,10 @@ public class Bitstamp extends BitstampApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

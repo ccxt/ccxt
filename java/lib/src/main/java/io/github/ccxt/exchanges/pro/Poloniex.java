@@ -107,12 +107,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             String timestamp = this.numberToString(this.milliseconds());
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
@@ -163,6 +162,17 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         });
 
     }
+    /**
+     * @ignore
+     * @method
+     * @description authenticates the user to access private web socket channels
+     * @see https://api-docs.poloniex.com/spot/websocket/authentication
+     * @returns {object} response from exchange
+     */
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    {
+        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -175,15 +185,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribe(Object name2, Object messageHash2, Object isPrivate, Object... optionalArgs)
+    public CompletableFuture<Object> subscribe(Object name2, Object messageHash2, Object isPrivate, Object symbols2, Map<String, Object> parameters)
     {
         final Object name3 = name2;
         final Object messageHash3 = messageHash2;
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object messageHash = messageHash3;
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             String publicOrPrivate = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), publicOrPrivate);
             final Object finalName = name;
@@ -214,6 +224,21 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         });
 
     }
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash unique identifier for the message
+     * @param {boolean} isPrivate true for the authenticated url, false for the public url
+     * @param {string[]} [symbols] CCXT market symbols
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} data from the websocket stream
+     */
+    public CompletableFuture<Object> subscribe(Object name, Object messageHash, Object isPrivate, Object... optionalArgs)
+    {
+        return this.subscribe(name, messageHash, isPrivate, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @ignore
@@ -223,12 +248,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
+    public CompletableFuture<Object> tradeRequest(Object name, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String messageHash = String.valueOf(this.nonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -239,6 +263,18 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} data from the websocket stream
+     */
+    public CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
+    {
+        return this.tradeRequest(name, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -263,13 +299,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side2, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final Object side3 = side2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object price = price3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -336,7 +374,61 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#createOrderWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] GTC (default), IOC, FOK
+     * @param {string} [params.clientOrderId] Maximum 64-character length.*
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.amount] quote units for the order
+     * @param {boolean} [params.allowBorrow] allow order to be placed by borrowing funds (Default: false)
+     * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
+     * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
+     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name poloniex#cancelOrderWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+     * @description cancel multiple orders
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
+     * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
+                ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
+            }
+            Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
+            return order;
+        }).thenApply(Order::new);
+
+    }
     /**
      * @method
      * @name poloniex#cancelOrderWs
@@ -350,22 +442,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      */
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            String clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
-                ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
-            }
-            Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0);
-            return order;
-        }).thenApply(Order::new);
-
+        return this.cancelOrderWs(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -379,13 +456,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -398,7 +473,45 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#cancelOrdersWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrdersWs(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name poloniex#cancelAllOrdersWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+     * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            (this.authenticate()).join();
+            return (this.tradeRequest("cancelAllOrders", parameters)).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name poloniex#cancelAllOrdersWs
@@ -410,19 +523,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      */
     public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            (this.authenticate()).join();
-            return (this.tradeRequest("cancelAllOrders", parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
-
+        return this.cancelAllOrdersWs(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderRequest(Client client, Map<String, Object> message)
@@ -462,15 +563,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -490,6 +587,22 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -500,12 +613,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -515,6 +627,19 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             return this.safeValue(tickers, symbol);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name poloniex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -526,13 +651,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -548,7 +671,40 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+     * @param {string[]} symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    {
+        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name poloniex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name poloniex#watchTrades
@@ -562,15 +718,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
-
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -584,14 +732,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -626,6 +773,21 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -637,13 +799,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -658,6 +818,20 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by poloniex watchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -670,15 +844,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -699,6 +871,21 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs.poloniex.com/spot/websocket/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] not used by poloniex watchOrders
+     * @param {int} [limit] not used by poloniex watchOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -711,15 +898,13 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex strean
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -741,6 +926,21 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#watchMyTrades
+     * @description watches information on multiple trades made by the user using orders stream
+     * @see https://api-docs.poloniex.com/spot/websocket/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] not used by poloniex watchMyTrades
+     * @param {int} [limit] not used by poloniex watchMyTrades
+     * @param {object} [params] extra parameters specific to the poloniex strean
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    {
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -750,12 +950,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -766,8 +965,20 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/spot/websocket/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    {
+        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //    {
@@ -784,8 +995,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "ts": 1676942492072
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")));
+    }
+    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseWsOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Map<String, Object> handleOHLCV(Client client, Map<String, Object> message)
@@ -886,7 +1100,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return message;
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // handleTrade
@@ -930,9 +1144,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "matchRole":"TAKER"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(trade, "createTime");
         String takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
         final Object finalMarket = market;
@@ -956,6 +1169,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }} );
         }}), market);
     }
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseStatus(String status)
     {
@@ -970,7 +1187,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -1000,7 +1217,6 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "ts": 1648708187469
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "tradeTime");
         String marketId = this.safeString(trade, "symbol");
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -1022,6 +1238,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "currency", Poloniex.this.safeString(trade, "feeCurrency") );
             }} );
         }}), market);
+    }
+    public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsOrderTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Map<String, Object> handleOrder(Client client, Map<String, Object> message)
@@ -1167,7 +1387,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return message;
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {
@@ -1197,7 +1417,6 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "ts": 1648708187469
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(order, "orderId");
         String clientOrderId = this.safeString(order, "clientOrderId");
         String marketId = this.safeString(order, "symbol");
@@ -1240,6 +1459,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }} );
             put( "trades", finalTrades );
         }}));
+    }
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)

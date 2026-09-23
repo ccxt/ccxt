@@ -443,18 +443,18 @@ public class TestMain extends BaseTest
         return finalSkips;
     }
 
-    public CompletableFuture<Object> testSafe(Object methodName2, BaseExchange exchange, Object... optionalArgs)
+    public CompletableFuture<Object> testSafe(Object methodName2, BaseExchange exchange, Object args, Object isPublic2)
     {
         final Object methodName3 = methodName2;
+        final Object isPublic3 = isPublic2;
         return BaseExchange.supplyAsync(() -> {
             Object methodName = methodName3;
+            Object isPublic = isPublic3;
             // `testSafe` method does not throw an exception, instead mutes it. The reason we
             // mute the thrown exceptions here is because we don't want to stop the whole
             // tests queue if any single test-method fails. Instead, they are echoed with
             // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
             // run-tests.js, so the exceptions are still printed out to console from there.
-            Object args = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
-            Object isPublic = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false;
             Integer maxRetries = 3;
             Object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             for (var i = 0; Helpers.isLessThan(i, maxRetries); i++)
@@ -558,6 +558,10 @@ public class TestMain extends BaseTest
             return true;
         });
 
+    }
+    public CompletableFuture<Object> testSafe(Object methodName, BaseExchange exchange, Object... optionalArgs)
+    {
+        return this.testSafe(methodName, exchange, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false);
     }
 
     public Object getLastRequestUrl(BaseExchange exchange)
@@ -723,9 +727,8 @@ public class TestMain extends BaseTest
         return symbol;
     }
 
-    public Object getExchangeCode(BaseExchange exchange, Object... optionalArgs)
+    public Object getExchangeCode(BaseExchange exchange, Object codes)
     {
-        Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(codes, null))
         {
             codes = new ArrayList<Object>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"));
@@ -740,10 +743,13 @@ public class TestMain extends BaseTest
         }
         return code;
     }
-
-    public Object getMarketsFromExchange(BaseExchange exchange, Object... optionalArgs)
+    public Object getExchangeCode(BaseExchange exchange, Object... optionalArgs)
     {
-        Object spot = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
+        return this.getExchangeCode(exchange, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    public Object getMarketsFromExchange(BaseExchange exchange, Object spot)
+    {
         Map<String, Object> res = new HashMap<String, Object>() {{}};
         Object markets = exchange.markets;
         List<Object> keys = Helpers.objectKeys(markets);
@@ -761,10 +767,13 @@ public class TestMain extends BaseTest
         }
         return res;
     }
-
-    public Object getValidSymbol(BaseExchange exchange, Object... optionalArgs)
+    public Object getMarketsFromExchange(BaseExchange exchange, Object... optionalArgs)
     {
-        Object spot = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
+        return this.getMarketsFromExchange(exchange, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true);
+    }
+
+    public Object getValidSymbol(BaseExchange exchange, Object spot)
+    {
         Object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         List<Object> codes = new ArrayList<Object>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
         List<Object> spotSymbols = new ArrayList<Object>(Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
@@ -813,6 +822,10 @@ public class TestMain extends BaseTest
             }
         }
         return symbol;
+    }
+    public Object getValidSymbol(BaseExchange exchange, Object... optionalArgs)
+    {
+        return this.getValidSymbol(exchange, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true);
     }
 
     public Object getTickerVolume(BaseExchange exchange, Object ticker)
@@ -933,14 +946,13 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> testExchange(BaseExchange exchange, Object... optionalArgs)
+    public CompletableFuture<Object> testExchange(BaseExchange exchange, Object providedSymbol2)
     {
-
+        final Object providedSymbol3 = providedSymbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object providedSymbol = providedSymbol3;
             // prediction-market exchanges have no spot/swap markets and address methods by an
             // outcome handle (not a market symbol), so they take a dedicated test flow
-            Object providedSymbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             if (java.util.Objects.equals(exchange.safeBool(exchange.has, "prediction", false), true))
             {
                 (this.runPredictionTests(exchange)).join();
@@ -1047,6 +1059,10 @@ public class TestMain extends BaseTest
             return true;
         });
 
+    }
+    public CompletableFuture<Object> testExchange(BaseExchange exchange, Object... optionalArgs)
+    {
+        return this.testExchange(exchange, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public CompletableFuture<Object> runPredictionTests(BaseExchange exchange)
@@ -1694,7 +1710,7 @@ public class TestMain extends BaseTest
         }
     }
 
-    public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object... optionalArgs)
+    public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object key)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1705,7 +1721,6 @@ public class TestMain extends BaseTest
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        Object key = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (Helpers.isTrue(cond))
         {
             return;
@@ -1719,6 +1734,10 @@ public class TestMain extends BaseTest
         }
         errorMessage = Helpers.add(errorMessage, Helpers.add((Helpers.add(" computed: ", storedString) + " stored: "), calculatedString));
         Assert(cond, errorMessage);
+    }
+    public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object... optionalArgs)
+    {
+        this.AssertStaticError(cond, message, calculatedOutput, storedOutput, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public Object loadMarketsFromFile(Object id)
@@ -1751,9 +1770,8 @@ public class TestMain extends BaseTest
         return content;
     }
 
-    public Object loadStaticData(Object folder, Object... optionalArgs)
+    public Object loadStaticData(Object folder, Object targetExchange)
     {
-        Object targetExchange = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(targetExchange, null) && !java.util.Objects.equals(targetExchange, ""))
         {
@@ -1784,6 +1802,10 @@ public class TestMain extends BaseTest
             ((Map<String, Object>)result).put((String)exchangeName, content);
         }
         return result;
+    }
+    public Object loadStaticData(Object folder, Object... optionalArgs)
+    {
+        return this.loadStaticData(folder, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public Object removeHostnamefromUrl(Object url)
@@ -1920,10 +1942,8 @@ public class TestMain extends BaseTest
         return count;
     }
 
-    public Object AssertNewAndStoredOutputInner(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object... optionalArgs)
+    public Object AssertNewAndStoredOutputInner(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object strictTypeCheck, Object AssertingKey)
     {
-        Object strictTypeCheck = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
-        Object AssertingKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         if (Helpers.isTrue(Helpers.isTrue(isNullValue(newOutput)) && Helpers.isTrue(isNullValue(storedOutput))))
         {
             return true;
@@ -2116,11 +2136,13 @@ public class TestMain extends BaseTest
         }
         return true;  // c# requ
     }
-
-    public Object AssertNewAndStoredOutput(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object... optionalArgs)
+    public Object AssertNewAndStoredOutputInner(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object... optionalArgs)
     {
-        Object strictTypeCheck = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
-        Object AssertingKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        return this.AssertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
+
+    public Object AssertNewAndStoredOutput(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object strictTypeCheck, Object AssertingKey)
+    {
         Object res = true;
         try
         {
@@ -2136,10 +2158,13 @@ public class TestMain extends BaseTest
         }
         return res;
     }
-
-    public Object varToString(Object... optionalArgs)
+    public Object AssertNewAndStoredOutput(BaseExchange exchange, Object skipKeys, Object newOutput, Object storedOutput, Object... optionalArgs)
     {
-        Object obj = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
+
+    public Object varToString(Object obj)
+    {
         Object newString = null;
         if (java.util.Objects.equals(obj, null))
         {
@@ -2152,6 +2177,10 @@ public class TestMain extends BaseTest
             newString = jsonStringify(obj);
         }
         return newString;
+    }
+    public Object varToString(Object... optionalArgs)
+    {
+        return this.varToString(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public Object AssertStaticRequestOutput(BaseExchange exchange, Object type, Object skipKeys, Object storedUrl, Object requestUrl, Object storedOutput, Object newOutput)
@@ -2348,7 +2377,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
+    public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object sequential)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2356,12 +2385,6 @@ public class TestMain extends BaseTest
             // before every frame, wait until the watch flow is actually awaiting
             // something — a fixed head-start sleep is not enough on slow ci
             // runners and the frame's resolution would be dropped
-            // threaded runtimes resolve futures on another thread — wait for
-            // the consumed frame to settle so the pending check above does not
-            // observe a stale future and burn the next frame early; frames
-            // that resolve nothing (e.g. subscribe acks) fall through on the
-            // timeout
-            Object sequential = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             for (var i = 0; i < Helpers.getArrayLength(messages); i++)
             {
                 Object waited = 0;
@@ -2371,6 +2394,11 @@ public class TestMain extends BaseTest
                     waited = Helpers.add(waited, 50);
                 }
                 injectWsMessage(exchange, url, Helpers.GetValue(messages, i));
+                // threaded runtimes resolve futures on another thread — wait for
+                // the consumed frame to settle so the pending check above does not
+                // observe a stale future and burn the next frame early; frames
+                // that resolve nothing (e.g. subscribe acks) fall through on the
+                // timeout
                 Object settled = 0;
                 while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && (Helpers.isLessThan(settled, 500)))
                 {
@@ -2402,6 +2430,10 @@ public class TestMain extends BaseTest
             return true;  // c# methods used with promiseAll need to return something
         });
 
+    }
+    public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
+    {
+        return this.injectWsMessages(exchange, url, messages, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
     public CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
@@ -2514,12 +2546,11 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object testName2)
     {
-
+        final Object testName3 = testName2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object testName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object testName = testName3;
             Object globalOptions = ((java.util.Objects.equals(Helpers.GetValue(exchangeData, "options"), null))) ? new HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
             Object methods = ((java.util.Objects.equals(Helpers.GetValue(exchangeData, "methods"), null))) ? new HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "methods");
             List<Object> methodsNames = Helpers.objectKeys(methods);
@@ -2589,8 +2620,12 @@ public class TestMain extends BaseTest
         });
 
     }
+    public CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    {
+        return this.testExchangeWsStatically(exchangeName, exchangeData, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
-    public BaseExchange initOfflineExchange(Object exchangeName, Object... optionalArgs)
+    public BaseExchange initOfflineExchange(Object exchangeName, Object isWs)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2598,7 +2633,6 @@ public class TestMain extends BaseTest
         // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
         // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
         // setMarkets rebuilds cleanly from the outcome markets
-        Object isWs = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         Object predictionEvents = null;
         if (Helpers.isTrue(this.predictionTests))
         {
@@ -2725,14 +2759,17 @@ public class TestMain extends BaseTest
         // not working in python if assigned  in the config dict
         return exchange;
     }
-
-    public CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public BaseExchange initOfflineExchange(Object exchangeName, Object... optionalArgs)
     {
+        return this.initOfflineExchange(exchangeName, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
+    }
 
+    public CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object testName2)
+    {
+        final Object testName3 = testName2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object testName = testName3;
             // instantiate the exchange and make sure that we sink the requests to avoid an actual request
-            Object testName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             BaseExchange exchange = this.initOfflineExchange(exchangeName);
             Object globalOptions = exchange.safeDict(exchangeData, "options", new HashMap<String, Object>() {{}});
             // read apiKey/secret from the test file
@@ -2830,13 +2867,16 @@ public class TestMain extends BaseTest
         });
 
     }
-
-    public CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
     {
+        return this.testExchangeRequestStatically(exchangeName, exchangeData, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
+    public CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object testName2)
+    {
+        final Object testName3 = testName2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object testName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object testName = testName3;
             BaseExchange exchange = this.initOfflineExchange(exchangeName);
             // read apiKey/secret from the test file
             String apiKey = exchange.safeString(exchangeData, "apiKey");
@@ -2929,10 +2969,13 @@ public class TestMain extends BaseTest
         });
 
     }
-
-    public Object getNumberOfTestsFromExchange(BaseExchange exchange, Object exchangeData, Object... optionalArgs)
+    public CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
     {
-        Object testName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.testExchangeResponseStatically(exchangeName, exchangeData, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    public Object getNumberOfTestsFromExchange(BaseExchange exchange, Object exchangeData, Object testName)
+    {
         if (!java.util.Objects.equals(testName, null))
         {
             return 1;
@@ -2948,6 +2991,10 @@ public class TestMain extends BaseTest
             sum = exchange.sum(sum, resultsLength);
         }
         return sum;
+    }
+    public Object getNumberOfTestsFromExchange(BaseExchange exchange, Object exchangeData, Object... optionalArgs)
+    {
+        return this.getNumberOfTestsFromExchange(exchange, exchangeData, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
     public Object checkIfExchangeIsDisabled(Object exchangeName, Object exchangeData)
@@ -3000,28 +3047,32 @@ public class TestMain extends BaseTest
         return false;
     }
 
-    public CompletableFuture<Object> runStaticRequestTests(Object... optionalArgs)
+    public CompletableFuture<Object> runStaticRequestTests(Object targetExchange, Object testName)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object targetExchange = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object testName = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             (this.runStaticTests("request", targetExchange, testName)).join();
             return true;
         });
 
     }
+    public CompletableFuture<Object> runStaticRequestTests(Object... optionalArgs)
+    {
+        return this.runStaticRequestTests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
 
-    public CompletableFuture<Object> runStaticTests(Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> runStaticTests(Object type2, Object targetExchange2, Object testName2)
     {
         final Object type3 = type2;
+        final Object targetExchange3 = targetExchange2;
+        final Object testName3 = testName2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
+            Object targetExchange = targetExchange3;
+            Object testName = testName3;
             // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
             // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-            Object targetExchange = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object testName = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             String folder = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/"), type) + "/");
             if (Helpers.isTrue(this.predictionTests))
             {
@@ -3097,8 +3148,12 @@ public class TestMain extends BaseTest
         });
 
     }
+    public CompletableFuture<Object> runStaticTests(Object type, Object... optionalArgs)
+    {
+        return this.runStaticTests(type, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
 
-    public CompletableFuture<Object> runStaticResponseTests(Object... optionalArgs)
+    public CompletableFuture<Object> runStaticResponseTests(Object exchangeName, Object test)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3106,15 +3161,17 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of mockResponses tests functions------------------------------------
             //  -----------------------------------------------------------------------------
-            Object exchangeName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object test = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             (this.runStaticTests("response", exchangeName, test)).join();
             return true;
         });
 
     }
+    public CompletableFuture<Object> runStaticResponseTests(Object... optionalArgs)
+    {
+        return this.runStaticResponseTests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
 
-    public CompletableFuture<Object> runStaticWsTests(Object... optionalArgs)
+    public CompletableFuture<Object> runStaticWsTests(Object exchangeName, Object test)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3122,18 +3179,20 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- static ws tests: replay canned frames into the ws message handlers ------
             //  -----------------------------------------------------------------------------
-            // watch methods are async-only, there is nothing to test in the
-            // synchronous python/php flavours
-            Object exchangeName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object test = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             if (Helpers.isTrue(isSync()))
             {
+                // watch methods are async-only, there is nothing to test in the
+                // synchronous python/php flavours
                 return true;
             }
             (this.runStaticTests("ws", exchangeName, test)).join();
             return true;
         });
 
+    }
+    public CompletableFuture<Object> runStaticWsTests(Object... optionalArgs)
+    {
+        return this.runStaticWsTests(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
     }
 
     public CompletableFuture<Object> runBrokerIdTests()

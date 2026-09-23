@@ -515,16 +515,17 @@ public class Lighter extends LighterApi
         }});
     }
 
-    public CompletableFuture<Object> loadAccount(Object chainId, Object privateKey2, Object apiKeyIndex2, Object accountIndex2, Object... optionalArgs)
+    public CompletableFuture<Object> loadAccount(Object chainId, Object privateKey2, Object apiKeyIndex2, Object accountIndex2, Map<String, Object> parameters2)
     {
         final Object privateKey3 = privateKey2;
         final Object apiKeyIndex3 = apiKeyIndex2;
         final Object accountIndex3 = accountIndex2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object privateKey = privateKey3;
             Object apiKeyIndex = apiKeyIndex3;
             Object accountIndex = accountIndex3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             this.initAuthObject(accountIndex, apiKeyIndex);
             Map<String, Object> cachedAuths = (Map<String, Object>) this.safeDict(Helpers.GetValue(((Map<String, Object>)this.options).get("auths"), accountIndex), apiKeyIndex);
             Object signer = this.safeValue(cachedAuths, "signer");
@@ -561,6 +562,10 @@ public class Lighter extends LighterApi
             return signer;
         });
 
+    }
+    public CompletableFuture<Object> loadAccount(Object chainId, Object privateKey, Object apiKeyIndex, Object accountIndex, Object... optionalArgs)
+    {
+        return this.loadAccount(chainId, privateKey, apiKeyIndex, accountIndex, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void initAuthObject(Object strAccountIndex, Object strApiKeyIndex)
@@ -612,12 +617,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    public CompletableFuture<Object> preLoadLighterLibrary(Object... optionalArgs)
+    public CompletableFuture<Object> preLoadLighterLibrary(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "loadAccount", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -644,10 +648,20 @@ public class Lighter extends LighterApi
         });
 
     }
-
-    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    /**
+     * @method
+     * @name lighter#preLoadLighterLibrary
+     * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true if the signer was loaded, false otherwise
+     */
+    public CompletableFuture<Object> preLoadLighterLibrary(Object... optionalArgs)
     {
-        Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.preLoadLighterLibrary(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object defaultValue)
+    {
         Object apiKeyIndex = null;
         List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
         apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -660,13 +674,16 @@ public class Lighter extends LighterApi
         }
         return new ArrayList<Object>(Arrays.asList(this.parseToInt(apiKeyIndex), parameters));
     }
+    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleApiKeyIndex(parameters, methodName1, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
-    public CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    public CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, Object optionName1, Object optionName2, Object defaultValue)
     {
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
-            Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
@@ -729,13 +746,16 @@ public class Lighter extends LighterApi
         });
 
     }
-
-    public CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    public CompletableFuture<Object> handleAccountIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
     {
+        return this.handleAccountIndex(parameters, methodName1, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
+    public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "createSubAccount", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -766,11 +786,14 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    {
+        return this.createSubAccount(name, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object createAuth(Object... optionalArgs)
+    public Object createAuth(Map<String, Object> parameters)
     {
         // don't omit [accountIndex, apiKeyIndex], request may need them
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String apiKeyIndex = this.safeString2(parameters, "apiKeyIndex", "api_key_index");
         if (java.util.Objects.equals(apiKeyIndex, null))
         {
@@ -807,6 +830,10 @@ public class Lighter extends LighterApi
         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "deadline", deadline);
         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "token", token);
         return token;
+    }
+    public Object createAuth(Object... optionalArgs)
+    {
+        return this.createAuth(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String pow(Object n, Object m)
@@ -892,12 +919,11 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> approveBuilderFee(Object builder, Object takerFeeRate, Object makerFeeRate, Object accountIndex, Object apiKeyIndex, Object... optionalArgs)
+    public CompletableFuture<Object> approveBuilderFee(Object builder, Object takerFeeRate, Object makerFeeRate, Object accountIndex, Object apiKeyIndex, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(((Map<String, Object>)this.options).get("chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
@@ -928,13 +954,16 @@ public class Lighter extends LighterApi
         });
 
     }
-
-    public CompletableFuture<Object> changeApiKey(Object... optionalArgs)
+    public CompletableFuture<Object> approveBuilderFee(Object builder, Object takerFeeRate, Object makerFeeRate, Object accountIndex, Object apiKeyIndex, Object... optionalArgs)
     {
+        return this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> changeApiKey(Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object apiKeyIndex = null;
             List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "changeApiKey", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
@@ -979,6 +1008,10 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> changeApiKey(Object... optionalArgs)
+    {
+        return this.changeApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public void setSandboxMode(Object enable)
     {
@@ -987,10 +1020,8 @@ public class Lighter extends LighterApi
         Helpers.addElementToObject(this.options, "chainId", ((Helpers.isTrue(enable))) ? 300 : 304);
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(type, null))
         {
             throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -1033,16 +1064,16 @@ public class Lighter extends LighterApi
         Object orderExpiry = null;
         List<Object> apiKeyIndexparametersVariable = (List<Object>) this.handleApiKeyIndex(parameters, "createOrder", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((List<Object>) apiKeyIndexparametersVariable).get(0);
-        parameters = ((List<Object>) apiKeyIndexparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) apiKeyIndexparametersVariable).get(1);
         List<Object> accountIndexparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createOrder", "accountIndex", "account_index");
         accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
-        parameters = ((List<Object>) accountIndexparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
         List<Object> nonceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "nonce");
         nonce = ((List<Object>) nonceparametersVariable).get(0);
-        parameters = ((List<Object>) nonceparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) nonceparametersVariable).get(1);
         List<Object> orderExpiryparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "orderExpiry", 0);
         orderExpiry = ((List<Object>) orderExpiryparametersVariable).get(0);
-        parameters = ((List<Object>) orderExpiryparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) orderExpiryparametersVariable).get(1);
         if (!java.util.Objects.equals(nonce, null))
         {
             ((Map<String, Object>)request).put("nonce", nonce);
@@ -1060,7 +1091,7 @@ public class Lighter extends LighterApi
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce"))));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
         if (Boolean.TRUE.equals(isMarketOrder))
@@ -1105,7 +1136,7 @@ public class Lighter extends LighterApi
         Object triggerPriceStr = "0"; // default is 0
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"))));
         if (Boolean.TRUE.equals(isConditional))
         {
             amountStr = this.numberToString(amount);
@@ -1190,15 +1221,20 @@ public class Lighter extends LighterApi
         }
         return orders;
     }
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> fetchNonce(Object accountIndex2, Object apiKeyIndex2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchNonce(Object accountIndex2, Object apiKeyIndex2, Map<String, Object> parameters2)
     {
         final Object accountIndex3 = accountIndex2;
         final Object apiKeyIndex3 = apiKeyIndex2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object accountIndex = accountIndex3;
             Object apiKeyIndex = apiKeyIndex3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if ((java.util.Objects.equals(accountIndex, null)) || (java.util.Objects.equals(apiKeyIndex, null)))
             {
                 throw new ArgumentsRequired((this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
@@ -1231,14 +1267,16 @@ public class Lighter extends LighterApi
         });
 
     }
-
-    public CompletableFuture<Object> signAndCreateOrder(Object method, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> fetchNonce(Object accountIndex, Object apiKeyIndex, Object... optionalArgs)
     {
+        return this.fetchNonce(accountIndex, apiKeyIndex, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> signAndCreateOrder(Object method, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1304,6 +1342,10 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> signAndCreateOrder(Object method, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.signAndCreateOrder(method, symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1325,13 +1367,11 @@ public class Lighter extends LighterApi
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrder", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
@@ -1354,6 +1394,30 @@ public class Lighter extends LighterApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1370,14 +1434,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1443,6 +1504,25 @@ public class Lighter extends LighterApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name lighter#editOrder
+     * @description cancels an order and places a new order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1452,12 +1532,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.rootGet(parameters)).join();
             //
             //     {
@@ -1478,6 +1557,18 @@ public class Lighter extends LighterApi
         }).thenApply(Status::new);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidocs.lighter.xyz/reference/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    {
+        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1487,12 +1578,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.rootGet(parameters)).join();
             //
             //     {
@@ -1505,6 +1595,18 @@ public class Lighter extends LighterApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://apidocs.lighter.xyz/reference/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1514,12 +1616,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
             //
             //    {
@@ -1692,6 +1793,18 @@ public class Lighter extends LighterApi
         });
 
     }
+    /**
+     * @method
+     * @name lighter#fetchMarkets
+     * @description retrieves data on all markets for lighter
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1701,12 +1814,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
             if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
@@ -1734,6 +1846,18 @@ public class Lighter extends LighterApi
             return this.parseCurrencies(data);
         });
 
+    }
+    /**
+     * @method
+     * @name lighter#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://apidocs.lighter.xyz/reference/assetdetails
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrency(Object rawCurrency)
@@ -1787,13 +1911,13 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol2, Long limit2, Map<String, Object> parameters)
     {
         final Object symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrderBook() requires a symbol argument")) ;
@@ -1846,8 +1970,22 @@ public class Lighter extends LighterApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.lighter.xyz/reference/orderbookorders
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker, fetchTickers
@@ -1909,9 +2047,8 @@ public class Lighter extends LighterApi
         //         "daily_price_change": -0.3061987051035322
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "market_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String last = this.safeString(ticker, "last_trade_price");
         String high = this.safeString(ticker, "daily_price_high");
@@ -1946,6 +2083,10 @@ public class Lighter extends LighterApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1956,12 +2097,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTicker() requires a symbol argument")) ;
@@ -2027,6 +2167,19 @@ public class Lighter extends LighterApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2037,13 +2190,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2057,8 +2208,21 @@ public class Lighter extends LighterApi
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // {
@@ -2076,8 +2240,11 @@ public class Lighter extends LighterApi
         //     "O": "string"
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2093,15 +2260,17 @@ public class Lighter extends LighterApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol2, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
         final Object symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1h";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a symbol argument")) ;
@@ -2179,8 +2348,25 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidocs.lighter.xyz/reference/candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1h", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    public Object parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -2190,7 +2376,6 @@ public class Lighter extends LighterApi
         //         "rate": 0.00009599999999999999
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "market_id");
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -2213,6 +2398,10 @@ public class Lighter extends LighterApi
             put( "interval", null );
         }};
     }
+    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    {
+        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2223,13 +2412,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2262,6 +2449,19 @@ public class Lighter extends LighterApi
         }).thenApply(FundingRates::new);
 
     }
+    /**
+     * @method
+     * @name lighter#fetchFundingRates
+     * @description fetch the current funding rate for multiple symbols
+     * @see https://apidocs.lighter.xyz/reference/funding-rates
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    {
+        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2274,12 +2474,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2380,7 +2579,43 @@ public class Lighter extends LighterApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name ligher#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @param {string} [params.type] 'spot', 'swap', default is 'swap'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name lighter#fetchPosition
+     * @description fetch data on an open position
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
+            return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
+        }).thenApply(Position::new);
+
+    }
     /**
      * @method
      * @name lighter#fetchPosition
@@ -2394,14 +2629,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
-
+        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2415,13 +2643,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(Object symbols, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2501,8 +2727,23 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchPositions
+     * @description fetch all open positions
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -2523,9 +2764,8 @@ public class Lighter extends LighterApi
         //         "allocated_margin": "0.000000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "market_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long sign = this.safeInteger(position, "sign");
         String side = null;
         if (!java.util.Objects.equals(sign, null))
@@ -2578,6 +2818,10 @@ public class Lighter extends LighterApi
             put( "percentage", null );
         }}));
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -2589,12 +2833,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
-    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2646,6 +2889,20 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://apidocs.lighter.xyz/reference/account-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+     * @param {string} [params.value] fetch balance value, account index or l1 address
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseAccount(Object account)
     {
@@ -2696,15 +2953,13 @@ public class Lighter extends LighterApi
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
@@ -2778,6 +3033,22 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apidocs.lighter.xyz/reference/accountactiveorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2791,15 +3062,15 @@ public class Lighter extends LighterApi
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchClosedOrders() requires a symbol argument")) ;
@@ -2878,8 +3149,24 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchClosedOrders
+     * @description fetch all unfilled currently closed orders
+     * @see https://apidocs.lighter.xyz/reference/accountinactiveorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -2918,9 +3205,8 @@ public class Lighter extends LighterApi
         //         "updated_at": 1766387932
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "market_index");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.safeTimestamp(order, "timestamp");
         Object isAsk = this.safeBool(order, "is_ask");
         if (java.util.Objects.equals(isAsk, null))
@@ -3010,6 +3296,10 @@ public class Lighter extends LighterApi
             put( "fee", null );
             put( "trades", null );
         }}), market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -3107,16 +3397,17 @@ public class Lighter extends LighterApi
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount2, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount2, Object fromAccount2, Object toAccount2, Map<String, Object> parameters2)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3180,6 +3471,25 @@ public class Lighter extends LighterApi
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name lighter#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from (spot, perp)
+     * @param {string} toAccount account to transfer to (spot, perp)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.toAccountIndex] to account index, defaults to fromAccountIndex
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {string} [params.memo] hex encoding memo
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3194,15 +3504,13 @@ public class Lighter extends LighterApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3270,8 +3578,25 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://apidocs.lighter.xyz/reference/transfer_history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    {
+        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         //     {
@@ -3290,7 +3615,6 @@ public class Lighter extends LighterApi
         //         "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "asset_id");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "timestamp");
@@ -3308,6 +3632,10 @@ public class Lighter extends LighterApi
             put( "info", transfer );
         }};
     }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3323,15 +3651,13 @@ public class Lighter extends LighterApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3403,6 +3729,24 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidocs.lighter.xyz/reference/deposit_history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.address] l1_address
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3417,15 +3761,13 @@ public class Lighter extends LighterApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object parameters = parameters3;
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
@@ -3488,8 +3830,25 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidocs.lighter.xyz/reference/withdraw_history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -3512,7 +3871,6 @@ public class Lighter extends LighterApi
         //         "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String type = this.safeString(transaction, "type");
         if (java.util.Objects.equals(type, null))
         {
@@ -3547,6 +3905,10 @@ public class Lighter extends LighterApi
             put( "internal", null );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransactionStatus(String status)
     {
@@ -3573,13 +3935,13 @@ public class Lighter extends LighterApi
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount2, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount2, Object address, String tag, Map<String, Object> parameters2)
     {
         final Object amount3 = amount2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3632,6 +3994,24 @@ public class Lighter extends LighterApi
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name lighter#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3647,15 +4027,15 @@ public class Lighter extends LighterApi
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3750,8 +4130,26 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://apidocs.lighter.xyz/reference/trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         //     {
@@ -3779,9 +4177,8 @@ public class Lighter extends LighterApi
         //         "maker_initial_margin_fraction_before": 500
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "market_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(trade, "timestamp");
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
@@ -3827,6 +4224,10 @@ public class Lighter extends LighterApi
             put( "fee", null );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3840,13 +4241,13 @@ public class Lighter extends LighterApi
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -3863,6 +4264,22 @@ public class Lighter extends LighterApi
         });
 
     }
+    /**
+     * @method
+     * @name lighter#setLeverage
+     * @description set the level of leverage for a market
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3876,13 +4293,13 @@ public class Lighter extends LighterApi
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    public CompletableFuture<Object> setMarginMode(Object marginMode2, String symbol, Map<String, Object> parameters2)
     {
         final Object marginMode3 = marginMode2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an marginMode parameter")) ;
@@ -3899,14 +4316,32 @@ public class Lighter extends LighterApi
         });
 
     }
+    /**
+     * @method
+     * @name lighter#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @param {int} [params.leverage] required leverage
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
+    {
+        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> modifyLeverageAndMarginMode(Object leverage, Object marginMode2, Object... optionalArgs)
+    public CompletableFuture<Object> modifyLeverageAndMarginMode(Object leverage, Object marginMode2, String symbol2, Map<String, Object> parameters2)
     {
         final Object marginMode3 = marginMode2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3954,14 +4389,20 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> modifyLeverageAndMarginMode(Object leverage, Object marginMode, Object... optionalArgs)
+    {
+        return this.modifyLeverageAndMarginMode(leverage, marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> signAndCancelOrder(Object method, Object id2, Object... optionalArgs)
+    public CompletableFuture<Object> signAndCancelOrder(Object method, Object id2, String symbol2, Map<String, Object> parameters2)
     {
         final Object id3 = id2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4010,6 +4451,10 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> signAndCancelOrder(Object method, Object id, Object... optionalArgs)
+    {
+        return this.signAndCancelOrder(method, id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4022,13 +4467,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             var txTypetxInfomarketVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfomarketVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfomarketVariable).get(1);
@@ -4042,14 +4485,27 @@ public class Lighter extends LighterApi
         }).thenApply(Order::new);
 
     }
-
-    public CompletableFuture<Object> signAndCancelAllOrders(Object method, Object... optionalArgs)
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> signAndCancelAllOrders(Object method, String symbol, Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4082,6 +4538,10 @@ public class Lighter extends LighterApi
         });
 
     }
+    public CompletableFuture<Object> signAndCancelAllOrders(Object method, Object... optionalArgs)
+    {
+        return this.signAndCancelAllOrders(method, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4093,13 +4553,11 @@ public class Lighter extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -4112,6 +4570,20 @@ public class Lighter extends LighterApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name lighter#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4121,12 +4593,11 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4168,7 +4639,40 @@ public class Lighter extends LighterApi
         });
 
     }
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    {
+        return this.cancelAllOrdersAfter(timeout, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name lighter#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "direction", 1 );
+            }};
+            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
+        }).thenApply(MarginModification::new);
+
+    }
     /**
      * @method
      * @name lighter#addMargin
@@ -4180,16 +4684,7 @@ public class Lighter extends LighterApi
      */
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "direction", 1 );
-            }};
-            return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(MarginModification::new);
-
+        return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4201,18 +4696,30 @@ public class Lighter extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "direction", 0 );
             }};
             return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(MarginModification::new);
 
+    }
+    /**
+     * @method
+     * @name lighter#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    {
+        return this.reduceMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4226,12 +4733,13 @@ public class Lighter extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol2, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> setMargin(String symbol2, Object amount, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4285,10 +4793,24 @@ public class Lighter extends LighterApi
         }).thenApply(MarginModification::new);
 
     }
-
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    /**
+     * @method
+     * @name lighter#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.setMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    {
         Long timestamp = this.safeInteger(data, "predicted_execution_time_ms");
         return new HashMap<String, Object>() {{
             put( "info", data );
@@ -4303,14 +4825,13 @@ public class Lighter extends LighterApi
             put( "datetime", Lighter.this.iso8601(timestamp) );
         }};
     }
-
-    public Object sign(Object path, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    {
         Object url = null;
         if (java.util.Objects.equals(api, "root"))
         {
@@ -4348,6 +4869,10 @@ public class Lighter extends LighterApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

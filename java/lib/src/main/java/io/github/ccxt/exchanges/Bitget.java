@@ -3606,14 +3606,12 @@ public class Bitget extends BitgetApi
         this.setSandboxMode(enabled);
     }
 
-    public Object handleProductTypeAndParams(Object... optionalArgs)
+    public Object handleProductTypeAndParams(Map<String, Object> market, Map<String, Object> parameters)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Object subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("handleProductTypeAndParams", null, parameters);
         subType = ((List<Object>) subTypeparametersVariable).get(0);
-        parameters = ((List<Object>) subTypeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         String defaultProductType = null;
         if ((!java.util.Objects.equals(subType, null)) && (java.util.Objects.equals(market, null)))
         {
@@ -3633,7 +3631,7 @@ public class Bitget extends BitgetApi
                 Object marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("handleProductTypeAndParams", parameters);
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-                parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     productType = "MARGIN";
@@ -3665,16 +3663,19 @@ public class Bitget extends BitgetApi
         {
             throw new ArgumentsRequired((this.id + " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
         }
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("productType", "category")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("productType", "category"))));
         return new ArrayList<Object>(Arrays.asList(productType, parameters));
     }
+    public Object handleProductTypeAndParams(Object... optionalArgs)
+    {
+        return this.handleProductTypeAndParams(Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters2, String methodName, Object... optionalArgs)
+    public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters2, String methodName, Object defaultValue)
     {
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
-            Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "uta");
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -3702,6 +3703,10 @@ public class Bitget extends BitgetApi
         });
 
     }
+    public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters, String methodName, Object... optionalArgs)
+    {
+        return this.handleUTAAndParams(parameters, methodName, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
+    }
 
     /**
      * @method
@@ -3711,12 +3716,11 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicCommonGetV2PublicTime(parameters)).join();
             //
             //     {
@@ -3733,6 +3737,18 @@ public class Bitget extends BitgetApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://www.bitget.com/api-doc/common/public/Get-Server-Time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3746,12 +3762,11 @@ public class Bitget extends BitgetApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
@@ -3767,6 +3782,22 @@ public class Bitget extends BitgetApi
             return (this.fetchDefaultMarkets(parameters)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name bitget#fetchMarkets
+     * @description retrieves data on all markets for bitget
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+     * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/api-doc/uta/public/Instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchDefaultMarkets(Object parameters)
@@ -4386,12 +4417,11 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicSpotGetV2SpotPublicCoins(parameters)).join();
             //
             //    {
@@ -4430,6 +4460,18 @@ public class Bitget extends BitgetApi
             return this.parseCurrencies(data);
         });
 
+    }
+    /**
+     * @method
+     * @name bitget#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrency(Object rawCurrency)
@@ -4534,12 +4576,11 @@ public class Bitget extends BitgetApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4674,8 +4715,28 @@ public class Bitget extends BitgetApi
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
+     * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
+     * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
+     * @param {string} [params.code] required for cross spot margin
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
+    {
+        return this.fetchMarketLeverageTiers(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseMarketLeverageTiers(Object info, Object... optionalArgs)
+    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         // swap and future
@@ -4723,7 +4784,6 @@ public class Bitget extends BitgetApi
         //         "mmr": "0.004"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
@@ -4753,6 +4813,10 @@ final Object finalMinNotional = minNotional;
         }
         return tiers;
     }
+    public Object parseMarketLeverageTiers(Object info, Object... optionalArgs)
+    {
+        return this.parseMarketLeverageTiers(info, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -4770,15 +4834,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4888,6 +4954,26 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in milliseconds
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4904,13 +4990,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, String tag2, Map<String, Object> parameters2)
     {
-
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = tag3;
+            Object parameters = parameters3;
             this.checkAddress(address);
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -4979,6 +5065,25 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name bitget#withdraw
+     * @description make a withdrawal
+     * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4996,15 +5101,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5122,8 +5229,28 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+     * @see https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in milliseconds
+     * @param {string} [params.idLessThan] *non-uta only* return records with id less than the provided value
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchDeposits
@@ -5171,7 +5298,6 @@ final Object finalMinNotional = minNotional;
         //         "updatedTime": "1787913880178"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transaction, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "cTime", "createdTime");
@@ -5230,6 +5356,10 @@ final Object finalMinNotional = minNotional;
             put( "fee", finalFee );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransactionType(String type)
     {
@@ -5265,12 +5395,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5318,8 +5447,23 @@ final Object finalMinNotional = minNotional;
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+     * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -5330,7 +5474,6 @@ final Object finalMinNotional = minNotional;
         //         "url": "https://blockchair.com/bitcoin/transaction/"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(depositAddress, "coin");
         String networkId = this.safeString(depositAddress, "chain");
         String parsedCurrency = this.safeCurrencyCode(currencyId, currency);
@@ -5348,6 +5491,10 @@ final Object finalMinNotional = minNotional;
             put( "tag", Bitget.this.safeString(depositAddress, "tag") );
         }};
     }
+    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    {
+        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -5362,13 +5509,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5435,8 +5582,25 @@ final Object finalMinNotional = minNotional;
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+     * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //   {
@@ -5541,7 +5705,6 @@ final Object finalMinNotional = minNotional;
         //         "deliveryStatus": ""
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
         String close = this.safeString2(ticker, "lastPr", "lastPrice");
         Object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
@@ -5584,6 +5747,10 @@ final Object finalMinNotional = minNotional;
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -5597,12 +5764,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5760,6 +5926,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
+     * @see https://www.bitget.com/api-doc/uta/public/Tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -5770,12 +5952,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5802,6 +5983,19 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchMarkPrice
+     * @description fetches the mark price for a specific market
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
+    {
+        return this.fetchMarkPrice(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -5817,13 +6011,13 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -5994,8 +6188,26 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/api-doc/uta/public/Tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // spot, swap and future: fetchTrades
@@ -6111,7 +6323,6 @@ final Object finalMinNotional = minNotional;
         //         "execPnl": "0.00017"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("cTime", "ts", "createdTime")));
@@ -6154,6 +6365,10 @@ final Object finalMinNotional = minNotional;
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -6173,14 +6388,15 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6336,6 +6552,28 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+     * @see https://www.bitget.com/api-doc/uta/public/Fills
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -6349,12 +6587,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6423,6 +6660,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(TradingFeeInterface::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -6438,12 +6691,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6630,10 +6882,27 @@ final Object finalMinNotional = minNotional;
         }).thenApply(TradingFees::new);
 
     }
-
-    public Map<String, Object> parseTradingFee(Map<String, Object> data, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+     * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Map<String, Object> parseTradingFee(Map<String, Object> data, Map<String, Object> market)
+    {
         String marketId = this.safeString(data, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", data );
@@ -6644,8 +6913,12 @@ final Object finalMinNotional = minNotional;
             put( "tierBased", null );
         }};
     }
+    public Map<String, Object> parseTradingFee(Map<String, Object> data, Object... optionalArgs)
+    {
+        return this.parseTradingFee(data, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -6658,10 +6931,13 @@ final Object finalMinNotional = minNotional;
         //         "1399132.341"
         //     ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean inverse = (Boolean) this.safeBool(market, "inverse");
         Object volumeIndex = (((java.util.Objects.equals(inverse, true)))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -6688,15 +6964,15 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -6913,6 +7189,34 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
+     * @see https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+     * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
+     * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
+     * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -6932,12 +7236,11 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7087,6 +7390,28 @@ final Object finalMinNotional = minNotional;
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name bitget#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
+     * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
+     * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
+     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseUtaBalance(Object balance)
@@ -7248,7 +7573,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, editOrder, closePosition
@@ -7462,7 +7787,6 @@ final Object finalMinNotional = minNotional;
         //         "updatedTime": "1753058267412"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String errorMessage = this.safeString(order, "errorMsg");
         if (!java.util.Objects.equals(errorMessage, null))
         {
@@ -7481,7 +7805,7 @@ final Object finalMinNotional = minNotional;
             marketType = ((Map<String, Object>)market).get("type");
         }
         String marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market, null, marketType);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("cTime", "ctime", "createdTime")));
         Long updateTimestamp = (Long) this.safeInteger2(order, "uTime", "updatedTime");
         String rawStatus = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("status", "state", "orderStatus", "planStatus")));
@@ -7622,6 +7946,10 @@ final Object finalMinNotional = minNotional;
             put( "trades", null );
         }}), market);
     }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -7635,12 +7963,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7656,6 +7983,22 @@ final Object finalMinNotional = minNotional;
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bitget#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    {
+        return this.createMarketBuyOrderWithCost(symbol, cost, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -7703,13 +8046,11 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -7789,11 +8130,58 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Order::new);
 
     }
-
-    public Object createUtaOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#createOrder
+     * @description create a trade order
+     * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/contract/plan/Place-Tpsl-Order
+     * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
+     * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+     * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
+     * @param {string} [params.holdSide] *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
+     * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+     * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+     * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+     * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+     * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+     * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+     * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+     * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object createUtaOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
         if (java.util.Objects.equals(type, null))
         {
             throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -7806,13 +8194,13 @@ final Object finalMinNotional = minNotional;
         Object productType = null;
         List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
         productType = ((List<Object>) productTypeparametersVariable).get(0);
-        parameters = ((List<Object>) productTypeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
         if (java.util.Objects.equals(productType, "SPOT"))
         {
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 productType = "MARGIN";
@@ -7830,7 +8218,7 @@ final Object finalMinNotional = minNotional;
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             ((Map<String, Object>)request).put("clientOid", clientOrderId);
-            parameters = this.omit(parameters, "clientOrderId");
+            parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
         }
         Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
         Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
@@ -7870,7 +8258,7 @@ final Object finalMinNotional = minNotional;
                     ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
                 }
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
+            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice"))));
         } else
         {
             if (Boolean.TRUE.equals(hasStopLoss))
@@ -7911,11 +8299,11 @@ final Object finalMinNotional = minNotional;
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-            parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-            parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 timeInForce = ((String)timeInForce).toUpperCase();
@@ -7938,7 +8326,7 @@ final Object finalMinNotional = minNotional;
         Boolean hedged = null;
         List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
-        parameters = ((List<Object>) hedgedparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
         if (java.util.Objects.equals(reduceOnly, true))
         {
             if ((java.util.Objects.equals(hedged, true)) || Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
@@ -7957,14 +8345,16 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("posSide", posSide);
             }
         }
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"))));
         return this.extend(request, parameters);
     }
-
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createUtaOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.createUtaOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
         if (java.util.Objects.equals(type, null))
         {
             throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -7978,10 +8368,10 @@ final Object finalMinNotional = minNotional;
         Object marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-        parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-        parameters = ((List<Object>) marginModeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -7990,12 +8380,12 @@ final Object finalMinNotional = minNotional;
         Boolean hedged = null;
         List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
-        parameters = ((List<Object>) hedgedparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
         // backward compatibility for `oneWayMode`
         Boolean oneWayMode = null;
         List<Object> oneWayModeparametersVariable = (List<Object>) this.handleParamBool(parameters, "oneWayMode");
         oneWayMode = (Boolean) ((List<Object>) oneWayModeparametersVariable).get(0);
-        parameters = ((List<Object>) oneWayModeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) oneWayModeparametersVariable).get(1);
         if (!java.util.Objects.equals(oneWayMode, null))
         {
             hedged = !Boolean.TRUE.equals(oneWayMode);
@@ -8038,11 +8428,11 @@ final Object finalMinNotional = minNotional;
         Boolean postOnly = null;
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
         Object timeInForce = null;
         List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
         timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
-        parameters = ((List<Object>) timeInForceparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
         if (!java.util.Objects.equals(timeInForce, null))
         {
             timeInForce = ((String)timeInForce).toUpperCase();
@@ -8060,7 +8450,7 @@ final Object finalMinNotional = minNotional;
         {
             ((Map<String, Object>)request).put("force", "IOC");
         }
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"))));
         if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
         {
             ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
@@ -8068,7 +8458,7 @@ final Object finalMinNotional = minNotional;
             Object productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((List<Object>) productTypeparametersVariable).get(0);
-            parameters = ((List<Object>) productTypeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
             ((Map<String, Object>)request).put("productType", productType);
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -8217,12 +8607,12 @@ final Object finalMinNotional = minNotional;
             Object createMarketBuyOrderRequiresPrice = true;
             List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-            parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
             if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
             {
                 planType = "total";
                 Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
@@ -8284,13 +8674,16 @@ final Object finalMinNotional = minNotional;
         }
         return this.extend(request, parameters);
     }
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> createUtaOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<Object> createUtaOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8355,6 +8748,10 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    public CompletableFuture<Object> createUtaOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createUtaOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -8370,12 +8767,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8490,6 +8886,24 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#createOrders
+     * @description create a list of trade orders (all orders should be of the same symbol)
+     * @see https://www.bitget.com/api-doc/spot/trade/Batch-Place-Orders
+     * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -8526,16 +8940,19 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type2, Object side2, Object amount2, Object price2, Map<String, Object> parameters2)
     {
         final Object type3 = type2;
         final Object side3 = side2;
+        final Object amount3 = amount2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object amount = amount3;
+            Object price = price3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -8777,6 +9194,45 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitget#editOrder
+     * @description edit a trade order
+     * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
+     * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
+     * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Modify-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+     * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+     * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+     * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+     * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+     * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
+     * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
+     * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -8801,13 +9257,13 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -8986,14 +9442,41 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Order::new);
 
     }
-
-    public CompletableFuture<Object> cancelUtaOrders(Object ids, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#cancelOrder
+     * @description cancels an open order
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Order
+     * @see https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Cancel-Order
+     * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
+     * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
+     * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> cancelUtaOrders(Object ids, String symbol2, Map<String, Object> parameters2)
+    {
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
@@ -9038,6 +9521,10 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    public CompletableFuture<Object> cancelUtaOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelUtaOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -9057,13 +9544,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
@@ -9159,6 +9646,28 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+     * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -9176,13 +9685,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
@@ -9285,6 +9794,26 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+     * @see https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+     * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -9300,13 +9829,13 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
@@ -9484,6 +10013,24 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -9509,15 +10056,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -9945,7 +10494,72 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
+     * @see https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
+     * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name bitget#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+     * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+     * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return this.filterBy(orders, "status", "closed");
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name bitget#fetchClosedOrders
@@ -9971,21 +10585,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-            return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
-
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -10011,15 +10611,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10028,6 +10624,33 @@ final Object finalMinNotional = minNotional;
             return this.filterBy(orders, "status", "canceled");
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bitget#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+     * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+     * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+     * @param {string} symbol unified market symbol of the canceled orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of canceled orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -10055,15 +10678,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -10394,16 +11019,47 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-
-    public CompletableFuture<Object> fetchUtaCanceledAndClosedOrders(Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#fetchCanceledAndClosedOrders
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
+     * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
+     * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
+        return this.fetchCanceledAndClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> fetchUtaCanceledAndClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    {
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10550,6 +11206,10 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    public CompletableFuture<Object> fetchUtaCanceledAndClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchUtaCanceledAndClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -10571,15 +11231,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -10767,8 +11429,32 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.symbol] *contract only* unified market symbol
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         // spot
@@ -10826,10 +11512,9 @@ final Object finalMinNotional = minNotional;
         //         "ts": "1787913879280"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(item, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         Long timestamp = (Long) this.safeInteger2(item, "cTime", "ts");
         String balanceString = this.safeString(item, "balance");
         Double after = this.parseNumber(balanceString);
@@ -10874,6 +11559,10 @@ final Object finalMinNotional = minNotional;
                 put( "cost", finalFeeCost );
             }} );
         }}, currency);
+    }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseLedgerType(String type)
@@ -11084,15 +11773,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchMyTrades", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -11333,6 +12024,28 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitget.com/api-doc/spot/trade/Get-Fills
+     * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
+     * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
+     * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -11345,12 +12058,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11455,6 +12167,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Position::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -11473,13 +12200,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -11686,8 +12413,29 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.bitget.com/api-doc/contract/position/get-all-position
+     * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
+     * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
+     * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // fetchPosition
@@ -11818,9 +12566,8 @@ final Object finalMinNotional = minNotional;
         //         "updatedTime": "1751020520458"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
-        market = this.safeMarket(marketId, market, null, "contract");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "contract"));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeIntegerN(position, new ArrayList<Object>(Arrays.asList("cTime", "ctime", "createdTime")));
         String marginMode = this.safeString(position, "marginMode");
@@ -11929,6 +12676,10 @@ final Object finalMinNotional = minNotional;
             put( "takeProfitPrice", null );
         }}));
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -11944,15 +12695,15 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -12053,6 +12804,24 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+     * @see https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -12067,12 +12836,11 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12117,6 +12885,23 @@ final Object finalMinNotional = minNotional;
         }).thenApply(FundingRate::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    {
+        return this.fetchFundingRate(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -12130,13 +12915,13 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    public CompletableFuture<FundingRates> fetchFundingRates(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12220,7 +13005,49 @@ final Object finalMinNotional = minNotional;
         }).thenApply(FundingRates::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchFundingRates
+     * @description fetch the current funding rates for all markets
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+     */
+    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    {
+        return this.fetchFundingRates(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name bitget#fetchFundingIntervals
+     * @description fetch the funding rate interval for multiple markets
+     * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRates> fetchFundingIntervals(Object symbols, Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
+        return BaseExchange.supplyAsync(() -> {
+            Object parameters = parameters3;
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            parameters = this.extend(new HashMap<String, Object>() {{
+                put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
+            }}, parameters);
+            return (this.fetchFundingRates((Object)(symbols), (Object)(parameters))).join();
+        }).thenApply(FundingRates::new);
+
+    }
     /**
      * @method
      * @name bitget#fetchFundingIntervals
@@ -12233,24 +13060,10 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<FundingRates> fetchFundingIntervals(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            parameters = this.extend(new HashMap<String, Object>() {{
-                put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
-            }}, parameters);
-            return (this.fetchFundingRates((Object)(symbols), (Object)(parameters))).join();
-        }).thenApply(FundingRates::new);
-
+        return this.fetchFundingIntervals(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    public Object parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
@@ -12308,7 +13121,6 @@ final Object finalMinNotional = minNotional;
         //         "markPrice": "12345"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, "swap");
         Long fundingTimestamp = (Long) this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
@@ -12343,6 +13155,10 @@ final Object finalMinNotional = minNotional;
             put( "interval", finalIntervalString );
         }};
     }
+    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    {
+        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -12357,15 +13173,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12435,8 +13253,25 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchFundingHistory
+     * @description fetch the funding history
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseFundingHistory(Object contract, Object... optionalArgs)
+    public Object parseFundingHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -12462,7 +13297,6 @@ final Object finalMinNotional = minNotional;
         //         "ts": "1745853486185"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "symbol");
         String currencyId = this.safeString(contract, "coin");
         Long timestamp = (Long) this.safeInteger2(contract, "cTime", "ts");
@@ -12476,12 +13310,13 @@ final Object finalMinNotional = minNotional;
             put( "id", Bitget.this.safeString2(contract, "billId", "id") );
         }};
     }
-
-    public Object parseFundingHistories(Object contracts, Object... optionalArgs)
+    public Object parseFundingHistory(Object contract, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        return this.parseFundingHistory(contract, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object parseFundingHistories(Object contracts, Map<String, Object> market, Long since, Long limit)
+    {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
@@ -12501,13 +13336,16 @@ final Object finalMinNotional = minNotional;
         }
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Object... optionalArgs)
+    public Object parseFundingHistories(Object contracts, Object... optionalArgs)
     {
+        return this.parseFundingHistories(contracts, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
+    }
 
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12543,8 +13381,12 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Object... optionalArgs)
+    {
+        return this.modifyMarginHelper(symbol, amount, type, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         // addMargin/reduceMargin
@@ -12556,7 +13398,6 @@ final Object finalMinNotional = minNotional;
         //         "data": ""
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String errorCode = this.safeString(data, "code");
         String status = (((java.util.Objects.equals(errorCode, "00000")))) ? "ok" : "failed";
         return new HashMap<String, Object>() {{
@@ -12572,6 +13413,10 @@ final Object finalMinNotional = minNotional;
             put( "datetime", null );
         }};
     }
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    {
+        return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -12583,12 +13428,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount2, Object... optionalArgs)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount2, Map<String, Object> parameters)
     {
         final Object amount3 = amount2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (Helpers.isGreaterThan(amount, 0))
             {
                 throw new BadRequest((this.id + " reduceMargin() amount parameter must be a negative value")) ;
@@ -12602,7 +13446,45 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginModification::new);
 
     }
+    /**
+     * @method
+     * @name bitget#reduceMargin
+     * @description remove margin from a position
+     * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    {
+        return this.reduceMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name bitget#addMargin
+     * @description add margin
+     * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String holdSide = this.safeString(parameters, "holdSide");
+            if (java.util.Objects.equals(holdSide, null))
+            {
+                throw new ArgumentsRequired((this.id + " addMargin() requires a holdSide parameter, either long or short")) ;
+            }
+            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
+        }).thenApply(MarginModification::new);
+
+    }
     /**
      * @method
      * @name bitget#addMargin
@@ -12615,18 +13497,7 @@ final Object finalMinNotional = minNotional;
      */
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            String holdSide = this.safeString(parameters, "holdSide");
-            if (java.util.Objects.equals(holdSide, null))
-            {
-                throw new ArgumentsRequired((this.id + " addMargin() requires a holdSide parameter, either long or short")) ;
-            }
-            return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
-
+        return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -12638,12 +13509,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12693,10 +13563,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Leverage::new);
 
     }
-
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    {
         Boolean isCrossMarginMode = java.util.Objects.equals(this.safeString(leverage, "marginMode"), "crossed");
         String longLevKey = ((Boolean.TRUE.equals(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedLongLever";
         String shortLevKey = ((Boolean.TRUE.equals(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
@@ -12707,6 +13589,10 @@ final Object finalMinNotional = minNotional;
             put( "longLeverage", Bitget.this.safeInteger(leverage, longLevKey) );
             put( "shortLeverage", Bitget.this.safeInteger(leverage, shortLevKey) );
         }};
+    }
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    {
+        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -12723,13 +13609,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -12778,6 +13664,24 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    /**
+     * @method
+     * @name bitget#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.posSide] required for uta isolated margin, long or short
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -12789,13 +13693,15 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    public CompletableFuture<Object> setMarginMode(Object marginMode2, String symbol2, Map<String, Object> parameters2)
     {
         final Object marginMode3 = marginMode2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
@@ -12845,6 +13751,20 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    /**
+     * @method
+     * @name bitget#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
+    {
+        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -12859,13 +13779,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
+    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12900,6 +13820,23 @@ final Object finalMinNotional = minNotional;
         });
 
     }
+    /**
+     * @method
+     * @name bitget#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
+    {
+        return this.setPositionMode(hedged, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -12912,12 +13849,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -12953,8 +13889,23 @@ final Object finalMinNotional = minNotional;
         }).thenApply(OpenInterest::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOpenInterest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    public Object parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
         // default
@@ -12981,7 +13932,6 @@ final Object finalMinNotional = minNotional;
         //         "ts": "1751101220993"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> data = (List<Object>) this.safeList2(interest, "openInterestList", "list", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(interest, "ts");
         String marketId = this.safeString((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "symbol");
@@ -12993,6 +13943,10 @@ final Object finalMinNotional = minNotional;
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
+    }
+    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    {
+        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -13007,15 +13961,17 @@ final Object finalMinNotional = minNotional;
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
@@ -13076,6 +14032,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    {
+        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -13093,12 +14065,11 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13150,8 +14121,28 @@ final Object finalMinNotional = minNotional;
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name bitget#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
+     * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
+     * @param {string} [params.clientOid] custom id
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer
@@ -13177,7 +14168,6 @@ final Object finalMinNotional = minNotional;
         //         "transferId": "24930940"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(transfer, "ts");
         String status = this.safeStringLower(transfer, "status");
         String currencyId = this.safeString(transfer, "coin");
@@ -13198,6 +14188,10 @@ final Object finalMinNotional = minNotional;
             put( "status", Bitget.this.parseTransferStatus(status) );
         }};
     }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransferStatus(String status)
     {
@@ -13207,7 +14201,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //     {
@@ -13231,7 +14225,6 @@ final Object finalMinNotional = minNotional;
         //         "transfer": "true""
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         Object chainsLength = ((List<?>)chains).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -13273,6 +14266,10 @@ final Object finalMinNotional = minNotional;
         }
         return result;
     }
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -13283,13 +14280,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13329,6 +14324,19 @@ final Object finalMinNotional = minNotional;
         }).thenApply(DepositWithdrawFees::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    {
+        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -13340,12 +14348,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13373,6 +14380,20 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginLoan::new);
 
     }
+    /**
+     * @method
+     * @name bitget#borrowCrossMargin
+     * @description create a loan to borrow margin
+     * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {string} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+     */
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    {
+        return this.borrowCrossMargin(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -13385,12 +14406,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13421,6 +14441,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginLoan::new);
 
     }
+    /**
+     * @method
+     * @name bitget#borrowIsolatedMargin
+     * @description create a loan to borrow margin
+     * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {string} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+     */
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    {
+        return this.borrowIsolatedMargin(symbol, code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -13433,12 +14468,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13470,6 +14504,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginLoan::new);
 
     }
+    /**
+     * @method
+     * @name bitget#repayIsolatedMargin
+     * @description repay borrowed margin and interest
+     * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to repay
+     * @param {string} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+     */
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    {
+        return this.repayIsolatedMargin(symbol, code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -13481,12 +14530,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13515,8 +14563,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginLoan::new);
 
     }
+    /**
+     * @method
+     * @name bitget#repayCrossMargin
+     * @description repay borrowed margin and interest
+     * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay
+     * @param {string} code unified currency code of the currency to repay
+     * @param {string} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+     */
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    {
+        return this.repayCrossMargin(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Map<String, Object> currency, Map<String, Object> market)
     {
         //
         // isolated: borrowMargin
@@ -13555,8 +14617,6 @@ final Object finalMinNotional = minNotional;
         //         "repayAmount": "4.00006834"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         String currencyId = this.safeString(info, "coin");
         String marketId = this.safeString(info, "symbol");
         Object symbol = null;
@@ -13575,6 +14635,10 @@ final Object finalMinNotional = minNotional;
             put( "info", info );
         }};
     }
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    {
+        return this.parseMarginLoan(info, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, null));
+    }
 
     /**
      * @method
@@ -13591,15 +14655,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(Object... optionalArgs)
+    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13715,8 +14781,27 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
+     * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitget api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(Object... optionalArgs)
+    {
+        return this.fetchMyLiquidations(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseLiquidation(Object liquidation, Object... optionalArgs)
+    public Object parseLiquidation(Object liquidation, Map<String, Object> market)
     {
         //
         // isolated
@@ -13748,7 +14833,6 @@ final Object finalMinNotional = minNotional;
         //         "cTime": "1653453245342"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(liquidation, "symbol");
         Long timestamp = this.safeInteger(liquidation, "liqEndTime");
         String liquidationFee = this.safeString2(liquidation, "LiqFee", "liqFee");
@@ -13766,6 +14850,10 @@ final Object finalMinNotional = minNotional;
             put( "datetime", Bitget.this.iso8601(timestamp) );
         }}));
     }
+    public Object parseLiquidation(Object liquidation, Object... optionalArgs)
+    {
+        return this.parseLiquidation(liquidation, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -13776,12 +14864,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13840,8 +14927,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(IsolatedBorrowRate::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchIsolatedBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
+     */
+    public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
+    {
+        return this.fetchIsolatedBorrowRate(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseIsolatedBorrowRate(Map<String, Object> info, Object... optionalArgs)
+    public Object parseIsolatedBorrowRate(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {
@@ -13877,7 +14977,6 @@ final Object finalMinNotional = minNotional;
         //         ]
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, "spot");
         String baseId = this.safeString(info, "baseCoin");
@@ -13895,6 +14994,10 @@ final Object finalMinNotional = minNotional;
             put( "info", info );
         }};
     }
+    public Object parseIsolatedBorrowRate(Map<String, Object> info, Object... optionalArgs)
+    {
+        return this.parseIsolatedBorrowRate(info, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -13907,12 +15010,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters2)
     {
-
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -13981,8 +15083,23 @@ final Object finalMinNotional = minNotional;
         }).thenApply(CrossBorrowRate::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+     */
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    {
+        return this.fetchCrossBorrowRate(code, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
-    public Object parseBorrowRate(Object info, Object... optionalArgs)
+    public Object parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         // default
@@ -14013,7 +15130,6 @@ final Object finalMinNotional = minNotional;
         //         "limit": "100"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(info, "coin");
         Long timestamp = this.safeInteger(info, "timestamp");
         return new HashMap<String, Object>() {{
@@ -14024,6 +15140,10 @@ final Object finalMinNotional = minNotional;
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "info", info );
         }};
+    }
+    public Object parseBorrowRate(Object info, Object... optionalArgs)
+    {
+        return this.parseBorrowRate(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -14040,16 +15160,19 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(Object... optionalArgs)
+    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code2, String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object symbol = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
+            Object code = code3;
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14159,8 +15282,26 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
+     * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+     * @param {int} [since] the earliest time in ms to fetch borrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(Object... optionalArgs)
+    {
+        return this.fetchBorrowInterest(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgLong(optionalArgs, 3, null), Helpers.getArgMap(optionalArgs, 4, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // isolated
@@ -14190,9 +15331,8 @@ final Object finalMinNotional = minNotional;
         //         "uTime": "1700876470957"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String marginMode = (((!java.util.Objects.equals(marketId, null)))) ? "isolated" : "cross";
         Long timestamp = this.safeInteger(info, "cTime");
         final Object finalMarket = market;
@@ -14208,6 +15348,10 @@ final Object finalMinNotional = minNotional;
             put( "datetime", Bitget.this.iso8601(timestamp) );
         }};
     }
+    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    {
+        return this.parseBorrowInterest(info, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -14221,13 +15365,13 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Order> closePosition(Object symbol, Object side2, Map<String, Object> parameters2)
     {
-
+        final Object side3 = side2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object side = side3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14268,6 +15412,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name bitget#closePosition
+     * @description closes an open position for a market
+     * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
+    {
+        return this.closePosition(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14280,12 +15440,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> closeAllPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> closeAllPositions(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14315,6 +15474,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#closeAllPositions
+     * @description closes all open positions for a market type
+     * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> closeAllPositions(Object... optionalArgs)
+    {
+        return this.closeAllPositions(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14325,12 +15499,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
+    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14380,10 +15553,22 @@ final Object finalMinNotional = minNotional;
         }).thenApply(MarginMode::new);
 
     }
-
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#fetchMarginMode
+     * @description fetches the margin mode of a trading pair
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchMarginMode(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
+    {
         String marginType = this.safeString(marginMode, "marginMode");
         marginType = (((java.util.Objects.equals(marginType, "crossed")))) ? "cross" : marginType;
         final String finalMarginType = marginType;
@@ -14392,6 +15577,10 @@ final Object finalMinNotional = minNotional;
             put( "symbol", Bitget.this.safeString(market, "symbol") );
             put( "marginMode", finalMarginType );
         }};
+    }
+    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    {
+        return this.parseMarginMode(marginMode, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -14409,15 +15598,17 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14468,6 +15659,25 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position-History
+     * @param {string[]} [symbols] unified contract symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+     * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+     * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
+    {
+        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14480,13 +15690,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
+    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14522,6 +15730,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Conversion::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://www.bitget.com/api-doc/common/convert/Get-Quoted-Price
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
+    {
+        return this.fetchConvertQuote(fromCode, toCode, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14537,13 +15760,11 @@ final Object finalMinNotional = minNotional;
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
+    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object amount, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14590,6 +15811,24 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Conversion::new);
 
     }
+    /**
+     * @method
+     * @name bitget#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://www.bitget.com/api-doc/common/convert/Trade
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
+     * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
+    {
+        return this.createConvertTrade(id, fromCode, toCode, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14602,15 +15841,15 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(Object... optionalArgs)
+    public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(String code, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14667,8 +15906,23 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bitget#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Record
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(Object... optionalArgs)
+    {
+        return this.fetchConvertTradeHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    public Object parseConversion(Map<String, Object> conversion, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
     {
         //
         // fetchConvertQuote
@@ -14705,8 +15959,6 @@ final Object finalMinNotional = minNotional;
         //         "fee": "0"
         //     }
         //
-        Object fromCurrency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object toCurrency = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Long timestamp = this.safeInteger(conversion, "ts");
         String fromCoin = this.safeString(conversion, "fromCoin");
         String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
@@ -14725,6 +15977,10 @@ final Object finalMinNotional = minNotional;
             put( "fee", Bitget.this.safeNumber(conversion, "fee") );
         }};
     }
+    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    {
+        return this.parseConversion(conversion, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, null));
+    }
 
     /**
      * @method
@@ -14734,12 +15990,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Currencies> fetchConvertCurrencies(Object... optionalArgs)
+    public CompletableFuture<Currencies> fetchConvertCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14804,6 +16059,18 @@ final Object finalMinNotional = minNotional;
         }).thenApply(Currencies::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchConvertCurrencies
+     * @description fetches all available currencies that can be converted
+     * @see https://www.bitget.com/api-doc/common/convert/Get-Convert-Currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Currencies> fetchConvertCurrencies(Object... optionalArgs)
+    {
+        return this.fetchConvertCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -14816,12 +16083,11 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
+    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object parameters2)
     {
-
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14853,6 +16119,21 @@ final Object finalMinNotional = minNotional;
         }).thenApply(FundingRate::new);
 
     }
+    /**
+     * @method
+     * @name bitget#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
+    {
+        return this.fetchFundingInterval(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -14867,16 +16148,11 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
-    public CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(Object... optionalArgs)
+    public CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String timeframe3 = timeframe2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
+            Object timeframe = timeframe3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -14902,10 +16178,26 @@ final Object finalMinNotional = minNotional;
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }
-
-    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
+    /**
+     * @method
+     * @name bitget#fetchLongShortRatioHistory
+     * @description fetches the long short ratio history for a unified market symbol
+     * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+     * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+     * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+     * @param {string} [timeframe] the period for the ratio
+     * @param {int} [since] the earliest time in ms to fetch ratios for
+     * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
+     */
+    public CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchLongShortRatioHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgLong(optionalArgs, 3, null), Helpers.getArgMap(optionalArgs, 4, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
+    {
         String marketId = this.safeString(info, "symbol");
         Object timestamp = this.safeIntegerOmitZero(info, "ts");
         return new HashMap<String, Object>() {{
@@ -14916,6 +16208,10 @@ final Object finalMinNotional = minNotional;
             put( "timeframe", null );
             put( "longShortRatio", Bitget.this.safeNumber2(info, "longShortRatio", "longShortAccountRatio") );
         }};
+    }
+    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
+    {
+        return this.parseLongShortRatio(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -14976,13 +16272,8 @@ final Object finalMinNotional = minNotional;
         return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         Object pathPart = "/api";
@@ -15006,7 +16297,7 @@ final Object finalMinNotional = minNotional;
             Object auth = ((timestamp + method) + payload);
             if (java.util.Objects.equals(method, "POST"))
             {
-                body = this.json(parameters);
+                body = (String) (this.json(parameters));
                 auth = Helpers.add(auth, body);
             } else
             {
@@ -15066,5 +16357,9 @@ final Object finalMinNotional = minNotional;
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 }

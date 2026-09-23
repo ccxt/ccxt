@@ -116,14 +116,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
@@ -136,7 +133,41 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on multiple trades made in a market
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name nado#unWatchTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made in a market
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets()).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name nado#unWatchTrades
@@ -148,14 +179,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            (this.loadMarkets()).join();
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
-
+        return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -169,14 +193,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -203,6 +226,21 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchTradesForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -213,12 +251,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object parameters)
     {
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -238,6 +275,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchTradesForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made in a list of markets
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -249,13 +299,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
@@ -269,7 +317,40 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name nado#watchOrderBook
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name nado#unWatchOrderBook
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets()).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name nado#unWatchOrderBook
@@ -281,14 +362,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      */
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            (this.loadMarkets()).join();
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
-
+        return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -301,13 +375,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Long limit, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -335,6 +407,20 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name nado#watchOrderBookForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchOrderBookForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -345,12 +431,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object parameters)
     {
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
             if (java.util.Objects.equals(symbolsLength, 0))
@@ -370,6 +455,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchOrderBookForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of symbols
+     * @param {string[]} symbols unified symbols of the markets to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -383,15 +481,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             String messageHash = ((("ohlcv:" + timeframe) + ":") + ((Map<String, Object>)market).get("symbol"));
@@ -408,6 +502,22 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchOHLCV
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -420,14 +530,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
@@ -462,7 +569,42 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#watchOHLCVForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to watch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
+     */
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    {
+        return this.watchOHLCVForSymbols(symbolsAndTimeframes, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name nado#unWatchOHLCV
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets()).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name nado#unWatchOHLCV
@@ -475,15 +617,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            (this.loadMarkets()).join();
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
-
+        return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -495,12 +629,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
@@ -526,6 +659,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchOHLCVForSymbols
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -536,18 +682,30 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name nado#watchTicker
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches a price ticker with the best bid and ask for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -559,16 +717,28 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name nado#unWatchTicker
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches a price ticker with the best bid and ask for a specific market
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -580,13 +750,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
@@ -617,6 +785,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name nado#watchTickers
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches price tickers with the best bid and ask for all markets of a specific list
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    {
+        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -627,13 +808,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
@@ -653,6 +832,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchTickers
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches price tickers with the best bid and ask for all markets of a specific list
+     * @param {string[]} [symbols] unified symbols of the markets to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
+    {
+        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -663,13 +855,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
@@ -700,6 +890,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name nado#watchBidsAsks
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
+    {
+        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -710,13 +913,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchBidsAsks(Object symbols2, Object parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
@@ -736,6 +937,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchBidsAsks
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbols of the markets to unwatch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
+    {
+        return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -750,15 +964,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -792,6 +1006,23 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchOrders
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -803,13 +1034,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrders(String symbol2, Object parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -838,6 +1069,20 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchOrders
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
+    {
+        return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -852,15 +1097,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -894,6 +1139,23 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchMyTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+     * @description watches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    {
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -905,13 +1167,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchMyTrades(String symbol2, Object parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -940,6 +1202,20 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchMyTrades
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
+    {
+        return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -954,15 +1230,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -999,6 +1273,23 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#watchPositions
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+     * @description watches information on user positions
+     * @param {string[]} [symbols] unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    {
+        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1010,13 +1301,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPositions(Object symbols2, Object parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
@@ -1048,6 +1339,20 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    /**
+     * @method
+     * @name nado#unWatchPositions
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+     * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+     * @description unWatches information on user positions
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
+    {
+        return this.unWatchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     /**
      * @method
@@ -1071,13 +1376,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -1113,6 +1416,32 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name nado#createOrderWs
+     * @description create a trade order over the v2 gateway WebSocket
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string|int} [params.expiration] order expiration timestamp in seconds, defaults to 4294967295
+     * @param {string|int} [params.appendix] pre-encoded order appendix
+     * @param {boolean} [params.reduceOnly] true if the order should only reduce position
+     * @param {boolean} [params.postOnly] true to create a post-only order
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+     * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+     * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderWs(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1139,14 +1468,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -1180,7 +1506,60 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name nado#editOrderWs
+     * @description edit a trade order over the v2 gateway WebSocket
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string|int} [params.expiration] order expiration timestamp in seconds, defaults to 4294967295
+     * @param {string|int} [params.appendix] pre-encoded order appendix
+     * @param {boolean} [params.reduceOnly] true if the order should only reduce position
+     * @param {boolean} [params.postOnly] true to create a post-only order
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+     * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
+     * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
+     * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrderWs(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name nado#cancelOrderWs
+     * @description cancels an open order over the v2 gateway WebSocket
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string} [params.requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+     * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
+            return this.safeDict(orders, 0);
+        }).thenApply(Order::new);
+
+    }
     /**
      * @method
      * @name nado#cancelOrderWs
@@ -1197,15 +1576,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      */
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
-            return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
-
+        return this.cancelOrderWs(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1222,13 +1593,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1275,6 +1646,24 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#cancelOrdersWs
+     * @description cancel multiple orders over the v2 gateway WebSocket
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {string} [params.requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias params.required_unfilled_amount
+     * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrdersWs(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1288,13 +1677,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
      * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
             Object market = null;
@@ -1330,6 +1719,22 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name nado#cancelAllOrdersWs
+     * @description cancel all open orders over the v2 gateway WebSocket
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+     * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-product-orders
+     * @param {string} [symbol] unified market symbol, when undefined all orders for all products are canceled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
+     * @param {int} [params.id] client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
+    {
+        return this.cancelAllOrdersWs(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public CompletableFuture<Object> watchExecuteRequest(String requestIdString2, Map<String, Object> request)
     {
@@ -1350,12 +1755,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> watchPublic(String streamType, Object market2, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPublic(String streamType, Object market2, Object messageHash, Map<String, Object> parameters)
     {
         final Object market3 = market2;
         return BaseExchange.supplyAsync(() -> {
             Object market = market3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Map<String, Object> stream = new HashMap<String, Object>() {{
                 put( "type", streamType );
@@ -1389,13 +1793,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    public CompletableFuture<Object> watchPublic(String streamType, Object market, Object messageHash, Object... optionalArgs)
+    {
+        return this.watchPublic(streamType, market, messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> watchPrivate(String streamType, Map<String, Object> stream, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivate(String streamType, Map<String, Object> stream, Object messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             Object clientSubscription = this.safeValue(client.subscriptions, messageHash);
@@ -1421,13 +1828,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    public CompletableFuture<Object> watchPrivate(String streamType, Map<String, Object> stream, Object messageHash, Object... optionalArgs)
+    {
+        return this.watchPrivate(streamType, stream, messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> unWatchPrivate(Map<String, Object> stream, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPrivate(Map<String, Object> stream, Object messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Object id = this.requestId();
             String unsubscribeHash = ("unsubscribe:" + messageHash);
@@ -1449,13 +1859,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
-
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPrivate(Map<String, Object> stream, Object messageHash, Object... optionalArgs)
     {
+        return this.unWatchPrivate(stream, messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters2)
+    {
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
@@ -1504,6 +1917,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    {
+        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object signStreamAuthentication(Map<String, Object> tx, String chainId, String endpointAddress)
     {
@@ -1527,11 +1944,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Map<String, Object> createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
+    public Map<String, Object> createPublicSubscriptionRequest(Object method, String streamType, Map<String, Object> market, Long id, Map<String, Object> parameters)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object id = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Map<String, Object> stream = new HashMap<String, Object>() {{
             put( "type", streamType );
         }};
@@ -1545,14 +1959,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "id", id );
         }};
     }
-
-    public CompletableFuture<Object> watchPublicMultiple(String streamType, Object markets, Object messageHashes, Object... optionalArgs)
+    public Map<String, Object> createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
     {
+        return this.createPublicSubscriptionRequest(method, streamType, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> watchPublicMultiple(String streamType, Object markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams2)
+    {
+        final Object subscriptionParams3 = subscriptionParams2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object subscriptionParams = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object subscriptionParams = subscriptionParams3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1584,13 +2000,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    public CompletableFuture<Object> watchPublicMultiple(String streamType, Object markets, Object messageHashes, Object... optionalArgs)
+    {
+        return this.watchPublicMultiple(streamType, markets, messageHashes, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
 
-    public CompletableFuture<Object> unWatchPublic(String streamType, Map<String, Object> market, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPublic(String streamType, Map<String, Object> market, Object messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Object id = this.requestId();
             Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
@@ -1608,14 +2027,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
-
-    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, Object markets, Object messageHashes, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPublic(String streamType, Map<String, Object> market, Object messageHash, Object... optionalArgs)
     {
+        return this.unWatchPublic(streamType, market, messageHash, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, Object markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams2)
+    {
+        final Object subscriptionParams3 = subscriptionParams2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object subscriptionParams = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object subscriptionParams = subscriptionParams3;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Client client = this.client(url);
             List<Object> results = new ArrayList<Object>(Arrays.asList());
@@ -1640,6 +2061,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         });
 
     }
+    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, Object markets, Object messageHashes, Object... optionalArgs)
+    {
+        return this.unWatchPublicMultiple(streamType, markets, messageHashes, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+    }
 
     public Object parseWsTimestamp(Map<String, Object> message, Object key)
     {
@@ -1658,7 +2083,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.safeInteger(message, key);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1671,9 +2096,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //         "is_taker_buyer": true
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "product_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.parseWsTimestamp((Map<String, Object>) (trade), "timestamp");
         Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer");
         String side = null;
@@ -1699,8 +2123,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "fee", null );
         }}), market);
     }
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1721,9 +2149,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //         "id": 100
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "product_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.parseWsTimestamp((Map<String, Object>) (trade), "timestamp");
         Boolean isBid = (Boolean) this.safeBool(trade, "is_bid");
         String side = null;
@@ -1767,6 +2194,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "cost", null );
             put( "fee", finalFee );
         }}), market);
+    }
+    public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsMyTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -1843,7 +2274,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1858,9 +2289,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //         "id": 100
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "product_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.parseWsTimestamp((Map<String, Object>) (order), "timestamp");
         String id = this.safeString(order, "digest");
         String amountString = this.safeString(order, "amount");
@@ -1917,6 +2347,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "trades", null );
         }}), market);
     }
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
@@ -1933,7 +2367,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(orders, ("orders:" + symbol));
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -1947,9 +2381,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //         "reason": "match_orders"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "product_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.parseWsTimestamp((Map<String, Object>) (position), "timestamp");
         String amountString = this.safeString(position, "amount");
         String vQuoteAmount = this.safeString(position, "v_quote_amount");
@@ -2003,6 +2436,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "percentage", null );
         }}));
     }
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public void handlePosition(Client client, Map<String, Object> message)
     {
@@ -2036,7 +2473,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(positions, ("positions:" + symbol));
     }
 
-    public Object parseWsBidAsk(Map<String, Object> bidask, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> bidask, Map<String, Object> market)
     {
         //
         //     {
@@ -2049,9 +2486,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //         "ask_qty": "3000000000000000000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(bidask, "product_id");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Object timestamp = this.parseWsTimestamp((Map<String, Object>) (bidask), "timestamp");
         final Object finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -2064,6 +2500,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "bidVolume", Nado.this.parseX18(Nado.this.safeString(bidask, "bid_qty")) );
             put( "info", bidask );
         }}, market);
+    }
+    public Object parseWsBidAsk(Map<String, Object> bidask, Object... optionalArgs)
+    {
+        return this.parseWsBidAsk(bidask, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public void handleBidAsk(Client client, Map<String, Object> message)

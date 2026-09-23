@@ -827,7 +827,7 @@ public class Poloniex extends PoloniexApi
         }});
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         // spot:
@@ -865,7 +865,6 @@ public class Poloniex extends PoloniexApi
         //             "1740770099999",
         //           ],
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
         Boolean isContract = (ohlcvLength != null && ohlcvLength == 9);
         if (Boolean.TRUE.equals(isContract))
@@ -873,6 +872,10 @@ public class Poloniex extends PoloniexApi
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
         }
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 12), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -890,15 +893,15 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
@@ -980,14 +983,31 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> loadMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> loadMarkets(Object reload, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object reload = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object markets = (super.loadMarkets(reload, parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId");
             if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(reload))
@@ -997,6 +1017,10 @@ public class Poloniex extends PoloniexApi
             return markets;
         });
 
+    }
+    public CompletableFuture<Object> loadMarkets(Object... optionalArgs)
+    {
+        return this.loadMarkets(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -1008,25 +1032,36 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object results = (Helpers.promiseAll(promises)).join();
             return this.arrayConcat((results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0)), (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1)));
         });
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchMarkets
+     * @description retrieves data on all markets for poloniex
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> markets = (this.publicGetMarkets(parameters)).join();
             //
             //     [
@@ -1055,14 +1090,17 @@ public class Poloniex extends PoloniexApi
         });
 
     }
+    public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
+    {
+        return this.fetchSpotMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.swapPublicGetV3MarketAllInstruments(parameters)).join();
             //
             //    {
@@ -1106,6 +1144,10 @@ public class Poloniex extends PoloniexApi
             return this.parseMarkets(markets);
         });
 
+    }
+    public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
+    {
+        return this.fetchSwapMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object market)
@@ -1304,19 +1346,30 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetTimestamp(parameters)).join();
             return this.safeInteger(response, "serverTime");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //  spot:
@@ -1365,10 +1418,9 @@ public class Poloniex extends PoloniexApi
         //                "iPx": "2.1834"
         //            },
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = (Long) this.safeInteger2(ticker, "ts", "cT");
         String marketId = this.safeString2(ticker, "symbol", "s");
-        market = this.safeMarket(marketId);
+        market = (Map<String, Object>) (this.safeMarket(marketId));
         String baseVolume = this.safeString2(ticker, "quantity", "qty");
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("contractSize"), null)))
         {
@@ -1404,6 +1456,10 @@ public class Poloniex extends PoloniexApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1415,13 +1471,13 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(Object symbols2, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1503,6 +1559,20 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1512,12 +1582,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetV2Currencies(parameters)).join();
             //
             //    [
@@ -1551,6 +1620,18 @@ public class Poloniex extends PoloniexApi
             return this.parseCurrencies(response);
         });
 
+    }
+    /**
+     * @method
+     * @name poloniex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseCurrency(Object currency)
@@ -1619,12 +1700,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1662,8 +1742,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades
@@ -1761,12 +1855,11 @@ public class Poloniex extends PoloniexApi
         //         "clientOrderId": ""
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("id", "tradeID", "trdId")));
         String orderId = this.safeString2(trade, "orderId", "ordId");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("ts", "createTime", "cT", "cTime")));
         String marketId = this.safeString(trade, "symbol");
-        market = this.safeMarket(marketId, market, "_");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, "_"));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String side = this.safeStringLower2(trade, "side", "takerSide");
         Object fee = null;
@@ -1801,6 +1894,10 @@ public class Poloniex extends PoloniexApi
             put( "fee", finalFee );
         }}), market);
     }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1814,14 +1911,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1869,6 +1963,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#trades
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1884,15 +1994,17 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
@@ -1994,6 +2106,24 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public String parseOrderStatus(String status)
     {
@@ -2009,7 +2139,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // fetchOpenOrder
@@ -2109,14 +2239,13 @@ public class Poloniex extends PoloniexApi
         //        "clOrdId":"polo418876147745775616"
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("timestamp", "createTime", "cTime")));
         if (java.util.Objects.equals(timestamp, null))
         {
             timestamp = this.parse8601(this.safeString(order, "date"));
         }
         String marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market, "_");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, "_"));
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object resultingTrades = this.safeValue(order, "resultingTrades");
         if (!java.util.Objects.equals(resultingTrades, null))
@@ -2196,6 +2325,10 @@ public class Poloniex extends PoloniexApi
             put( "hedged", hedged );
         }}), market);
     }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseOrderType(String status)
     {
@@ -2239,15 +2372,15 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2348,6 +2481,24 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2361,15 +2512,17 @@ public class Poloniex extends PoloniexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object since = since3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object market = null;
             Object request = new HashMap<String, Object>() {{}};
@@ -2443,6 +2596,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchClosedOrders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2461,13 +2630,11 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
@@ -2503,11 +2670,30 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Order::new);
 
     }
-
-    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object... optionalArgs)
+    /**
+     * @method
+     * @name poloniex#createOrder
+     * @description create a trade order
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-order
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    {
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -2515,7 +2701,7 @@ public class Poloniex extends PoloniexApi
             String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleParamString(parameters, "marginMode");
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = ((List<Object>) marginModeparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 this.checkRequiredArgument("createOrder", marginMode, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
@@ -2524,7 +2710,7 @@ public class Poloniex extends PoloniexApi
             String hedged = null;
             List<Object> hedgedparametersVariable = (List<Object>) this.handleParamString(parameters, "hedged");
             hedged = (String) ((List<Object>) hedgedparametersVariable).get(0);
-            parameters = ((List<Object>) hedgedparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
             if ((!java.util.Objects.equals(hedged, null)) && (!java.util.Objects.equals(hedged, "")))
             {
                 if (java.util.Objects.equals(marginMode, null))
@@ -2540,7 +2726,7 @@ public class Poloniex extends PoloniexApi
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
         Object isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters);
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice"))));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -2562,9 +2748,9 @@ public class Poloniex extends PoloniexApi
                 Object createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-                parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+                parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -2604,10 +2790,14 @@ public class Poloniex extends PoloniexApi
             // the futures v3 api silently ignores the spot key and generates its own id
             String clientOrderIdKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "clientOrderId" : "clOrdId";
             ((Map<String, Object>)request).put((String)clientOrderIdKey, clientOrderId);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
+            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId"))));
         }
         // remember the timestamp before issuing the request
         return new ArrayList<Object>(Arrays.asList(request, parameters));
+    }
+    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object... optionalArgs)
+    {
+        return this.orderRequest(symbol, type, side, amount, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2627,14 +2817,11 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -2670,12 +2857,37 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#editOrder
+     * @description edit a trade order
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Order> cancelOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(Object id2, String symbol2, Map<String, Object> parameters2)
     {
         final Object id3 = id2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             //
             // @method
             // @name poloniex#cancelOrder
@@ -2688,8 +2900,6 @@ public class Poloniex extends PoloniexApi
             // @param {boolean} [params.trigger] true if canceling a trigger order
             // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
             //
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             if (java.util.Objects.equals(symbol, null))
             {
@@ -2743,6 +2953,10 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Order::new);
 
     }
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2756,13 +2970,13 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.trigger] true if canceling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", new ArrayList<Object>(Arrays.asList()) );
@@ -2828,6 +3042,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if canceling trigger orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2841,13 +3071,15 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.trigger] true if fetching a trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id2, String symbol2, Map<String, Object> parameters2)
     {
         final Object id3 = id2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             id = String.valueOf(id);
             final Object finalId = id;
@@ -2906,20 +3138,38 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Order::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchOrder
+     * @description fetch an order by it's id
+     * @see https://api-docs.poloniex.com/spot/api/private/order#order-details
+     * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if fetching a trigger order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<String> fetchOrderStatus(String id2, Object... optionalArgs)
+    public CompletableFuture<String> fetchOrderStatus(String id2, String symbol, Map<String, Object> parameters)
     {
         final String id3 = id2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object orders = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join();
             Map<String, Object> indexed = this.indexBy(orders, "id");
             return (((indexed.containsKey(id)))) ? "open" : "closed";
         }).thenApply(res -> (String) res);
 
+    }
+    public CompletableFuture<String> fetchOrderStatus(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderStatus(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2934,15 +3184,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -2972,6 +3218,22 @@ public class Poloniex extends PoloniexApi
             return this.parseTrades(trades);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name poloniex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -3034,12 +3296,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -3112,6 +3373,19 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+     * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3121,12 +3395,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> response = (this.privateGetFeeinfo(parameters)).join();
             //
@@ -3155,6 +3428,18 @@ public class Poloniex extends PoloniexApi
         }).thenApply(TradingFees::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3167,13 +3452,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3250,6 +3533,21 @@ public class Poloniex extends PoloniexApi
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3260,12 +3558,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
             var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
@@ -3283,6 +3580,19 @@ public class Poloniex extends PoloniexApi
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3293,12 +3603,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
             var request = ((List<Object>) requestextraParamscurrencynetworkEntryVariable).get(0);
@@ -3322,10 +3631,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(DepositAddress::new);
 
     }
-
-    public Object prepareRequestForDepositAddress(String code, Object... optionalArgs)
+    /**
+     * @method
+     * @name poloniex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object prepareRequestForDepositAddress(String code, Map<String, Object> parameters)
+    {
         if (!(((Map<?, ?>)this.currencies).containsKey(code)))
         {
             throw new BadSymbol((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
@@ -3334,7 +3655,7 @@ public class Poloniex extends PoloniexApi
         Object networkCode = null;
         List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<Object>) networkCodeparametersVariable).get(0);
-        parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
         {
             throw new ArgumentsRequired((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
@@ -3354,6 +3675,10 @@ public class Poloniex extends PoloniexApi
             put( "currency", finalExchangeNetworkId );
         }};
         return new ArrayList<Object>(Arrays.asList(request, parameters, currency, networkEntry));
+    }
+    public Object prepareRequestForDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.prepareRequestForDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseDepositAddressSpecial(Object response, Object currency, Object networkEntry)
@@ -3398,12 +3723,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
@@ -3425,15 +3749,30 @@ public class Poloniex extends PoloniexApi
         }).thenApply(TransferEntry::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         //    {
         //        "transferId" : "168041074"
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", Poloniex.this.safeString(transfer, "transferId") );
@@ -3445,6 +3784,10 @@ public class Poloniex extends PoloniexApi
             put( "toAccount", null );
             put( "status", null );
         }};
+    }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3459,13 +3802,13 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, String tag2, Map<String, Object> parameters2)
     {
-
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = tag3;
+            Object parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -3501,16 +3844,28 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Transaction::new);
 
     }
-
-    public CompletableFuture<Object> fetchTransactionsHelper(Object... optionalArgs)
+    /**
+     * @method
+     * @name poloniex#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> fetchTransactionsHelper(String code, Long since2, Long limit, Map<String, Object> parameters)
+    {
+        final Long since3 = since2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object since = since3;
             (this.loadMarkets()).join();
             Integer year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
             Long now = this.seconds();
@@ -3596,6 +3951,10 @@ public class Poloniex extends PoloniexApi
         });
 
     }
+    public CompletableFuture<Object> fetchTransactionsHelper(Object... optionalArgs)
+    {
+        return this.fetchTransactionsHelper(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -3608,15 +3967,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object code = code3;
             (this.loadMarkets()).join();
             Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
             Object currency = null;
@@ -3633,7 +3988,50 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name poloniex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since, Long limit, Map<String, Object> parameters)
+    {
+        final String code3 = code2;
+        return BaseExchange.supplyAsync(() -> {
+            Object code = code3;
+            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
+            Object currency = null;
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+            }
+            List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
+            return this.filterByCurrencySinceLimit(transactions, code, since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name poloniex#fetchWithdrawals
@@ -3647,24 +4045,7 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
-            Object currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            List<Object> withdrawals = (List<Object>) this.safeList(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
-            List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
-            return this.filterByCurrencySinceLimit(transactions, code, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
-
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3676,13 +4057,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             List<Object> response = (this.publicGetCurrencies(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "includeMultiChainCurrencies", true );
@@ -3727,8 +4106,21 @@ public class Poloniex extends PoloniexApi
         }).thenApply(DepositWithdrawFees::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    {
+        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseDepositWithdrawFees(Object response, Object... optionalArgs)
+    public Object parseDepositWithdrawFees(Object response, Object codes, String currencyIdKey)
     {
         //
         //         {
@@ -3751,8 +4143,6 @@ public class Poloniex extends PoloniexApi
         //             },
         //         }
         //
-        Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
         List<Object> responseKeys = Helpers.objectKeys(response);
@@ -3798,10 +4188,13 @@ public class Poloniex extends PoloniexApi
         }
         return depositWithdrawFees;
     }
-
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    public Object parseDepositWithdrawFees(Object response, Object... optionalArgs)
     {
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.parseDepositWithdrawFees(response, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null));
+    }
+
+    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
+    {
         Object depositWithdrawFee = this.depositWithdrawFee(new HashMap<String, Object>() {{}});
         String currencyCode = this.safeString(currency, "code");
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), currencyCode, fee);
@@ -3828,7 +4221,39 @@ public class Poloniex extends PoloniexApi
         }
         return depositWithdrawFee;
     }
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name poloniex#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since, Long limit, Map<String, Object> parameters)
+    {
+        final String code3 = code2;
+        return BaseExchange.supplyAsync(() -> {
+            Object code = code3;
+            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
+            Object currency = null;
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+            }
+            List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
+            return this.filterByCurrencySinceLimit(transactions, code, since, limit);
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name poloniex#fetchDeposits
@@ -3842,24 +4267,7 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
-            Object currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-            }
-            List<Object> deposits = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
-            List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
-            return this.filterByCurrencySinceLimit(transactions, code, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
-
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseTransactionStatus(String status)
@@ -3877,7 +4285,7 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // deposits
@@ -3915,7 +4323,6 @@ public class Poloniex extends PoloniexApi
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (transaction.containsKey("withdrawNetworkEntry"))
         {
             transaction = (Map<String, Object>) (((Map<String, Object>)transaction).get("response"));
@@ -3967,6 +4374,10 @@ public class Poloniex extends PoloniexApi
             }} );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3979,13 +4390,13 @@ public class Poloniex extends PoloniexApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4022,6 +4433,21 @@ public class Poloniex extends PoloniexApi
         });
 
     }
+    /**
+     * @method
+     * @name poloniex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4032,12 +4458,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4094,10 +4519,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(Leverage::new);
 
     }
-
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    /**
+     * @method
+     * @name poloniex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    {
         Long shortLeverage = null;
         Long longLeverage = null;
         String marketId = null;
@@ -4136,6 +4573,10 @@ public class Poloniex extends PoloniexApi
             put( "shortLeverage", finalShortLeverage );
         }};
     }
+    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    {
+        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -4146,13 +4587,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
+    public CompletableFuture<PositionModeInfo> fetchPositionMode(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.swapPrivateGetV3PositionMode(parameters)).join();
             //
             //    {
@@ -4173,6 +4612,19 @@ public class Poloniex extends PoloniexApi
         }).thenApply(PositionModeInfo::new);
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchPositionMode
+     * @description fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used by fetchPositionMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
+    {
+        return this.fetchPositionMode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4184,13 +4636,11 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
+    public CompletableFuture<Object> setPositionMode(Object hedged, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             String mode = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONE_WAY";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "posMode", mode );
@@ -4207,6 +4657,20 @@ public class Poloniex extends PoloniexApi
         });
 
     }
+    /**
+     * @method
+     * @name poloniex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
+     * @param {bool} hedged set to true to use the hedged position mode
+     * @param {string} symbol not used by setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
+    {
+        return this.setPositionMode(hedged, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -4218,13 +4682,11 @@ public class Poloniex extends PoloniexApi
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.swapPrivateGetV3TradePositionOpens(parameters)).join();
@@ -4268,8 +4730,22 @@ public class Poloniex extends PoloniexApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name poloniex#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //            {
@@ -4300,9 +4776,8 @@ public class Poloniex extends PoloniexApi
         //                "slTrgPx": ""
         //            }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(position, "cTime");
         String marginMode = this.safeStringLower(position, "mgnMode");
         String leverage = this.safeString(position, "lever");
@@ -4343,15 +4818,18 @@ public class Poloniex extends PoloniexApi
             put( "takeProfitPrice", Poloniex.this.safeNumber(position, "tpTrgPx") );
         }}));
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Map<String, Object> parameters)
     {
         final Object amount3 = amount2;
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
             Object type = type3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             amount = this.amountToPrecision(symbol, amount);
@@ -4390,12 +4868,15 @@ public class Poloniex extends PoloniexApi
         });
 
     }
-
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        return this.modifyMarginHelper(symbol, amount, type, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    {
         String marketId = this.safeString(data, "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String rawType = this.safeString(data, "type");
         String type = (((java.util.Objects.equals(rawType, "ADD")))) ? "add" : "reduce";
         final Object finalMarket = market;
@@ -4412,7 +4893,29 @@ public class Poloniex extends PoloniexApi
             put( "datetime", null );
         }};
     }
+    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    {
+        return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name poloniex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.modifyMarginHelper(symbol, Helpers.opNeg(amount), "reduce", parameters)).join();
+        }).thenApply(MarginModification::new);
+
+    }
     /**
      * @method
      * @name poloniex#reduceMargin
@@ -4424,13 +4927,7 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.modifyMarginHelper(symbol, Helpers.opNeg(amount), "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
-
+        return this.reduceMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4442,15 +4939,27 @@ public class Poloniex extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
         }).thenApply(MarginModification::new);
 
+    }
+    /**
+     * @method
+     * @name poloniex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
+    {
+        return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object nonce()
@@ -4458,13 +4967,8 @@ public class Poloniex extends PoloniexApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("spot");
         if (this.inArray(api, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
@@ -4495,7 +4999,7 @@ public class Poloniex extends PoloniexApi
                 auth = (auth + "\n"); // eslint-disable-line quotes
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
                 {
-                    body = this.json(query);
+                    body = (String) (this.json(query));
                     auth = (auth + (("requestBody=" + body) + "&"));
                 }
                 auth = (auth + ("signTimestamp=" + timestamp));
@@ -4529,6 +5033,10 @@ public class Poloniex extends PoloniexApi
             put( "body", finalBody );
             put( "headers", finalHeaders );
         }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

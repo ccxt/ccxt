@@ -115,14 +115,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return this.numberToString(requestId);
     }
 
-    public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Object isContract, Map<String, Object> parameters, Map<String, Object> subscription2)
     {
-
+        final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object isContract = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object subscription = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object subscription = subscription3;
             Object id = this.requestId();
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
@@ -145,15 +142,16 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         });
 
     }
-
-    public CompletableFuture<Object> subscribePrivate(Object messageHash, Object subscribeHash, String channel, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Object... optionalArgs)
     {
+        return this.subscribePublic(messageHashes, channels, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> subscribePrivate(Object messageHash, Object subscribeHash, String channel, Object isContract, Map<String, Object> parameters, Map<String, Object> subscription2)
+    {
+        final Map<String, Object> subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object isContract = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object subscription = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object subscription = subscription3;
             String type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type), "/private");
             this.authenticate(url);
@@ -176,6 +174,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscription)).join();
         });
 
+    }
+    public CompletableFuture<Object> subscribePrivate(Object messageHash, Object subscribeHash, String channel, Object... optionalArgs)
+    {
+        return this.subscribePrivate(messageHash, subscribeHash, channel, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void authenticate(Object url)
@@ -230,12 +232,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -245,6 +246,21 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return Helpers.GetValue(tickers, symbol);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name weex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Tickers-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Tickers-Channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] stream to use can be ticker or miniTicker
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -257,13 +273,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchTickers(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -294,7 +308,40 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name weex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Tickers-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Tickers-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
+    {
+        return this.watchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name weex#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Tickers-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Tickers-Channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name weex#unWatchTicker
@@ -307,13 +354,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
-
+        return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -326,13 +367,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTickers(Object symbols2, Object parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -367,6 +406,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Tickers-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Tickers-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
+    {
+        return this.unWatchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -410,7 +463,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Object ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -430,7 +483,6 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "i": "2185.2025"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "C");
         String close = this.safeString(ticker, "c");
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
@@ -459,7 +511,32 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "info", ticker );
         }}, market);
     }
+    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseWsTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name weex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name weex#watchTrades
@@ -474,15 +551,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
-
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -497,14 +566,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final Object symbols3 = symbols2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -535,7 +603,42 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name weex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchTradesForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name weex#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Object parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name weex#unWatchTrades
@@ -548,13 +651,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
-
+        return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -567,12 +664,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object parameters)
     {
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -606,6 +702,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Trades-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Trades-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.unWatchTradesForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -658,7 +768,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(tradesArray, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -670,7 +780,6 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "m": false
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "T");
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
@@ -699,7 +808,37 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "fee", null );
         }}), market);
     }
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
+    /**
+     * @method
+     * @name weex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
+                put( "callerMethodName", "watchOHLCV" );
+            }});
+            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, extendedParams)).join();
+            return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
     /**
      * @method
      * @name weex#watchOHLCV
@@ -715,20 +854,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "callerMethodName", "watchOHLCV" );
-            }});
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, extendedParams)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
-
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -743,14 +869,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -800,7 +925,44 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         });
 
     }
+    /**
+     * @method
+     * @name weex#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    {
+        return this.watchOHLCVForSymbols(symbolsAndTimeframes, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name weex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchOHLCV");
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name weex#unWatchOHLCV
@@ -814,15 +976,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)parameters).put("callerMethodName", "unWatchOHLCV");
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
-
+        return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -835,12 +989,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object parameters2)
     {
-
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -890,6 +1043,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Candlesticks-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Candlesticks-Channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
+    {
+        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -954,7 +1121,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(resolveData, messageHash);
     }
 
-    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -973,8 +1140,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         Q: '14213680.1906424'
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
+    }
+    public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseWsOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -988,19 +1158,32 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchOrderBook" );
             }});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name weex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1014,13 +1197,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Long limit, Map<String, Object> parameters2)
     {
         final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1053,7 +1236,44 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name weex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.watchOrderBookForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name weex#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object parameters2)
+    {
+        final Object parameters3 = parameters2;
+        return BaseExchange.supplyAsync(() -> {
+            Object parameters = parameters3;
+            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                put( "callerMethodName", "unWatchOrderBook" );
+            }});
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name weex#unWatchOrderBook
@@ -1066,16 +1286,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      */
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "callerMethodName", "unWatchOrderBook" );
-            }});
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
-
+        return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -1088,12 +1299,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object parameters2)
     {
         final Object symbols3 = symbols2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1132,6 +1344,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/Depth-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
+    {
+        return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1205,13 +1431,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Tickers> watchBidsAsks(Object symbols2, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1244,6 +1468,19 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(Tickers::new);
 
     }
+    /**
+     * @method
+     * @name weex#watchBidsAsks
+     * @description watches best bid & ask for spot symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
+    {
+        return this.watchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1254,13 +1491,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchBidsAsks(Object symbols2, Object parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1297,6 +1532,19 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         });
 
     }
+    /**
+     * @method
+     * @name weex#unWatchBidsAsks
+     * @description unWatches best bid & ask for spot symbols
+     * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchBidsAsks(Object... optionalArgs)
+    {
+        return this.unWatchBidsAsks(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
+    }
 
     public void handleBidAsk(Client client, Map<String, Object> message)
     {
@@ -1327,9 +1575,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Map<String, Object> message, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(message, "E");
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1342,6 +1589,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "bidVolume", Weex.this.safeString(message, "B") );
             put( "info", message );
         }}, market);
+    }
+    public Object parseWsBidAsk(Map<String, Object> message, Object... optionalArgs)
+    {
+        return this.parseWsBidAsk(message, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1357,15 +1608,15 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1397,6 +1648,23 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name weex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.weex.com/api-doc/spot/Websocket/private/Fill-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Fill-Channel
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    {
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1409,13 +1677,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {string} [params.type] spot or swap, default is spot
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchMyTrades(String symbol2, Object parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (!java.util.Objects.equals(symbol, null))
             {
                 throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
@@ -1438,6 +1706,21 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://www.weex.com/api-doc/spot/Websocket/private/Fill-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Fill-Channel
+     * @param {string} [symbol] not used by the exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap, default is spot
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
+    {
+        return this.unWatchMyTrades(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public void handleMyTrades(Client client, Map<String, Object> message)
@@ -1523,7 +1806,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(trades, messageHash);
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // spot
@@ -1542,7 +1825,6 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         updatedTime: '1776174283564'
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "createdTime");
         String marketId = this.safeString(trade, "symbol");
         String marketType = "spot";
@@ -1552,7 +1834,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = "swap";
         }
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-        market = marketResolved;
+        market = (Map<String, Object>) (marketResolved);
         String side = this.safeStringLower(trade, "orderSide");
         Object fee = null;
         String commission = this.safeString(trade, "fillFee");
@@ -1595,6 +1877,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "fee", finalFee );
         }}));
     }
+    public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseWsMyTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1609,15 +1895,15 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1649,6 +1935,23 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name weex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.weex.com/api-doc/spot/Websocket/private/Order-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Order-Channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap, default is spot if symbol is not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1660,13 +1963,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrders(String symbol2, Object parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object parameters = parameters3;
             if (!java.util.Objects.equals(symbol, null))
             {
                 throw new NotSupported((this.id + " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
@@ -1689,6 +1992,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), isContract, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://www.weex.com/api-doc/spot/Websocket/private/Order-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Order-Channel
+     * @param {string} [symbol] not used by the exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
+    {
+        return this.unWatchOrders(Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -1775,7 +2092,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -1862,7 +2179,6 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "updatedTime": "1747203188148"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "createdTime");
         String marketId = this.safeString(order, "symbol");
         String marketType = "spot";
@@ -1872,7 +2188,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = "swap";
         }
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-        market = marketResolved;
+        market = (Map<String, Object>) (marketResolved);
         String side = this.safeStringLower(order, "orderSide");
         Object fee = null;
         String commission = this.safeString(order, "cumFillFee");
@@ -1942,6 +2258,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "info", order );
         }}), market);
     }
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1953,12 +2273,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1984,6 +2303,20 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePrivate(messageHash, type, "account", isContract, parameters)).join();
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name weex#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.weex.com/api-doc/spot/Websocket/private/Account-Channel
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Account-Channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    {
+        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void setBalanceCache(Client client, Object type)
@@ -2138,15 +2471,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {int} [params.accountNumber] account number to query orders for, required
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2179,10 +2508,25 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
-
-    public void setPositionsCache(Client client, Object... optionalArgs)
+    /**
+     * @method
+     * @name weex#watchPositions
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Positions-Channel
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountNumber] account number to query orders for, required
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+
+    public void setPositionsCache(Client client, Map<String, Object> parameters)
+    {
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
@@ -2196,6 +2540,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
+    }
+    public void setPositionsCache(Client client, Object... optionalArgs)
+    {
+        this.setPositionsCache(client, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash, Object parameters)
@@ -2229,13 +2577,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
+    public CompletableFuture<Object> unWatchPositions(Object symbols2, Object parameters)
     {
-
+        final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
             if (!java.util.Objects.equals(symbols, null))
             {
                 throw new NotSupported((this.id + " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")) ;
@@ -2253,6 +2599,19 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), true, parameters, subscription)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name weex#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://www.weex.com/api-doc/contract/Websocket/private/Positions-Channel
+     * @param {string[]} [symbols] not used by the exchange, unsubscription from positions is global for all symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
+    {
+        return this.unWatchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -2325,11 +2684,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         // same as REST api
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parsePosition((Map<String, Object>) (position), market);
+    }
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object getMarketFromClientAndMessage(Client client, Map<String, Object> message)

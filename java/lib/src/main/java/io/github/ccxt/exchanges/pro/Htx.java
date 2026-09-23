@@ -177,12 +177,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -203,6 +202,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }).thenApply(Ticker::new);
 
     }
+    /**
+     * @method
+     * @name htx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -214,12 +227,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -238,6 +250,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name htx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
@@ -309,14 +335,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -334,6 +359,23 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name htx#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -346,12 +388,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTrades(String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -366,6 +407,21 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name htx#unWatchTrades
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.unWatchTrades(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public Map<String, Object> handleTrades(Client client, Map<String, Object> message)
@@ -431,15 +487,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object timeframe, Long since, Long limit2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -458,7 +512,56 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name htx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
+    {
+        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
+    /**
+     * @method
+     * @name htx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String subMessageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
+            Object topic = "ohlcv";
+            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
+        });
+
+    }
     /**
      * @method
      * @name htx#unWatchOHLCV
@@ -474,23 +577,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      */
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
-
-        return BaseExchange.supplyAsync(() -> {
-
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets()).join();
-            }
-            Object market = this.market(symbol);
-            String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            String subMessageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
-            Object topic = "ohlcv";
-            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
-            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
-        });
-
+        return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -551,13 +638,15 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit2, Map<String, Object> parameters2)
     {
         final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -599,6 +688,22 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }).thenApply(OrderBook::new);
 
     }
+    /**
+     * @method
+     * @name htx#watchOrderBook
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -612,12 +717,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -641,6 +745,22 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
+    }
+    /**
+     * @method
+     * @name htx#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.unWatchOrderBook(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -1025,15 +1145,15 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1107,16 +1227,30 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-
-    public Object getOrderChannelAndMessageHash(String type, String subType, Object... optionalArgs)
+    /**
+     * @method
+     * @name htx#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object getOrderChannelAndMessageHash(String type, String subType, Map<String, Object> market, Map<String, Object> parameters)
+    {
         Object messageHash = null;
         Object channel = null;
         String orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         orderType = this.safeString(parameters, "orderType", orderType);
-        parameters = this.omit(parameters, "orderType");
+        parameters = (Map<String, Object>) (this.omit(parameters, "orderType"));
         Object marketCode = null;
         if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("lowercaseId"), null)))
         {
@@ -1164,11 +1298,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         return new ArrayList<Object>(Arrays.asList(channel, messageHash));
     }
-
-    public Object getV5LinearChannelAndMessageHash(String topic, Object... optionalArgs)
+    public Object getOrderChannelAndMessageHash(String type, String subType, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        return this.getOrderChannelAndMessageHash(type, subType, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object getV5LinearChannelAndMessageHash(String topic, Map<String, Object> market, Map<String, Object> parameters)
+    {
         Object contractCode = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("id") : this.safeString(parameters, "contract_code", "*");
         Object channel = topic;
         Object messageHash = topic;
@@ -1176,12 +1312,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             messageHash = Helpers.add((topic + "."), ((String)contractCode).toLowerCase());
         }
-        parameters = this.omit(parameters, "contract_code");
+        parameters = (Map<String, Object>) (this.omit(parameters, "contract_code"));
         final Object finalContractCode = contractCode;
         Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{
             put( "contract_code", finalContractCode );
         }}, parameters);
         return new ArrayList<Object>(Arrays.asList(channel, messageHash, requestParams));
+    }
+    public Object getV5LinearChannelAndMessageHash(String topic, Object... optionalArgs)
+    {
+        return this.getV5LinearChannelAndMessageHash(topic, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1196,15 +1336,15 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = symbol3;
+            Object limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1261,6 +1401,22 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name htx#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    {
+        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
@@ -1529,7 +1685,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         client.resolve(this.orders, genericMessageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // spot
@@ -1686,11 +1842,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         "amend_result": ""
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long lastTradeTimestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("lastActTime", "updated_time", "ts")));
         Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         String marketId = this.safeString2(order, "contract_code", "symbol");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = this.safeSymbol(marketId, market);
         String amount = this.safeString2(order, "orderSize", "volume");
         String status = this.parseOrderStatus(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderStatus", "state", "status"))));
@@ -1766,8 +1921,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             put( "stopLossPrice", Htx.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
         }}), market);
     }
+    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    {
+        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
-    public Object parseOrderTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // spot private wrapped trade
         //
@@ -1789,9 +1948,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         "orderId": 509835753860328
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(null, market);
-        market = marketResolved;
+        market = (Map<String, Object>) (marketResolved);
         Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
         String tradeId = this.safeString(trade, "tradeId");
         String price = this.safeString(trade, "tradePrice");
@@ -1831,6 +1989,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             put( "fee", null );
         }}), market);
     }
+    public Object parseOrderTrade(Map<String, Object> trade, Object... optionalArgs)
+    {
+        return this.parseOrderTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1845,15 +2007,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> watchPositions(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final Object symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbols = symbols3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1921,6 +2081,23 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbols, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name htx#watchPositions
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
+    {
+        return this.watchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -2087,12 +2264,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -2217,6 +2393,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), parameters, subscriptionParams)).join();
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name htx#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    {
+        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBalance(Client client, Map<String, Object> message)
@@ -3005,7 +3195,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
     }
 
-    public void handleMyTrade(Client client, Map<String, Object> message, Object... optionalArgs)
+    public void handleMyTrade(Client client, Map<String, Object> message, Map<String, Object> extendParams)
     {
         //
         // spot
@@ -3086,7 +3276,6 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         ]
         //     }
         //
-        Object extendParams = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -3159,8 +3348,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
         }
     }
+    public void handleMyTrade(Client client, Map<String, Object> message, Object... optionalArgs)
+    {
+        this.handleMyTrade(client, message, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // spot private
         //
@@ -3205,9 +3398,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         "updated_time": "1782367694385"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(trade, "symbol", "contract_code");
-        market = this.safeMarket(marketId, market);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = this.safeString(market, "symbol");
         String side = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("side", "orderSide", "direction")));
         String tradeId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "trade_id", "id")));
@@ -3261,13 +3453,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             put( "fee", finalFee );
         }}), market);
     }
-
-    public Object getUrlByMarketType(Object type, Object... optionalArgs)
+    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
-        Object isLinear = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
-        Object isPrivate = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false;
-        Object isFeed = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false;
-        Object isV5 = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : false;
+        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+    }
+
+    public Object getUrlByMarketType(Object type, Object isLinear, Object isPrivate, Object isFeed, Object isV5)
+    {
         String api = this.safeString(this.options, "api", "api");
         Map<String, Object> hostname = new HashMap<String, Object>() {{
             put( "hostname", Htx.this.hostname );
@@ -3310,14 +3502,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         return url;
     }
-
-    public CompletableFuture<Object> subscribePublic(String url, String symbol, String messageHash, Object... optionalArgs)
+    public Object getUrlByMarketType(Object type, Object... optionalArgs)
     {
+        return this.getUrlByMarketType(type, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : false, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : false);
+    }
 
+    public CompletableFuture<Object> subscribePublic(String url, String symbol, String messageHash, Object method2, Map<String, Object> parameters)
+    {
+        final Object method3 = method2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object method = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object method = method3;
             Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -3337,15 +3531,20 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         });
 
     }
+    public CompletableFuture<Object> subscribePublic(String url, String symbol, String messageHash, Object... optionalArgs)
+    {
+        return this.subscribePublic(url, symbol, messageHash, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market2, Object subMessageHash, Object topic2, Object... optionalArgs)
+    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market2, Object subMessageHash, Object topic2, Map<String, Object> parameters2)
     {
         final Map<String, Object> market3 = market2;
         final Object topic3 = topic2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object market = market3;
             Object topic = topic3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = parameters3;
             Object requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "unsub", subMessageHash );
@@ -3378,16 +3577,18 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         });
 
     }
+    public CompletableFuture<Object> unsubscribePublic(Map<String, Object> market, Object subMessageHash, Object topic, Object... optionalArgs)
+    {
+        return this.unsubscribePublic(market, subMessageHash, topic, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> subscribePrivate(String channel, String messageHash, String type2, String subtype2, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePrivate(String channel, String messageHash, String type2, String subtype2, Map<String, Object> parameters, Map<String, Object> subscriptionParams)
     {
         final String type3 = type2;
         final String subtype3 = subtype2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object subtype = subtype3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object subscriptionParams = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object requestId = this.requestId();
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -3425,13 +3626,16 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         });
 
     }
+    public CompletableFuture<Object> subscribePrivate(String channel, String messageHash, String type, String subtype, Object... optionalArgs)
+    {
+        return this.subscribePrivate(channel, messageHash, type, subtype, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String url = this.safeString(parameters, "url");
             String hostname = this.safeString(parameters, "hostname");
             String type = this.safeString(parameters, "type");
@@ -3509,5 +3713,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 
+    }
+    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    {
+        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }

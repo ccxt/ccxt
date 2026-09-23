@@ -215,11 +215,7 @@ public interface PredictionTypedSurface {
     }
 
     @SuppressWarnings("unchecked")
-    default Currencies fetchCurrencies(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(this.fetchCurrencies((Object) (params != null ? params : new HashMap<String, Object>())));
-        return new Currencies(res);
-    }
-    default Currencies fetchCurrencies() { return fetchCurrencies((Map<String, Object>) null); }
+    default Currencies fetchCurrencies() { Object res = Helpers.joinUnwrapped(this.fetchCurrencies((Object) ((Map<String, Object>) null))); return new Currencies(res); }
     @SuppressWarnings("unchecked")
     default CompletableFuture<Currencies> fetchCurrenciesAsync(Map<String, Object> params) {
         return this.fetchCurrencies((Object) (params != null ? params : new HashMap<String, Object>())).thenApply(Currencies::new);
@@ -227,676 +223,555 @@ public interface PredictionTypedSurface {
     default CompletableFuture<Currencies> fetchCurrenciesAsync() { return fetchCurrenciesAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
-    default List<MarketInterface> fetchMarkets(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(this.fetchMarkets((Object) (params != null ? params : new HashMap<String, Object>())));
-        return ((List<?>) res).stream().map(MarketInterface::new).collect(Collectors.toList());
-    }
-    default List<MarketInterface> fetchMarkets() { return fetchMarkets((Map<String, Object>) null); }
+    default List<MarketInterface> fetchMarkets() { Object res = Helpers.joinUnwrapped(this.fetchMarkets((Object) ((Map<String, Object>) null))); return ((List<?>) res).stream().map(MarketInterface::new).collect(Collectors.toList()); }
     @SuppressWarnings("unchecked")
     default CompletableFuture<List<MarketInterface>> fetchMarketsAsync(Map<String, Object> params) {
         return this.fetchMarkets((Object) (params != null ? params : new HashMap<String, Object>())).thenApply(res -> ((List<?>) res).stream().map(MarketInterface::new).collect(Collectors.toList()));
     }
     default CompletableFuture<List<MarketInterface>> fetchMarketsAsync() { return fetchMarketsAsync((Map<String, Object>) null); }
 
-    default List<Account> fetchAccounts(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchAccounts((Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Account> fetchAccounts() { return fetchAccounts((Map<String, Object>) null); }
+    default List<Account> fetchAccounts() { return Helpers.joinUnwrapped(this.fetchAccounts((Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<Account>> fetchAccountsAsync(Map<String, Object> params) { return this.fetchAccounts((Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Account>> fetchAccountsAsync() { return fetchAccountsAsync((Map<String, Object>) null); }
 
-    default List<DepositAddress> fetchDepositAddresses(List<String> codes, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDepositAddresses((Object) codes, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(List<String> codes, Map<String, Object> params) { return this.fetchDepositAddresses((Object) codes, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default List<DepositAddress> fetchDepositAddresses(String[] codes, Map<String, Object> params) { return fetchDepositAddresses(codes == null ? null : Arrays.asList(codes), params); }
+    default List<DepositAddress> fetchDepositAddresses(String[] codes, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchDepositAddressesAsync(codes == null ? null : Arrays.asList(codes), params)); }
     default CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(String[] codes, Map<String, Object> params) { return fetchDepositAddressesAsync(codes == null ? null : Arrays.asList(codes), params); }
 
-    default MarginMode fetchMarginMode(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMarginMode(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginMode fetchMarginMode(String symbol) { return fetchMarginMode(symbol, (Map<String, Object>) null); }
+    default MarginMode fetchMarginMode(String symbol) { return Helpers.joinUnwrapped(this.fetchMarginMode(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol, Map<String, Object> params) { return this.fetchMarginMode(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol) { return fetchMarginModeAsync(symbol, (Map<String, Object>) null); }
 
-    default MarginModes fetchMarginModes(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMarginModes((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) { return this.fetchMarginModes((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : Arrays.asList(symbols), params); }
+    default MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchMarginModesAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default Long fetchTime(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTime((Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Long fetchTime() { return fetchTime((Map<String, Object>) null); }
+    default Long fetchTime() { return Helpers.joinUnwrapped(this.fetchTime((Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Long> fetchTimeAsync(Map<String, Object> params) { return this.fetchTime((Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Long> fetchTimeAsync() { return fetchTimeAsync((Map<String, Object>) null); }
 
-    default CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchCrossBorrowRates((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<CrossBorrowRates> fetchCrossBorrowRatesAsync(Map<String, Object> params) { return this.fetchCrossBorrowRates((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default IsolatedBorrowRates fetchIsolatedBorrowRates(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchIsolatedBorrowRates((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRatesAsync(Map<String, Object> params) { return this.fetchIsolatedBorrowRates((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default LeverageTiers fetchLeverageTiers(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLeverageTiers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) { return this.fetchLeverageTiers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : Arrays.asList(symbols), params); }
+    default LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchLeverageTiersAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingRates((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) { return this.fetchFundingRates((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : Arrays.asList(symbols), params); }
+    default FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchFundingRatesAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingIntervals((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) { return this.fetchFundingIntervals((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : Arrays.asList(symbols), params); }
+    default FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchFundingIntervalsAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.transfer(code, (Object) amount, (Object) fromAccount, (Object) toAccount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount) { return transfer(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
+    default TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount) { return Helpers.joinUnwrapped(this.transfer(code, (Object) (amount), (Object) (fromAccount), (Object) (toAccount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) { return this.transfer(code, (Object) amount, (Object) fromAccount, (Object) toAccount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount) { return transferAsync(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
 
-    default Transaction withdraw(String code, Double amount, String address, String tag, Map<String, Object> params) { return Helpers.joinUnwrapped(this.withdraw(code, (Object) amount, (Object) address, (Object) tag, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Transaction withdraw(String code, Double amount, String address) { return withdraw(code, amount, address, (String) null, (Map<String, Object>) null); }
-    default Transaction withdraw(String code, Double amount, String address, String tag) { return withdraw(code, amount, address, tag, (Map<String, Object>) null); }
+    default Transaction withdraw(String code, Double amount, String address) { return Helpers.joinUnwrapped(this.withdraw(code, (Object) (amount), (Object) (address), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Transaction withdraw(String code, Double amount, String address, String tag) { return Helpers.joinUnwrapped(this.withdraw(code, (Object) (amount), (Object) (address), (Object) (tag), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag, Map<String, Object> params) { return this.withdraw(code, (Object) amount, (Object) address, (Object) tag, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address) { return withdrawAsync(code, amount, address, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag) { return withdrawAsync(code, amount, address, tag, (Map<String, Object>) null); }
 
-    default DepositAddress createDepositAddress(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default DepositAddress createDepositAddress(String code) { return createDepositAddress(code, (Map<String, Object>) null); }
+    default DepositAddress createDepositAddress(String code) { return Helpers.joinUnwrapped(this.createDepositAddress(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<DepositAddress> createDepositAddressAsync(String code, Map<String, Object> params) { return this.createDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<DepositAddress> createDepositAddressAsync(String code) { return createDepositAddressAsync(code, (Map<String, Object>) null); }
 
-    default Leverage fetchLeverage(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLeverage(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Leverage fetchLeverage(String symbol) { return fetchLeverage(symbol, (Map<String, Object>) null); }
+    default Leverage fetchLeverage(String symbol) { return Helpers.joinUnwrapped(this.fetchLeverage(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Leverage> fetchLeverageAsync(String symbol, Map<String, Object> params) { return this.fetchLeverage(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Leverage> fetchLeverageAsync(String symbol) { return fetchLeverageAsync(symbol, (Map<String, Object>) null); }
 
-    default Leverages fetchLeverages(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLeverages((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) { return this.fetchLeverages((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : Arrays.asList(symbols), params); }
+    default Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchLeveragesAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default MarginModification addMargin(String symbol, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.addMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginModification addMargin(String symbol, Double amount) { return addMargin(symbol, amount, (Map<String, Object>) null); }
+    default MarginModification addMargin(String symbol, Double amount) { return Helpers.joinUnwrapped(this.addMargin(symbol, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount, Map<String, Object> params) { return this.addMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount) { return addMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
-    default MarginModification reduceMargin(String symbol, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.reduceMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginModification reduceMargin(String symbol, Double amount) { return reduceMargin(symbol, amount, (Map<String, Object>) null); }
+    default MarginModification reduceMargin(String symbol, Double amount) { return Helpers.joinUnwrapped(this.reduceMargin(symbol, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount, Map<String, Object> params) { return this.reduceMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount) { return reduceMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
-    default MarginModification setMargin(String symbol, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.setMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginModification setMargin(String symbol, Double amount) { return setMargin(symbol, amount, (Map<String, Object>) null); }
+    default MarginModification setMargin(String symbol, Double amount) { return Helpers.joinUnwrapped(this.setMargin(symbol, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount, Map<String, Object> params) { return this.setMargin(symbol, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount) { return setMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
-    default LongShortRatio fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLongShortRatio(symbol, (Object) timeframe, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default LongShortRatio fetchLongShortRatio(String symbol) { return fetchLongShortRatio(symbol, (String) null, (Map<String, Object>) null); }
-    default LongShortRatio fetchLongShortRatio(String symbol, String timeframe) { return fetchLongShortRatio(symbol, timeframe, (Map<String, Object>) null); }
+    default LongShortRatio fetchLongShortRatio(String symbol) { return Helpers.joinUnwrapped(this.fetchLongShortRatio(symbol, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default LongShortRatio fetchLongShortRatio(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchLongShortRatio(symbol, (Object) (timeframe), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe, Map<String, Object> params) { return this.fetchLongShortRatio(symbol, (Object) timeframe, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol) { return fetchLongShortRatioAsync(symbol, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe) { return fetchLongShortRatioAsync(symbol, timeframe, (Map<String, Object>) null); }
 
-    default List<LongShortRatio> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLongShortRatioHistory((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchLongShortRatioHistory((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<MarginModification> fetchMarginAdjustmentHistory(String symbol, String type, Double since, Double limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMarginAdjustmentHistory((Object) symbol, (Object) type, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Double since, Double limit, Map<String, Object> params) { return this.fetchMarginAdjustmentHistory((Object) symbol, (Object) type, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OpenInterest> fetchOpenInterestHistory(String symbol) { return fetchOpenInterestHistory(symbol, "1h", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe) { return fetchOpenInterestHistory(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since) { return fetchOpenInterestHistory(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit) { return fetchOpenInterestHistory(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OpenInterest> fetchOpenInterestHistory(String symbol) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, (Object) ("1h"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchOpenInterestHistory(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol) { return fetchOpenInterestHistoryAsync(symbol, "1h", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe) { return fetchOpenInterestHistoryAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since) { return fetchOpenInterestHistoryAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OpenInterest>> fetchOpenInterestHistoryAsync(String symbol, String timeframe, Long since, Long limit) { return fetchOpenInterestHistoryAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default OpenInterests fetchOpenInterests(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOpenInterests((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) { return this.fetchOpenInterests((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : Arrays.asList(symbols), params); }
+    default OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchOpenInterestsAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default MarginLoan repayCrossMargin(String code, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.repayCrossMargin(code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan repayCrossMargin(String code, Double amount) { return repayCrossMargin(code, amount, (Map<String, Object>) null); }
+    default MarginLoan repayCrossMargin(String code, Double amount) { return Helpers.joinUnwrapped(this.repayCrossMargin(code, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount, Map<String, Object> params) { return this.repayCrossMargin(code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount) { return repayCrossMarginAsync(code, amount, (Map<String, Object>) null); }
 
-    default MarginLoan repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.repayIsolatedMargin(symbol, code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan repayIsolatedMargin(String symbol, String code, Double amount) { return repayIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
+    default MarginLoan repayIsolatedMargin(String symbol, String code, Double amount) { return Helpers.joinUnwrapped(this.repayIsolatedMargin(symbol, code, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) { return this.repayIsolatedMargin(symbol, code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount) { return repayIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
 
-    default MarginLoan borrowCrossMargin(String code, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.borrowCrossMargin(code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan borrowCrossMargin(String code, Double amount) { return borrowCrossMargin(code, amount, (Map<String, Object>) null); }
+    default MarginLoan borrowCrossMargin(String code, Double amount) { return Helpers.joinUnwrapped(this.borrowCrossMargin(code, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount, Map<String, Object> params) { return this.borrowCrossMargin(code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount) { return borrowCrossMarginAsync(code, amount, (Map<String, Object>) null); }
 
-    default MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.borrowIsolatedMargin(symbol, code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount) { return borrowIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
+    default MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount) { return Helpers.joinUnwrapped(this.borrowIsolatedMargin(symbol, code, (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) { return this.borrowIsolatedMargin(symbol, code, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount) { return borrowIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
 
-    default MarginLoan borrowMargin(String code, Double amount, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.borrowMargin(code, (Object) amount, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan borrowMargin(String code, Double amount) { return borrowMargin(code, amount, (String) null, (Map<String, Object>) null); }
-    default MarginLoan borrowMargin(String code, Double amount, String symbol) { return borrowMargin(code, amount, symbol, (Map<String, Object>) null); }
+    default MarginLoan borrowMargin(String code, Double amount) { return Helpers.joinUnwrapped(this.borrowMargin(code, (Object) (amount), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default MarginLoan borrowMargin(String code, Double amount, String symbol) { return Helpers.joinUnwrapped(this.borrowMargin(code, (Object) (amount), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) { return this.borrowMargin(code, (Object) amount, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount) { return borrowMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol) { return borrowMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
 
-    default MarginLoan repayMargin(String code, Double amount, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.repayMargin(code, (Object) amount, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default MarginLoan repayMargin(String code, Double amount) { return repayMargin(code, amount, (String) null, (Map<String, Object>) null); }
-    default MarginLoan repayMargin(String code, Double amount, String symbol) { return repayMargin(code, amount, symbol, (Map<String, Object>) null); }
+    default MarginLoan repayMargin(String code, Double amount) { return Helpers.joinUnwrapped(this.repayMargin(code, (Object) (amount), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default MarginLoan repayMargin(String code, Double amount, String symbol) { return Helpers.joinUnwrapped(this.repayMargin(code, (Object) (amount), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) { return this.repayMargin(code, (Object) amount, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount) { return repayMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol) { return repayMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchOHLCV(String symbol) { return fetchOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe) { return fetchOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since) { return fetchOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol) { return fetchOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe) { return fetchOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since) { return fetchOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol) { return fetchSpotOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe) { return fetchSpotOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since) { return fetchSpotOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchSpotOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchSpotOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchSpotOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol) { return fetchSpotOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe) { return fetchSpotOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since) { return fetchSpotOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchSpotOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchSpotOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchContractOHLCV(String symbol) { return fetchContractOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe) { return fetchContractOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since) { return fetchContractOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchContractOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchContractOHLCV((Object) (symbol), (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchContractOHLCV((Object) symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol) { return fetchContractOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe) { return fetchContractOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since) { return fetchContractOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<Account> loadAccounts(Object reload, Map<String, Object> params) { return Helpers.joinUnwrapped(this.loadAccounts((Object) reload, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Account>> loadAccountsAsync(Object reload, Map<String, Object> params) { return this.loadAccounts((Object) reload, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<BorrowInterest> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchBorrowInterest((Object) code, (Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<BorrowInterest>> fetchBorrowInterestAsync(String code, String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchBorrowInterest((Object) code, (Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<LedgerEntry> fetchLedger(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLedger((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<LedgerEntry>> fetchLedgerAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchLedger((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default LedgerEntry fetchLedgerEntry(String id, String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLedgerEntry(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default LedgerEntry fetchLedgerEntry(String id) { return fetchLedgerEntry(id, (String) null, (Map<String, Object>) null); }
-    default LedgerEntry fetchLedgerEntry(String id, String code) { return fetchLedgerEntry(id, code, (Map<String, Object>) null); }
+    default LedgerEntry fetchLedgerEntry(String id) { return Helpers.joinUnwrapped(this.fetchLedgerEntry(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default LedgerEntry fetchLedgerEntry(String id, String code) { return Helpers.joinUnwrapped(this.fetchLedgerEntry(id, (Object) (code), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code, Map<String, Object> params) { return this.fetchLedgerEntry(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id) { return fetchLedgerEntryAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code) { return fetchLedgerEntryAsync(id, code, (Map<String, Object>) null); }
 
-    default Balances fetchBalance(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchBalance((Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Balances fetchBalance() { return fetchBalance((Map<String, Object>) null); }
+    default Balances fetchBalance() { return Helpers.joinUnwrapped(this.fetchBalance((Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) { return this.fetchBalance((Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync((Map<String, Object>) null); }
 
-    default Balance fetchPartialBalance(Object part, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPartialBalance((Object) part, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Balance fetchPartialBalance(Object part) { return fetchPartialBalance(part, (Map<String, Object>) null); }
+    default Balance fetchPartialBalance(Object part) { return Helpers.joinUnwrapped(this.fetchPartialBalance((Object) (part), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) { return this.fetchPartialBalance((Object) part, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, (Map<String, Object>) null); }
 
-    default Balance fetchFreeBalance(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFreeBalance((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) { return this.fetchFreeBalance((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default Balance fetchUsedBalance(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchUsedBalance((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Balance> fetchUsedBalanceAsync(Map<String, Object> params) { return this.fetchUsedBalance((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default Balance fetchTotalBalance(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTotalBalance((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Balance> fetchTotalBalanceAsync(Map<String, Object> params) { return this.fetchTotalBalance((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default Status fetchStatus(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchStatus((Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Status fetchStatus() { return fetchStatus((Map<String, Object>) null); }
+    default Status fetchStatus() { return Helpers.joinUnwrapped(this.fetchStatus((Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Status> fetchStatusAsync(Map<String, Object> params) { return this.fetchStatus((Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Status> fetchStatusAsync() { return fetchStatusAsync((Map<String, Object>) null); }
 
-    default DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDepositWithdrawFees((Object) codes, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) { return this.fetchDepositWithdrawFees((Object) codes, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : Arrays.asList(codes), params); }
+    default DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchDepositWithdrawFeesAsync(codes == null ? null : Arrays.asList(codes), params)); }
     default CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : Arrays.asList(codes), params); }
 
-    default DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDepositWithdrawFee(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default DepositWithdrawFee fetchDepositWithdrawFee(String code) { return fetchDepositWithdrawFee(code, (Map<String, Object>) null); }
+    default DepositWithdrawFee fetchDepositWithdrawFee(String code) { return Helpers.joinUnwrapped(this.fetchDepositWithdrawFee(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code, Map<String, Object> params) { return this.fetchDepositWithdrawFee(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code) { return fetchDepositWithdrawFeeAsync(code, (Map<String, Object>) null); }
 
-    default CrossBorrowRate fetchCrossBorrowRate(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchCrossBorrowRate(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default CrossBorrowRate fetchCrossBorrowRate(String code) { return fetchCrossBorrowRate(code, (Map<String, Object>) null); }
+    default CrossBorrowRate fetchCrossBorrowRate(String code) { return Helpers.joinUnwrapped(this.fetchCrossBorrowRate(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code, Map<String, Object> params) { return this.fetchCrossBorrowRate(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code) { return fetchCrossBorrowRateAsync(code, (Map<String, Object>) null); }
 
-    default IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchIsolatedBorrowRate(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol) { return fetchIsolatedBorrowRate(symbol, (Map<String, Object>) null); }
+    default IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol) { return Helpers.joinUnwrapped(this.fetchIsolatedBorrowRate(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol, Map<String, Object> params) { return this.fetchIsolatedBorrowRate(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol) { return fetchIsolatedBorrowRateAsync(symbol, (Map<String, Object>) null); }
 
-    default Tickers fetchSpotTickers(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchSpotTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Tickers> fetchSpotTickersAsync(List<String> symbols, Map<String, Object> params) { return this.fetchSpotTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default Tickers fetchSpotTickers(String[] symbols, Map<String, Object> params) { return fetchSpotTickers(symbols == null ? null : Arrays.asList(symbols), params); }
+    default Tickers fetchSpotTickers(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchSpotTickersAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<Tickers> fetchSpotTickersAsync(String[] symbols, Map<String, Object> params) { return fetchSpotTickersAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default Tickers fetchContractTickers(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchContractTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Tickers> fetchContractTickersAsync(List<String> symbols, Map<String, Object> params) { return this.fetchContractTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default Tickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return fetchContractTickers(symbols == null ? null : Arrays.asList(symbols), params); }
+    default Tickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchContractTickersAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<Tickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOrderBooks((Object) symbols, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) { return this.fetchOrderBooks((Object) symbols, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : Arrays.asList(symbols), limit, params); }
+    default OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchOrderBooksAsync(symbols == null ? null : Arrays.asList(symbols), limit, params)); }
     default CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : Arrays.asList(symbols), limit, params); }
 
-    default Order createTwapOrder(String symbol, String side, Double amount, Double duration, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createTwapOrder(symbol, (Object) side, (Object) amount, (Object) duration, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Order createTwapOrder(String symbol, String side, Double amount, Double duration) { return createTwapOrder(symbol, side, amount, duration, (Map<String, Object>) null); }
+    default Order createTwapOrder(String symbol, String side, Double amount, Double duration) { return Helpers.joinUnwrapped(this.createTwapOrder(symbol, (Object) (side), (Object) (amount), (Object) (duration), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration, Map<String, Object> params) { return this.createTwapOrder(symbol, (Object) side, (Object) amount, (Object) duration, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> createTwapOrderAsync(String symbol, String side, Double amount, Double duration) { return createTwapOrderAsync(symbol, side, amount, duration, (Map<String, Object>) null); }
 
-    default Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createConvertTrade(id, (Object) fromCode, (Object) toCode, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Conversion createConvertTrade(String id, String fromCode, String toCode) { return createConvertTrade(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    default Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount) { return createConvertTrade(id, fromCode, toCode, amount, (Map<String, Object>) null); }
+    default Conversion createConvertTrade(String id, String fromCode, String toCode) { return Helpers.joinUnwrapped(this.createConvertTrade(id, (Object) (fromCode), (Object) (toCode), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount) { return Helpers.joinUnwrapped(this.createConvertTrade(id, (Object) (fromCode), (Object) (toCode), (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) { return this.createConvertTrade(id, (Object) fromCode, (Object) toCode, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode) { return createConvertTradeAsync(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount) { return createConvertTradeAsync(id, fromCode, toCode, amount, (Map<String, Object>) null); }
 
-    default Conversion fetchConvertTrade(String id, String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchConvertTrade(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Conversion fetchConvertTrade(String id) { return fetchConvertTrade(id, (String) null, (Map<String, Object>) null); }
-    default Conversion fetchConvertTrade(String id, String code) { return fetchConvertTrade(id, code, (Map<String, Object>) null); }
+    default Conversion fetchConvertTrade(String id) { return Helpers.joinUnwrapped(this.fetchConvertTrade(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Conversion fetchConvertTrade(String id, String code) { return Helpers.joinUnwrapped(this.fetchConvertTrade(id, (Object) (code), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code, Map<String, Object> params) { return this.fetchConvertTrade(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Conversion> fetchConvertTradeAsync(String id) { return fetchConvertTradeAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code) { return fetchConvertTradeAsync(id, code, (Map<String, Object>) null); }
 
-    default List<Conversion> fetchConvertTradeHistory(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchConvertTradeHistory((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Conversion>> fetchConvertTradeHistoryAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchConvertTradeHistory((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default PositionModeInfo fetchPositionMode(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPositionMode((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<PositionModeInfo> fetchPositionModeAsync(String symbol, Map<String, Object> params) { return this.fetchPositionMode((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default ADL fetchADLRank(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchADLRank(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default ADL fetchADLRank(String symbol) { return fetchADLRank(symbol, (Map<String, Object>) null); }
+    default ADL fetchADLRank(String symbol) { return Helpers.joinUnwrapped(this.fetchADLRank(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<ADL> fetchADLRankAsync(String symbol, Map<String, Object> params) { return this.fetchADLRank(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<ADL> fetchADLRankAsync(String symbol) { return fetchADLRankAsync(symbol, (Map<String, Object>) null); }
 
-    default List<ADL> fetchPositionsADLRank(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPositionsADLRank((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<ADL>> fetchPositionsADLRankAsync(List<String> symbols, Map<String, Object> params) { return this.fetchPositionsADLRank((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default List<ADL> fetchPositionsADLRank(String[] symbols, Map<String, Object> params) { return fetchPositionsADLRank(symbols == null ? null : Arrays.asList(symbols), params); }
+    default List<ADL> fetchPositionsADLRank(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchPositionsADLRankAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<List<ADL>> fetchPositionsADLRankAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsADLRankAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default ADL fetchPositionADLRank(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPositionADLRank(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default ADL fetchPositionADLRank(String symbol) { return fetchPositionADLRank(symbol, (Map<String, Object>) null); }
+    default ADL fetchPositionADLRank(String symbol) { return Helpers.joinUnwrapped(this.fetchPositionADLRank(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol, Map<String, Object> params) { return this.fetchPositionADLRank(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol) { return fetchPositionADLRankAsync(symbol, (Map<String, Object>) null); }
 
-    default List<Order> createSpotOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createSpotOrders(List<Map<String, Object>> orders) { return createSpotOrders(orders, (Map<String, Object>) null); }
+    default List<Order> createSpotOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createSpotOrders((Object) (orders), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createSpotOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Order>> createSpotOrdersAsync(List<Map<String, Object>> orders) { return createSpotOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default List<Order> createContractOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> createContractOrders(List<Map<String, Object>> orders) { return createContractOrders(orders, (Map<String, Object>) null); }
+    default List<Order> createContractOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createContractOrders((Object) (orders), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createContractOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Order>> createContractOrdersAsync(List<Map<String, Object>> orders) { return createContractOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default Order cancelSpotOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Order cancelSpotOrder(String id) { return cancelSpotOrder(id, (String) null, (Map<String, Object>) null); }
-    default Order cancelSpotOrder(String id, String symbol) { return cancelSpotOrder(id, symbol, (Map<String, Object>) null); }
+    default Order cancelSpotOrder(String id) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Order cancelSpotOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelSpotOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelSpotOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> cancelSpotOrderAsync(String id) { return cancelSpotOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> cancelSpotOrderAsync(String id, String symbol) { return cancelSpotOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default Order cancelContractOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelContractOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Order cancelContractOrder(String id) { return cancelContractOrder(id, (String) null, (Map<String, Object>) null); }
-    default Order cancelContractOrder(String id, String symbol) { return cancelContractOrder(id, symbol, (Map<String, Object>) null); }
+    default Order cancelContractOrder(String id) { return Helpers.joinUnwrapped(this.cancelContractOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default Order cancelContractOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelContractOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelContractOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Order> cancelContractOrderAsync(String id) { return cancelContractOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<Order> cancelContractOrderAsync(String id, String symbol) { return cancelContractOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default List<Order> cancelAllSpotOrders(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelAllSpotOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Order>> cancelAllSpotOrdersAsync(String symbol, Map<String, Object> params) { return this.cancelAllSpotOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> cancelAllContractOrders(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelAllContractOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Order>> cancelAllContractOrdersAsync(String symbol, Map<String, Object> params) { return this.cancelAllContractOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders) { return cancelOrdersForSymbols(orders, (Map<String, Object>) null); }
+    default List<Order> cancelOrdersForSymbols(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.cancelOrdersForSymbols((Object) (orders), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.cancelOrdersForSymbols((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Order>> cancelOrdersForSymbolsAsync(List<Map<String, Object>> orders) { return cancelOrdersForSymbolsAsync(orders, (Map<String, Object>) null); }
 
-    default List<Liquidation> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Liquidation>> fetchMyLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchMyLiquidations((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Liquidation> fetchLiquidations(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLiquidations(symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<Liquidation> fetchLiquidations(String symbol) { return fetchLiquidations(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<Liquidation> fetchLiquidations(String symbol, Long since) { return fetchLiquidations(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<Liquidation> fetchLiquidations(String symbol, Long since, Long limit) { return fetchLiquidations(symbol, since, limit, (Map<String, Object>) null); }
+    default List<Liquidation> fetchLiquidations(String symbol) { return Helpers.joinUnwrapped(this.fetchLiquidations(symbol, (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<Liquidation> fetchLiquidations(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchLiquidations(symbol, (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<Liquidation> fetchLiquidations(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchLiquidations(symbol, (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchLiquidations(symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol) { return fetchLiquidationsAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since) { return fetchLiquidationsAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<Liquidation>> fetchLiquidationsAsync(String symbol, Long since, Long limit) { return fetchLiquidationsAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default Greeks fetchGreeks(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchGreeks(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Greeks fetchGreeks(String symbol) { return fetchGreeks(symbol, (Map<String, Object>) null); }
+    default Greeks fetchGreeks(String symbol) { return Helpers.joinUnwrapped(this.fetchGreeks(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Greeks> fetchGreeksAsync(String symbol, Map<String, Object> params) { return this.fetchGreeks(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Greeks> fetchGreeksAsync(String symbol) { return fetchGreeksAsync(symbol, (Map<String, Object>) null); }
 
-    default OptionChain fetchOptionChain(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOptionChain(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default OptionChain fetchOptionChain(String code) { return fetchOptionChain(code, (Map<String, Object>) null); }
+    default OptionChain fetchOptionChain(String code) { return Helpers.joinUnwrapped(this.fetchOptionChain(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<OptionChain> fetchOptionChainAsync(String code, Map<String, Object> params) { return this.fetchOptionChain(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<OptionChain> fetchOptionChainAsync(String code) { return fetchOptionChainAsync(code, (Map<String, Object>) null); }
 
-    default Option fetchOption(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOption(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Option fetchOption(String symbol) { return fetchOption(symbol, (Map<String, Object>) null); }
+    default Option fetchOption(String symbol) { return Helpers.joinUnwrapped(this.fetchOption(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Option> fetchOptionAsync(String symbol, Map<String, Object> params) { return this.fetchOption(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Option> fetchOptionAsync(String symbol) { return fetchOptionAsync(symbol, (Map<String, Object>) null); }
 
-    default Conversion fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchConvertQuote((Object) fromCode, (Object) toCode, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default Conversion fetchConvertQuote(String fromCode, String toCode) { return fetchConvertQuote(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
-    default Conversion fetchConvertQuote(String fromCode, String toCode, Double amount) { return fetchConvertQuote(fromCode, toCode, amount, (Map<String, Object>) null); }
+    default Conversion fetchConvertQuote(String fromCode, String toCode) { return Helpers.joinUnwrapped(this.fetchConvertQuote((Object) (fromCode), (Object) (toCode), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default Conversion fetchConvertQuote(String fromCode, String toCode, Double amount) { return Helpers.joinUnwrapped(this.fetchConvertQuote((Object) (fromCode), (Object) (toCode), (Object) (amount), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount, Map<String, Object> params) { return this.fetchConvertQuote((Object) fromCode, (Object) toCode, (Object) amount, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode) { return fetchConvertQuoteAsync(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount) { return fetchConvertQuoteAsync(fromCode, toCode, amount, (Map<String, Object>) null); }
 
-    default List<Transaction> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDepositsWithdrawals((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Transaction>> fetchDepositsWithdrawalsAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchDepositsWithdrawals((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Transaction> fetchDeposits(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDeposits((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Transaction>> fetchDepositsAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchDeposits((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<Transaction> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchWithdrawals((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Transaction>> fetchWithdrawalsAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchWithdrawals((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<FundingRateHistory> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingRateHistory((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistoryAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchFundingRateHistory((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<FundingHistory> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingHistory((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<FundingHistory>> fetchFundingHistoryAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchFundingHistory((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default DepositAddress fetchDepositAddress(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default DepositAddress fetchDepositAddress(String code) { return fetchDepositAddress(code, (Map<String, Object>) null); }
+    default DepositAddress fetchDepositAddress(String code) { return Helpers.joinUnwrapped(this.fetchDepositAddress(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code, Map<String, Object> params) { return this.fetchDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code) { return fetchDepositAddressAsync(code, (Map<String, Object>) null); }
 
-    default DepositAddress fetchContractDepositAddress(String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchContractDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default DepositAddress fetchContractDepositAddress(String code) { return fetchContractDepositAddress(code, (Map<String, Object>) null); }
+    default DepositAddress fetchContractDepositAddress(String code) { return Helpers.joinUnwrapped(this.fetchContractDepositAddress(code, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code, Map<String, Object> params) { return this.fetchContractDepositAddress(code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code) { return fetchContractDepositAddressAsync(code, (Map<String, Object>) null); }
 
-    default List<LeverageTier> fetchMarketLeverageTiers(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMarketLeverageTiers(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<LeverageTier> fetchMarketLeverageTiers(String symbol) { return fetchMarketLeverageTiers(symbol, (Map<String, Object>) null); }
+    default List<LeverageTier> fetchMarketLeverageTiers(String symbol) { return Helpers.joinUnwrapped(this.fetchMarketLeverageTiers(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiersAsync(String symbol, Map<String, Object> params) { return this.fetchMarketLeverageTiers(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiersAsync(String symbol) { return fetchMarketLeverageTiersAsync(symbol, (Map<String, Object>) null); }
 
-    default LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchLastPrices((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) { return this.fetchLastPrices((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
-    default LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : Arrays.asList(symbols), params); }
+    default LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchLastPricesAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default TradingFees fetchTradingFees(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTradingFees((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<TradingFees> fetchTradingFeesAsync(Map<String, Object> params) { return this.fetchTradingFees((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default Currencies fetchConvertCurrencies(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchConvertCurrencies((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Currencies> fetchConvertCurrenciesAsync(Map<String, Object> params) { return this.fetchConvertCurrencies((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default FundingRate fetchFundingRate(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingRate(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default FundingRate fetchFundingRate(String symbol) { return fetchFundingRate(symbol, (Map<String, Object>) null); }
+    default FundingRate fetchFundingRate(String symbol) { return Helpers.joinUnwrapped(this.fetchFundingRate(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol, Map<String, Object> params) { return this.fetchFundingRate(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol) { return fetchFundingRateAsync(symbol, (Map<String, Object>) null); }
 
-    default FundingRate fetchFundingInterval(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchFundingInterval(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default FundingRate fetchFundingInterval(String symbol) { return fetchFundingInterval(symbol, (Map<String, Object>) null); }
+    default FundingRate fetchFundingInterval(String symbol) { return Helpers.joinUnwrapped(this.fetchFundingInterval(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol, Map<String, Object> params) { return this.fetchFundingInterval(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol) { return fetchFundingIntervalAsync(symbol, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMarkOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchMarkOHLCV(String symbol) { return fetchMarkOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe) { return fetchMarkOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since) { return fetchMarkOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchMarkOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchMarkOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchMarkOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchMarkOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchMarkOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchMarkOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchMarkOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol) { return fetchMarkOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe) { return fetchMarkOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since) { return fetchMarkOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchMarkOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchMarkOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchIndexOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchIndexOHLCV(String symbol) { return fetchIndexOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe) { return fetchIndexOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since) { return fetchIndexOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchIndexOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchIndexOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchIndexOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchIndexOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchIndexOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchIndexOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchIndexOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol) { return fetchIndexOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe) { return fetchIndexOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since) { return fetchIndexOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchIndexOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPremiumIndexOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol) { return fetchPremiumIndexOHLCV(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe) { return fetchPremiumIndexOHLCV(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since) { return fetchPremiumIndexOHLCV(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
-    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol) { return Helpers.joinUnwrapped(this.fetchPremiumIndexOHLCV(symbol, (Object) ("1m"), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchPremiumIndexOHLCV(symbol, (Object) (timeframe), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since) { return Helpers.joinUnwrapped(this.fetchPremiumIndexOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<OHLCV> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchPremiumIndexOHLCV(symbol, (Object) (timeframe), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchPremiumIndexOHLCV(symbol, (Object) timeframe, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol) { return fetchPremiumIndexOHLCVAsync(symbol, "1m", (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchPremiumIndexOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
 
-    default List<Transaction> fetchTransactions(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTransactions((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<Transaction>> fetchTransactionsAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchTransactions((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default TransferEntry fetchTransfer(String id, String code, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTransfer(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default TransferEntry fetchTransfer(String id) { return fetchTransfer(id, (String) null, (Map<String, Object>) null); }
-    default TransferEntry fetchTransfer(String id, String code) { return fetchTransfer(id, code, (Map<String, Object>) null); }
+    default TransferEntry fetchTransfer(String id) { return Helpers.joinUnwrapped(this.fetchTransfer(id, (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default TransferEntry fetchTransfer(String id, String code) { return Helpers.joinUnwrapped(this.fetchTransfer(id, (Object) (code), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code, Map<String, Object> params) { return this.fetchTransfer(id, (Object) code, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<TransferEntry> fetchTransferAsync(String id) { return fetchTransferAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code) { return fetchTransferAsync(id, code, (Map<String, Object>) null); }
 
-    default List<TransferEntry> fetchTransfers(String code, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTransfers((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<TransferEntry>> fetchTransfersAsync(String code, Long since, Long limit, Map<String, Object> params) { return this.fetchTransfers((Object) code, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<PredictionTrade> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionTrade> fetchTrades(String symbol) { return fetchTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchTrades(String symbol, Long since) { return fetchTrades(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchTrades(String symbol, Long since, Long limit) { return fetchTrades(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionTrade> fetchTrades(String symbol) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchTrades(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchTrades(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchTrades(symbol, (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionTrade>> fetchTradesAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchTrades(symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionTrade>> fetchTradesAsync(String symbol) { return fetchTradesAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchTradesAsync(String symbol, Long since) { return fetchTradesAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchTradesAsync(String symbol, Long since, Long limit) { return fetchTradesAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default PredictionOrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOrderBook((Object) symbol, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrderBook fetchOrderBook(String symbol) { return fetchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
-    default PredictionOrderBook fetchOrderBook(String symbol, Long limit) { return fetchOrderBook(symbol, limit, (Map<String, Object>) null); }
+    default PredictionOrderBook fetchOrderBook(String symbol) { return Helpers.joinUnwrapped(this.fetchOrderBook((Object) (symbol), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrderBook fetchOrderBook(String symbol, Long limit) { return Helpers.joinUnwrapped(this.fetchOrderBook((Object) (symbol), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit, Map<String, Object> params) { return this.fetchOrderBook((Object) symbol, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol) { return fetchOrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit) { return fetchOrderBookAsync(symbol, limit, (Map<String, Object>) null); }
 
-    default PredictionOpenInterest fetchOpenInterest(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOpenInterest(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOpenInterest fetchOpenInterest(String symbol) { return fetchOpenInterest(symbol, (Map<String, Object>) null); }
+    default PredictionOpenInterest fetchOpenInterest(String symbol) { return Helpers.joinUnwrapped(this.fetchOpenInterest(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol, Map<String, Object> params) { return this.fetchOpenInterest(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol) { return fetchOpenInterestAsync(symbol, (Map<String, Object>) null); }
 
-    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder editOrder(String id, String symbol, String type, String side) { return editOrder(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
-    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return editOrder(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return editOrder(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) ((Double) null), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.editOrder(id, symbol, (Object) (type), (Object) (side), (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.editOrder(id, symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side) { return editOrderAsync(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount) { return editOrderAsync(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price) { return editOrderAsync(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
 
-    default PredictionPosition fetchPosition(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPosition((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionPosition fetchPosition(String symbol) { return fetchPosition(symbol, (Map<String, Object>) null); }
+    default PredictionPosition fetchPosition(String symbol) { return Helpers.joinUnwrapped(this.fetchPosition((Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionPosition> fetchPositionAsync(String symbol, Map<String, Object> params) { return this.fetchPosition((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionPosition> fetchPositionAsync(String symbol) { return fetchPositionAsync(symbol, (Map<String, Object>) null); }
 
-    default List<PredictionPosition> fetchPositions(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchPositions((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionPosition> fetchPositions() { return fetchPositions((List<String>) null, (Map<String, Object>) null); }
-    default List<PredictionPosition> fetchPositions(List<String> symbols) { return fetchPositions(symbols, (Map<String, Object>) null); }
+    default List<PredictionPosition> fetchPositions() { return Helpers.joinUnwrapped(this.fetchPositions((Object) ((List<String>) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionPosition> fetchPositions(List<String> symbols) { return Helpers.joinUnwrapped(this.fetchPositions((Object) (symbols), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionPosition>> fetchPositionsAsync(List<String> symbols, Map<String, Object> params) { return this.fetchPositions((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionPosition>> fetchPositionsAsync() { return fetchPositionsAsync((List<String>) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionPosition>> fetchPositionsAsync(List<String> symbols) { return fetchPositionsAsync(symbols, (Map<String, Object>) null); }
-    default List<PredictionPosition> fetchPositions(String[] symbols, Map<String, Object> params) { return fetchPositions(symbols == null ? null : Arrays.asList(symbols), params); }
+    default List<PredictionPosition> fetchPositions(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchPositionsAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<List<PredictionPosition>> fetchPositionsAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default PredictionTicker fetchTicker(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTicker(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionTicker fetchTicker(String symbol) { return fetchTicker(symbol, (Map<String, Object>) null); }
+    default PredictionTicker fetchTicker(String symbol) { return Helpers.joinUnwrapped(this.fetchTicker(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionTicker> fetchTickerAsync(String symbol, Map<String, Object> params) { return this.fetchTicker(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionTicker> fetchTickerAsync(String symbol) { return fetchTickerAsync(symbol, (Map<String, Object>) null); }
 
-    default PredictionTickers fetchTickers(List<String> symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionTickers fetchTickers() { return fetchTickers((List<String>) null, (Map<String, Object>) null); }
-    default PredictionTickers fetchTickers(List<String> symbols) { return fetchTickers(symbols, (Map<String, Object>) null); }
+    default PredictionTickers fetchTickers() { return Helpers.joinUnwrapped(this.fetchTickers((Object) ((List<String>) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionTickers fetchTickers(List<String> symbols) { return Helpers.joinUnwrapped(this.fetchTickers((Object) (symbols), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) { return this.fetchTickers((Object) symbols, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionTickers> fetchTickersAsync() { return fetchTickersAsync((List<String>) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols) { return fetchTickersAsync(symbols, (Map<String, Object>) null); }
-    default PredictionTickers fetchTickers(String[] symbols, Map<String, Object> params) { return fetchTickers(symbols == null ? null : Arrays.asList(symbols), params); }
+    default PredictionTickers fetchTickers(String[] symbols, Map<String, Object> params) { return Helpers.joinUnwrapped(fetchTickersAsync(symbols == null ? null : Arrays.asList(symbols), params)); }
     default CompletableFuture<PredictionTickers> fetchTickersAsync(String[] symbols, Map<String, Object> params) { return fetchTickersAsync(symbols == null ? null : Arrays.asList(symbols), params); }
 
-    default PredictionOrder fetchOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder fetchOrder(String id) { return fetchOrder(id, (String) null, (Map<String, Object>) null); }
-    default PredictionOrder fetchOrder(String id, String symbol) { return fetchOrder(id, symbol, (Map<String, Object>) null); }
+    default PredictionOrder fetchOrder(String id) { return Helpers.joinUnwrapped(this.fetchOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder fetchOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.fetchOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol, Map<String, Object> params) { return this.fetchOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrder((Object) symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return createOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
-    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return createOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), (Object) (type), (Object) (side), (Object) (amount), (Object) ((Double) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder((Object) (symbol), (Object) (type), (Object) (side), (Object) (amount), (Object) (price), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) { return this.createOrder((Object) symbol, (Object) type, (Object) side, (Object) amount, (Object) price, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
 
-    default PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createMarketOrderWithCost(symbol, (Object) side, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return createMarketOrderWithCost(symbol, side, cost, (Map<String, Object>) null); }
+    default PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return Helpers.joinUnwrapped(this.createMarketOrderWithCost(symbol, (Object) (side), (Object) (cost), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) { return this.createMarketOrderWithCost(symbol, (Object) side, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
 
-    default PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createMarketBuyOrderWithCost(symbol, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost) { return createMarketBuyOrderWithCost(symbol, cost, (Map<String, Object>) null); }
+    default PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost) { return Helpers.joinUnwrapped(this.createMarketBuyOrderWithCost(symbol, (Object) (cost), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) { return this.createMarketBuyOrderWithCost(symbol, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost) { return createMarketBuyOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
-    default PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createMarketSellOrderWithCost(symbol, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost) { return createMarketSellOrderWithCost(symbol, cost, (Map<String, Object>) null); }
+    default PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost) { return Helpers.joinUnwrapped(this.createMarketSellOrderWithCost(symbol, (Object) (cost), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) { return this.createMarketSellOrderWithCost(symbol, (Object) cost, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost) { return createMarketSellOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
-    default List<PredictionOrder> createOrders(List<Map<String, Object>> orders, Map<String, Object> params) { return Helpers.joinUnwrapped(this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> createOrders(List<Map<String, Object>> orders) { return createOrders(orders, (Map<String, Object>) null); }
+    default List<PredictionOrder> createOrders(List<Map<String, Object>> orders) { return Helpers.joinUnwrapped(this.createOrders((Object) (orders), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> createOrdersAsync(List<Map<String, Object>> orders, Map<String, Object> params) { return this.createOrders((Object) orders, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> createOrdersAsync(List<Map<String, Object>> orders) { return createOrdersAsync(orders, (Map<String, Object>) null); }
 
-    default PredictionOrder cancelOrder(String id, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionOrder cancelOrder(String id) { return cancelOrder(id, (String) null, (Map<String, Object>) null); }
-    default PredictionOrder cancelOrder(String id, String symbol) { return cancelOrder(id, symbol, (Map<String, Object>) null); }
+    default PredictionOrder cancelOrder(String id) { return Helpers.joinUnwrapped(this.cancelOrder((Object) (id), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default PredictionOrder cancelOrder(String id, String symbol) { return Helpers.joinUnwrapped(this.cancelOrder((Object) (id), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol, Map<String, Object> params) { return this.cancelOrder((Object) id, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionOrder> cancelOrderAsync(String id) { return cancelOrderAsync(id, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol) { return cancelOrderAsync(id, symbol, (Map<String, Object>) null); }
 
-    default List<PredictionOrder> cancelOrders(List<String> ids, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelOrders((Object) ids, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> cancelOrders(List<String> ids) { return cancelOrders(ids, (String) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> cancelOrders(List<String> ids, String symbol) { return cancelOrders(ids, symbol, (Map<String, Object>) null); }
+    default List<PredictionOrder> cancelOrders(List<String> ids) { return Helpers.joinUnwrapped(this.cancelOrders((Object) (ids), (Object) ((String) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> cancelOrders(List<String> ids, String symbol) { return Helpers.joinUnwrapped(this.cancelOrders((Object) (ids), (Object) (symbol), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids, String symbol, Map<String, Object> params) { return this.cancelOrders((Object) ids, (Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids) { return cancelOrdersAsync(ids, (String) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(List<String> ids, String symbol) { return cancelOrdersAsync(ids, symbol, (Map<String, Object>) null); }
-    default List<PredictionOrder> cancelOrders(String[] ids, String symbol, Map<String, Object> params) { return cancelOrders(ids == null ? null : Arrays.asList(ids), symbol, params); }
+    default List<PredictionOrder> cancelOrders(String[] ids, String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(cancelOrdersAsync(ids == null ? null : Arrays.asList(ids), symbol, params)); }
     default CompletableFuture<List<PredictionOrder>> cancelOrdersAsync(String[] ids, String symbol, Map<String, Object> params) { return cancelOrdersAsync(ids == null ? null : Arrays.asList(ids), symbol, params); }
 
-    default List<PredictionOrder> cancelAllOrders(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.cancelAllOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<PredictionOrder>> cancelAllOrdersAsync(String symbol, Map<String, Object> params) { return this.cancelAllOrders((Object) symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default List<PredictionOrder> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> fetchOrders() { return fetchOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOrders(String symbol) { return fetchOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOrders(String symbol, Long since) { return fetchOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOrders(String symbol, Long since, Long limit) { return fetchOrders(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionOrder> fetchOrders() { return Helpers.joinUnwrapped(this.fetchOrders((Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOrders(String symbol) { return Helpers.joinUnwrapped(this.fetchOrders((Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOrders(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchOrders((Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOrders(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOrders((Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> fetchOrdersAsync() { return fetchOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol) { return fetchOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol, Long since) { return fetchOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOrdersAsync(String symbol, Long since, Long limit) { return fetchOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default List<PredictionTrade> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOrderTrades(id, (Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionTrade> fetchOrderTrades(String id) { return fetchOrderTrades(id, (String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchOrderTrades(String id, String symbol) { return fetchOrderTrades(id, symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchOrderTrades(String id, String symbol, Long since) { return fetchOrderTrades(id, symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchOrderTrades(String id, String symbol, Long since, Long limit) { return fetchOrderTrades(id, symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionTrade> fetchOrderTrades(String id) { return Helpers.joinUnwrapped(this.fetchOrderTrades(id, (Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchOrderTrades(String id, String symbol) { return Helpers.joinUnwrapped(this.fetchOrderTrades(id, (Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchOrderTrades(String id, String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchOrderTrades(id, (Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchOrderTrades(String id, String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOrderTrades(id, (Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionTrade>> fetchOrderTradesAsync(String id, String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchOrderTrades(id, (Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionTrade>> fetchOrderTradesAsync(String id) { return fetchOrderTradesAsync(id, (String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchOrderTradesAsync(String id, String symbol) { return fetchOrderTradesAsync(id, symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchOrderTradesAsync(String id, String symbol, Long since) { return fetchOrderTradesAsync(id, symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchOrderTradesAsync(String id, String symbol, Long since, Long limit) { return fetchOrderTradesAsync(id, symbol, since, limit, (Map<String, Object>) null); }
 
-    default List<PredictionOrder> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchOpenOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> fetchOpenOrders() { return fetchOpenOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOpenOrders(String symbol) { return fetchOpenOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOpenOrders(String symbol, Long since) { return fetchOpenOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchOpenOrders(String symbol, Long since, Long limit) { return fetchOpenOrders(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionOrder> fetchOpenOrders() { return Helpers.joinUnwrapped(this.fetchOpenOrders((Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOpenOrders(String symbol) { return Helpers.joinUnwrapped(this.fetchOpenOrders((Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOpenOrders(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchOpenOrders((Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchOpenOrders(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchOpenOrders((Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchOpenOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync() { return fetchOpenOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol) { return fetchOpenOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol, Long since) { return fetchOpenOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchOpenOrdersAsync(String symbol, Long since, Long limit) { return fetchOpenOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default List<PredictionOrder> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchClosedOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> fetchClosedOrders() { return fetchClosedOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchClosedOrders(String symbol) { return fetchClosedOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchClosedOrders(String symbol, Long since) { return fetchClosedOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchClosedOrders(String symbol, Long since, Long limit) { return fetchClosedOrders(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionOrder> fetchClosedOrders() { return Helpers.joinUnwrapped(this.fetchClosedOrders((Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchClosedOrders(String symbol) { return Helpers.joinUnwrapped(this.fetchClosedOrders((Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchClosedOrders(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchClosedOrders((Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchClosedOrders(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchClosedOrders((Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchClosedOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync() { return fetchClosedOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol) { return fetchClosedOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol, Long since) { return fetchClosedOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchClosedOrdersAsync(String symbol, Long since, Long limit) { return fetchClosedOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default List<PredictionOrder> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchCanceledOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionOrder> fetchCanceledOrders() { return fetchCanceledOrders((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchCanceledOrders(String symbol) { return fetchCanceledOrders(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchCanceledOrders(String symbol, Long since) { return fetchCanceledOrders(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionOrder> fetchCanceledOrders(String symbol, Long since, Long limit) { return fetchCanceledOrders(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionOrder> fetchCanceledOrders() { return Helpers.joinUnwrapped(this.fetchCanceledOrders((Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchCanceledOrders(String symbol) { return Helpers.joinUnwrapped(this.fetchCanceledOrders((Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchCanceledOrders(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchCanceledOrders((Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionOrder> fetchCanceledOrders(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchCanceledOrders((Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchCanceledOrders((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync() { return fetchCanceledOrdersAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol) { return fetchCanceledOrdersAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol, Long since) { return fetchCanceledOrdersAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionOrder>> fetchCanceledOrdersAsync(String symbol, Long since, Long limit) { return fetchCanceledOrdersAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default List<PredictionTrade> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchMyTrades((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default List<PredictionTrade> fetchMyTrades() { return fetchMyTrades((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchMyTrades(String symbol) { return fetchMyTrades(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchMyTrades(String symbol, Long since) { return fetchMyTrades(symbol, since, (Long) null, (Map<String, Object>) null); }
-    default List<PredictionTrade> fetchMyTrades(String symbol, Long since, Long limit) { return fetchMyTrades(symbol, since, limit, (Map<String, Object>) null); }
+    default List<PredictionTrade> fetchMyTrades() { return Helpers.joinUnwrapped(this.fetchMyTrades((Object) ((String) null), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchMyTrades(String symbol) { return Helpers.joinUnwrapped(this.fetchMyTrades((Object) (symbol), (Object) ((Long) null), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchMyTrades(String symbol, Long since) { return Helpers.joinUnwrapped(this.fetchMyTrades((Object) (symbol), (Object) (since), (Object) ((Long) null), (Object) ((Map<String, Object>) null))); }
+    default List<PredictionTrade> fetchMyTrades(String symbol, Long since, Long limit) { return Helpers.joinUnwrapped(this.fetchMyTrades((Object) (symbol), (Object) (since), (Object) (limit), (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<List<PredictionTrade>> fetchMyTradesAsync(String symbol, Long since, Long limit, Map<String, Object> params) { return this.fetchMyTrades((Object) symbol, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<List<PredictionTrade>> fetchMyTradesAsync() { return fetchMyTradesAsync((String) null, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchMyTradesAsync(String symbol) { return fetchMyTradesAsync(symbol, (Long) null, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchMyTradesAsync(String symbol, Long since) { return fetchMyTradesAsync(symbol, since, (Long) null, (Map<String, Object>) null); }
     default CompletableFuture<List<PredictionTrade>> fetchMyTradesAsync(String symbol, Long since, Long limit) { return fetchMyTradesAsync(symbol, since, limit, (Map<String, Object>) null); }
 
-    default PredictionTradingFee fetchTradingFee(String symbol, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchTradingFee(symbol, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionTradingFee fetchTradingFee(String symbol) { return fetchTradingFee(symbol, (Map<String, Object>) null); }
+    default PredictionTradingFee fetchTradingFee(String symbol) { return Helpers.joinUnwrapped(this.fetchTradingFee(symbol, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionTradingFee> fetchTradingFeeAsync(String symbol, Map<String, Object> params) { return this.fetchTradingFee(symbol, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionTradingFee> fetchTradingFeeAsync(String symbol) { return fetchTradingFeeAsync(symbol, (Map<String, Object>) null); }
 
-    default List<PredictionEvent> fetchEvents(Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchEvents((Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<PredictionEvent>> fetchEventsAsync(Map<String, Object> params) { return this.fetchEvents((Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default PredictionEvent fetchEvent(String id, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchEvent(id, (Object) (params != null ? params : new HashMap<String, Object>()))); }
-    default PredictionEvent fetchEvent(String id) { return fetchEvent(id, (Map<String, Object>) null); }
+    default PredictionEvent fetchEvent(String id) { return Helpers.joinUnwrapped(this.fetchEvent(id, (Object) ((Map<String, Object>) null))); }
     default CompletableFuture<PredictionEvent> fetchEventAsync(String id, Map<String, Object> params) { return this.fetchEvent(id, (Object) (params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<PredictionEvent> fetchEventAsync(String id) { return fetchEventAsync(id, (Map<String, Object>) null); }
 
-    default List<PredictionSettlement> fetchSettlements(String outcome, Long since, Long limit, Map<String, Object> params) { return Helpers.joinUnwrapped(this.fetchSettlements((Object) outcome, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<List<PredictionSettlement>> fetchSettlementsAsync(String outcome, Long since, Long limit, Map<String, Object> params) { return this.fetchSettlements((Object) outcome, (Object) since, (Object) limit, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
-    default Object redeem(String outcome, Map<String, Object> params) { return Helpers.joinUnwrapped(this.redeem((Object) outcome, (Object) (params != null ? params : new HashMap<String, Object>()))); }
     default CompletableFuture<Object> redeemAsync(String outcome, Map<String, Object> params) { return this.redeem((Object) outcome, (Object) (params != null ? params : new HashMap<String, Object>())); }
 
 }
