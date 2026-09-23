@@ -1,0 +1,436 @@
+
+//  ---------------------------------------------------------------------------
+
+import { ed25519 } from '@noble/curves/ed25519.js';
+import Exchange from './abstract/nobitex.js';
+import { ExchangeError, AuthenticationError } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { eddsa } from './base/functions/crypto.js';
+import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Ticker, int } from './base/types.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class nobitex
+ * @augments Exchange
+ */
+export default class nobitex extends Exchange {
+    override describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'nobitex',
+            'name': 'Nobitex',
+            'countries': [ 'IR' ],
+            'rateLimit': 1000, // public market endpoints allow ~60 requests per minute per IP
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'createOrder': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+            },
+            'urls': {
+                'api': {
+                    'rest': 'https://apiv2.nobitex.ir',
+                },
+                'test': {
+                    'rest': 'https://testnetapiv2.nobitex.ir',
+                },
+                'www': 'https://nobitex.ir',
+                'doc': [
+                    'https://apidocs.nobitex.ir',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'v2/options': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/stats': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/trades/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/udf/history': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+                'private': {
+                    'get': {
+                        'market/trades/list': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'users/profile': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/wallets/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/wallets/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/orders/add': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/orders/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/orders/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/orders/update-status': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/orders/cancel-old': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+            },
+            // apiKey + secret = API Key auth (public key + Ed25519 private key, both url-safe base64)
+            // apiKey alone = legacy session token auth
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
+            'precisionMode': TICK_SIZE,
+            'options': {
+                'orderStatuses': {
+                    'New': 'open',
+                    'Active': 'open',
+                    'Inactive': 'open', // stop order waiting for its trigger
+                    'Done': 'closed',
+                    'Canceled': 'canceled',
+                },
+                // market id suffix -> currency id used by market/stats and minOrders
+                'quoteIds': {
+                    'IRT': 'rls',
+                    'USDT': 'usdt',
+                },
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name nobitex#fetchMarkets
+     * @description retrieves data on all markets for nobitex
+     * @see https://apidocs.nobitex.ir
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetV2Options (params);
+        //
+        //     {
+        //         "status": "ok",
+        //         "nobitex": {
+        //             "amountPrecisions": { "BTCIRT": "0.000001", "BTCUSDT": "0.000001", ... },
+        //             "pricePrecisions": { "BTCIRT": "10", "BTCUSDT": "0.01", ... },
+        //             "minOrders": { "rls": "500000", "usdt": "0.5", ... },
+        //         }
+        //     }
+        //
+        // ponytail: there is no dedicated markets endpoint, the precision maps are the market list
+        const options = this.safeDict (response, 'nobitex', {});
+        const amountPrecisions = this.safeDict (options, 'amountPrecisions', {});
+        const ids = Object.keys (amountPrecisions);
+        const pricePrecisions = this.safeDict (options, 'pricePrecisions', {});
+        const minOrders = this.safeDict (options, 'minOrders', {});
+        const quoteIds = this.safeDict (this.options, 'quoteIds', {});
+        const suffixes = Object.keys (quoteIds);
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            for (let j = 0; j < suffixes.length; j++) {
+                if (id.endsWith (suffixes[j])) {
+                    const quoteId = this.safeString (quoteIds, suffixes[j]);
+                    result.push (this.parseMarket ({
+                        'id': id,
+                        'baseId': id.slice (0, id.length - suffixes[j].length).toLowerCase (),
+                        'quoteId': quoteId,
+                        'amountPrecision': this.safeString (amountPrecisions, id),
+                        'pricePrecision': this.safeString (pricePrecisions, id),
+                        'minOrder': this.safeString (minOrders, quoteId),
+                    }));
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    override parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'id');
+        //
+        //     { "id": "BTCIRT", "baseId": "btc", "quoteId": "rls", "amountPrecision": "0.000001", "pricePrecision": "10", "minOrder": "500000" }
+        //
+        const baseId = this.safeString (market, 'baseId');
+        const quoteId = this.safeString (market, 'quoteId');
+        const base = this.safeCurrencyCode (baseId);
+        // prices on IRT markets are quoted in rials, not tomans
+        const quoteCode = (quoteId === 'rls') ? 'IRR' : this.safeCurrencyCode (quoteId);
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': base + '/' + quoteCode,
+            'base': base,
+            'quote': quoteCode,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'precision': {
+                'amount': this.safeNumber (market, 'amountPrecision'),
+                'price': this.safeNumber (market, 'pricePrecision'),
+            },
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': this.safeNumber (market, 'minOrder'), 'max': undefined },
+                'leverage': { 'min': undefined, 'max': undefined },
+            },
+            'created': undefined,
+            'info': market,
+        });
+    }
+
+    /**
+     * @method
+     * @name nobitex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.nobitex.ir
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'srcCurrency': market['baseId'],
+            'dstCurrency': market['quoteId'],
+        };
+        const response = await this.publicGetMarketStats (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "stats": {
+        //             "btc-usdt": {
+        //                 "isClosed": false, "bestSell": "85500", "bestBuy": "85405",
+        //                 "volumeSrc": "13.36", "volumeDst": "1151324.44", "latest": "85500",
+        //                 "mark": "85506.6", "dayLow": "85405", "dayHigh": "87123.45",
+        //                 "dayOpen": "85979.11", "dayClose": "85500", "dayChange": "-0.56"
+        //             }
+        //         }
+        //     }
+        //
+        const stats = this.safeDict (response, 'stats', {});
+        const ticker = this.safeDict (stats, market['baseId'] + '-' + market['quoteId'], {});
+        return this.parseTicker (ticker, market);
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const last = this.safeString (ticker, 'latest');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'dayHigh'),
+            'low': this.safeString (ticker, 'dayLow'),
+            'bid': this.safeString (ticker, 'bestBuy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'bestSell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'dayOpen'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'dayChange'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volumeSrc'),
+            'quoteVolume': this.safeString (ticker, 'volumeDst'),
+            'markPrice': this.safeString (ticker, 'mark'),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name nobitex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidocs.nobitex.ir
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV3OrderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "lastUpdate": 1790163055765,
+        //         "lastTradePrice": "85500",
+        //         "bids": [ [ "85405", "0.002623" ], ... ],
+        //         "asks": [ [ "85500", "0.1" ], ... ]
+        //     }
+        //
+        // ponytail: base parseOrderBook already handles [price, amount] string pairs
+        const orderbook = this.parseOrderBook (response, market['symbol'], this.safeInteger (response, 'lastUpdate'));
+        if (limit !== undefined) {
+            orderbook['bids'] = this.arraySlice (orderbook['bids'], 0, limit);
+            orderbook['asks'] = this.arraySlice (orderbook['asks'], 0, limit);
+        }
+        return orderbook;
+    }
+
+    /**
+     * @method
+     * @name nobitex#createOrder
+     * @description create a trade order
+     * @see https://apidocs.nobitex.ir/spot_trade/api-%D9%85%D8%B9%D8%A7%D9%85%D9%84%D8%A7%D8%AA-%D8%A7%D8%B3%D9%BE%D8%A7%D8%AA-%D9%86%D9%88%D8%A8%DB%8C%D8%AA%DA%A9%D8%B3
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the base currency you want to trade
+     * @param {float} [price] required for limit orders, optional for market orders where it caps the execution price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] turns the order into stop_limit or stop_market
+     * @param {string} [params.clientOrderId] up to 32 chars of [A-Za-z0-9-], unique among open orders
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'srcCurrency': market['baseId'],
+            'dstCurrency': market['quoteId'],
+            'type': side,
+            'execution': type,
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
+            request['execution'] = 'stop_' + type;
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'clientOrderId' ]);
+        const response = await this.privatePostMarketOrdersAdd (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "order": {
+        //             "id": 25, "clientOrderId": "order1", "type": "buy", "execution": "Limit", "tradeType": "Spot",
+        //             "market": "BTC-RLS", "srcCurrency": "Bitcoin", "dstCurrency": "﷼", "status": "Active", "partial": false,
+        //             "amount": "0.6", "price": "520000000", "averagePrice": "0", "matchedAmount": "0", "unmatchedAmount": "0.6",
+        //             "totalPrice": "0", "totalOrderPrice": "312000000", "fee": "0", "created_at": "2018-11-28T11:36:13.592827+00:00"
+        //         }
+        //     }
+        //
+        const order = this.safeDict (response, 'order', {});
+        return this.parseOrder (order, market);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        // "BTC-RLS" -> "BTCIRT", "BTC-USDT" -> "BTCUSDT"
+        let marketId = this.safeString (order, 'market');
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('-RLS', 'IRT');
+            marketId = marketId.replace ('-', '');
+        }
+        market = this.safeMarket (marketId, market);
+        const execution = this.safeString (order, 'execution'); // Limit, Market, StopLimit, StopMarket
+        let type = undefined;
+        if (execution !== undefined) {
+            type = execution.endsWith ('Market') ? 'market' : 'limit';
+        }
+        const statuses = this.safeDict (this.options, 'orderStatuses', {});
+        const average = this.safeString (order, 'averagePrice');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': this.parse8601 (this.safeString (order, 'created_at')),
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'type'),
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': this.safeString (order, 'param1'),
+            'amount': this.safeString (order, 'amount'),
+            'filled': this.safeString (order, 'matchedAmount'),
+            'remaining': this.safeString (order, 'unmatchedAmount'),
+            'cost': this.safeString (order, 'totalPrice'),
+            'average': (average === '0') ? undefined : average,
+            'status': this.safeString (statuses, this.safeString (order, 'status')),
+            'fee': {
+                'cost': this.safeString (order, 'fee'),
+                'currency': undefined,
+            },
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        let fullPath = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        headers = {};
+        if (method === 'POST') {
+            body = this.json (query);
+            headers['Content-Type'] = 'application/json';
+        } else if (Object.keys (query).length > 0) {
+            fullPath += '?' + this.urlencode (query);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            if (this.secret !== undefined && this.secret !== '') {
+                // API Key auth: Ed25519 over timestamp + METHOD + full_path + raw_body, keys and signature are url-safe base64
+                const timestamp = this.seconds ().toString ();
+                let payload = timestamp + method + fullPath;
+                if (body !== undefined) {
+                    payload += body;
+                }
+                let secret = this.secret;
+                secret = secret.replaceAll ('-', '+');
+                secret = secret.replaceAll ('_', '/');
+                const seed = this.arraySlice (this.base64ToBinary (secret), 0, 32);
+                let signature = eddsa (this.encode (payload), seed, ed25519);
+                signature = signature.replaceAll ('+', '-');
+                signature = signature.replaceAll ('/', '_');
+                headers['Nobitex-Key'] = this.apiKey;
+                headers['Nobitex-Timestamp'] = timestamp;
+                headers['Nobitex-Signature'] = signature;
+            } else {
+                // legacy session token
+                headers['Authorization'] = 'Token ' + this.apiKey;
+            }
+        }
+        const url = this.urls['api']['rest'] + fullPath;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
+            return undefined;
+        }
+        //
+        //     { "status": "failed", "code": "InvalidSymbol", "message": "..." }
+        //     { "detail": "توکن غیر مجاز" } // invalid token, http 401
+        //
+        if (httpCode === 401 || httpCode === 403) {
+            throw new AuthenticationError (this.id + ' ' + body);
+        }
+        const status = this.safeString (response, 'status');
+        if (status !== undefined && status !== 'ok') {
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+        return undefined;
+    }
+}

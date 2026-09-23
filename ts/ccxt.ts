@@ -115,6 +115,7 @@ import htx from  './src/htx.js'
 import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
+import jupiter from  './src/jupiter.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -130,6 +131,7 @@ import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
 import nado from  './src/nado.js'
 import ndax from  './src/ndax.js'
+import nobitex from  './src/nobitex.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -142,7 +144,9 @@ import poloniex from  './src/poloniex.js'
 import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
+import uniswapv4 from  './src/uniswapv4.js'
 import upbit from  './src/upbit.js'
+import wallex from  './src/wallex.js'
 import weex from  './src/weex.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
@@ -311,6 +315,7 @@ const exchanges = {
     'hyperliquid':            hyperliquid,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
+    'jupiter':                jupiter,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -326,6 +331,7 @@ const exchanges = {
     'myokx':                  myokx,
     'nado':                   nado,
     'ndax':                   ndax,
+    'nobitex':                nobitex,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -338,7 +344,9 @@ const exchanges = {
     'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
+    'uniswapv4':              uniswapv4,
     'upbit':                  upbit,
+    'wallex':                 wallex,
     'weex':                   weex,
     'whitebit':               whitebit,
     'woo':                    woo,
@@ -679,6 +687,7 @@ export {
     hyperliquid,
     independentreserve,
     indodax,
+    jupiter,
     kraken,
     krakenfutures,
     kucoin,
@@ -694,6 +703,7 @@ export {
     myokx,
     nado,
     ndax,
+    nobitex,
     okx,
     okxus,
     onetrading,
@@ -706,7 +716,9 @@ export {
     revolutx,
     tokocrypto,
     toobit,
+    uniswapv4,
     upbit,
+    wallex,
     weex,
     whitebit,
     woo,

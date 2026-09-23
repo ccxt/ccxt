@@ -134,6 +134,7 @@ from ccxt.async_support.htx import htx                                          
 from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
+from ccxt.async_support.jupiter import jupiter                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
@@ -149,6 +150,7 @@ from ccxt.async_support.mudrex import mudrex                                    
 from ccxt.async_support.myokx import myokx                                      # noqa: F401
 from ccxt.async_support.nado import nado                                        # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
+from ccxt.async_support.nobitex import nobitex                                  # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
@@ -161,7 +163,9 @@ from ccxt.async_support.poloniex import poloniex                                
 from ccxt.async_support.revolutx import revolutx                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
+from ccxt.async_support.uniswapv4 import uniswapv4                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
+from ccxt.async_support.wallex import wallex                                    # noqa: F401
 from ccxt.async_support.weex import weex                                        # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
@@ -241,6 +245,7 @@ exchanges = [
     'hyperliquid',
     'independentreserve',
     'indodax',
+    'jupiter',
     'kraken',
     'krakenfutures',
     'kucoin',
@@ -256,6 +261,7 @@ exchanges = [
     'myokx',
     'nado',
     'ndax',
+    'nobitex',
     'okx',
     'okxus',
     'onetrading',
@@ -268,7 +274,9 @@ exchanges = [
     'revolutx',
     'tokocrypto',
     'toobit',
+    'uniswapv4',
     'upbit',
+    'wallex',
     'weex',
     'whitebit',
     'woo',

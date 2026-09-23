@@ -111,6 +111,7 @@ import htx from './src/htx.js';
 import hyperliquid from './src/hyperliquid.js';
 import independentreserve from './src/independentreserve.js';
 import indodax from './src/indodax.js';
+import jupiter from './src/jupiter.js';
 import kraken from './src/kraken.js';
 import krakenfutures from './src/krakenfutures.js';
 import kucoin from './src/kucoin.js';
@@ -126,6 +127,7 @@ import mudrex from './src/mudrex.js';
 import myokx from './src/myokx.js';
 import nado from './src/nado.js';
 import ndax from './src/ndax.js';
+import nobitex from './src/nobitex.js';
 import okx from './src/okx.js';
 import okxus from './src/okxus.js';
 import onetrading from './src/onetrading.js';
@@ -138,7 +140,9 @@ import poloniex from './src/poloniex.js';
 import revolutx from './src/revolutx.js';
 import tokocrypto from './src/tokocrypto.js';
 import toobit from './src/toobit.js';
+import uniswapv4 from './src/uniswapv4.js';
 import upbit from './src/upbit.js';
+import wallex from './src/wallex.js';
 import weex from './src/weex.js';
 import whitebit from './src/whitebit.js';
 import woo from './src/woo.js';
@@ -303,6 +307,7 @@ const exchanges = {
     'hyperliquid': hyperliquid,
     'independentreserve': independentreserve,
     'indodax': indodax,
+    'jupiter': jupiter,
     'kraken': kraken,
     'krakenfutures': krakenfutures,
     'kucoin': kucoin,
@@ -318,6 +323,7 @@ const exchanges = {
     'myokx': myokx,
     'nado': nado,
     'ndax': ndax,
+    'nobitex': nobitex,
     'okx': okx,
     'okxus': okxus,
     'onetrading': onetrading,
@@ -330,7 +336,9 @@ const exchanges = {
     'revolutx': revolutx,
     'tokocrypto': tokocrypto,
     'toobit': toobit,
+    'uniswapv4': uniswapv4,
     'upbit': upbit,
+    'wallex': wallex,
     'weex': weex,
     'whitebit': whitebit,
     'woo': woo,
@@ -437,6 +445,6 @@ prediction.exchanges = Object.keys(prediction);
 prediction['Exchange'] = PredictionExchange;
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
-export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bybitid, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
+export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, btse, bullish, bybit, bybiteu, bybitid, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, jupiter, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, nobitex, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, revolutx, tokocrypto, toobit, uniswapv4, upbit, wallex, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
 export default ccxt;
 //-----------------------------------------------------------------------------

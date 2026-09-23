@@ -154,6 +154,7 @@ from ccxt.htx import htx                                              # noqa: F4
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
+from ccxt.jupiter import jupiter                                      # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
@@ -169,6 +170,7 @@ from ccxt.mudrex import mudrex                                        # noqa: F4
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.nado import nado                                            # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
+from ccxt.nobitex import nobitex                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -181,7 +183,9 @@ from ccxt.poloniex import poloniex                                    # noqa: F4
 from ccxt.revolutx import revolutx                                    # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
+from ccxt.uniswapv4 import uniswapv4                                  # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
+from ccxt.wallex import wallex                                        # noqa: F401
 from ccxt.weex import weex                                            # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
@@ -261,6 +265,7 @@ exchanges = [
     'hyperliquid',
     'independentreserve',
     'indodax',
+    'jupiter',
     'kraken',
     'krakenfutures',
     'kucoin',
@@ -276,6 +281,7 @@ exchanges = [
     'myokx',
     'nado',
     'ndax',
+    'nobitex',
     'okx',
     'okxus',
     'onetrading',
@@ -288,7 +294,9 @@ exchanges = [
     'revolutx',
     'tokocrypto',
     'toobit',
+    'uniswapv4',
     'upbit',
+    'wallex',
     'weex',
     'whitebit',
     'woo',
