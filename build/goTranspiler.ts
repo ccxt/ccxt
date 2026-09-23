@@ -5179,6 +5179,7 @@ ${caseStatements.join('\n')}
         // receiver, method, accepted single-return shape, wrap-every-function-level-return
         const rows: [string, string, (expr: string) => boolean, boolean][] = [
             [ 'BaseExchange', 'Account', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
+            [ 'BaseExchange', 'ParseOrderBook', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
@@ -5196,7 +5197,9 @@ ${caseStatements.join('\n')}
      * declare the method is a no-op (the unit must then not add its classifier row).
      */
     coerceTypedMapAccessorOverrides (content: string): string {
-        const rows: [string, string][] = [];
+        const rows: [string, string][] = [
+            [ 'Ndax', 'ParseOrderBook' ],
+        ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true);
         }

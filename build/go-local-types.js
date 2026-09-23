@@ -137,6 +137,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // non-map operand panics on the assertion instead of escaping), so `map[string]any` is exact.
     'this.DeepExtend2': 'map[string]any',
     'this.Account': 'map[string]any',
+    'this.ParseOrderBook': 'map[string]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     'this.Capitalize': 'string',

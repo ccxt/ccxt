@@ -395,7 +395,7 @@ type IDerivedExchange interface {
 	ParseOrder(order any, optionalArgs ...any) any
 	ParseTicker(ticker any, optionalArgs ...any) any
 	ParseTickers(tickers any, optionalArgs ...any) any
-	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any
+	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any
 	SafeMarketStructure(optionalArgs ...any) any
 	ParseOpenInterest(interest any, optionalArgs ...any) any
