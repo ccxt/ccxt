@@ -849,8 +849,8 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 		var key string = GetValue(keys, i).(string)
 		var ticker any = GetValue(tickers, key)
 		var marketId *string = this.SafeString(ticker, "symbol", key)
-		var market any = this.SafeMarket(marketId, nil, "-")
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, "-"))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.Extend(this.ParseTicker(ticker, market), params))
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)

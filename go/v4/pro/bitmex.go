@@ -756,8 +756,8 @@ func (this *Bitmex) HandleTrades(client any, message map[string]any) {
 	var marketIds []string = ccxt.ObjectKeys(dataByMarketIds)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
-		var market any = this.SafeMarket(marketId)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = table + ":" + *symbol
 		var trades any = this.ParseTrades(dataByMarketIds[marketId], market)
 		var stored any = this.SafeValue(this.Trades, symbol)

@@ -1239,8 +1239,8 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 		var marketId string = GetValue(marketIds, i).(string)
 		var entry []any = SafeListTypedDefault(response, marketId, []any{})
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
-		var market any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, delimiter))
+		var symbol *string = SafeStringPtr(market["symbol"])
 		AddElementToObject(result, symbol, this.ParseTicker(first, market))
 	}
 
@@ -2348,9 +2348,9 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	} else {
 		direction = "in"
 	}
-	var amount any = this.ParseNumber(amountString)
-	var after any = this.ParseNumber(afterString)
-	var before any = this.ParseNumber(beforeString)
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
+	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
+	var before *float64 = Float64PtrTyped(this.ParseNumber(beforeString))
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
@@ -2840,7 +2840,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var what any = Add(Add(Add(nonce, method), request), payload)
+		var what any = Add(Add(nonce+method, request), payload)
 		var secret any = nil
 
 		{
