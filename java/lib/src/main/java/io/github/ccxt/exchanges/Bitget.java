@@ -116,7 +116,7 @@ public class Bitget extends BitgetApi
                 put( "fetchCrossBorrowRate", true );
                 put( "fetchCrossBorrowRates", false );
                 put( "fetchCurrencies", true );
-                put( "fetchDeposit", false );
+                put( "fetchDeposit", true );
                 put( "fetchDepositAddress", true );
                 put( "fetchDepositAddresses", false );
                 put( "fetchDepositAddressesByNetwork", false );
@@ -174,7 +174,7 @@ public class Bitget extends BitgetApi
                 put( "fetchTransfer", false );
                 put( "fetchTransfers", true );
                 put( "fetchWithdrawAddresses", false );
-                put( "fetchWithdrawal", false );
+                put( "fetchWithdrawal", true );
                 put( "fetchWithdrawals", true );
                 put( "reduceMargin", true );
                 put( "repayCrossMargin", true );
@@ -4891,6 +4891,33 @@ final Object finalMinNotional = minNotional;
 
     /**
      * @method
+     * @name bitget#fetchDeposit
+     * @description fetch data on a currency deposit via the deposit id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "orderId", id );
+            }};
+            Object deposits = (this.fetchDeposits((Object)(code), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
+            return this.safeDict(deposits, 0, new HashMap<String, Object>() {{}});
+        });
+
+    }
+
+    /**
+     * @method
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -5123,6 +5150,33 @@ final Object finalMinNotional = minNotional;
 
     }
 
+    /**
+     * @method
+     * @name bitget#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id, looks back 30 days for uta accounts and 90 days otherwise
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "orderId", id );
+            }};
+            Object withdrawals = (this.fetchWithdrawals((Object)(code), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
+            return this.safeDict(withdrawals, 0, new HashMap<String, Object>() {{}});
+        });
+
+    }
+
     public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
     {
         //
@@ -5166,7 +5220,7 @@ final Object finalMinNotional = minNotional;
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }
