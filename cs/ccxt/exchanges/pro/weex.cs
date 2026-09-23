@@ -820,7 +820,7 @@ public partial class weex : ccxt.weex
         IDictionary<string, object> firstEntry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         string? interval = this.safeString(firstEntry, "i");
         string? timeframe = this.findTimeframe(interval);
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

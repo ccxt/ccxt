@@ -907,7 +907,7 @@ public partial class extended : ccxt.extended
         object cacheKey = (candleType == "trades") ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), cacheKey);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), cacheKey));
         if ((stored == null))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);

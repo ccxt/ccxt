@@ -469,7 +469,7 @@ public partial class htx : ccxt.htx
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1938,7 +1938,7 @@ public partial class htx : ccxt.htx
             {
                 marginMode = defaultMarginMode;
             }
-            object cache = this.safeValue(getValue(this.positions, url), marginMode);
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(getValue(this.positions, url), marginMode));
             if ((cache == null))
             {
                 cache = new ArrayCacheBySymbolBySide();

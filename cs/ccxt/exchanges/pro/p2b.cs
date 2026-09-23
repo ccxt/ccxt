@@ -324,7 +324,7 @@ public partial class p2b : ccxt.p2b
         string? messageHash = ((string)add(add(channel, "::"), symbol));
         IList<object> parsed = this.parseOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
         if ((symbol != null))
         {
             if ((stored == null))
