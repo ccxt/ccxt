@@ -9,8 +9,7 @@ import (
 // as a typed nil; every helper must read it exactly like the untyped nil it replaces.
 func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 	var nilMap map[string]any
-	var nilList []any
-	for name, v := range map[string]any{"map": nilMap, "list": nilList, "untyped": nil} {
+	for name, v := range map[string]any{"map": nilMap, "untyped": nil} {
 		if derefScalar(v) != nil {
 			t.Errorf("%s: derefScalar = %#v, want nil", name, derefScalar(v))
 		}
@@ -56,5 +55,9 @@ func TestEmptyContainerStaysPresent(t *testing.T) {
 	l := []any{}
 	if IsEqual(l, nil) || derefScalar(l) == nil {
 		t.Errorf("empty list read as absent")
+	}
+	var nilList []any // FilterBy's no-match answer: still a list
+	if !IsArray(nilList) || derefScalar(nilList) == nil {
+		t.Errorf("nil []any no longer reads as a list")
 	}
 }

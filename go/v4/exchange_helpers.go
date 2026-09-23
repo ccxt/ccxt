@@ -1852,11 +1852,8 @@ func derefScalar(v any) any {
 		}
 		return derefScalar(*p)
 	case map[string]any:
-		// a typed-nil container local boxed into `any` reads as absent, like untyped nil
-		if p == nil {
-			return nil
-		}
-	case []any:
+		// a typed-nil map local boxed into `any` reads as absent; a nil []any stays an
+		// (empty) list because hand-written helpers (FilterBy, Sort, ...) return one
 		if p == nil {
 			return nil
 		}

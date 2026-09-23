@@ -3045,8 +3045,11 @@ function ccxtGoNilDeclaredContainerJoinTypeUncached (goTranspiler, declaration) 
                     state.mutated = state.mutated || ccxtGoNilJoinIsElementWrite (node);
                     if (ccxtGoNilJoinIsPush (node)) {
                         fail ();                          // AppendToArray(&x) needs an `any` box
-                    } else if (!assigned && !ccxtGoNilJoinReadSeesAbsent (goTranspiler, node)) {
-                        fail ();
+                    } else if (!assigned) {
+                        state.relaxed = true;             // only a typed-nil MAP reads as absent
+                        if (!ccxtGoNilJoinReadSeesAbsent (goTranspiler, node)) {
+                            fail ();
+                        }
                     }
                 } else if (kind !== 'skip') {
                     fail ();                              // write/reject in expression position
@@ -3174,6 +3177,9 @@ function ccxtGoNilDeclaredContainerJoinTypeUncached (goTranspiler, declaration) 
         }
     };
     visitStatement (scope.body, false);
+    if ((state.relaxed || state.copies) && (state.goType === '[]any')) {
+        return undefined;                                 // a nil []any is an empty list, not absent
+    }
     if (state.copies && state.mutated) {
         return undefined;                                 // the converted copy would drop the write
     }
