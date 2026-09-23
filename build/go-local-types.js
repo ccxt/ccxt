@@ -4998,6 +4998,18 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
 
 // `var retResN T = ..` + `ch <- retResN`: a nil map/slice would reach the caller as a non-nil
 // box, so the forwarded send goes through BoxAbsent (typed nil -> untyped nil)
+// `x := (<-core(..))` + `PanicOnError(x)` + `ch <- x` for an untyped core: the boxed temporary
+// only relays the value, so the send receives straight through PanicOnError (same checks, same value)
+const CCXT_GO_BOXED_FORWARD = /^\n([ \t]*)(retRes\d+) := (\(?<-[^\n]*)\n\1PanicOnError\(\2\)\n((?:[ \t]*\/\/[^\n]*\n)*)\1ch <- \2((?:[ \t]+\/\/[^\n]*)?)\n/;
+
+function ccxtGoElideBoxedForward (printed) {
+    const m = CCXT_GO_BOXED_FORWARD.exec (printed);
+    if ((m === null) || (m.index !== 0)) {
+        return printed;
+    }
+    return '\n' + m[4] + m[1] + 'ch <- PanicOnError(' + m[3] + ')' + m[5] + '\n' + printed.slice (m[0].length);
+}
+
 function installCcxtGoAsyncForwardRebox (goTranspiler) {
     if ((goTranspiler === undefined) || goTranspiler.__ccxtGoAsyncForwardReboxInstalled
         || (typeof goTranspiler.printReturnStatement !== 'function')) {
@@ -5008,7 +5020,7 @@ function installCcxtGoAsyncForwardRebox (goTranspiler) {
         const printed = printReturn.call (this, node, identation);
         const m = /\n(\s*)var (retRes\d+) (?:map\[string\]any|\[\]any) = [^\n]*\n/.exec (printed);
         if (m === null) {
-            return printed;
+            return ccxtGoElideBoxedForward (printed);
         }
         const send = new RegExp ('^(\\s*ch <- )' + m[2] + '(\\s*(?://.*)?)$', 'm');
         if (!send.test (printed)) {
