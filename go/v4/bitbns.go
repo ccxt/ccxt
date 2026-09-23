@@ -320,7 +320,7 @@ func (this *Bitbns) FetchStatusAsync(optionalArgs ...any) <-chan any {
 func (this *Bitbns) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.V1GetPlatformStatus(params))
@@ -366,7 +366,7 @@ func (this *Bitbns) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.WwwGetOrderFetchMarkets(params))
@@ -496,12 +496,11 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes37412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes37412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -614,12 +613,11 @@ func (this *Bitbns) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes47412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes47412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.WwwGetOrderFetchTickers(params))
@@ -676,9 +674,9 @@ func (this *Bitbns) ParseBalance(response any) any {
 		if numParts > 1 {
 			var currencyId any = DerefScalar(this.SafeString(parts, 1))
 			// note that "Money" stands for INR - the only fiat in bitbns
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(data, key))
-			AddElementToObject(account, "used", this.SafeString(data, Add("inorder", currencyId)))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(data, key)
+			account["used"] = this.SafeString(data, Add("inorder", currencyId))
 			if IsEqual(currencyId, "Money") {
 				currencyId = "INR"
 			}
@@ -706,12 +704,11 @@ func (this *Bitbns) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes55212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes55212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.V1PostCurrentCoinBalanceEVERYTHING(params))
@@ -855,18 +852,17 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes69012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes69012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
-	params = this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"})
+	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}))
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -941,19 +937,18 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes75812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes75812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	params = this.Omit(params, []any{"trigger", "stop"})
+	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var request map[string]any = map[string]any{
 		"entry_id": id,
 		"symbol":   market["uppercaseId"],
@@ -1007,15 +1002,14 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes79212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes79212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1088,19 +1082,18 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes85212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes85212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	params = this.Omit(params, []any{"trigger", "stop"})
+	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
 	var quoteSide string = func() string {
 		if IsEqual(GetValue(market, "quoteId"), "USDT") {
 			return "usdtListOpen"
@@ -1194,12 +1187,12 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var factor *string = this.SafeString(trade, "factor")
-	var costString any = nil
+	var costString *string = nil
 	if factor != nil {
 		amountString = Precise.StringDiv(amountString, factor)
 	} else {
 		amountString = this.SafeString(trade, "base_volume")
-		costString = DerefScalar(this.SafeString(trade, "quote_volume"))
+		costString = this.SafeString(trade, "quote_volume")
 	}
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
@@ -1252,15 +1245,14 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes98412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1342,15 +1334,14 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes105512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes105512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1396,15 +1387,14 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires a currency code argument"))
 	}
 	if this.Markets == nil {
 
-		retRes108812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes108812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -1467,15 +1457,14 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchWithdrawals() requires a currency code argument"))
 	}
 	if this.Markets == nil {
 
-		retRes113812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -1608,12 +1597,11 @@ func (this *Bitbns) FetchDepositAddressAsync(code any, optionalArgs ...any) <-ch
 func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes125112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes125112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -1652,7 +1640,7 @@ func (this *Bitbns) Nonce() any {
 func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "www")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1674,11 +1662,11 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())
-	if IsEqual(method, "GET") {
+	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
-	} else if IsEqual(method, "POST") {
+	} else if method == "POST" {
 		if len(ObjectKeys(query)) > 0 {
 			body = this.Json(query)
 		} else {

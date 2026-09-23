@@ -68,13 +68,12 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if this.Markets == nil {
 
-		retRes5212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes5212)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -198,15 +197,14 @@ func (this *Luno) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if this.Markets == nil {
 
-		retRes15612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes15612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -285,7 +283,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 func (this *Luno) CustomParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timestamp
-	bidsKey := ccxt.GetArg(optionalArgs, 1, "bids")
+	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
 	_ = bidsKey
 	asksKey := ccxt.GetArg(optionalArgs, 2, "asks")
 	_ = asksKey

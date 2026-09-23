@@ -91,7 +91,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if limit != nil {
 		if (!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 500)) && (!ccxt.IsEqual(limit, 1000)) {
@@ -100,17 +100,16 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	if this.Markets == nil {
 
-		retRes7312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes7312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = this.Market(symbol)
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
 	var endPart any = nil
 	if limit == nil {
-		endPart = ccxt.GetValue(market, "id")
+		endPart = market["id"]
 	} else {
-		endPart = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), ":"), this.NumberToString(limit))
+		endPart = ccxt.Add(ccxt.Add(market["id"], ":"), this.NumberToString(limit))
 	}
 
 	orderbook := (<-this.WatchPublicAsync("order-books", messageHash, endPart))
@@ -151,7 +150,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 		orderbook = this.OrderBook(map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
+	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -179,12 +178,11 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes13812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes13812)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -263,13 +261,12 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if this.Markets == nil {
 
-		retRes20312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "USER_TRADE"
 	if symbol != nil {
@@ -423,12 +420,11 @@ func (this *Bitopro) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes34712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes34712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -525,13 +521,12 @@ func (this *Bitopro) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if this.Markets == nil {
 
-		retRes43712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes43712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash string = "ACCOUNT_BALANCE"
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
@@ -571,12 +566,12 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
-		var balance any = this.SafeDict(data, currency, map[string]any{})
+		var balance map[string]any = ccxt.SafeMapTyped(data, currency)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "available")
+		account["total"] = this.SafeString(balance, "amount")
 		if code != nil {
 			ccxt.AddElementToObject(result, code, account)
 		}

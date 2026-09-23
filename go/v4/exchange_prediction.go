@@ -76,7 +76,7 @@ func (this *PredictionExchange) IsPrediction() any {
 }
 func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any {
 	// accepts either `query` (a single search string) or `queries` (a list of strings)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var singleQuery *string = this.SafeString(params, "query")
 	if singleQuery != nil {
@@ -89,7 +89,7 @@ func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	// entire exchange. require one of query / queries / tags / eventId / slug, or one of the
 	// venue-specific scope params an exchange declares in options['eventScopeParams'],
 	// e.g. kalshi's category / series_ticker
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var query *string = this.SafeString(params, "query")
 	var queries []any = SafeListTyped(params, "queries")
@@ -123,7 +123,7 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 	// so exchanges whose API can't filter natively still support them consistently.
 	// every fetched event lands in the cache before filtering, so loadEvents()/event()
 	// serve them later without another request
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	queries := GetArg(optionalArgs, 1, nil)
 	_ = queries
@@ -340,7 +340,7 @@ func (this *PredictionExchange) FetchEventsAsync(optionalArgs ...any) <-chan any
 func (this *PredictionExchange) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchEvents() is not supported yet"))
 }
@@ -352,7 +352,7 @@ func (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <-c
 func (this *PredictionExchange) fetchEventBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchEvent() is not supported yet"))
 }
@@ -419,9 +419,9 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs .
 	// note: the cache-hit shortcut ignores params, so events fetched under one scope are
 	// returned for a later differently-scoped call. events are scoped (unlike global
 	// markets), so prefer fetchEvents (params) directly when you need a specific scope
-	reload := GetArg(optionalArgs, 0, false)
+	var reload bool = GetArgBool(optionalArgs, 0, false)
 	_ = reload
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if !(reload == true) && (!IsEqual(this.Events, nil) && !IsEqual(this.Events, nil)) {
 
@@ -446,9 +446,9 @@ func (this *PredictionExchange) loadEventsBody(ch chan any, optionalArgs ...any)
 	// cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
 	// promise coalescing: the promise-sharing idiom is not expressible in the transpiled
 	// base, so two truly concurrent first calls may fetch twice (both land in the cache)
-	reload := GetArg(optionalArgs, 0, false)
+	var reload bool = GetArgBool(optionalArgs, 0, false)
 	_ = reload
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
 	retRes39415 := (<-this.LoadEventsHelperAsync(reload, params))
@@ -754,10 +754,15 @@ func (this *PredictionExchange) IndexEventOutcomes(event any) {
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
-	var markets any = this.SafeList(event, "markets", []any{})
-	var marketsLength int = GetArrayLength(markets)
+	var markets []any = SafeListTyped(event, "markets")
+	var marketsLength int = len(markets)
 	for i := 0; i < marketsLength; i++ {
-		var m any = GetValue(markets, i)
+		var m any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var marketHandle *string = this.SafeString2(m, "market", "symbol")
 		if marketHandle != nil {
 			AddElementToObject(this.Markets, marketHandle, m)
@@ -786,9 +791,9 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 	// request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
 	outcomes := GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	reload := GetArg(optionalArgs, 1, false)
+	var reload bool = GetArgBool(optionalArgs, 1, false)
 	_ = reload
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if outcomes != nil {
 		var missing []any = []any{}
@@ -802,8 +807,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
 		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !(reload == true) {
 
-			retRes71716 := (<-this.LoadOutcomesAsync())
-			PanicOnError(retRes71716)
+			PanicOnError((<-this.LoadOutcomesAsync()))
 			var stillMissing []any = []any{}
 			for i := 0; i < missingLength; i++ {
 				if !EvalTruthy(this.HasOutcome(func() any {
@@ -825,8 +829,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		}
 		if missingLength > 0 {
 
-			retRes72816 := <-this.DerivedExchange.FetchOutcomesAsync(missing)
-			PanicOnError(retRes72816)
+			PanicOnError(<-this.DerivedExchange.FetchOutcomesAsync(missing))
 		}
 
 		ch <- this.Outcomes
@@ -838,8 +841,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		return nil
 	}
 
-	retRes7358 := (<-this.LoadMarketsAsync(reload, params))
-	PanicOnError(retRes7358)
+	PanicOnError((<-this.LoadMarketsAsync(reload, params)))
 	this.PopulateOutcomes()
 
 	ch <- this.Outcomes
@@ -864,8 +866,7 @@ func (this *PredictionExchange) fetchOutcomesBody(ch chan any, outcomeSymbols an
 	defer ReturnPanicError(ch)
 	for i := 0; i < GetArrayLength(outcomeSymbols); i++ {
 
-		retRes75012 := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
-		PanicOnError(retRes75012)
+		PanicOnError(<-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i)))
 	}
 
 	ch <- this.Outcomes
@@ -886,7 +887,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 	// options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
 	// miss loads the whole (capped) listing once so later lookups are 0-network hits — only
 	// sane on venues whose full universe is one cheap request (hyperliquid)
-	reload := GetArg(optionalArgs, 0, false)
+	var reload bool = GetArgBool(optionalArgs, 0, false)
 	_ = reload
 	if IsEqual(outcomeSymbol, nil) {
 		panic(ArgumentsRequired(this.Id + " loadOutcome() requires an outcomeSymbol argument"))
@@ -916,8 +917,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 			// listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
 			// the whole listing (which would mask typos and clobber offline-injected markets)
 
-			retRes78616 := (<-this.LoadOutcomesAsync())
-			PanicOnError(retRes78616)
+			PanicOnError((<-this.LoadOutcomesAsync()))
 			if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 
 				ch <- this.SafeOutcome(outcomeSymbol)
@@ -1019,11 +1019,10 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
 				}()
 				// try block:
 
-				retRes85716 := <-this.callInternal("fetchEvents", map[string]any{
+				PanicOnError(<-this.callInternal("fetchEvents", map[string]any{
 					"query": searchQuery,
 					"limit": searchLimit,
-				})
-				PanicOnError(retRes85716)
+				}))
 				return nil
 			}(this)
 
@@ -1053,7 +1052,7 @@ func (this *PredictionExchange) FetchTickerAsync(outcome any, optionalArgs ...an
 func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchTicker() is not supported yet"))
 }
@@ -1074,9 +1073,9 @@ func (this *PredictionExchange) FetchTickersAsync(optionalArgs ...any) <-chan an
 func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchTickers() is not supported yet"))
 }
@@ -1098,9 +1097,9 @@ func (this *PredictionExchange) FetchOrderBookAsync(outcome any, optionalArgs ..
 func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchOrderBook() is not supported yet"))
 }
@@ -1124,13 +1123,13 @@ func (this *PredictionExchange) FetchOHLCVAsync(outcome any, optionalArgs ...any
 func (this *PredictionExchange) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes92115 := (<-this.BaseExchange.FetchOHLCVAsync(outcome, timeframe, since, limit, params))
@@ -1157,11 +1156,11 @@ func (this *PredictionExchange) FetchTradesAsync(outcome any, optionalArgs ...an
 func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchTrades() is not supported yet"))
 }
@@ -1186,9 +1185,9 @@ func (this *PredictionExchange) CreateOrderAsync(outcome any, typeVar any, side 
 func (this *PredictionExchange) createOrderBody(ch chan any, outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " createOrder() is not supported yet"))
 }
@@ -1210,9 +1209,9 @@ func (this *PredictionExchange) CancelOrderAsync(id any, optionalArgs ...any) <-
 func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " cancelOrder() is not supported yet"))
 }
@@ -1233,7 +1232,7 @@ func (this *PredictionExchange) WatchTickerAsync(outcome any, optionalArgs ...an
 func (this *PredictionExchange) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchTicker() is not supported yet"))
 }
@@ -1255,9 +1254,9 @@ func (this *PredictionExchange) WatchOrderBookAsync(outcome any, optionalArgs ..
 func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchOrderBook() is not supported yet"))
 }
@@ -1280,11 +1279,11 @@ func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...an
 func (this *PredictionExchange) watchTradesBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchTrades() is not supported yet"))
 }
@@ -1307,13 +1306,13 @@ func (this *PredictionExchange) FetchOrdersAsync(optionalArgs ...any) <-chan any
 func (this *PredictionExchange) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchOrders() is not supported yet"))
 }
@@ -1336,13 +1335,13 @@ func (this *PredictionExchange) FetchOpenOrdersAsync(optionalArgs ...any) <-chan
 func (this *PredictionExchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchOpenOrders() is not supported yet"))
 }
@@ -1365,13 +1364,13 @@ func (this *PredictionExchange) FetchClosedOrdersAsync(optionalArgs ...any) <-ch
 func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchClosedOrders() is not supported yet"))
 }
@@ -1395,13 +1394,13 @@ func (this *PredictionExchange) FetchOrderTradesAsync(id any, optionalArgs ...an
 func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchOrderTrades() is not supported yet"))
 }
@@ -1424,13 +1423,13 @@ func (this *PredictionExchange) FetchMyTradesAsync(optionalArgs ...any) <-chan a
 func (this *PredictionExchange) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchMyTrades() is not supported yet"))
 }
@@ -1451,7 +1450,7 @@ func (this *PredictionExchange) FetchPositionAsync(outcome any, optionalArgs ...
 func (this *PredictionExchange) fetchPositionBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchPosition() is not supported yet"))
 }
@@ -1472,9 +1471,9 @@ func (this *PredictionExchange) FetchPositionsAsync(optionalArgs ...any) <-chan 
 func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchPositions() is not supported yet"))
 }
@@ -1495,7 +1494,7 @@ func (this *PredictionExchange) FetchTradingFeeAsync(outcome any, optionalArgs .
 func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchTradingFee() is not supported yet"))
 }
@@ -1516,7 +1515,7 @@ func (this *PredictionExchange) FetchOpenInterestAsync(outcome any, optionalArgs
 func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchOpenInterest() is not supported yet"))
 }
@@ -1537,7 +1536,7 @@ func (this *PredictionExchange) CreateOrdersAsync(orders any, optionalArgs ...an
 func (this *PredictionExchange) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " createOrders() is not supported yet"))
 }
@@ -1559,9 +1558,9 @@ func (this *PredictionExchange) CancelOrdersAsync(ids any, optionalArgs ...any) 
 func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " cancelOrders() is not supported yet"))
 }
@@ -1585,7 +1584,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
 	defer ReturnPanicError(ch)
 	// safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
 	// when the option is undeclared (it is for every prediction exchange)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false)) {
 
@@ -1614,7 +1613,7 @@ func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome any, 
 func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, outcome any, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if (this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || (this.SafeBool(this.Has, "createMarketSellOrderWithCost", false) != nil && *this.SafeBool(this.Has, "createMarketSellOrderWithCost", false)) {
 
@@ -1642,9 +1641,9 @@ func (this *PredictionExchange) WatchTickersAsync(optionalArgs ...any) <-chan an
 func (this *PredictionExchange) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchTickers() is not supported yet"))
 }
@@ -1667,13 +1666,13 @@ func (this *PredictionExchange) WatchOrdersAsync(optionalArgs ...any) <-chan any
 func (this *PredictionExchange) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchOrders() is not supported yet"))
 }
@@ -1696,13 +1695,13 @@ func (this *PredictionExchange) WatchMyTradesAsync(optionalArgs ...any) <-chan a
 func (this *PredictionExchange) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchMyTrades() is not supported yet"))
 }
@@ -1725,13 +1724,13 @@ func (this *PredictionExchange) WatchPositionsAsync(optionalArgs ...any) <-chan 
 func (this *PredictionExchange) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcomes := GetArg(optionalArgs, 0, nil)
+	var outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " watchPositions() is not supported yet"))
 }
@@ -1755,13 +1754,13 @@ func (this *PredictionExchange) FetchSettlementsAsync(optionalArgs ...any) <-cha
 func (this *PredictionExchange) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	outcome := GetArg(optionalArgs, 0, nil)
+	var outcome *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchSettlements() is not supported yet"))
 }
@@ -1906,7 +1905,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 }
 func (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...any) any {
 	// build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
@@ -1944,7 +1943,7 @@ func (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ..
 	// build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
 	// indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
 	// prediction venues report those directly, so the crypto back-derivation from percentage is moot.
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var open any = this.OmitZero(this.SafeString(ticker, "open"))
 	var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
@@ -2033,7 +2032,7 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	// normalize a parsed order book to the prediction shape: replace the unified
 	// `symbol` with the `outcome` handle and attach the outcome identity fields
 	// outcomeId and market - so books match the PredictionOrderBook structure.
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
 	AddElementToObject(orderbook, "outcome", func() any {
@@ -2058,27 +2057,27 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	return this.Omit(orderbook, "symbol")
 }
 func (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTicker() is not supported yet"))
 }
 func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOrder() is not supported yet"))
 }
 func (this *PredictionExchange) ParsePredictionTrade(trade any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTrade() is not supported yet"))
 }
 func (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionPosition() is not supported yet"))
 }
 func (this *PredictionExchange) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOpenInterest() is not supported yet"))
 }
@@ -2106,7 +2105,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
@@ -2145,7 +2144,7 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
@@ -2178,7 +2177,7 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	// argument through marketSymbols() and would throw BadSymbol on outcome handles.
 	// venue-specific outcome filtering stays in the exchange (position identity differs
 	// per venue: kalshi positions are market-level, polymarket ones are per token)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
@@ -2201,7 +2200,7 @@ func (this *PredictionExchange) FilterByOutcomeSinceLimit(array any, optionalArg
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	tail := GetArg(optionalArgs, 3, false)
+	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
 	return this.FilterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail)
 }
@@ -2212,7 +2211,7 @@ func (this *PredictionExchange) FilterByOutcomesSinceLimit(array any, optionalAr
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	tail := GetArg(optionalArgs, 3, false)
+	var tail bool = GetArgBool(optionalArgs, 3, false)
 	_ = tail
 	var result any = this.FilterByArray(array, "outcome", outcomes, false)
 	return this.FilterBySinceLimit(result, since, limit, "timestamp", tail)
@@ -2401,7 +2400,7 @@ func (this *PredictionExchange) WaitForTransactionReceiptAsync(rpcUrl any, txHas
 func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUrl any, txHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeout := GetArg(optionalArgs, 0, 60000)
+	var timeout int64 = GetArgInt64(optionalArgs, 0, 60000)
 	_ = timeout
 	var start int64 = this.Milliseconds()
 	for IsLessThan((this.Milliseconds() - start), timeout) {
@@ -2414,8 +2413,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
 			return nil
 		}
 
-		retRes179012 := (<-this.Sleep(2000))
-		PanicOnError(retRes179012)
+		PanicOnError((<-this.Sleep(2000)))
 	}
 	panic(ExchangeError(Add(Add(this.Id+" transaction ", txHash), " not mined within timeout")))
 }

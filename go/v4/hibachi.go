@@ -413,7 +413,7 @@ func (this *Hibachi) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Hibachi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetMarketExchangeInfo(params))
@@ -506,9 +506,9 @@ func (this *Hibachi) ParseBalance(response any) any {
 	}
 	// Hibachi only supports USDT on Arbitrum at this time
 	var code *string = this.SafeCurrencyCode("USDT")
-	var account any = this.Account()
-	AddElementToObject(account, "total", this.SafeString(response, "balance"))
-	AddElementToObject(account, "free", this.SafeString(response, "maximalWithdraw"))
+	var account map[string]any = this.Account()
+	account["total"] = this.SafeString(response, "balance")
+	account["free"] = this.SafeString(response, "maximalWithdraw")
 	if code != nil {
 		AddElementToObject(result, code, account)
 	}
@@ -531,7 +531,7 @@ func (this *Hibachi) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Hibachi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -630,8 +630,8 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost *string = Precise.StringMul(price, amount)
 	var side any = nil
 	var fee any = nil
-	var orderType any = nil
-	var orderId any = nil
+	var orderType *string = nil
+	var orderId *string = nil
 	var takerOrMaker any = nil
 	if id == nil {
 		// public trades
@@ -646,9 +646,9 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		orderType = this.SafeStringLower(trade, "orderType")
 		if IsEqual(side, "buy") {
-			orderId = DerefScalar(this.SafeString(trade, "bidOrderId"))
+			orderId = this.SafeString(trade, "bidOrderId")
 		} else {
-			orderId = DerefScalar(this.SafeString(trade, "askOrderId"))
+			orderId = this.SafeString(trade, "askOrderId")
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -687,16 +687,15 @@ func (this *Hibachi) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	since := GetArg(optionalArgs, 0, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes60612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes60612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -745,12 +744,11 @@ func (this *Hibachi) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes64512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes64512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -899,12 +897,11 @@ func (this *Hibachi) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes78012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes78012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbol != nil {
@@ -938,12 +935,11 @@ func (this *Hibachi) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes80412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes80412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -1033,7 +1029,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -1093,7 +1089,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	if triggerPrice != nil {
 		request["triggerPrice"] = triggerPrice
 	}
-	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"})
+	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}))
 	return this.Extend(request, params)
 }
 
@@ -1120,12 +1116,11 @@ func (this *Hibachi) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes95512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes95512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.Nonce()
 	var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
@@ -1163,12 +1158,11 @@ func (this *Hibachi) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan a
 func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes98312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.Nonce()
 	var requestOrders []any = []any{}
@@ -1218,7 +1212,7 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	_ = amount
 	price := GetArg(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if IsEqual(typeVar, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
@@ -1281,19 +1275,17 @@ func (this *Hibachi) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	_ = amount
 	price := GetArg(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes106212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes106212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.Nonce()
 	var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
-	retRes10678 := (<-this.PrivatePutTradeOrder(request))
-	PanicOnError(retRes10678)
+	PanicOnError((<-this.PrivatePutTradeOrder(request)))
 
 	// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
 	//
@@ -1323,12 +1315,11 @@ func (this *Hibachi) EditOrdersAsync(orders any, optionalArgs ...any) <-chan any
 func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes108912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes108912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.Nonce()
 	var requestOrders []any = []any{}
@@ -1404,9 +1395,9 @@ func (this *Hibachi) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Hibachi) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request any = this.CancelOrderRequest(id)
 	AddElementToObject(request, "accountId", this.GetAccountId())
@@ -1444,9 +1435,9 @@ func (this *Hibachi) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan any 
 func (this *Hibachi) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -1503,12 +1494,11 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes121312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes121312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.Nonce()
 	var nonce16 string = this.IntToBase16(nonce)
@@ -1584,9 +1574,9 @@ func (this *Hibachi) WithdrawAsync(code any, amount any, address any, optionalAr
 func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var withdrawAddress string = Slice(address, OpNeg(40), nil)
 	// Get the withdraw fees
@@ -1618,8 +1608,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any
 		"signature":       signature,
 	}
 
-	retRes13088 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
-	PanicOnError(retRes13088)
+	PanicOnError((<-this.PrivatePostCapitalWithdraw(this.Extend(request, params))))
 
 	// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
 	//
@@ -1688,14 +1677,13 @@ func (this *Hibachi) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes136812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes136812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1775,12 +1763,11 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes143212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes143212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbol != nil {
@@ -1836,7 +1823,7 @@ func (this *Hibachi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//     }
 	//   ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeIntegerProduct(ohlcv, "timestamp", 1000), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volumeNotional")}
 }
@@ -1866,12 +1853,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes150612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes150612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbol != nil {
@@ -1949,8 +1935,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	_ = params
 	if this.Markets == nil {
 
-		retRes156412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes156412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{
@@ -2035,11 +2020,10 @@ func (this *Hibachi) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	orders := (<-this.FetchOrdersByStatusAsync("filled", symbol, since, limit, params))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("filled", symbol, since, limit, params))))
 	var filtered []any = this.FilterBy(orders, "status", "closed")
 
 	ch <- this.FilterBySinceLimit(filtered, since, limit)
@@ -2073,11 +2057,10 @@ func (this *Hibachi) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	orders := (<-this.FetchOrdersByStatusAsync(nil, symbol, since, limit, params))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync(nil, symbol, since, limit, params))))
 	var filtered []any = this.FilterBy(orders, "status", "canceled")
 
 	ch <- this.FilterBySinceLimit(filtered, since, limit)
@@ -2115,8 +2098,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		retRes166912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes166912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	timeframe = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
@@ -2175,12 +2157,11 @@ func (this *Hibachi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes171412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
@@ -2287,7 +2268,7 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2300,14 +2281,14 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}
-	if IsEqual(method, "GET") {
+	if method == "GET" {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
 		if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 	}
-	if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) || (IsEqual(method, "DELETE")) {
+	if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 		AddElementToObject(headers, "Content-Type", "application/json")
 		body = this.Json(params)
 	}
@@ -2370,8 +2351,8 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var direction string
 	var amount any = nil
 	var fee any = nil
-	var referenceId any = nil
-	var referenceAccount any = nil
+	var referenceId *string = nil
+	var referenceAccount *string = nil
 	var status any = nil
 	if transactionType == nil {
 		// response from TradeAccountTradingHistory
@@ -2403,11 +2384,11 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
 		if transactionType != nil && *transactionType == "transfer-in" {
-			referenceAccount = DerefScalar(this.SafeString(item, "srcAccountId"))
+			referenceAccount = this.SafeString(item, "srcAccountId")
 		} else if transactionType != nil && *transactionType == "transfer-out" {
-			referenceAccount = DerefScalar(this.SafeString(item, "receivingAccountId"))
+			referenceAccount = this.SafeString(item, "receivingAccountId")
 		}
-		referenceId = DerefScalar(this.SafeString(item, "transactionHash"))
+		referenceId = this.SafeString(item, "transactionHash")
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"id":               this.SafeString(item, "id"),
@@ -2447,18 +2428,17 @@ func (this *Hibachi) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes194812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes194812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency("USDT"))
 	var request map[string]any = map[string]any{
@@ -2575,7 +2555,7 @@ func (this *Hibachi) FetchDepositAddressAsync(code any, optionalArgs ...any) <-c
 func (this *Hibachi) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"publicKey": this.SafeString(params, "publicKey"),
@@ -2598,7 +2578,7 @@ func (this *Hibachi) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	return nil
 }
 func (this *Hibachi) ParseTransaction(transaction any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeIntegerProduct(transaction, "timestampSec", 1000)
 	var address *string = this.SafeString(transaction, "withdrawalAddress")
@@ -2655,7 +2635,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
@@ -2726,11 +2706,10 @@ func (this *Hibachi) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	transactions := (<-this.FetchDepositsWithdrawalsAsync(code, since, nil, params))
-	PanicOnError(transactions)
+	var transactions []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, nil, params))))
 	var deposits []any = this.FilterBy(transactions, "type", "deposit")
 
 	ch <- this.FilterBySinceLimit(deposits, since, limit, "timestamp")
@@ -2762,11 +2741,10 @@ func (this *Hibachi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	transactions := (<-this.FetchDepositsWithdrawalsAsync(code, since, nil, params))
-	PanicOnError(transactions)
+	var transactions []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, nil, params))))
 	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
 
 	ch <- this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")
@@ -2835,8 +2813,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes22338 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes22338)
+	PanicOnError((<-this.LoadMarketsAsync()))
 	var market any = nil
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -2901,7 +2878,7 @@ func (this *Hibachi) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Hibachi) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetExchangeUtcTimestamp(params))
@@ -2931,12 +2908,11 @@ func (this *Hibachi) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-c
 func (this *Hibachi) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes230312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes230312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2978,12 +2954,11 @@ func (this *Hibachi) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes233512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes233512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -3058,12 +3033,11 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes239412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes239412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{

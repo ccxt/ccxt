@@ -66,7 +66,7 @@ func AssertType(exchange ccxt.ICoreExchange, skippedProperties any, entry any, k
 func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, format any, optionalArgs ...any) {
 	emptyAllowedFor := GetArg(optionalArgs, 0, nil)
 	_ = emptyAllowedFor
-	deep := GetArg(optionalArgs, 1, false)
+	var deep bool = GetArgBool(optionalArgs, 1, false)
 	_ = deep
 	var logText any = LogTemplate(exchange, method, entry)
 	Assert((entry != nil), Add("item is null/undefined", logText))
@@ -131,7 +131,7 @@ func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	_ = nowToCheck
 	keyNameOrIndex := GetArg(optionalArgs, 1, "timestamp")
 	_ = keyNameOrIndex
-	allowNull := GetArg(optionalArgs, 2, true)
+	var allowNull bool = GetArgBool(optionalArgs, 2, true)
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var skipValue any = exchange.SafeValue(skippedProperties, keyNameOrIndex)
@@ -165,7 +165,7 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties a
 	_ = nowToCheck
 	keyNameOrIndex := GetArg(optionalArgs, 1, "timestamp")
 	_ = keyNameOrIndex
-	allowNull := GetArg(optionalArgs, 2, true)
+	var allowNull bool = GetArgBool(optionalArgs, 2, true)
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var skipValue any = exchange.SafeValue(skippedProperties, keyNameOrIndex)
@@ -202,7 +202,7 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties a
 func AssertCurrencyCode(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, actualCode any, optionalArgs ...any) {
 	expectedCode := GetArg(optionalArgs, 0, nil)
 	_ = expectedCode
-	allowNull := GetArg(optionalArgs, 1, true)
+	var allowNull bool = GetArgBool(optionalArgs, 1, true)
 	_ = allowNull
 	if (InOp(skippedProperties, "currency")) || (InOp(skippedProperties, "currencyIdAndCode")) {
 		return
@@ -219,7 +219,7 @@ func AssertCurrencyCode(exchange ccxt.ICoreExchange, skippedProperties any, meth
 }
 func AssertValidCurrencyIdAndCode(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, currencyId any, currencyCode any, optionalArgs ...any) {
 	// this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if (InOp(skippedProperties, "currency")) || (InOp(skippedProperties, "currencyIdAndCode")) {
 		return
@@ -241,7 +241,7 @@ func AssertValidCurrencyIdAndCode(exchange ccxt.ICoreExchange, skippedProperties
 func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, optionalArgs ...any) {
 	expectedSymbol := GetArg(optionalArgs, 0, nil)
 	_ = expectedSymbol
-	allowNull := GetArg(optionalArgs, 1, true)
+	var allowNull bool = GetArgBool(optionalArgs, 1, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -262,7 +262,7 @@ func AssertSymbolInMarkets(exchange ccxt.ICoreExchange, skippedProperties any, m
 	Assert((!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbol)), Add("symbol should be present in exchange.symbols", logText))
 }
 func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -275,7 +275,7 @@ func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	}
 }
 func AssertGreaterOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -288,7 +288,7 @@ func AssertGreaterOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, me
 	}
 }
 func AssertLess(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -301,7 +301,7 @@ func AssertLess(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 }
 func AssertLessOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -314,7 +314,7 @@ func AssertLessOrEqual(exchange ccxt.ICoreExchange, skippedProperties any, metho
 	}
 }
 func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -327,7 +327,7 @@ func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 	}
 }
 func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -340,7 +340,7 @@ func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties any, method a
 	}
 }
 func AssertInArray(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, expectedArray any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -355,7 +355,7 @@ func AssertInArray(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	}
 }
 func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	var logText any = LogTemplate(exchange, method, entry)
 	var keyString any = StringValue(key)
@@ -381,7 +381,7 @@ func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties any, meth
 	}
 }
 func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol any, items any, optionalArgs ...any) {
-	ascending := GetArg(optionalArgs, 0, true)
+	var ascending bool = GetArgBool(optionalArgs, 0, true)
 	_ = ascending
 	for i := 0; i < GetArrayLength(items); i++ {
 		if i > 0 {
@@ -406,7 +406,7 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 	}
 }
 func AssertInteger(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, optionalArgs ...any) {
-	allowNull := GetArg(optionalArgs, 0, true)
+	var allowNull bool = GetArgBool(optionalArgs, 0, true)
 	_ = allowNull
 	if InOp(skippedProperties, key) {
 		return
@@ -653,7 +653,7 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	}
 }
 func GetActiveMarkets(exchange ccxt.ICoreExchange, optionalArgs ...any) any {
-	includeUnknown := GetArg(optionalArgs, 0, true)
+	var includeUnknown bool = GetArgBool(optionalArgs, 0, true)
 	_ = includeUnknown
 	var filteredActive []any = exchange.FilterBy(exchange.GetMarkets(), "active", true)
 	if includeUnknown == true {

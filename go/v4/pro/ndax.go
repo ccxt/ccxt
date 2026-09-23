@@ -62,13 +62,12 @@ func (this *Ndax) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes5512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes5512)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var name string = "SubscribeLevel1"
@@ -153,13 +152,12 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes12912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes12912)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -268,19 +266,18 @@ func (this *Ndax) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes22012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes22012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -461,7 +458,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		var timeframes []string = ccxt.ObjectKeys(updates[marketId])
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = ccxt.GetValue(timeframes, j).(string)
-			var messageHash any = name + ":" + timeframe + ":" + marketId
+			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
@@ -490,13 +487,12 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes37412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes37412)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -639,7 +635,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
-	var messageHash any = name + ":" + *marketId
+	var messageHash string = name + ":" + *marketId
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -670,7 +666,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//     ]
 	//
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var snapshot any = this.ParseOrderBook(payload, symbol)
+	var snapshot map[string]any = this.ParseOrderBook(payload, symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, limit)
 	if symbol != nil {

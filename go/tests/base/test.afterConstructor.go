@@ -26,7 +26,7 @@ func HelperTestInitThrottler() {
 	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
-	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
+	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))

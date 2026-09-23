@@ -359,7 +359,7 @@ func (this *P2b) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *P2b) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetMarkets(params))
@@ -477,12 +477,11 @@ func (this *P2b) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes44912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes44912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PublicGetTickers(params))
@@ -535,12 +534,11 @@ func (this *P2b) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *P2b) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes49212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes49212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -664,12 +662,11 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes60312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes60312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -737,12 +734,11 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes65712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes65712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var lastId *int64 = this.SafeInteger(params, "lastId")
 	if lastId == nil {
@@ -874,18 +870,17 @@ func (this *P2b) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *P2b) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes77812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes77812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -938,7 +933,7 @@ func (this *P2b) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//        'ADA_USDT'        // Market name
 	//    ],
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeIntegerProduct(ohlcv, 0, 1000), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
 }
@@ -959,12 +954,11 @@ func (this *P2b) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *P2b) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes84812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes84812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivatePostAccountBalances(params))
@@ -1046,12 +1040,11 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes91912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes91912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if IsEqual(typeVar, "market") {
 		panic(BadRequest(this.Id + " createOrder () can only accept orders with type \"limit\""))
@@ -1114,15 +1107,14 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes97312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes97312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1188,15 +1180,14 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders () requires the symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes102612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes102612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1268,12 +1259,11 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes108212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes108212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = this.SafeMarket(symbol)
 	var request map[string]any = map[string]any{
@@ -1344,18 +1334,17 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes114012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes114012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var until any = this.SafeInteger(params, "until")
-	params = this.Omit(params, "until")
+	params = MapTyped(this.Omit(params, "until"))
 	if IsEqual(until, nil) {
 		if since == nil {
 			until = this.Milliseconds()
@@ -1445,15 +1434,14 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes121712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes121712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var until any = this.SafeInteger(params, "until")
-	params = this.Omit(params, "until")
+	params = MapTyped(this.Omit(params, "until"))
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1598,7 +1586,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) any {
 func (this *P2b) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1608,7 +1596,7 @@ func (this *P2b) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(method, "GET") {
+	if method == "GET" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))
 		}

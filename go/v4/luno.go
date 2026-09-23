@@ -502,7 +502,7 @@ func (this *Luno) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if !this.CheckRequiredCredentials(false) {
 
@@ -524,7 +524,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var currenciesData any = this.SafeList(response, "data", []any{})
+	var currenciesData []any = SafeListTyped(response, "data")
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values []any = ObjectValues(grouped)
 
@@ -603,7 +603,7 @@ func (this *Luno) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.ExchangeGetMarkets(params))
@@ -741,7 +741,7 @@ func (this *Luno) FetchAccountsAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PrivateGetBalance(params))
@@ -810,9 +810,9 @@ func (this *Luno) ParseBalance(response any) any {
 				return result[*code]
 			}(), "total"), balanceUnconfirmed))
 		} else if code != nil {
-			var account any = this.Account()
-			AddElementToObject(account, "used", reservedUnconfirmed)
-			AddElementToObject(account, "total", balanceUnconfirmed)
+			var account map[string]any = this.Account()
+			account["used"] = reservedUnconfirmed
+			account["total"] = balanceUnconfirmed
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -835,12 +835,11 @@ func (this *Luno) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes72612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes72612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivateGetBalance(params))
@@ -881,12 +880,11 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes75512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes75512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1012,14 +1010,13 @@ func (this *Luno) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Luno) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes86512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes86512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1045,12 +1042,11 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes87612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes87612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1095,7 +1091,7 @@ func (this *Luno) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes90415 := (<-this.FetchOrdersByStateAsync(nil, symbol, since, limit, params))
@@ -1129,7 +1125,7 @@ func (this *Luno) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes91915 := (<-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params))
@@ -1163,7 +1159,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes93415 := (<-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params))
@@ -1230,18 +1226,17 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes98612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
-	var rawTickers any = this.SafeList(response, "tickers", []any{})
+	var rawTickers []any = SafeListTyped(response, "tickers")
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
@@ -1274,12 +1269,11 @@ func (this *Luno) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Luno) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes101512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes101512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1364,16 +1358,16 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
 	var feeCounterString *string = this.SafeString(trade, "fee_counter")
-	var feeCurrency any = nil
-	var feeCost any = nil
+	var feeCurrency *string = nil
+	var feeCost *string = nil
 	if feeBaseString != nil {
 		if !Precise.StringEquals(feeBaseString, "0.0") {
-			feeCurrency = DerefScalar(this.SafeString(market, "base"))
+			feeCurrency = this.SafeString(market, "base")
 			feeCost = feeBaseString
 		}
 	} else if feeCounterString != nil {
 		if !Precise.StringEquals(feeCounterString, "0.0") {
-			feeCurrency = DerefScalar(this.SafeString(market, "quote"))
+			feeCurrency = this.SafeString(market, "quote")
 			feeCost = feeCounterString
 		}
 	}
@@ -1421,12 +1415,11 @@ func (this *Luno) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes113812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1477,18 +1470,17 @@ func (this *Luno) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Luno) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes117912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes117912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1534,7 +1526,7 @@ func (this *Luno) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//     "low": "19612.65",
 	//     "volume": "0.00"
 	// }
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "timestamp"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
@@ -1564,15 +1556,14 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes124812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes124812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1631,12 +1622,11 @@ func (this *Luno) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Luno) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes129712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes129712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1688,12 +1678,11 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes133712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes133712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1756,14 +1745,13 @@ func (this *Luno) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Luno) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes138312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes138312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1797,7 +1785,7 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	_ = entry
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsEqual(entry, nil) {
 		entry = OpNeg(1)
@@ -1842,16 +1830,14 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes142812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes142812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	retRes14308 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes14308)
+	PanicOnError((<-this.LoadAccountsAsync()))
 	var currency any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	var min_row any = this.SafeValue(params, "min_row")
@@ -1912,7 +1898,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 		"Bought":     "trade",
 		"Failure":    "failed",
 	}
-	var referenceId any = nil
+	var referenceId *string = nil
 	var firstWord *string = this.SafeString(words, 0)
 	var thirdWord *string = this.SafeString(words, 2)
 	var fourthWord *string = this.SafeString(words, 3)
@@ -1921,7 +1907,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 		typeVar = "fee"
 	}
 	if (IsEqual(typeVar, "reserved")) && (fourthWord != nil && *fourthWord == "order") {
-		referenceId = DerefScalar(this.SafeString(words, 4))
+		referenceId = this.SafeString(words, 4)
 	}
 	return map[string]any{
 		"type":        typeVar,
@@ -2004,12 +1990,11 @@ func (this *Luno) CreateDepositAddressAsync(code any, optionalArgs ...any) <-cha
 func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes157312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes157312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2062,12 +2047,11 @@ func (this *Luno) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan
 func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes161612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes161612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2152,15 +2136,14 @@ func (this *Luno) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any) <-
 func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var address *string = this.SafeString(params, "address")
 	if address == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address"))
 	}
 
-	retRes16938 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes16938)
+	PanicOnError((<-this.LoadMarketsAsync()))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -2184,7 +2167,7 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params

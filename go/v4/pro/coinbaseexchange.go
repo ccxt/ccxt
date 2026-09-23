@@ -56,7 +56,7 @@ func (this *Coinbaseexchange) Authenticate() any {
 	this.CheckRequiredCredentials()
 	var path string = "/users/self/verify"
 	var nonce any = this.Nonce()
-	var payload any = ccxt.ToString(nonce) + "GET" + path
+	var payload string = ccxt.ToString(nonce) + "GET" + path
 	var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	return map[string]any{
 		"timestamp":  nonce,
@@ -77,14 +77,13 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	_ = symbol
 	messageHashStart := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = messageHashStart
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes6412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes6412)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = messageHashStart
 	var productIds []any = []any{}
 	if symbol != nil {
@@ -121,14 +120,13 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 	_ = symbols
 	messageHashStart := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = messageHashStart
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes9212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes9212)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var productIds []any = []any{}
@@ -172,7 +170,7 @@ func (this *Coinbaseexchange) WatchTickerAsync(symbol any, optionalArgs ...any) 
 func (this *Coinbaseexchange) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var name string = "ticker"
 
@@ -201,12 +199,11 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes14412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes14412)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() symbols is required"))
@@ -254,12 +251,11 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan any, symbol any, optionalA
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes17612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes17612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbol = this.Symbol(symbol)
 	var name string = "matches"
@@ -296,7 +292,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan any, symbols any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -304,8 +300,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan any, symbols any
 	}
 	if this.Markets == nil {
 
-		retRes20312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var name string = "matches"
@@ -346,15 +341,14 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan any, optionalArgs ...any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes23112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes23112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbol = this.Symbol(symbol)
 	var name string = "user"
@@ -393,13 +387,12 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan any, symbols a
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	symbols = this.MarketSymbols(symbols, nil, false)
 	if this.Markets == nil {
 
-		retRes25712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes25712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var name string = "user"
 	var messageHash string = "myTrades"
@@ -439,12 +432,11 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan any, symbols any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes28312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes28312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var name string = "user"
@@ -487,15 +479,14 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ccxt.BadSymbol(this.Id + " watchMyTrades requires a symbol"))
 	}
 	if this.Markets == nil {
 
-		retRes31312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes31312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbol = this.Symbol(symbol)
 	var name string = "user"
@@ -531,7 +522,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
@@ -540,8 +531,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 	var name string = "level2"
 	if this.Markets == nil {
 
-		retRes34212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes34212)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
@@ -591,13 +581,12 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol any, option
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var name string = "level2"
 	if this.Markets == nil {
 
-		retRes38312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes38312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -646,7 +635,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message any) any {
 		// but requires 'matches' upon subscribing
 		// therefore we resolve 'matches' here instead of 'match'
 		var typeVar string = "matches"
-		var messageHash any = typeVar + ":" + *marketId
+		var messageHash string = typeVar + ":" + *marketId
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(tradesArray, nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -665,7 +654,7 @@ func (this *Coinbaseexchange) HandleMyTrade(client any, message any) any {
 	if marketId != nil {
 		var trade any = this.ParseWsTrade(message)
 		var typeVar string = "myTrades"
-		var messageHash any = typeVar + ":" + *marketId
+		var messageHash string = typeVar + ":" + *marketId
 		var tradesArray any = this.MyTrades
 		if ccxt.IsEqual(tradesArray, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
@@ -728,7 +717,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//     "side": "buy",
 	//     "order_type": "limit"
 	// }
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var parsed any = this.base.ParseTrade(trade)
 	var feeRate any = nil
@@ -864,7 +853,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var messageHash any = "orders:" + *marketId
+		var messageHash string = "orders:" + *marketId
 		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(message, "order_id")
 		var makerOrderId *string = this.SafeString(message, "maker_order_id")
@@ -955,7 +944,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 	}
 }
 func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
 	var clientOrderId *string = this.SafeString(order, "client_oid")
@@ -1033,7 +1022,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) a
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
 		var messageHash any = ccxt.Add("ticker:", symbol)
-		var idMessageHash any = "ticker:" + *marketId
+		var idMessageHash string = "ticker:" + *marketId
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 		client.(ccxt.ClientInterface).Resolve(ticker, idMessageHash)
 	}

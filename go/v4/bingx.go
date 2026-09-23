@@ -1237,7 +1237,7 @@ func (this *Bingx) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Bingx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.SwapV2PublicGetServerTime(params))
@@ -1273,7 +1273,7 @@ func (this *Bingx) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Bingx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if !this.CheckRequiredCredentials(false) {
 
@@ -1345,10 +1345,15 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
-	var networkList any = this.SafeList(rawCurrency, "networkList")
+	var networkList []any = SafeListTyped(rawCurrency, "networkList")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networkList); j++ {
-		var rawNetwork any = GetValue(networkList, j)
+	for j := 0; j < len(networkList); j++ {
+		var rawNetwork any = func() any {
+			if j >= 0 && j < len(networkList) {
+				return DerefScalar(networkList[j])
+			}
+			return nil
+		}()
 		var network *string = this.SafeString(rawNetwork, "network")
 		var networkCode any = this.NetworkIdToCode(network, code)
 		var limits map[string]any = map[string]any{
@@ -1554,7 +1559,7 @@ func (this *Bingx) ParseMarket(market any) any {
 	if settle != nil {
 		symbol = Add(symbol, ":"+*settle)
 	}
-	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
+	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
 	var contractSize any = nil
 	if swap {
 		contractSize = func() any {
@@ -1664,7 +1669,7 @@ func (this *Bingx) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Bingx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var requests []any = []any{this.FetchSwapMarketsAsync(params)}
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -1709,7 +1714,7 @@ func (this *Bingx) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -1719,8 +1724,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes120912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes120912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var maxLimit int = func() int {
@@ -1729,11 +1733,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		}
 		return 1440
 	}()
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes121619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes121619)
@@ -1874,7 +1878,7 @@ func (this *Bingx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//        17221.07
 	//    ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	if IsArray(ohlcv) {
 		return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
@@ -1910,8 +1914,7 @@ func (this *Bingx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes137012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes137012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "inverse") == true {
@@ -2208,8 +2211,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes162112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes162112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2319,8 +2321,8 @@ func (this *Bingx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var orderbook any = this.SafeDict(response, "data", map[string]any{})
 	var nonce *int64 = this.SafeInteger(orderbook, "lastUpdateId")
 	var timestamp *int64 = this.SafeInteger2(orderbook, "T", "ts")
-	var result any = this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", 0, 1)
-	AddElementToObject(result, "nonce", nonce)
+	var result map[string]any = this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", 0, 1)
+	result["nonce"] = nonce
 
 	ch <- result
 	return nil
@@ -2344,12 +2346,11 @@ func (this *Bingx) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Bingx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes174012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes174012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2418,13 +2419,12 @@ func (this *Bingx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes179112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes179112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, "swap", true, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
 	var subType any = "linear"
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
@@ -2520,18 +2520,17 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	if this.Markets == nil {
 
-		retRes186712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes186712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for inverse swap markets"))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes187619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
 		PanicOnError(retRes187619)
@@ -2547,7 +2546,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -2623,15 +2622,14 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes194012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes194012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var isInverse any = func() any {
@@ -2643,11 +2641,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if isInverse == true {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes195519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", params))
 		PanicOnError(retRes195519)
@@ -2741,12 +2739,11 @@ func (this *Bingx) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes203312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes203312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2827,13 +2824,13 @@ func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var openInterest *float64 = this.SafeNumber(interest, "openInterest")
 	var inverse *bool = this.SafeBool(market, "inverse", false)
 	var isInverse bool = (inverse != nil && *inverse == true)
-	var openInterestAmount any = func() any {
+	var openInterestAmount *float64 = func() *float64 {
 		if isInverse {
 			return openInterest
 		}
 		return nil
 	}()
-	var openInterestValue any = func() any {
+	var openInterestValue *float64 = func() *float64 {
 		if isInverse {
 			return nil
 		}
@@ -2870,12 +2867,11 @@ func (this *Bingx) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Bingx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes213412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes213412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2963,8 +2959,7 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes220012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes220012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbols != nil {
@@ -2979,7 +2974,7 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTickers", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
@@ -3055,12 +3050,11 @@ func (this *Bingx) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes226912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes226912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3110,8 +3104,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes233012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes233012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbols != nil {
@@ -3122,7 +3115,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarkPrices", market, params, "linear")
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarkPrices", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
@@ -3304,8 +3297,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes249912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes249912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var response any = nil
 	var standard any = nil
@@ -3313,7 +3305,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	standard = GetValue(standardparamsVariable, 0)
 	params = GetValue(standardparamsVariable, 1)
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchBalance", nil, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var marketTypemarketTypeQueryVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -3432,7 +3424,7 @@ func (this *Bingx) ParseBalance(response any) any {
 	var firstContractBalances any = this.SafeDict(contractBalances, 0)
 	var isContract bool = !IsEqual(firstContractBalances, nil)
 	var spotData map[string]any = SafeMapTyped(response, "data")
-	var spotBalances any = this.SafeList2(spotData, "balances", "assets", []any{})
+	var spotBalances []any = SafeList2Typed(spotData, "balances", "assets")
 	if isContract {
 		for i := 0; i < GetArrayLength(contractBalances); i++ {
 			var balance any = GetValue(contractBalances, i)
@@ -3441,22 +3433,27 @@ func (this *Bingx) ParseBalance(response any) any {
 				break
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString2(balance, "availableMargin", "availableBalance"))
-			AddElementToObject(account, "used", this.SafeString(balance, "usedMargin"))
-			AddElementToObject(account, "total", this.SafeString(balance, "maxWithdrawAmount"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString2(balance, "availableMargin", "availableBalance")
+			account["used"] = this.SafeString(balance, "usedMargin")
+			account["total"] = this.SafeString(balance, "maxWithdrawAmount")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
 		}
 	} else {
-		for i := 0; i < GetArrayLength(spotBalances); i++ {
-			var balance any = GetValue(spotBalances, i)
+		for i := 0; i < len(spotBalances); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(spotBalances) {
+					return DerefScalar(spotBalances[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "free", this.SafeString(balance, "free"))
-			AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+			var account map[string]any = this.Account()
+			account["free"] = this.SafeString(balance, "free")
+			account["used"] = this.SafeString(balance, "locked")
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -3493,8 +3490,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		retRes273912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes273912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
@@ -3506,7 +3502,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	if since != nil {
 		AddElementToObject(request, "startTs", since)
 	}
-	requestparamsVariable := this.HandleUntilOption("endTs", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTs", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
@@ -3579,8 +3575,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes280612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes280612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var standard any = nil
@@ -3602,7 +3597,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var subType any = nil
-		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", market, params)
+		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsEqual(subType, "inverse") {
@@ -3639,12 +3634,11 @@ func (this *Bingx) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bingx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes290412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes290412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
@@ -3817,7 +3811,7 @@ func (this *Bingx) CreateMarketOrderWithCostAsync(symbol any, side any, cost any
 func (this *Bingx) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
@@ -3844,7 +3838,7 @@ func (this *Bingx) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optio
 func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
@@ -3871,7 +3865,7 @@ func (this *Bingx) CreateMarketSellOrderWithCostAsync(symbol any, cost any, opti
 func (this *Bingx) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
@@ -3943,7 +3937,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		request[exchangeClientOrderId] = clientOrderId
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
 	if (postOnly == true) || (timeInForce != nil && *timeInForce == "PostOnly") {
@@ -3980,7 +3974,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				request["type"] = "TRIGGER_MARKET"
 			}
 		} else if (stopLossPrice != nil) || (takeProfitPrice != nil) {
-			var stopTakePrice any = func() any {
+			var stopTakePrice *string = func() *string {
 				if stopLossPrice != nil {
 					return stopLossPrice
 				}
@@ -4204,19 +4198,18 @@ func (this *Bingx) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes343012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes343012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var test *bool = this.SafeBool(params, "test", false)
 	if (test != nil && *test) && ((GetValue(market, "swap") != true) || (GetValue(market, "inverse") == true)) {
 		panic(NotSupported(this.Id + " createOrder() only supports test orders for linear swap markets"))
 	}
-	params = this.Omit(params, "test")
+	params = MapTyped(this.Omit(params, "test"))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
 	if GetValue(market, "swap") == true {
@@ -4371,12 +4364,11 @@ func (this *Bingx) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any
 func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes356412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes356412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var ordersRequests []any = []any{}
 	var marketIds []any = []any{}
@@ -4392,9 +4384,14 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var symbols any = this.MarketSymbols(marketIds, nil, false, true, true)
-	var symbolsLength int = GetArrayLength(symbols)
-	var market map[string]any = MapTyped(this.Market(GetValue(symbols, 0)))
+	var symbols []any = ArrayTyped(this.MarketSymbols(marketIds, nil, false, true, true))
+	var symbolsLength int = len(symbols)
+	var market map[string]any = MapTyped(this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbols) {
+			return DerefScalar(symbols[0])
+		}
+		return nil
+	}()))
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
@@ -4942,8 +4939,7 @@ func (this *Bingx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes409512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes409512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTwapOrder *bool = this.SafeBool(params, "twap", false)
 	params = this.Omit(params, "twap")
@@ -4976,7 +4972,7 @@ func (this *Bingx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelOrder", market, params)
+		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("cancelOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsEqual(typeVar, "spot") {
@@ -5127,8 +5123,7 @@ func (this *Bingx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes427712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes427712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -5141,7 +5136,7 @@ func (this *Bingx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrders", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("cancelAllOrders", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
@@ -5191,15 +5186,14 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes442912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes442912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "inverse") == true {
@@ -5209,7 +5203,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		"symbol": market["id"],
 	}
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
-	params = this.Omit(params, "clientOrderIds")
+	params = MapTyped(this.Omit(params, "clientOrderIds"))
 	var idsToParse any = ids
 	var areClientOrderIds bool = (!IsEqual(clientOrderIds, nil))
 	if areClientOrderIds {
@@ -5274,8 +5268,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 	_ = params
 	if this.Markets == nil {
 
-		retRes453812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes453812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isActive bool = (IsGreaterThan(timeout, 0))
 	var request map[string]any = map[string]any{
@@ -5298,7 +5291,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrdersAfter", nil, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("cancelAllOrdersAfter", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if (IsEqual(typeVar, "swap")) && (IsEqual(subType, "inverse")) {
@@ -5359,8 +5352,7 @@ func (this *Bingx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes459012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes459012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTwapOrder *bool = this.SafeBool(params, "twap", false)
 	params = this.Omit(params, "twap")
@@ -5387,7 +5379,7 @@ func (this *Bingx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOrder", market, params)
+		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOrder", market, params)
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		if IsEqual(typeVar, "spot") {
@@ -5445,8 +5437,7 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes476912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes476912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
 	var market any = nil
@@ -5467,7 +5458,7 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -5565,8 +5556,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes486412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes486412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -5580,7 +5570,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenOrders", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOpenOrders", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
@@ -5780,16 +5770,14 @@ func (this *Bingx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes505212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes505212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	orders := (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
 
 	ch <- this.FilterBy(orders, "status", "closed")
 	return nil
@@ -5825,16 +5813,14 @@ func (this *Bingx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes507612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes507612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	orders := (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
 
 	ch <- this.FilterBy(orders, "status", "canceled")
 	return nil
@@ -5876,8 +5862,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes510212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes510212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -5892,7 +5877,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var standardparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", false)
@@ -5973,13 +5958,12 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 	_ = params
 	if this.Markets == nil {
 
-		retRes529412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes529412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("transfer", nil, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("transfer", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var fromId any = DerefScalar(this.SafeString(accountsByType, fromAccount, fromAccount))
@@ -6068,8 +6052,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes536612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes536612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
 	var currency any = nil
@@ -6092,11 +6075,11 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "toAccount", toId)
 	}
 	var maxLimit int = 100
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes539219 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
 		PanicOnError(retRes539219)
@@ -6110,7 +6093,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "pageSize", mathMin(limit, maxLimit))
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -6186,12 +6169,11 @@ func (this *Bingx) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ..
 func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes546512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes546512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -6248,10 +6230,10 @@ func (this *Bingx) FetchDepositAddressAsync(code any, optionalArgs ...any) <-cha
 func (this *Bingx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var network *string = this.SafeString(params, "network")
-	params = this.Omit(params, []any{"network"})
+	params = MapTyped(this.Omit(params, []any{"network"}))
 
 	addressStructures := (<-this.FetchDepositAddressesByNetworkAsync(code, params))
 	PanicOnError(addressStructures)
@@ -6260,7 +6242,7 @@ func (this *Bingx) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		ch <- this.SafeDict(addressStructures, network)
 		return nil
 	} else {
-		var options any = this.SafeDict(this.Options, "defaultNetworks")
+		var options map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 		var defaultNetworkForCurrency *string = this.SafeString(options, code)
 		if defaultNetworkForCurrency != nil {
 
@@ -6343,8 +6325,7 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes557912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes557912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
 	var currency any = nil
@@ -6358,7 +6339,7 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -6416,8 +6397,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes563012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes563012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
 	var currency any = nil
@@ -6431,7 +6411,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -6511,7 +6491,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var data any = this.SafeDict(transaction, "data")
-	var dataId any = func() any {
+	var dataId *string = func() *string {
 		if IsEqual(data, nil) {
 			return nil
 		}
@@ -6616,8 +6596,7 @@ func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	}
 	if this.Markets == nil {
 
-		retRes580212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes580212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "type") != "swap" {
@@ -6635,7 +6614,7 @@ func (this *Bingx) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"marginType": marginMode,
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("setMarginMode", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("setMarginMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if IsEqual(subType, "inverse") {
@@ -6660,7 +6639,7 @@ func (this *Bingx) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <
 func (this *Bingx) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"type": 1,
@@ -6679,7 +6658,7 @@ func (this *Bingx) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any
 func (this *Bingx) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"type": 2,
@@ -6709,7 +6688,7 @@ func (this *Bingx) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <
 func (this *Bingx) setMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar *int64 = this.SafeInteger(params, "type") // 1 increase margin 2 decrease margin
 	if typeVar == nil {
@@ -6720,8 +6699,7 @@ func (this *Bingx) setMarginBody(ch chan any, symbol any, amount any, optionalAr
 	}
 	if this.Markets == nil {
 
-		retRes586112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes586112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -6753,7 +6731,7 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) any {
 	//        "type": 1
 	//    }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
 	return map[string]any{
@@ -6793,12 +6771,11 @@ func (this *Bingx) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bingx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes591712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes591712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -6882,18 +6859,17 @@ func (this *Bingx) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
 	var side *string = this.SafeStringUpper(params, "side")
 	this.CheckRequiredArgument("setLeverage", side, "side", []any{"LONG", "SHORT", "BOTH"})
-	params = this.Omit(params, "side")
+	params = MapTyped(this.Omit(params, "side"))
 	if this.Markets == nil {
 
-		retRes602612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes602612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -6953,15 +6929,14 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes609412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes609412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var fills any = nil
 	var response any = nil
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMyTrades", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMyTrades", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if IsEqual(subType, "inverse") {
@@ -7007,7 +6982,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.SpotV1PrivateGetTradeMyTrades(this.Extend(request, params)))
 			PanicOnError(response)
-			var data any = this.SafeDict(response, "data", map[string]any{})
+			var data map[string]any = SafeMapTyped(response, "data")
 			fills = this.SafeList(data, "fills", []any{})
 		} else {
 			var tradingUnit *string = this.SafeStringUpper(params, "tradingUnit", "CONT")
@@ -7016,7 +6991,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.SwapV2PrivateGetTradeAllFillOrders(this.Extend(request, params)))
 			PanicOnError(response)
-			var data any = this.SafeDict(response, "data", map[string]any{})
+			var data map[string]any = SafeMapTyped(response, "data")
 			fills = this.SafeList(data, "fill_orders", []any{})
 		}
 	}
@@ -7028,7 +7003,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	// currencie structure
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var networks any = this.SafeDict(fee, "networks", map[string]any{})
 	var networkCodes []string = ObjectKeys(networks)
@@ -7047,7 +7022,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode any = GetValue(networkCodes, i)
+			var networkCode string = networkCodes[i]
 			var network any = GetValue(networks, networkCode)
 			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
@@ -7087,12 +7062,11 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes626212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes626212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.FetchCurrenciesAsync(params))
@@ -7136,14 +7110,13 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes629412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes629412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var defaultWalletType int = 15 // spot
@@ -7176,7 +7149,7 @@ func (this *Bingx) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	response := (<-this.WalletsV1PrivatePostCapitalWithdrawApply(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "data")
+	var data any = this.SafeDict(response, "data")
 
 	//    {
 	//        "code":0,
@@ -7248,13 +7221,12 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes637312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes637312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{
 		"autoCloseType": "LIQUIDATION",
 	}
-	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var market any = nil
@@ -7269,7 +7241,7 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(request, "limit", mathMin(limit, 100)) // api maximum 100
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMyLiquidations", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMyLiquidations", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
@@ -7411,14 +7383,13 @@ func (this *Bingx) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bingx) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	side := GetArg(optionalArgs, 0, nil)
+	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = side
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes651812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes651812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var positionId *string = this.SafeString(params, "positionId")
@@ -7471,8 +7442,7 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes659212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes659212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
 	var recvWindow *int64 = this.SafeInteger(params, "recvWindow", defaultRecvWindow)
@@ -7481,7 +7451,7 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("closeAllPositions", nil, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("closeAllPositions", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if IsEqual(marketType, "margin") {
@@ -7501,11 +7471,16 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var success any = this.SafeList(data, "success", []any{})
+	var success []any = SafeListTyped(data, "success")
 	var positions []any = []any{}
-	for i := 0; i < GetArrayLength(success); i++ {
+	for i := 0; i < len(success); i++ {
 		var position any = this.ParsePosition(map[string]any{
-			"positionId": GetValue(success, i),
+			"positionId": func() any {
+				if i >= 0 && i < len(success) {
+					return DerefScalar(success[i])
+				}
+				return nil
+			}(),
 		})
 		positions = append(positions, position)
 	}
@@ -7538,12 +7513,11 @@ func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	if symbol != nil {
 
-		retRes665812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes665812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 		market = this.Market(symbol)
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionMode", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (GetValue(market, "inverse") == true)) {
@@ -7597,12 +7571,11 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	var market any = nil
 	if symbol != nil {
 
-		retRes669812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes669812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 		market = this.Market(symbol)
 	}
 	var subType any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("setPositionMode", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("setPositionMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (GetValue(market, "inverse") == true)) {
@@ -7675,12 +7648,11 @@ func (this *Bingx) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	_ = amount
 	price := GetArg(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes675912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes675912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "inverse") == true {
@@ -7727,8 +7699,7 @@ func (this *Bingx) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes688112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes688112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -7736,7 +7707,7 @@ func (this *Bingx) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var subType any = nil
 	var response any = nil
-	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
+	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarginMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if IsEqual(subType, "inverse") {
@@ -7790,12 +7761,11 @@ func (this *Bingx) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Bingx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes694312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes694312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -7867,7 +7837,7 @@ func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//         "makerCommissionRate": 0.001
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
 		if market != nil {
@@ -7946,12 +7916,11 @@ func (this *Bingx) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any
 func (this *Bingx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes707012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes707012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
@@ -8026,7 +7995,7 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 func (this *Bingx) Sign(path any, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
 	_ = section
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -8072,7 +8041,7 @@ func (this *Bingx) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(access, "private") {
 		this.CheckRequiredCredentials()
-		var isJsonContentType bool = (((IsEqual(typeVar, "subAccount")) || (IsEqual(typeVar, "account/transfer"))) && (IsEqual(method, "POST")))
+		var isJsonContentType bool = (((IsEqual(typeVar, "subAccount")) || (IsEqual(typeVar, "account/transfer"))) && (method == "POST"))
 		var parsedParams any = nil
 		var encodeRequest any = nil
 		if isJsonContentType {

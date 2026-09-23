@@ -601,8 +601,8 @@ func (this *Coinspot) ParseBalance(response any) any {
 				var currencyId string = GetValue(currencyIds, j).(string)
 				var balance any = GetValue(currencies, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
-				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
+				var account map[string]any = this.Account()
+				account["total"] = this.SafeString(balance, "balance")
 				if code != nil {
 					AddElementToObject(result, code, account)
 				}
@@ -613,8 +613,8 @@ func (this *Coinspot) ParseBalance(response any) any {
 		for i := 0; i < len(currencyIds); i++ {
 			var currencyId string = GetValue(currencyIds, i).(string)
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
-			AddElementToObject(account, "total", this.SafeString(balances, currencyId))
+			var account map[string]any = this.Account()
+			account["total"] = this.SafeString(balances, currencyId)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -639,12 +639,11 @@ func (this *Coinspot) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Coinspot) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes33612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes33612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var method *string = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
 	var response any = nil
@@ -696,14 +695,13 @@ func (this *Coinspot) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-cha
 func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes37612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes37612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -771,12 +769,11 @@ func (this *Coinspot) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes43312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes43312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 
@@ -822,12 +819,11 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes46712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes46712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PublicGetLatest(params))
@@ -889,12 +885,11 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes51512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes51512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -942,12 +937,11 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes54712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes54712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1094,12 +1088,11 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes68112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes68112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
@@ -1155,15 +1148,15 @@ func (this *Coinspot) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var side *string = this.SafeString(params, "side")
 	if (side == nil || *side != "buy") && (side == nil || *side != "sell") {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\""))
 	}
-	params = this.Omit(params, "side")
+	params = MapTyped(this.Omit(params, "side"))
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
@@ -1200,7 +1193,7 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params

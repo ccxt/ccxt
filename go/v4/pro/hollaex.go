@@ -79,14 +79,13 @@ func (this *Hollaex) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes7012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes7012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook"+":", market["id"])
@@ -129,7 +128,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var timestamp *string = this.SafeString(data, "timestamp")
 	var timestampMs *int64 = this.Parse8601(timestamp)
-	var snapshot any = this.ParseOrderBook(data, symbol, timestampMs)
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
 	var orderbook any = nil
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		orderbook = this.OrderBook(snapshot)
@@ -168,12 +167,11 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes13912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes13912)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -249,15 +247,14 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes20012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "usertrade"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -296,7 +293,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	//     "time":1652434215
 	// }
 	//
-	subscription := ccxt.GetArg(optionalArgs, 0, nil)
+	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
 	var rawTrades any = this.SafeValue(message, "data")
@@ -358,15 +355,14 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes28712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes28712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "order"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -440,7 +436,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	//        "time":1652430035
 	//       }
 	//
-	subscription := ccxt.GetArg(optionalArgs, 0, nil)
+	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data", map[string]any{})
@@ -498,7 +494,7 @@ func (this *Hollaex) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Hollaex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var messageHash string = "wallet"
 
@@ -563,7 +559,7 @@ func (this *Hollaex) WatchPublicAsync(messageHash any, optionalArgs ...any) <-ch
 func (this *Hollaex) watchPublicBody(ch chan any, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -585,7 +581,7 @@ func (this *Hollaex) WatchPrivateAsync(messageHash any, optionalArgs ...any) <-c
 func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var expires any = ccxt.DerefScalar(this.SafeString(this.Options, "ws-expires"))

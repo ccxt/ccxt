@@ -321,15 +321,15 @@ func (this *Limitless) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
 	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
 	// scope the listing: without a search query loadMarkets would otherwise page through
 	// every active limitless market. Cap the total number of markets collected.
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 1000))
 	var allRaw []any = []any{}
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	if queriesLength > 0 {
 		var requestedLimit *int64 = this.SafeInteger(params, "limit", 50)
 		// the search endpoint rejects limit > 50 - cap the per-query request and let
@@ -337,8 +337,13 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var limit any = ccxt.MathMin(requestedLimit, 50)
 		var searchRest any = this.Omit(rest, []any{"limit"})
 		var seen map[string]any = map[string]any{}
-		for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-			var q any = ccxt.GetValue(queries, i)
+		for i := 0; i < len(queries); i++ {
+			var q any = func() any {
+				if i >= 0 && i < len(queries) {
+					return ccxt.DerefScalar(queries[i])
+				}
+				return nil
+			}()
 
 			response := (<-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,
@@ -399,7 +404,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(responses)
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
-			var response any = this.SafeDict(responses, j)
+			var response map[string]any = ccxt.SafeMapTyped(responses, j)
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
@@ -444,9 +449,14 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
 	// into regular rows before parsing (a group row itself has no tokens)
-	var expandedRaw any = this.ExpandGroupRows(allRaw)
-	for i := 0; i < ccxt.GetArrayLength(expandedRaw); i++ {
-		var raw any = ccxt.GetValue(expandedRaw, i)
+	var expandedRaw []any = ccxt.ArrayTyped(this.ExpandGroupRows(allRaw))
+	for i := 0; i < len(expandedRaw); i++ {
+		var raw any = func() any {
+			if i >= 0 && i < len(expandedRaw) {
+				return ccxt.DerefScalar(expandedRaw[i])
+			}
+			return nil
+		}()
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
 		var eventKey any = func() any {
 			if (groupId != nil) && (groupId == nil || *groupId != "") {
@@ -743,7 +753,7 @@ func (this *Limitless) FetchEventAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Limitless) fetchEventBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"addressOrSlug": id,
@@ -1036,7 +1046,7 @@ func (this *Limitless) ParseEvent(event any) any {
 		return nil
 	}()
 	var hasEndDate bool = (endDate != nil) && (endDate == nil || *endDate != "")
-	var endTimestamp any = func() any {
+	var endTimestamp *int64 = func() *int64 {
 		if hasEndDate {
 			return this.Parse8601(endDate)
 		}
@@ -1110,11 +1120,10 @@ func (this *Limitless) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan
 func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes8978 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes8978)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	var request map[string]any = map[string]any{
@@ -1422,7 +1431,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
@@ -1431,8 +1440,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// resolve the uncached outcomes first, then group by parent market to fetch each
 	// market and book only once
 
-	retRes11648 := (<-this.LoadOutcomesAsync(outcomes))
-	ccxt.PanicOnError(retRes11648)
+	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var outcomesBySlug map[string]any = map[string]any{}
 	var slugs []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
@@ -1529,11 +1537,10 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes12238 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes12238)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
@@ -1606,13 +1613,12 @@ func (this *Limitless) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-c
 func (this *Limitless) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes12808 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes12808)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	var request map[string]any = map[string]any{
@@ -1718,17 +1724,16 @@ func (this *Limitless) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan 
 func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1d")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1d")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes13658 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes13658)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
 	var outcomeLabel *string = this.SafeStringUpper(ccxt.GetValue(outcomeObj, "info"), "outcomeLabel")
@@ -1920,14 +1925,13 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if outcome == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrders requires an outcome argument"))
 	}
 
-	retRes15048 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes15048)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
@@ -1992,14 +1996,13 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if outcome == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOpenOrders requires an outcome argument"))
 	}
 
-	retRes15558 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes15558)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	params = this.Extend(params, map[string]any{
 		"statuses": []any{"LIVE"},
 	})
@@ -2035,14 +2038,13 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if outcome == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchClosedOrders requires an outcome argument"))
 	}
 
-	retRes15778 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes15778)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	params = this.Extend(params, map[string]any{
 		"statuses": []any{"MATCHED"},
 	})
@@ -2073,12 +2075,11 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcome != nil {
 
-		retRes159612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes159612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	}
 	var length int = ccxt.GetArrayLength(ids)
 	if length > 50 {
@@ -2228,16 +2229,14 @@ func (this *Limitless) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcome != nil {
 
-		retRes173412 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes173412)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	}
 
-	orders := (<-this.FetchOrdersByIdsAsync([]any{id}, outcome, params))
-	ccxt.PanicOnError(orders)
+	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersByIdsAsync([]any{id}, outcome, params))))
 	var order any = this.SafeDict(orders, 0)
 	if ccxt.IsEqual(order, nil) {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" fetchOrder() could not find order ", id)))
@@ -2502,7 +2501,7 @@ func (this *Limitless) ParseOrderSide(side *string) *string {
 	return this.SafeString(sides, side, side)
 }
 func (this *Limitless) ApplyScale(amount any, optionalArgs ...any) any {
-	multiply := ccxt.GetArg(optionalArgs, 0, false)
+	var multiply bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = multiply
 	var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 	var scale *string = this.NumberToString(ccxt.MathPow(10, decimals))
@@ -2538,7 +2537,7 @@ func (this *Limitless) FetchAccountsAsync(optionalArgs ...any) <-chan any {
 func (this *Limitless) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.LimitlessPrivateGetProfilesMe(params))
@@ -2575,11 +2574,9 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	accounts := (<-this.LoadAccountsAsync())
-	ccxt.PanicOnError(accounts)
+	var accounts []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.LoadAccountsAsync())))
 
-	retRes20428 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes20428)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var account map[string]any = ccxt.SafeMapTyped(accounts, 0)
 	var accountInfo map[string]any = ccxt.SafeMapTyped(account, "info")
@@ -2727,7 +2724,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var takerAmount any = nil
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	var postOnly any = false
-	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
 	params = ccxt.GetValue(postOnlyparamsVariable, 1)
 	var timeInForce any = ccxt.DerefScalar(this.SafeString(params, "timeInForce"))
@@ -2742,13 +2739,13 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	}
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (ccxt.IsEqual(side, "buy")) {
-		var createMarketBuyOrderRequiresPrice any = true
+		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
+		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
-		if createMarketBuyOrderRequiresPrice == true {
+		if createMarketBuyOrderRequiresPrice {
 			if (price == nil) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
@@ -2933,7 +2930,7 @@ func (this *Limitless) ApproveAsync(optionalArgs ...any) <-chan any {
 func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if ccxt.IsEqual(this.PrivateKey, nil) {
@@ -2991,12 +2988,11 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcome != nil {
 
-		retRes232412 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes232412)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -3037,7 +3033,7 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var conditionId *string = this.SafeString2(params, "conditionId", "condition_id")
 	if conditionId == nil {
@@ -3045,8 +3041,7 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
 			panic(ccxt.ArgumentsRequired(this.Id + " redeem() requires an outcome or a params.conditionId"))
 		}
 
-		retRes235712 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes235712)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		var outcomeObj any = this.Outcome(outcome)
 		conditionId = this.SafeString(this.SafeDict(outcomeObj, "info", map[string]any{}), "conditionId")
 	}
@@ -3089,12 +3084,11 @@ func (this *Limitless) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcome != nil {
 
-		retRes238812 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes238812)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	}
 	var request map[string]any = map[string]any{
 		"orderIds": ids,
@@ -3509,7 +3503,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var symbolsLength int = 0
 	if outcomes != nil {
@@ -3517,8 +3511,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	if symbolsLength > 0 {
 
-		retRes270912 := (<-this.LoadOutcomesAsync(outcomes))
-		ccxt.PanicOnError(retRes270912)
+		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	}
 	// no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
 	// labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
@@ -3669,7 +3662,7 @@ func (this *Limitless) ParsePredictionPosition(position any, optionalArgs ...any
 	//         "unrealizedPnl": "0"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var outcomeSymbol *string = this.SafeString(market, "outcome")
 	var notional any = this.ApplyScale(this.SafeString(position, "marketValue"))
@@ -3730,7 +3723,7 @@ func (this *Limitless) FetchEventsAsync(optionalArgs ...any) <-chan any {
 func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
 	var queries any = this.ParseSearchQueries(params)
@@ -3792,8 +3785,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		// categories' listings server-side — never the whole active listing
 		var requestedTags any = this.SafeList(params, "tags", []any{})
 
-		listRaw := (<-this.FetchRawMarketsByTagsAsync(requestedTags, params))
-		ccxt.PanicOnError(listRaw)
+		var listRaw []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawMarketsByTagsAsync(requestedTags, params))))
 		var listRawLength int = ccxt.GetArrayLength(listRaw)
 		for i := 0; i < listRawLength; i++ {
 			rawMarkets = append(rawMarkets, ccxt.GetValue(listRaw, i))
@@ -3808,10 +3800,15 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
 	// into regular rows before parsing (a group row itself has no tokens)
-	var expandedMarkets any = this.ExpandGroupRows(rawMarkets)
-	var rawMarketsLength int = ccxt.GetArrayLength(expandedMarkets)
+	var expandedMarkets []any = ccxt.ArrayTyped(this.ExpandGroupRows(rawMarkets))
+	var rawMarketsLength int = len(expandedMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.GetValue(expandedMarkets, i)
+		var raw any = func() any {
+			if i >= 0 && i < len(expandedMarkets) {
+				return ccxt.DerefScalar(expandedMarkets[i])
+			}
+			return nil
+		}()
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
 		var eventKey any = func() any {
 			if (groupId != nil) && (groupId == nil || *groupId != "") {
@@ -3886,7 +3883,7 @@ func (this *Limitless) FetchRawActiveMarketsAsync(optionalArgs ...any) <-chan an
 func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	categoryId := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = categoryId
@@ -3956,7 +3953,7 @@ func (this *Limitless) FetchRawMarketsByTagsAsync(tags any, optionalArgs ...any)
 func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	categoriesResponse := (<-this.LimitlessPublicGetCategories())
@@ -4002,13 +3999,12 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 	var allRaw []any = []any{}
 	for ci := 0; ci < categoryIdsLength; ci++ {
 
-		categoryMarkets := (<-this.FetchRawActiveMarketsAsync(params, func() any {
+		var categoryMarkets []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawActiveMarketsAsync(params, func() any {
 			if ci >= 0 && ci < len(categoryIds) {
 				return ccxt.DerefScalar(categoryIds[ci])
 			}
 			return nil
-		}()))
-		ccxt.PanicOnError(categoryMarkets)
+		}()))))
 		var categoryMarketsLength int = ccxt.GetArrayLength(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {
 			var raw any = ccxt.GetValue(categoryMarkets, mi)
@@ -4046,7 +4042,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "limitless")
 	_ = api
-	method := ccxt.GetArg(optionalArgs, 1, "GET")
+	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -4071,7 +4067,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 	var url any = ccxt.Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.UrlencodeWithArrayRepeat(query)
-	if (ccxt.IsEqual(method, "GET")) && (querystring != "") {
+	if (method == "GET") && (querystring != "") {
 		url = ccxt.Add(url, "?"+querystring)
 	}
 	if ccxt.IsEqual(access, "private") {
@@ -4079,7 +4075,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 		if ccxt.IsEqual(headers, nil) {
 			headers = map[string]any{}
 		}
-		if (ccxt.IsEqual(method, "POST")) && (querystring != "") {
+		if (method == "POST") && (querystring != "") {
 			bodyString = this.Json(query)
 			body = bodyString
 			var headerDefaults any = func() any {
@@ -4102,7 +4098,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 			"lmts-timestamp": timestamp,
 			"lmts-signature": signature,
 		})
-		var headerKey any = "lmts-api" + "-key" // concatenating because of the php version
+		var headerKey string = "lmts-api" + "-key" // concatenating because of the php version
 		var headersKey map[string]any = map[string]any{}
 		ccxt.AddElementToObject(headersKey, headerKey, this.ApiKey)
 		headers = this.Extend(headers, headersKey)

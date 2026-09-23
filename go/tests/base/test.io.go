@@ -12,7 +12,7 @@ func TestIo() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var ms int64 = exchange.Milliseconds()
-	var fileName any = "ccxt-test-io-" + ccxt.ToString(ms) + ".ccxtfile"
+	var fileName string = "ccxt-test-io-" + ccxt.ToString(ms) + ".ccxtfile"
 	// upper tmp dir
 	var tempDir any = exchange.GetTempDir()
 	assert((tempDir != nil) && (tempDir != ""), "temp dir should not be empty")

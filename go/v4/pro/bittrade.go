@@ -75,12 +75,11 @@ func (this *Bittrade) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes6312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes6312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -166,12 +165,11 @@ func (this *Bittrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes13412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes13412)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -272,18 +270,17 @@ func (this *Bittrade) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bittrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes21912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes21912)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -375,15 +372,14 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if (limit != nil) && (!ccxt.IsEqual(limit, 150)) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook accepts limit = 150 only"))
 	}
 	if this.Markets == nil {
 
-		retRes30112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes30112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -447,10 +443,10 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var data any = this.SafeDict(message, "data")
-	var snapshot any = this.ParseOrderBook(data, symbol)
-	ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seqNum"))
-	ccxt.AddElementToObject(snapshot, "timestamp", timestamp)
-	ccxt.AddElementToObject(snapshot, "datetime", this.Iso8601(timestamp))
+	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
+	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
+	snapshot["timestamp"] = timestamp
+	snapshot["datetime"] = this.Iso8601(timestamp)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	// unroll the accumulated deltas
 	var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
@@ -716,10 +712,9 @@ func (this *Bittrade) pongBody(ch chan any, client any, message any) any {
 	//     { ping: 1583491673714 }
 	//
 
-	retRes5918 := (<-client.(ccxt.ClientInterface).SendAsync(map[string]any{
+	ccxt.PanicOnError((<-client.(ccxt.ClientInterface).SendAsync(map[string]any{
 		"pong": this.SafeInteger(message, "ping"),
-	}))
-	ccxt.PanicOnError(retRes5918)
+	})))
 	return nil
 }
 func (this *Bittrade) HandlePing(client any, message any) {

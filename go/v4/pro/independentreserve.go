@@ -70,12 +70,11 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes5512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes5512)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -110,7 +109,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	var data any = this.SafeDict(message, "Data", map[string]any{})
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
-	var messageHash any = "trades:" + *symbol
+	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -175,12 +174,11 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes14312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes14312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -246,7 +244,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if event != nil && *event == "OrderBookSnapshot" {
-		var snapshot any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
+		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		// write through the parent index: php copies arrays by value, so
 		// mutating the local bind would not persist the flag

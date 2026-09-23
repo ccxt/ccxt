@@ -387,7 +387,7 @@ func (this *Foxbit) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.V3PublicGetCurrencies(params))
@@ -530,7 +530,7 @@ func (this *Foxbit) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.V3PublicGetMarkets(params))
@@ -652,12 +652,11 @@ func (this *Foxbit) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Foxbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes57412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes57412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -723,12 +722,11 @@ func (this *Foxbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes62812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes62812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -777,12 +775,11 @@ func (this *Foxbit) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes66712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes66712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.V3PrivateGetMeFeesTrading(params))
@@ -833,12 +830,11 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes70112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes70112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var defaultLimit int = 20
@@ -907,12 +903,11 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes75112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes75112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -962,18 +957,17 @@ func (this *Foxbit) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes79112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes79112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1029,12 +1023,11 @@ func (this *Foxbit) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes83712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes83712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.V3PrivateGetAccounts(params))
@@ -1104,7 +1097,7 @@ func (this *Foxbit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes88515 := (<-this.FetchOrdersByStatusAsync("ACTIVE", symbol, since, limit, params))
@@ -1138,7 +1131,7 @@ func (this *Foxbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes90015 := (<-this.FetchOrdersByStatusAsync("FILLED", symbol, since, limit, params))
@@ -1160,7 +1153,7 @@ func (this *Foxbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
 	retRes90415 := (<-this.FetchOrdersByStatusAsync("CANCELED", symbol, since, limit, params))
@@ -1182,14 +1175,13 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes90912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes90912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"state": status,
 	}
@@ -1242,12 +1234,11 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes95212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes95212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	typeVar = ToUpper(typeVar)
@@ -1295,7 +1286,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	params = this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"})
+	params = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
 
 	response := (<-this.V3PrivatePostOrders(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1326,12 +1317,11 @@ func (this *Foxbit) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan an
 func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes102112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes102112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -1427,14 +1417,13 @@ func (this *Foxbit) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Foxbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes110512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes110512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id":   this.ParseNumber(id),
@@ -1477,12 +1466,11 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes113612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"type": "ALL",
@@ -1528,14 +1516,13 @@ func (this *Foxbit) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes117212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes117212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1594,12 +1581,11 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes121512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes121512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1673,15 +1659,14 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes127612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes127612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1737,18 +1722,17 @@ func (this *Foxbit) FetchDepositAddressAsync(code any, optionalArgs ...any) <-ch
 func (this *Foxbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes132212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes132212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency_symbol": currency["id"],
 	}
-	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
+	var networkCodeparamsOmitedVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
 	if !IsEqual(networkCode, nil) {
@@ -1797,12 +1781,11 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes135912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes135912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -1868,12 +1851,11 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes140912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes140912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -1955,11 +1937,10 @@ func (this *Foxbit) fetchTransactionsBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	withdrawals := (<-this.FetchWithdrawalsAsync(code, since, limit, params))
-	PanicOnError(withdrawals)
+	var withdrawals []any = ListTyped(PanicOnError((<-this.FetchWithdrawalsAsync(code, since, limit, params))))
 
 	deposits := (<-this.FetchDepositsAsync(code, since, limit, params))
 	PanicOnError(deposits)
@@ -1986,7 +1967,7 @@ func (this *Foxbit) FetchStatusAsync(optionalArgs ...any) <-chan any {
 func (this *Foxbit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.StatusPublicGetStatus(params))
@@ -2049,7 +2030,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = amount
 	price := GetArg(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a symbol argument"))
@@ -2060,8 +2041,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	}
 	if this.Markets == nil {
 
-		retRes154412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes154412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if IsEqual(side, nil) {
@@ -2134,13 +2114,12 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
-		retRes160412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes160412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2152,7 +2131,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code any, amount any, address any,
 		request["destination_tag"] = tag
 	}
 	var networkCode any = nil
-	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
+	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
@@ -2198,12 +2177,11 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes164412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes164412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	if code == nil {
@@ -2294,7 +2272,7 @@ func (this *Foxbit) ParseMarket(market any) any {
 	})
 }
 func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{
 		"info":       entry,
@@ -2340,7 +2318,7 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Foxbit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 6)}
 }
@@ -2386,7 +2364,7 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = DerefScalar(this.SafeString(order, "market_symbol"))
 	if (market == nil) && !IsEqual(symbol, nil) {
@@ -2478,11 +2456,11 @@ func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var cryptoDetails map[string]any = SafeMapTyped(transaction, "details_crypto")
 	var address *string = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
@@ -2555,7 +2533,7 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//     "locked_amount": "0.0001",
 	//     "reason_type": "DEPOSITING"
 	// }
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
 	var createdAt *string = this.SafeString(item, "created_at")
@@ -2609,7 +2587,7 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2629,7 +2607,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
 	var signatureQuery any = ""
-	if IsEqual(method, "GET") {
+	if method == "GET" {
 		var paramKeys []string = ObjectKeys(params)
 		var paramKeysLength int = len(paramKeys)
 		if paramKeysLength > 0 {
@@ -2647,7 +2625,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) {
+	if (method == "POST") || (method == "PUT") {
 		body = this.Json(params)
 	}
 	var bodyToSignature any = ""

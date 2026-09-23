@@ -101,7 +101,7 @@ func (this *Bitrue) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitrue) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	url := (<-this.AuthenticateAsync())
@@ -193,7 +193,7 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 		var balance any = ccxt.GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var free *string = this.SafeString(balance, "F")
 		var used *string = this.SafeString(balance, "L")
 		var balanceUpdateTime *int64 = this.SafeInteger(balance, "T", 0)
@@ -202,10 +202,10 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 		var updateUsed bool = (lockBalanceUpdateTime == nil || *lockBalanceUpdateTime != 0)
 		if updateFree || updateUsed {
 			if updateFree {
-				ccxt.AddElementToObject(account, "free", free)
+				account["free"] = free
 			}
 			if updateUsed {
-				ccxt.AddElementToObject(account, "used", used)
+				account["used"] = used
 			}
 			if code != nil {
 				ccxt.AddElementToObject(this.Balance, code, account)
@@ -240,12 +240,11 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes20112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if symbol != nil {
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -380,14 +379,13 @@ func (this *Bitrue) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Bitrue) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes32012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes32012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -483,7 +481,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var snapshot any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
+	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -553,12 +551,11 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes47612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes47612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -688,18 +685,17 @@ func (this *Bitrue) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes59112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes59112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -819,12 +815,11 @@ func (this *Bitrue) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes69612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes69612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -965,8 +960,7 @@ func (this *Bitrue) pongBody(ch chan any, client any, message any) any {
 		"pong": time,
 	}
 
-	retRes8248 := (<-client.(ccxt.ClientInterface).SendAsync(pong))
-	ccxt.PanicOnError(retRes8248)
+	ccxt.PanicOnError((<-client.(ccxt.ClientInterface).SendAsync(pong)))
 	return nil
 }
 func (this *Bitrue) HandleMessage(client any, message any) {
@@ -1003,7 +997,7 @@ func (this *Bitrue) AuthenticateAsync(optionalArgs ...any) <-chan any {
 func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var listenKey *string = this.SafeString(this.Options, "listenKey")
 	if listenKey == nil {
@@ -1021,8 +1015,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey url is then in the options
 
-			retRes87016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes87016)
+			ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(messageHash)))
 
 			ch <- ccxt.GetValue(this.Options, "listenKeyUrl")
 			return nil
@@ -1075,8 +1068,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// rethrows to the leader on failure and attaches the handler that
 		// keeps an alone leader's rejection from crashing the process
 
-		retRes90412 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes90412)
+		ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 		// only the leader schedules the keepalive, so a burst of watchers
 		// no longer stacks one refresh timer per racing caller. waiters
 		// early-return above, so this runs once per successful flight.
@@ -1100,7 +1092,7 @@ func (this *Bitrue) KeepAliveListenKeyAsync(optionalArgs ...any) <-chan any {
 func (this *Bitrue) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var listenKey *string = this.SafeString(this.Options, "listenKey")
 	var request map[string]any = map[string]any{
@@ -1126,8 +1118,7 @@ func (this *Bitrue) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 			}()
 			// try block:
 
-			retRes92512 := (<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params)))
-			ccxt.PanicOnError(retRes92512)
+			ccxt.PanicOnError((<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params))))
 			return nil
 		}(this)
 

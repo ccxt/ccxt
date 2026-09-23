@@ -16,8 +16,7 @@ func testWatchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	var withoutSymbol any = TestWatchTickersHelperAsync(exchange, skippedProperties, nil)
 	var withSymbol any = TestWatchTickersHelperAsync(exchange, skippedProperties, []any{symbol})
 
-	retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
-	PanicOnError(retRes114)
+	PanicOnError((<-promiseAll([]any{withSymbol, withoutSymbol})))
 	return nil
 }
 func TestWatchTickersHelperAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
@@ -28,7 +27,7 @@ func TestWatchTickersHelperAsync(exchange ccxt.ICoreExchange, skippedProperties 
 func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	argParams := GetArg(optionalArgs, 0, map[string]any{})
+	var argParams map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = argParams
 	var method string = "watchTickers"
 	var now int64 = exchange.Milliseconds()

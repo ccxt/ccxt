@@ -98,9 +98,9 @@ func (this *Bullish) WatchPublicAsync(url any, messageHash any, optionalArgs ...
 func (this *Bullish) watchPublicBody(ch chan any, url any, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	request := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = request
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var id string = ccxt.ToString(this.RequestId())
 	var message map[string]any = map[string]any{
@@ -125,9 +125,9 @@ func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash any, optio
 func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	request := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = request
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 
@@ -176,12 +176,11 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes13212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes13212)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("trades::", market["symbol"])
@@ -262,12 +261,11 @@ func (this *Bullish) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes20412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20412)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -359,14 +357,13 @@ func (this *Bullish) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes28712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes28712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url string = "/trading-api/v1/market-data/orderbook"
@@ -408,7 +405,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = "orderbook::" + *symbol
+	var messageHash string = "orderbook::" + *symbol
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -420,11 +417,11 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		"bids": bids,
 		"asks": asks,
 	}
-	var parsed any = this.ParseOrderBook(snapshot, symbol, timestamp)
+	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
 	var sequenceNumberRange any = this.SafeList(data, "sequenceNumberRange", []any{})
 	if ccxt.GetArrayLength(sequenceNumberRange) > 0 {
 		var lastIndex int64 = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1).(int64)
-		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(sequenceNumberRange, lastIndex))
+		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -472,12 +469,11 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes37912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes37912)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var subscribeHash string = "orders"
 	var messageHash any = subscribeHash
@@ -491,7 +487,7 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
-		params = this.Omit(params, "tradingAccountId")
+		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 	}
 
 	orders := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
@@ -578,7 +574,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash any = messageHash + "::" + hashSymbol
+			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
@@ -610,12 +606,11 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes49712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes49712)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var subscribeHash string = "myTrades"
 	var messageHash any = subscribeHash
@@ -629,7 +624,7 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
-		params = this.Omit(params, "tradingAccountId")
+		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 	}
 
 	trades := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
@@ -709,7 +704,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var hashSymbol string = ccxt.GetValue(keys, i).(string)
-			var symbolMessageHash any = messageHash + "::" + hashSymbol
+			var symbolMessageHash string = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}
@@ -732,12 +727,11 @@ func (this *Bullish) WatchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes60512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes60512)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"topic": "assetAccounts",
@@ -745,7 +739,7 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "balance"
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
 	if tradingAccountId != nil {
-		params = this.Omit(params, "tradingAccountId")
+		params = ccxt.MapTyped(this.Omit(params, "tradingAccountId"))
 		request["tradingAccountId"] = tradingAccountId
 		messageHash = ccxt.Add(messageHash, "::"+*tradingAccountId)
 	}
@@ -809,11 +803,11 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		var data any = this.SafeList(message, "data", []any{})
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
 	} else {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var assetId *string = this.SafeString(data, "assetSymbol")
-		var account any = this.Account()
-		ccxt.AddElementToObject(account, "total", this.SafeString(data, "availableQuantity"))
-		ccxt.AddElementToObject(account, "used", this.SafeString(data, "lockedQuantity"))
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(data, "availableQuantity")
+		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
@@ -822,7 +816,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
 	}
 	var messageHash string = "balance"
-	var tradingAccountIdHash any = "::" + *tradingAccountId
+	var tradingAccountIdHash string = "::" + *tradingAccountId
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), messageHash)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), ccxt.Add(messageHash, tradingAccountIdHash))
 }
@@ -852,12 +846,11 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes70512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes70512)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var subscribeHash string = "positions"
 	var messageHash any = subscribeHash
@@ -903,9 +896,14 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 		positions.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
-	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash any = ccxt.GetValue(messageHashes, i)
+	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
+	for i := 0; i < len(messageHashes); i++ {
+		var messageHash any = func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()
 		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")

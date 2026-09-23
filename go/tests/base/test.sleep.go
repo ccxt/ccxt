@@ -21,8 +21,7 @@ func testSleepBody(ch chan any) any {
 	var start int64 = exchange.Milliseconds()
 	var sleepAmount int = 100 // milliseconds
 
-	retRes124 := (<-exchange.Sleep(sleepAmount))
-	ccxt.PanicOnError(retRes124)
+	ccxt.PanicOnError((<-exchange.Sleep(sleepAmount)))
 	var end int64 = exchange.Milliseconds()
 	var elapsed any = end - start
 	// Allow a small margin of error due to execution time and timer jitter

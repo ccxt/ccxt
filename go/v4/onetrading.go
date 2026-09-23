@@ -463,7 +463,7 @@ func (this *Onetrading) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Onetrading) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetTime(params))
@@ -495,7 +495,7 @@ func (this *Onetrading) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Onetrading) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetCurrencies(params))
@@ -558,7 +558,7 @@ func (this *Onetrading) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Onetrading) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetInstruments(params))
@@ -733,12 +733,12 @@ func (this *Onetrading) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var method *string = this.SafeString(params, "method")
-	params = this.Omit(params, "method")
+	params = MapTyped(this.Omit(params, "method"))
 	if method == nil {
-		var options any = this.SafeDict(this.Options, "fetchTradingFees", map[string]any{})
+		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
@@ -765,12 +765,11 @@ func (this *Onetrading) FetchPublicTradingFeesAsync(optionalArgs ...any) <-chan 
 func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes63512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes63512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PublicGetFees(params))
@@ -858,12 +857,11 @@ func (this *Onetrading) FetchPrivateTradingFeesAsync(optionalArgs ...any) <-chan
 func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes70912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes70912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivateGetAccountFees(params))
@@ -917,13 +915,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market map[string]any = MapTyped(this.Market(symbol))
-		var makerFee any = func() any {
+		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
-		var takerFee any = func() any {
+		var takerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
 				return spotTakerFee
 			}
@@ -944,7 +942,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	return nil
 }
 func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
@@ -1035,12 +1033,11 @@ func (this *Onetrading) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Onetrading) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes85912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes85912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1091,12 +1088,11 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes89812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes89812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1161,12 +1157,11 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes94612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes94612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1253,7 +1248,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         "last_sequence":461123
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var granularity map[string]any = SafeMapTyped(ohlcv, "granularity")
 	var unit *string = this.SafeString(granularity, "unit")
@@ -1269,7 +1264,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	if (period == nil) || (lowercaseUnit == nil) {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing period/unit"))
 	}
-	var timeframe any = *period + *lowercaseUnit
+	var timeframe string = *period + *lowercaseUnit
 	var durationInSeconds any = this.ParseTimeframe(timeframe)
 	var duration any = Multiply(durationInSeconds, 1000)
 	var timestamp *int64 = this.Parse8601(this.SafeString(ohlcv, "time"))
@@ -1277,7 +1272,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
 	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
-	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
+	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var volumeField *string = this.SafeString(options, "volume", "total_amount")
 	return []any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)}
 }
@@ -1302,18 +1297,17 @@ func (this *Onetrading) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes108412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes108412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var periodUnit *string = this.SafeString(this.Timeframes, timeframe)
@@ -1410,7 +1404,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")
@@ -1453,9 +1447,9 @@ func (this *Onetrading) ParseBalance(response any) any {
 		}()
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balance, "available"))
-		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balance, "available")
+		account["used"] = this.SafeString(balance, "locked")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1479,12 +1473,11 @@ func (this *Onetrading) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Onetrading) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes123312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes123312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivateGetAccountBalances(params))
@@ -1667,12 +1660,11 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes140612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes140612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var uppercaseType string = ToUpper(typeVar)
@@ -1696,7 +1688,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 		}
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["type"] = "STOP"
-		params = this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
+		params = MapTyped(this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"}))
 	} else if uppercaseType == "STOP" {
 		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice param for ", typeVar), " orders")))
 	}
@@ -1706,10 +1698,10 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
-		params = this.Omit(params, []any{"clientOrderId", "client_id"})
+		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	}
 	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
-	params = this.Omit(params, "timeInForce")
+	params = MapTyped(this.Omit(params, "timeInForce"))
 	request["time_in_force"] = timeInForce
 
 	response := (<-this.PrivatePostAccountOrders(this.Extend(request, params)))
@@ -1753,17 +1745,16 @@ func (this *Onetrading) CancelOrderAsync(id any, optionalArgs ...any) <-chan any
 func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes148312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes148312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	params = this.Omit(params, []any{"clientOrderId", "client_id"})
+	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	var method string = "privateDeleteAccountOrdersOrderId"
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
@@ -1809,12 +1800,11 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes151812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes151812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
@@ -1854,14 +1844,13 @@ func (this *Onetrading) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan a
 func (this *Onetrading) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes154612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes154612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"ids": Join(ids, ","),
@@ -1900,14 +1889,13 @@ func (this *Onetrading) FetchOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Onetrading) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes157312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes157312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1987,12 +1975,11 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes163712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes163712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2005,7 +1992,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
@@ -2125,7 +2112,7 @@ func (this *Onetrading) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"with_cancelled_and_rejected": true,
@@ -2163,12 +2150,11 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes178212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes178212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -2245,12 +2231,11 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes184512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes184512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2263,7 +2248,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		params = this.Omit(params, "until")
+		params = MapTyped(this.Omit(params, "until"))
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
@@ -2310,7 +2295,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2330,7 +2315,7 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 			"Accept":        "application/json",
 			"Authorization": Add("Bearer ", this.ApiKey),
 		}
-		if IsEqual(method, "POST") {
+		if method == "POST" {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {

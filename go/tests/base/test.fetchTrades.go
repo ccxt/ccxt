@@ -45,8 +45,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	}
 	if !(InOp(skippedProperties, "side")) && !(InOp(skippedProperties, "sideSequence")) {
 
-		retRes368 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
-		PanicOnError(retRes368)
+		PanicOnError((<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades)))
 	}
 
 	ch <- true

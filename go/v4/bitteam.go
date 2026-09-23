@@ -424,7 +424,7 @@ func (this *Bitteam) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitteam) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetTradeApiCcxtPairs(params))
@@ -607,7 +607,7 @@ func (this *Bitteam) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetTradeApiCurrencies(params))
@@ -845,18 +845,17 @@ func (this *Bitteam) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes76412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes76412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -911,7 +910,7 @@ func (this *Bitteam) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         "v": 3.0872548400000115
 	//     },
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeTimestamp(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
@@ -934,14 +933,13 @@ func (this *Bitteam) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes83812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes83812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -978,7 +976,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
 
 	ch <- orderbook
 	return nil
@@ -1010,12 +1008,11 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes89112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes89112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar *string = this.SafeString(params, "type", "all")
 	var request map[string]any = map[string]any{
@@ -1141,12 +1138,11 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes100512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes100512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1226,12 +1222,11 @@ func (this *Bitteam) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes106912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes106912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"type": "active",
@@ -1268,12 +1263,11 @@ func (this *Bitteam) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes109012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes109012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"type": "closed",
@@ -1310,12 +1304,11 @@ func (this *Bitteam) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes111112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes111112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"type": "cancelled",
@@ -1350,12 +1343,11 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes113412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1421,14 +1413,13 @@ func (this *Bitteam) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Bitteam) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes119012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes119012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1469,12 +1460,11 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes121912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes121912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1693,12 +1683,11 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes142812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes142812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PublicGetTradeApiCmcSummary())
@@ -1766,12 +1755,11 @@ func (this *Bitteam) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bitteam) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes148612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes148612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2053,22 +2041,22 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeStringLower(ticker, "trading_pairs")
 	market = this.SafeMarket(marketId, market)
-	var bestBidPrice any = nil
-	var bestAskPrice any = nil
-	var bestBidVolume any = nil
-	var bestAskVolume any = nil
+	var bestBidPrice *string = nil
+	var bestAskPrice *string = nil
+	var bestBidVolume *string = nil
+	var bestAskVolume *string = nil
 	var bids any = this.SafeList(ticker, "bids")
 	var asks any = this.SafeList(ticker, "asks")
 	if (!IsEqual(bids, nil)) && (IsArray(bids)) && (!IsEqual(asks, nil)) && (IsArray(asks)) {
 		var bestBid map[string]any = SafeMapTyped(bids, 0)
-		bestBidPrice = DerefScalar(this.SafeString(bestBid, "price"))
-		bestBidVolume = DerefScalar(this.SafeString(bestBid, "quantity"))
+		bestBidPrice = this.SafeString(bestBid, "price")
+		bestBidVolume = this.SafeString(bestBid, "quantity")
 		var bestAsk map[string]any = SafeMapTyped(asks, 0)
-		bestAskPrice = DerefScalar(this.SafeString(bestAsk, "price"))
-		bestAskVolume = DerefScalar(this.SafeString(bestAsk, "quantity"))
+		bestAskPrice = this.SafeString(bestAsk, "price")
+		bestAskVolume = this.SafeString(bestAsk, "quantity")
 	} else {
-		bestBidPrice = DerefScalar(this.SafeString(ticker, "highest_bid"))
-		bestAskPrice = DerefScalar(this.SafeString(ticker, "lowest_ask"))
+		bestBidPrice = this.SafeString(ticker, "highest_bid")
+		bestAskPrice = this.SafeString(ticker, "lowest_ask")
 	}
 	var baseVolume *string = this.SafeString2(ticker, "volume24", "base_volume")
 	var quoteVolume *string = this.SafeString2(ticker, "quoteVolume24", "quote_volume")
@@ -2122,12 +2110,11 @@ func (this *Bitteam) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes182212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes182212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2187,12 +2174,11 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes186612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes186612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2417,17 +2403,17 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 	// the exchange returns the side of the taker
 	var side any = DerefScalar(this.SafeString2(trade, "side", "type"))
 	var feeInfo any = nil
-	var order any = nil
+	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
 		if IsEqual(side, "sell") {
 			side = "buy"
 		} else if IsEqual(side, "buy") {
 			side = "sell"
 		}
-		order = DerefScalar(this.SafeString(trade, "makerOrderId"))
+		order = this.SafeString(trade, "makerOrderId")
 		feeInfo = this.SafeDict(trade, "feeMaker", map[string]any{})
 	} else if takerOrMaker != nil && *takerOrMaker == "taker" {
-		order = DerefScalar(this.SafeString(trade, "takerOrderId"))
+		order = this.SafeString(trade, "takerOrderId")
 		feeInfo = this.SafeDict(trade, "feeTaker", map[string]any{})
 	}
 	var feeCurrencyId *string = this.SafeString(feeInfo, "symbol")
@@ -2470,12 +2456,11 @@ func (this *Bitteam) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Bitteam) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes213312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes213312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivateGetTradeApiCcxtBalance(params))
@@ -2577,12 +2562,11 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes222012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes222012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
@@ -2799,7 +2783,7 @@ func (this *Bitteam) ParseTransactionStatus(status *string) *string {
 func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2813,14 +2797,14 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 	var query string = this.Urlencode(request)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		if IsEqual(method, "POST") {
+		if method == "POST" {
 			body = this.Json(request)
 		} else if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
 		var auth64 string = this.StringToBase64(auth)
-		var signature any = "Basic " + auth64
+		var signature string = "Basic " + auth64
 		headers = map[string]any{
 			"Authorization": signature,
 			"Content-Type":  "application/json",

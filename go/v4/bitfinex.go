@@ -854,7 +854,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//    [1] // operative
 	//    [0] // maintenance
 	//
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetPlatformStatus(params))
@@ -890,7 +890,7 @@ func (this *Bitfinex) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var labels []any = []any{"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"}
 	var config string = Join(labels, ",")
@@ -956,7 +956,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// baseId = 'f' + baseId;
 		// quoteId = 'f' + quoteId;
 		var settle any = nil
-		var settleId any = nil
+		var settleId *string = nil
 		if swap {
 			settle = quote
 			settleId = quote
@@ -1051,7 +1051,7 @@ func (this *Bitfinex) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitfinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var labels []any = []any{"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"}
 	var config string = Join(labels, ",")
@@ -1292,12 +1292,11 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	// this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
 	// there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes98712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
 	var requestedType *string = this.SafeString(params, "type", "exchange")
@@ -1322,10 +1321,10 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var account any = this.Account()
+		var account map[string]any = this.Account()
 		var interest *string = this.SafeString(balance, 3)
 		if interest == nil || *interest != "0" {
-			AddElementToObject(account, "debt", interest)
+			account["debt"] = interest
 		}
 		var typeVar *string = this.SafeString(balance, 0)
 		var currencyId *string = this.SafeStringLower(balance, 1, "")
@@ -1335,8 +1334,8 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var derivativeCondition bool = (!isDerivative || isDerivativeCode)
 		if (accountType == typeVar || (accountType != nil && typeVar != nil && *accountType == *typeVar)) && derivativeCondition {
 			var code *string = this.SafeCurrencyCode(currencyId)
-			AddElementToObject(account, "total", this.SafeString(balance, 2))
-			AddElementToObject(account, "free", this.SafeString(balance, 4))
+			account["total"] = this.SafeString(balance, 2)
+			account["free"] = this.SafeString(balance, 4)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -1369,12 +1368,11 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	// transferring between derivatives wallet and regular wallet is not documented in their API
 	// however we support it in CCXT (from just looking at web inspector)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes104212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes104212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount)
@@ -1534,12 +1532,11 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	limit := GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes118912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var precision any = this.HandleOption("fetchOrderBook", "precision", "R0")
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1646,7 +1643,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var firstValue *string = this.SafeString(ticker, 0)
 	var hasMarketId bool = (firstValue != nil) && (StartsWith(firstValue, "t") || StartsWith(firstValue, "f"))
 	var isFetchTicker bool = !hasMarketId
-	var symbol any = nil
+	var symbol *string = nil
 	var minusIndex int = 0
 	if isFetchTicker {
 		minusIndex = 1
@@ -1655,38 +1652,38 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 	}
 	var isFundingCurrency bool = (length >= 17)
-	symbol = DerefScalar(this.SafeSymbol(nil, market))
-	var last any = nil
-	var bid any = nil
-	var ask any = nil
-	var change any = nil
+	symbol = this.SafeSymbol(nil, market)
+	var last *string = nil
+	var bid *string = nil
+	var ask *string = nil
+	var change *string = nil
 	var percentage any = nil
-	var volume any = nil
-	var high any = nil
-	var low any = nil
+	var volume *string = nil
+	var high *string = nil
+	var low *string = nil
 	if isFundingCurrency {
 		// per api docs, they are different array type
-		last = DerefScalar(this.SafeString(ticker, 10-minusIndex))
-		bid = DerefScalar(this.SafeString(ticker, 2-minusIndex))
-		ask = DerefScalar(this.SafeString(ticker, 5-minusIndex))
-		change = DerefScalar(this.SafeString(ticker, 8-minusIndex))
+		last = this.SafeString(ticker, 10-minusIndex)
+		bid = this.SafeString(ticker, 2-minusIndex)
+		ask = this.SafeString(ticker, 5-minusIndex)
+		change = this.SafeString(ticker, 8-minusIndex)
 		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
 		// branch reads at index 6 and scales
 		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
-		volume = DerefScalar(this.SafeString(ticker, 11-minusIndex))
-		high = DerefScalar(this.SafeString(ticker, 12-minusIndex))
-		low = DerefScalar(this.SafeString(ticker, 13-minusIndex))
+		volume = this.SafeString(ticker, 11-minusIndex)
+		high = this.SafeString(ticker, 12-minusIndex)
+		low = this.SafeString(ticker, 13-minusIndex)
 	} else {
 		// on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-		last = DerefScalar(this.SafeString(ticker, 7-minusIndex))
-		bid = DerefScalar(this.SafeString(ticker, 1-minusIndex))
-		ask = DerefScalar(this.SafeString(ticker, 3-minusIndex))
-		change = DerefScalar(this.SafeString(ticker, 5-minusIndex))
+		last = this.SafeString(ticker, 7-minusIndex)
+		bid = this.SafeString(ticker, 1-minusIndex)
+		ask = this.SafeString(ticker, 3-minusIndex)
+		change = this.SafeString(ticker, 5-minusIndex)
 		percentage = DerefScalar(this.SafeString(ticker, 6-minusIndex))
 		percentage = Precise.StringMul(percentage, "100")
-		volume = DerefScalar(this.SafeString(ticker, 8-minusIndex))
-		high = DerefScalar(this.SafeString(ticker, 9-minusIndex))
-		low = DerefScalar(this.SafeString(ticker, 10-minusIndex))
+		volume = this.SafeString(ticker, 8-minusIndex)
+		high = this.SafeString(ticker, 9-minusIndex)
+		low = this.SafeString(ticker, 10-minusIndex)
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1731,12 +1728,11 @@ func (this *Bitfinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes135212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes135212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -1810,12 +1806,11 @@ func (this *Bitfinex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bitfinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes141612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes141612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1883,9 +1878,9 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		side = "buy"
 	}
-	var orderId any = nil
+	var orderId *string = nil
 	var takerOrMaker any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var fee any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestampIndex int = func() int {
@@ -1898,7 +1893,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	if isPrivate {
 		var marketId any = GetValue(tradeList, 1)
 		symbol = this.SafeSymbol(marketId)
-		orderId = DerefScalar(this.SafeString(tradeList, 3))
+		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
 		takerOrMaker = func() string {
 			if maker != nil && *maker == 1 {
@@ -1915,7 +1910,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 		var orderType any = GetValue(tradeList, 6)
-		typeVar = DerefScalar(this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType))
+		typeVar = this.SafeString(GetValue(this.Options, "exchangeTypes"), orderType)
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1963,17 +1958,15 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes152512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes152512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
-		retRes153019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, 10000))
-		PanicOnError(retRes153019)
+		var retRes153019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, 10000))))
 		ch <- retRes153019
 		return nil
 	}
@@ -1990,7 +1983,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		AddElementToObject(request, "limit", mathMin(limit, 10000)) // default 120, max 10000
 	}
 	AddElementToObject(request, "sort", sort)
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -2046,7 +2039,7 @@ func (this *Bitfinex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -2056,14 +2049,13 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes158212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes158212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes158719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
 		PanicOnError(retRes158719)
@@ -2085,7 +2077,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		AddElementToObject(request, "start", since)
 		AddElementToObject(request, "sort", 1)
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -2113,7 +2105,7 @@ func (this *Bitfinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         0.1
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
 }
@@ -2188,15 +2180,15 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var price any = DerefScalar(this.SafeString(orderList, 16))
-	var triggerPrice any = nil
+	var triggerPrice *string = nil
 	if (orderType != nil && *orderType == "EXCHANGE STOP") || (orderType != nil && *orderType == "EXCHANGE STOP LIMIT") {
 		price = nil
-		triggerPrice = DerefScalar(this.SafeString(orderList, 16))
+		triggerPrice = this.SafeString(orderList, 16)
 		if orderType != nil && *orderType == "EXCHANGE STOP LIMIT" {
 			price = DerefScalar(this.SafeString(orderList, 19))
 		}
 	}
-	var status any = nil
+	var status *string = nil
 	var statusString *string = this.SafeString(orderList, 13)
 	if statusString != nil {
 		var parts []string = Split(statusString, " @ ")
@@ -2311,7 +2303,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		orderType = "FOK"
 	}
 	var marginMode any = nil
-	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
+	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	if (GetValue(market, "spot") == true) && (marginMode == nil) {
@@ -2369,12 +2361,11 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes187112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes187112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2461,12 +2452,11 @@ func (this *Bitfinex) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan 
 func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes194612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes194612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -2547,14 +2537,13 @@ func (this *Bitfinex) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitfinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes201012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes201012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"all": 1,
@@ -2599,12 +2588,11 @@ func (this *Bitfinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes203612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes203612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var cid any = this.SafeValue2(params, "cid", "clientOrderId") // client order id
 	var request map[string]any = nil
@@ -2621,7 +2609,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"cid":      cid,
 			"cid_date": cidDate,
 		}
-		params = this.Omit(params, []any{"cid", "clientOrderId"})
+		params = MapTyped(this.Omit(params, []any{"cid", "clientOrderId"}))
 	} else {
 		request = map[string]any{
 			"id": ParseInt(id),
@@ -2659,12 +2647,11 @@ func (this *Bitfinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes207712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes207712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var numericIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -2769,14 +2756,13 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"id": []any{ParseInt(id)},
 	}
 
-	orders := (<-this.FetchOpenOrdersAsync(symbol, nil, nil, this.Extend(request, params)))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
 	var order any = this.SafeValue(orders, 0)
 	if IsEqual(order, nil) {
 		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
@@ -2807,14 +2793,13 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"id": []any{ParseInt(id)},
 	}
 
-	orders := (<-this.FetchClosedOrdersAsync(symbol, nil, nil, this.Extend(request, params)))
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.FetchClosedOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
 	var order any = this.SafeValue(orders, 0)
 	if IsEqual(order, nil) {
 		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
@@ -2850,12 +2835,11 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes221012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes221012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2953,17 +2937,15 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes228412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes228412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
-		retRes228919 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
-		PanicOnError(retRes228919)
+		var retRes228919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))))
 		ch <- retRes228919
 		return nil
 	}
@@ -2974,7 +2956,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		AddElementToObject(request, "limit", limit) // default 25, max 2500
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var market any = nil
@@ -3065,15 +3047,14 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes237012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes237012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderId int64 = ParseInt(id)
@@ -3128,12 +3109,11 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes240212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes240212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{
@@ -3185,12 +3165,11 @@ func (this *Bitfinex) CreateDepositAddressAsync(code any, optionalArgs ...any) <
 func (this *Bitfinex) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes244012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes244012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"op_renew": 1,
@@ -3219,12 +3198,11 @@ func (this *Bitfinex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-
 func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes245912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes245912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	// if not provided explicitly we will try to match using the currency name
@@ -3236,7 +3214,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
 	}
 	var wallet *string = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-	params = this.Omit(params, "network", "wallet")
+	params = MapTyped(this.Omit(params, "network", "wallet"))
 	var request map[string]any = map[string]any{
 		"method":   networkId,
 		"wallet":   wallet,
@@ -3266,13 +3244,13 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//
 	var result any = this.SafeList(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
-	var address any = func() any {
+	var address *string = func() *string {
 		if poolAddress == nil {
 			return this.SafeString(result, 4)
 		}
 		return poolAddress
 	}()
-	var tag any = func() any {
+	var tag *string = func() *string {
 		if poolAddress == nil {
 			return nil
 		}
@@ -3366,13 +3344,13 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var amount any = nil
 	var id any = nil
 	var status any = nil
-	var tag any = nil
+	var tag *string = nil
 	var typeVar any = nil
 	var feeCost any = nil
-	var txid any = nil
-	var addressTo any = nil
+	var txid *string = nil
+	var addressTo *string = nil
 	var network any = nil
-	var comment any = nil
+	var comment *string = nil
 	if transactionLength == 8 {
 		var data any = this.SafeList(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
@@ -3390,7 +3368,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 			id = nil
 			status = "failed"
 		}
-		tag = DerefScalar(this.SafeString(data, 3))
+		tag = this.SafeString(data, 3)
 		typeVar = "withdrawal"
 		var networkId *string = this.SafeString(data, 2)
 		network = this.NetworkIdToCode(ToUpper(networkId), code) // withdraw returns in lowercase
@@ -3416,9 +3394,9 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		if !IsEqual(feeCost, nil) {
 			feeCost = Precise.StringAbs(feeCost)
 		}
-		addressTo = DerefScalar(this.SafeString(transaction, 16))
-		txid = DerefScalar(this.SafeString(transaction, 20))
-		comment = DerefScalar(this.SafeString(transaction, 21))
+		addressTo = this.SafeString(transaction, 16)
+		txid = this.SafeString(transaction, 20)
+		comment = this.SafeString(transaction, 21)
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -3464,12 +3442,11 @@ func (this *Bitfinex) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes267912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes267912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivatePostAuthRSummary(params))
@@ -3554,17 +3531,17 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
 		}
-		if InOp(fiat, GetValue(market, "quote")) {
+		if InOp(fiat, market["quote"]) {
 			fee["maker"] = makerFeeFiat
 			fee["taker"] = takerFeeFiat
-		} else if GetValue(market, "contract") == true {
+		} else if market["contract"] == true {
 			fee["maker"] = makerFeeDeriv
 			fee["taker"] = takerFeeDeriv
 		} else {
@@ -3604,12 +3581,11 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes279812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes279812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
@@ -3688,18 +3664,17 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes286412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes286412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
-	params = this.Omit(params, "network")
+	params = MapTyped(this.Omit(params, "network"))
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3707,7 +3682,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
 	}
 	var wallet *string = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-	params = this.Omit(params, "network", "wallet")
+	params = MapTyped(this.Omit(params, "network", "wallet"))
 	var request map[string]any = map[string]any{
 		"method":  networkId,
 		"wallet":  wallet,
@@ -3792,12 +3767,11 @@ func (this *Bitfinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes295012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes295012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -3936,7 +3910,7 @@ func (this *Bitfinex) Nonce() any {
 func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3997,7 +3971,7 @@ func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, meth
 		// See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
 		var errorCode *string = this.SafeString(response, 1, "")
 		var errorText *string = this.SafeString(response, 2, "")
-		var feedback any = this.Id + " " + *errorText
+		var feedback string = this.Id + " " + *errorText
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorText, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorText, feedback)
@@ -4152,17 +4126,15 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes321512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes321512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
-		retRes322019 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))
-		PanicOnError(retRes322019)
+		var retRes322019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))))
 		ch <- retRes322019
 		return nil
 	}
@@ -4174,7 +4146,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
@@ -4235,15 +4207,14 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRates() requires a symbols argument"))
 	}
 	if this.Markets == nil {
 
-		retRes327612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes327612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var request map[string]any = map[string]any{
@@ -4321,14 +4292,13 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes333412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes333412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes333919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))
 		PanicOnError(retRes333919)
@@ -4342,7 +4312,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	if since != nil {
 		AddElementToObject(request, "start", since)
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -4529,12 +4499,11 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes351412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes351412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = []any{"ALL"}
@@ -4599,12 +4568,11 @@ func (this *Bitfinex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <-
 func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes356912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes356912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4671,7 +4639,7 @@ func (this *Bitfinex) FetchOpenInterestHistoryAsync(symbol any, optionalArgs ...
 func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -4681,14 +4649,13 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	_ = params
 	if this.Markets == nil {
 
-		retRes362612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes362612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes363119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))
 		PanicOnError(retRes363119)
@@ -4705,7 +4672,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -4853,14 +4820,13 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		retRes376512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes376512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
-	paginate = GetValue(paginateparamsVariable, 0)
+	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if paginate {
 
 		retRes377019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))
 		PanicOnError(retRes377019)
@@ -4875,7 +4841,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -4972,12 +4938,11 @@ func (this *Bitfinex) SetMarginAsync(symbol any, amount any, optionalArgs ...any
 func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes385912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes385912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
@@ -5012,7 +4977,7 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) any
 	//         ]
 	//     ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginStatusRaw any = GetValue(data, 0)
 	var marginStatus string = func() string {
@@ -5056,12 +5021,11 @@ func (this *Bitfinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes392012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes392012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{
 		"id": []any{this.ParseToNumeric(id)},
@@ -5159,12 +5123,11 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = amount
 	price := GetArg(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes400012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes400012)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -5217,7 +5180,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	if leverage != nil {
 		request["lev"] = leverage
 	}
-	params = this.Omit(params, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"})
+	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"}))
 
 	response := (<-this.PrivatePostAuthWOrderUpdate(this.Extend(request, params)))
 	PanicOnError(response)

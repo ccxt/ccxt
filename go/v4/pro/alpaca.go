@@ -90,16 +90,14 @@ func (this *Alpaca) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-	retRes788 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes788)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
 
-		retRes8012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes8012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("ticker:", market["symbol"])
@@ -193,22 +191,20 @@ func (this *Alpaca) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any 
 func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-	retRes1648 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes1648)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
 
-		retRes16612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes16612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -252,7 +248,7 @@ func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parsed any = this.ParseOHLCV(message)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = "ohlcv:" + *symbol
+	var messageHash string = "ohlcv:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -274,18 +270,16 @@ func (this *Alpaca) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan 
 func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-	retRes2238 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes2238)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
 
-		retRes22512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes22512)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -333,7 +327,7 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if isSnapshot != nil && *isSnapshot == true {
-		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
+		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
 		var asks any = this.SafeList(message, "a", []any{})
@@ -343,7 +337,7 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	}
-	var messageHash any = "orderbook" + ":" + *symbol
+	var messageHash string = "orderbook" + ":" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -380,16 +374,14 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-	retRes3098 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes3098)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
 
-		retRes31112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes31112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
@@ -430,7 +422,7 @@ func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 	}
 	var parsed any = this.ParseTrade(message)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = "trade" + ":" + *symbol
+	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -460,17 +452,15 @@ func (this *Alpaca) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
 
-	retRes3678 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes3678)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var messageHash any = "myTrades"
 	if this.Markets == nil {
 
-		retRes37012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes37012)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if symbol != nil {
 		symbol = this.Symbol(symbol)
@@ -517,16 +507,14 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
 
-	retRes4018 := (<-this.AuthenticateAsync(url))
-	ccxt.PanicOnError(retRes4018)
+	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	if this.Markets == nil {
 
-		retRes40312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes40312)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders"
 	if symbol != nil {
@@ -760,7 +748,7 @@ func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan any {
 func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"

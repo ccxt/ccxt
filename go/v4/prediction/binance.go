@@ -194,7 +194,7 @@ func (this *Binance) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var queries any = this.ParseSearchQueries(params)
 	var queriesLength int = ccxt.GetArrayLength(queries)
@@ -206,10 +206,15 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var eventsLength int = ccxt.GetArrayLength(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {
-			var eventMarkets any = this.SafeList(ccxt.GetValue(events, ei), "markets", []any{})
-			var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+			var eventMarketsLength int = len(eventMarkets)
 			for mi := 0; mi < eventMarketsLength; mi++ {
-				queryMarkets = append(queryMarkets, ccxt.GetValue(eventMarkets, mi))
+				queryMarkets = append(queryMarkets, func() any {
+					if mi >= 0 && mi < len(eventMarkets) {
+						return ccxt.DerefScalar(eventMarkets[mi])
+					}
+					return nil
+				}())
 			}
 		}
 
@@ -219,18 +224,22 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
 	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
 
-	rawTopics := (<-this.FetchRawTopicsAsync(maxMarkets, rest))
-	ccxt.PanicOnError(rawTopics)
+	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
 	var parsedEvents []any = []any{}
 	var flatMarkets []any = []any{}
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		parsedEvents = append(parsedEvents, parsedEvent)
-		var eventMarkets any = this.SafeList(parsedEvent, "markets", []any{})
-		var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+		var eventMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
+		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			flatMarkets = append(flatMarkets, ccxt.GetValue(eventMarkets, mi))
+			flatMarkets = append(flatMarkets, func() any {
+				if mi >= 0 && mi < len(eventMarkets) {
+					return ccxt.DerefScalar(eventMarkets[mi])
+				}
+				return nil
+			}())
 		}
 	}
 	this.SetEvents(parsedEvents)
@@ -257,7 +266,7 @@ func (this *Binance) FetchRawTopicsAsync(maxTopics any, optionalArgs ...any) <-c
 func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	rest := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	if ccxt.IsEqual(maxTopics, nil) {
 		maxTopics = ccxt.DerefScalar(this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
@@ -317,10 +326,15 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
 		//         "hasMore": true
 		//     }
 		//
-		var pageTopics any = this.SafeList(response, "marketTopics", []any{})
-		var pageTopicsLength int = ccxt.GetArrayLength(pageTopics)
+		var pageTopics []any = ccxt.SafeListTyped(response, "marketTopics")
+		var pageTopicsLength int = len(pageTopics)
 		for i := 0; i < pageTopicsLength; i++ {
-			collected = append(collected, ccxt.GetValue(pageTopics, i))
+			collected = append(collected, func() any {
+				if i >= 0 && i < len(pageTopics) {
+					return ccxt.DerefScalar(pageTopics[i])
+				}
+				return nil
+			}())
 		}
 		var hasMore *bool = this.SafeBool(response, "hasMore", false)
 		if (hasMore == nil || *hasMore != true) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
@@ -350,7 +364,7 @@ func (this *Binance) FetchRawTopicDetailAsync(topicId any, optionalArgs ...any) 
 func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"marketTopicId": topicId,
@@ -387,8 +401,8 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
 			var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)
-			var firstOutcomes any = this.SafeList(firstMarket, "outcomes", []any{})
-			var firstOutcomesLength int = ccxt.GetArrayLength(firstOutcomes)
+			var firstOutcomes []any = ccxt.SafeListTyped(firstMarket, "outcomes")
+			var firstOutcomesLength int = len(firstOutcomes)
 			hasOutcomes = (firstOutcomesLength > 0)
 		}
 		if hasOutcomes {
@@ -435,19 +449,24 @@ func (this *Binance) FetchEventsAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allowUnscopedFetchEvents *bool = this.SafeBool(this.Options, "allowUnscopedFetchEvents", false)
 	if allowUnscopedFetchEvents == nil || *allowUnscopedFetchEvents != true {
 		this.RequireEventQuery(params)
 	}
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
 	// binance has no tag taxonomy — resolve requested tags through the semantic search too
 	var tags []any = ccxt.SafeListTyped(params, "tags")
 	var tagsLength int = len(tags)
 	var allQueries []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		allQueries = append(allQueries, ccxt.GetValue(queries, i))
+	for i := 0; i < len(queries); i++ {
+		allQueries = append(allQueries, func() any {
+			if i >= 0 && i < len(queries) {
+				return ccxt.DerefScalar(queries[i])
+			}
+			return nil
+		}())
 	}
 	for i := 0; i < tagsLength; i++ {
 		allQueries = append(allQueries, func() any {
@@ -458,7 +477,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		}())
 	}
 	var allQueriesLength int = len(allQueries)
-	params = this.Omit(params, []any{"query", "queries"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	var fetchCap *int64 = this.SafeInteger(this.Options, "maxFetchEventsResults", 100)
 	if userLimit != nil {
@@ -502,7 +521,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			}
 			if !ccxt.IsEqual(sortBy, nil) {
 				listingRequest["sortBy"] = sortBy
-				params = this.Omit(params, []any{"sort", "sortBy"})
+				params = ccxt.MapTyped(this.Omit(params, []any{"sort", "sortBy"}))
 			}
 		}
 
@@ -517,10 +536,15 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < rawTopicsLength; i++ {
 		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		result = append(result, parsedEvent)
-		var parsedMarkets any = this.SafeList(parsedEvent, "markets", []any{})
-		var parsedMarketsLength int = ccxt.GetArrayLength(parsedMarkets)
+		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
+		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = ccxt.GetValue(parsedMarkets, mi)
+			var m any = func() any {
+				if mi >= 0 && mi < len(parsedMarkets) {
+					return ccxt.DerefScalar(parsedMarkets[mi])
+				}
+				return nil
+			}()
 			// prediction market rows are keyed by the unified 'market' handle
 			var handle *string = this.SafeString(m, "market")
 			if handle != nil {
@@ -557,7 +581,7 @@ func (this *Binance) FetchEventsByQueryAsync(queries any, limit any, optionalArg
 func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	rest := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	var seen map[string]any = map[string]any{}
 	var collected []any = []any{}
@@ -629,7 +653,7 @@ func (this *Binance) FetchEventAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Binance) fetchEventBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	events := (<-this.FetchEventsAsync(this.Extend(map[string]any{
@@ -678,12 +702,17 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 	//         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
 	//     }
 	//
-	var rawMarkets any = this.SafeList(rawTopic, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
 	var marketsList []any = []any{}
 	var anyActive bool = false
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var parsed any = this.ParseTopicMarket(ccxt.GetValue(rawMarkets, i), rawTopic)
+		var parsed any = this.ParseTopicMarket(func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
 		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
 			anyActive = true
@@ -783,12 +812,17 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	}
 	var volume *float64 = this.SafeNumber(rawMarket, "tradeVolume")
 	var liquidity *float64 = this.SafeNumber(rawMarket, "liquidity")
-	var rawOutcomes any = this.SafeList(rawMarket, "outcomes", []any{})
+	var rawOutcomes []any = ccxt.SafeListTyped(rawMarket, "outcomes")
 	var outcomes []any = []any{}
 	var resolvedOutcomeRaw any = nil
-	var rawOutcomesLength int = ccxt.GetArrayLength(rawOutcomes)
+	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = ccxt.GetValue(rawOutcomes, oi)
+		var rawOutcome any = func() any {
+			if oi >= 0 && oi < len(rawOutcomes) {
+				return ccxt.DerefScalar(rawOutcomes[oi])
+			}
+			return nil
+		}()
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
 		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
@@ -924,11 +958,10 @@ func (this *Binance) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan a
 func (this *Binance) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes7568 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes7568)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
@@ -1028,14 +1061,13 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
 	}
 
-	retRes8448 := (<-this.LoadOutcomesAsync(outcomes))
-	ccxt.PanicOnError(retRes8448)
+	ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	var responsesByMarketId map[string]any = map[string]any{}
 	var result map[string]any = map[string]any{}
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
@@ -1083,13 +1115,12 @@ func (this *Binance) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-cha
 func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes8818 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes8818)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
@@ -1110,7 +1141,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
+	var orderbook map[string]any = this.ParseOrderBook(response, this.SafeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size")
 
 	ch <- this.SafePredictionOrderBook(orderbook, outcomeObj)
 	return nil
@@ -1167,8 +1198,8 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var accountType *string = this.SafeString(balance, "accountType")
 		if ccxt.IsEqual(accountType, typeVar) {
 			var free *string = this.SafeString(balance, "availableBalanceDisplay")
-			var account any = this.Account()
-			ccxt.AddElementToObject(account, "free", free)
+			var account map[string]any = this.Account()
+			account["free"] = free
 			result["USDT"] = account
 		}
 	}
@@ -1305,16 +1336,16 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
-	paginate = ccxt.GetValue(paginateparamsVariable, 0)
+	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if paginate == true {
+	if paginate {
 
 		retRes106619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes106619)
@@ -1330,8 +1361,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes107612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes107612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(outcomeObj, "market")))
 		request["marketId"] = market["id"]
@@ -1419,16 +1449,16 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
-	paginate = ccxt.GetValue(paginateparamsVariable, 0)
+	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if paginate == true {
+	if paginate {
 
 		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes114919)
@@ -1444,8 +1474,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes115912 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes115912)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 	}
 	if limit != nil {
@@ -1528,11 +1557,10 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomes
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes12278 := (<-this.LoadOutcomesAsync())
-	ccxt.PanicOnError(retRes12278)
+	ccxt.PanicOnError((<-this.LoadOutcomesAsync()))
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
@@ -1644,14 +1672,13 @@ func (this *Binance) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan
 func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
 	var outcomeObj any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
-		retRes132112 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes132112)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(outcomeObj, "market")))
 		request["marketTopicId"] = ccxt.GetValue(market["info"], "marketTopicId")
@@ -1761,16 +1788,16 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginate any = false
+	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-	paginate = ccxt.GetValue(paginateparamsVariable, 0)
+	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
 	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if paginate == true {
+	if paginate {
 
 		retRes141419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
 		ccxt.PanicOnError(retRes141419)
@@ -1788,8 +1815,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes142612 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes142612)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 	}
 	if limit != nil {
@@ -2028,7 +2054,7 @@ func (this *Binance) FetchQuoteAsync(request any, optionalArgs ...any) <-chan an
 func (this *Binance) fetchQuoteBody(ch chan any, request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.SapiPrivatePostTradeGetQuote(this.Extend(request, params)))
@@ -2067,7 +2093,7 @@ func (this *Binance) fetchQuoteBody(ch chan any, request any, optionalArgs ...an
 	return nil
 }
 func (this *Binance) PriceToPrecision(outcome any, price any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
 	if (prec != nil) && (*prec > 0) {
@@ -2076,7 +2102,7 @@ func (this *Binance) PriceToPrecision(outcome any, price any) any {
 	return this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
 }
 func (this *Binance) AmountToPrecision(outcome any, amount any) any {
-	var market any = this.Market(outcome)
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2
 	if (prec != nil) && (*prec > 0) {
@@ -2116,11 +2142,10 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	defer ccxt.ReturnPanicError(ch)
 	price := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes17068 := (<-this.LoadOutcomeAsync(outcome))
-	ccxt.PanicOnError(retRes17068)
+	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
@@ -2174,7 +2199,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	if accountType == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder requires accountType (SPOT, FUNDING)"))
 	}
-	params = this.Omit(params, []any{"timeInForce", "accountType", "cost"})
+	params = ccxt.MapTyped(this.Omit(params, []any{"timeInForce", "accountType", "cost"}))
 	var quoteRequest map[string]any = this.Extend(commonRequest, map[string]any{
 		"tokenId":  ccxt.GetValue(outcomeObj, "id"),
 		"side":     sideUpper,
@@ -2237,7 +2262,7 @@ func (this *Binance) CreateMarketOrderWithCostAsync(symbol any, side any, cost a
 func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var req map[string]any = map[string]any{
 		"cost": cost,
@@ -2269,11 +2294,10 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orders := (<-this.CancelOrdersAsync([]any{id}, outcome, params))
-	ccxt.PanicOnError(orders)
+	var orders []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CancelOrdersAsync([]any{id}, outcome, params))))
 
 	ch <- this.SafeDict(orders, 0, map[string]any{})
 	return nil
@@ -2299,13 +2323,12 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	outcome := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcome
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var outcomeObj any = nil
 	if outcome != nil {
 
-		retRes184212 := (<-this.LoadOutcomeAsync(outcome))
-		ccxt.PanicOnError(retRes184212)
+		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 		outcomeObj = this.Outcome(outcome)
 	}
 
@@ -2416,7 +2439,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	api := ccxt.GetArg(optionalArgs, 0, "sapi")
 	_ = api
-	method := ccxt.GetArg(optionalArgs, 1, "GET")
+	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -2450,7 +2473,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{
 		"X-MBX-APIKEY": this.ApiKey,
 	}
-	if (ccxt.IsEqual(method, "GET")) || (ccxt.IsEqual(method, "DELETE")) {
+	if (method == "GET") || (method == "DELETE") {
 		url = ccxt.Add(ccxt.Add(url, "?"), querystring)
 	} else {
 		body = querystring
@@ -3018,6 +3041,17 @@ func (this *Binance) CreateConvertTrade(id string, fromCode string, toCode strin
 func (this *Binance) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {
 	return this.exchangeTyped.CreateDepositAddress(code, options...)
 }
+
+/**
+ * @method
+ * @name binance#createMarketBuyOrderWithCost
+ * @description create a market buy order by providing the symbol and cost
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Binance) CreateMarketBuyOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketBuyOrderWithCostOptions) (ccxt.PredictionOrder, error) {
 
 	opts := ccxt.CreateMarketBuyOrderWithCostOptionsStruct{}
@@ -3031,6 +3065,17 @@ func (this *Binance) CreateMarketBuyOrderWithCost(outcome string, cost float64, 
 	}
 	return ccxt.NewPredictionOrder(res), nil
 }
+
+/**
+ * @method
+ * @name binance#createMarketSellOrderWithCost
+ * @description create a market sell order by providing the symbol and cost
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Binance) CreateMarketSellOrderWithCost(outcome string, cost float64, options ...ccxt.CreateMarketSellOrderWithCostOptions) (ccxt.PredictionOrder, error) {
 
 	opts := ccxt.CreateMarketSellOrderWithCostOptionsStruct{}
@@ -3044,6 +3089,18 @@ func (this *Binance) CreateMarketSellOrderWithCost(outcome string, cost float64,
 	}
 	return ccxt.NewPredictionOrder(res), nil
 }
+
+/**
+ * @method
+ * @name binance#createOrders
+ * @description *contract only* create a list of trade orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Binance) CreateOrders(orders []ccxt.PredictionOrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := ccxt.CreateOrdersOptionsStruct{}
@@ -3069,6 +3126,31 @@ func (this *Binance) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOpti
 func (this *Binance) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
+
+/**
+ * @method
+ * @name binance#fetchClosedOrders
+ * @description fetches information on multiple closed orders made by the user
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/option/trade/Query-ccxt.Option-ccxt.Order-History
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-ccxt.Account-All-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+ * @param {string} [symbol] unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
+ * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+ * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
+ * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchClosedOrdersOptionsStruct{}
@@ -3202,6 +3284,31 @@ func (this *Binance) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLC
 func (this *Binance) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
+
+/**
+ * @method
+ * @name binance#fetchOHLCV
+ * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
 func (this *Binance) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOptions) ([]ccxt.OHLCV, error) {
 
 	opts := ccxt.FetchOHLCVOptionsStruct{}
@@ -3215,6 +3322,18 @@ func (this *Binance) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOption
 	}
 	return ccxt.NewOHLCVArray(res), nil
 }
+
+/**
+ * @method
+ * @name binance#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
 func (this *Binance) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenInterestOptions) (ccxt.PredictionOpenInterest, error) {
 
 	opts := ccxt.FetchOpenInterestOptionsStruct{}
@@ -3243,6 +3362,22 @@ func (this *Binance) FetchOptionChain(code string, options ...ccxt.FetchOptionCh
 func (this *Binance) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
+
+/**
+ * @method
+ * @name binance#fetchOrderTrades
+ * @description fetch all the trades made from a single order
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/ccxt.Account-ccxt.Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/ccxt.Account-ccxt.Trade-List
+ * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-ccxt.Account-ccxt.Trade-List
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
 func (this *Binance) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]ccxt.PredictionTrade, error) {
 
 	opts := FetchOrderTradesOptionsStruct{}
@@ -3271,6 +3406,36 @@ func (this *Binance) FetchStatus(params ...any) (ccxt.Status, error) {
 func (this *Binance) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
+
+/**
+ * @method
+ * @name binance#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * Default fetchTradesMethod
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+ * Other fetchTradesMethod
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+ * @param {int} [limit] default 500, max 1000
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+ * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+ * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
 func (this *Binance) FetchTrades(outcome string, options ...ccxt.FetchTradesOptions) ([]ccxt.PredictionTrade, error) {
 
 	opts := ccxt.FetchTradesOptionsStruct{}
@@ -3284,6 +3449,22 @@ func (this *Binance) FetchTrades(outcome string, options ...ccxt.FetchTradesOpti
 	}
 	return ccxt.NewPredictionTradeArray(res), nil
 }
+
+/**
+ * @method
+ * @name binance#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+ * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
 func (this *Binance) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {
 
 	opts := ccxt.FetchTradingFeeOptionsStruct{}

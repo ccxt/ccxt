@@ -356,7 +356,7 @@ func (this *Cryptomus) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptomus) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetV2UserApiExchangeMarkets(params))
@@ -409,7 +409,7 @@ func (this *Cryptomus) ParseMarket(market any) any {
 	var quoteId any = GetValue(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var fees any = this.SafeDict(this.Fees, "trading")
+	var fees map[string]any = SafeMapTyped(this.Fees, "trading")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -483,7 +483,7 @@ func (this *Cryptomus) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptomus) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetV1ExchangeMarketAssets(params))
@@ -506,7 +506,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//         ]
 	//     }
 	//
-	var coins any = this.SafeList(response, "result")
+	var coins []any = SafeListTyped(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
 	var groupedArray []any = ObjectValues(groupedById)
 
@@ -577,12 +577,11 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes48912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes48912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -663,14 +662,13 @@ func (this *Cryptomus) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-ch
 func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes55912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes55912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -733,12 +731,11 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes60612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes60612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -820,12 +817,11 @@ func (this *Cryptomus) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptomus) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes67712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes67712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 
@@ -862,9 +858,9 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		var balanceEntry any = GetValue(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(balanceEntry, "available"))
-		AddElementToObject(account, "used", this.SafeString(balanceEntry, "held"))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(balanceEntry, "available")
+		account["used"] = this.SafeString(balanceEntry, "held")
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -902,8 +898,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	_ = params
 	if this.Markets == nil {
 
-		retRes73912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes73912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -926,11 +921,11 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var response any = nil
 	if IsEqual(typeVar, "market") {
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice any = true
+			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
-			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
+			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			if createMarketBuyOrderRequiresPrice == true {
+			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))
 				} else if cost == nil {
@@ -991,14 +986,13 @@ func (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <-chan any 
 func (this *Cryptomus) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes80612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes80612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	request["orderId"] = id
@@ -1043,16 +1037,15 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes83712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes83712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1147,16 +1140,15 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes91512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes91512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	if symbol != nil {
@@ -1334,7 +1326,7 @@ func (this *Cryptomus) FetchTradingFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PrivateGetV2UserApiExchangeAccountTariffs(params))
@@ -1419,7 +1411,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	return nil
 }
 func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
@@ -1441,7 +1433,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[stri
 func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1458,7 +1450,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"userId": this.Uid,
 		}
-		if !IsEqual(method, "GET") {
+		if method != "GET" {
 			body = this.Json(params)
 			jsonParams = body
 			AddElementToObject(headers, "Content-Type", "application/json")

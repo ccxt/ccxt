@@ -48,7 +48,7 @@ func (this *Binancecoinm) transferInBody(ch chan any, code any, amount any, opti
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to coinm futures wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	retRes4415 := (<-this.FuturesTransferAsync(code, amount, 3, params))
@@ -65,7 +65,7 @@ func (this *Binancecoinm) transferOutBody(ch chan any, code any, amount any, opt
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from coinm futures wallet to spot wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	retRes4915 := (<-this.FuturesTransferAsync(code, amount, 4, params))

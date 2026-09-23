@@ -88,7 +88,7 @@ func (this *P2b) SubscribeAsync(name any, messageHash any, request any, optional
 func (this *P2b) subscribeBody(ch chan any, name any, messageHash any, request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
@@ -124,18 +124,17 @@ func (this *P2b) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
 func (this *P2b) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "15m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "15m")
 	_ = timeframe
 	since := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes9812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes9812)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var channel *int64 = this.SafeInteger(timeframes, timeframe)
@@ -179,8 +178,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes13112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes13112)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
@@ -225,8 +223,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes15812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes15812)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
@@ -248,8 +245,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		"id":     this.Milliseconds(),
 	}
 
-	retRes1778 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(retRes1778)
+	ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)))
 
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
@@ -278,7 +274,7 @@ func (this *P2b) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
 	retRes19315 := (<-this.WatchTradesForSymbolsAsync([]any{symbol}, since, limit, params))
@@ -310,12 +306,11 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	_ = since
 	limit := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes20912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes20912)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHashes []any = []any{}
@@ -366,12 +361,11 @@ func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes24812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes24812)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var name string = "depth.subscribe"

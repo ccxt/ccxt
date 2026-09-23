@@ -366,7 +366,7 @@ func (this *Indodax) FetchTimeAsync(optionalArgs ...any) <-chan any {
 func (this *Indodax) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetApiServerTime(params))
@@ -398,7 +398,7 @@ func (this *Indodax) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	response := (<-this.PublicGetApiPairs(params))
@@ -521,9 +521,9 @@ func (this *Indodax) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(free, currencyId))
-		AddElementToObject(account, "used", this.SafeString(used, currencyId))
+		var account map[string]any = this.Account()
+		account["free"] = this.SafeString(free, currencyId)
+		account["used"] = this.SafeString(used, currencyId)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -547,12 +547,11 @@ func (this *Indodax) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Indodax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes47412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes47412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -610,14 +609,13 @@ func (this *Indodax) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan
 func (this *Indodax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes52212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes52212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -691,12 +689,11 @@ func (this *Indodax) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan an
 func (this *Indodax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes58512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes58512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -744,12 +741,11 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes62112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes62112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	//
 	// {
@@ -829,12 +825,11 @@ func (this *Indodax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = since
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes68612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes68612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -858,7 +853,7 @@ func (this *Indodax) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         "Volume": "0"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeTimestamp(ohlcv, "Time"), this.SafeNumber(ohlcv, "Open"), this.SafeNumber(ohlcv, "High"), this.SafeNumber(ohlcv, "Low"), this.SafeNumber(ohlcv, "Close"), this.SafeNumber(ohlcv, "Volume")}
 }
@@ -883,24 +878,23 @@ func (this *Indodax) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any
 func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes73112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes73112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var selectedTimeframe *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var now int64 = this.Seconds()
 	var until *int64 = this.SafeInteger(params, "until", now)
-	params = this.Omit(params, []any{"until"})
+	params = MapTyped(this.Omit(params, []any{"until"}))
 	var request map[string]any = map[string]any{
 		"to":     until,
 		"tf":     selectedTimeframe,
@@ -992,11 +986,11 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil
-	var cost any = nil
+	var cost *string = nil
 	var price *string = this.SafeString(order, "price")
-	var amount any = nil
-	var remaining any = nil
-	var filled any = nil
+	var amount *string = nil
+	var remaining *string = nil
+	var filled *string = nil
 	var marketId *string = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
 	if market != nil {
@@ -1009,12 +1003,12 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
 			baseId = "rp"
 		}
-		cost = DerefScalar(this.SafeString(order, Add("order_", quoteId)))
-		amount = DerefScalar(this.SafeString(order, Add("order_", baseId)))
-		remaining = DerefScalar(this.SafeString(order, Add("remain_", baseId)))
+		cost = this.SafeString(order, Add("order_", quoteId))
+		amount = this.SafeString(order, Add("order_", baseId))
+		remaining = this.SafeString(order, Add("remain_", baseId))
 		// filled buy orders on idr-quoted markets carry the executed base amount
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-		filled = DerefScalar(this.SafeString(order, Add("receive_", baseId)))
+		filled = this.SafeString(order, Add("receive_", baseId))
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
@@ -1064,15 +1058,14 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes89212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes89212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1117,12 +1110,11 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes91912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes91912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1187,15 +1179,14 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 
-		retRes96712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes96712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1235,12 +1226,11 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	defer ReturnPanicError(ch)
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes99512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes99512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1254,7 +1244,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
 			var cost *float64 = this.SafeNumber(params, "cost")
-			params = this.Omit(params, "cost")
+			params = MapTyped(this.Omit(params, "cost"))
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {
@@ -1319,7 +1309,7 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
@@ -1330,8 +1320,7 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	if this.Markets == nil {
 
-		retRes106912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes106912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1384,12 +1373,11 @@ func (this *Indodax) FetchTransactionFeeAsync(code any, optionalArgs ...any) <-c
 func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes111212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes111212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -1436,11 +1424,10 @@ func (this *Indodax) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any)
 func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes11488 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes11488)
+	PanicOnError((<-this.LoadMarketsAsync()))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -1494,12 +1481,11 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes118612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
@@ -1618,14 +1604,13 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes129312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes129312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	// Custom string you need to provide to identify each withdrawal.
@@ -1776,12 +1761,11 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes142712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes142712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -1883,7 +1867,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
