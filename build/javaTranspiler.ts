@@ -330,8 +330,23 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     const callee = value.match (/^([\w.$]+)\s*\(/);
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
-    if (new RegExp (`\\(\\s*${token}\\s*\\)`).test (value)) return true;
+    // a checkcast proves the value only when it wraps the whole expression, not one argument
+    if (new RegExp (`^\\(\\s*${token}\\s*\\)`).test (value) && retypeCastSpansValue (value)) return true;
     return false;
+}
+
+// `(T) expr` where expr is one operand: an identifier/call chain, or a parenthesised expression
+function retypeCastSpansValue (value: string): boolean {
+    const rest = value.replace (/^\(\s*[^()]+\s*\)\s*/, '');
+    if (rest.startsWith ('(')) {
+        let depth = 0;
+        for (let k = 0; k < rest.length; k++) {
+            if (rest[k] === '(') depth++;
+            else if (rest[k] === ')') { depth--; if (depth === 0) return k === rest.length - 1; }
+        }
+        return false;
+    }
+    return /^[\w$.]+(\((?:[^()]|\([^()]*\))*\))?(\.[\w$]+(\((?:[^()]|\([^()]*\))*\))?)*$/.test (rest);
 }
 
 // async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
