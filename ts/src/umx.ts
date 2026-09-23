@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -59,7 +59,8 @@ export default class umx extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -395,6 +396,62 @@ export default class umx extends Exchange {
                     'swap': 'trading',
                     'future': 'trading',
                     'option': 'trading',
+                },
+                // every chainType the venue serves, collected live from /v2/asset/chains across
+                // the whole currency universe on 2026-09-24. the bnb chain carries evm addresses,
+                // so it is bsc and not the beacon chain, and cchainavax is the avalanche c-chain.
+                // robinhood is the venue's tokenized stock chain and has no unified name
+                'networks': {
+                    'ADA': 'ada',
+                    'APT': 'apt',
+                    'ARBITRUM': 'arb',
+                    'ATOM': 'atom',
+                    'COSMOS': 'atom',
+                    'BASE': 'base',
+                    'BCH': 'bch',
+                    'BEP20': 'bnb',
+                    'BSC': 'bnb',
+                    'BTC': 'btc',
+                    'AVAXC': 'cchainavax',
+                    'DOGE': 'doge',
+                    'DOT': 'dot',
+                    'ETC': 'etc',
+                    'ERC20': 'eth',
+                    'ETH': 'eth',
+                    'FIL': 'fil',
+                    'GRAM': 'gram',
+                    'HYPE': 'hype',
+                    'ICP': 'icp',
+                    'INJ': 'inj',
+                    'LTC': 'ltc',
+                    'NEAR': 'near',
+                    'OPTIMISM': 'op',
+                    'OP': 'op',
+                    'MATIC': 'pol',
+                    'POL': 'pol',
+                    'ROBINHOOD': 'robinhood',
+                    'SEI': 'sei',
+                    'SEIEVM': 'seievm',
+                    'SOL': 'sol',
+                    'SONIC': 'sonic',
+                    'SUI': 'sui',
+                    'TAO': 'tao',
+                    'TIA': 'tia',
+                    'TON': 'ton',
+                    'TRC20': 'trx',
+                    'TRX': 'trx',
+                    'XLM': 'xlm',
+                    'XRP': 'xrp',
+                },
+                'networksById': {
+                    // the base inverts options.networks into networksById on its own, so only
+                    // the ids with two aliases need pinning to their canonical unified code
+                    'atom': 'ATOM',
+                    'bnb': 'BEP20',
+                    'eth': 'ERC20',
+                    'op': 'OPTIMISM',
+                    'pol': 'MATIC',
+                    'trx': 'TRC20',
                 },
                 'recvWindow': 5000, // X-ACCESS-RECV-WINDOW, the exchange default
                 'timeDifference': 0, // the difference between the system clock and the exchange server clock, set it with loadTimeDifference ()
@@ -2418,6 +2475,66 @@ export default class umx extends Exchange {
             'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchDepositAddressesByNetwork
+     * @description fetch the deposit addresses of a currency on every chain it deposits through
+     * @see https://www.umx.com/docs/coin-apis/funding-account/deposit/get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.chainType] the exchange specific chain name to narrow the answer to a single chain, e.g. "trx"
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
+    override async fetchDepositAddressesByNetwork (code: string, params: Dict = {}): Promise<DepositAddresses> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetV1AssetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accountName": "1000000000000000000",
+        //                 "pid": "1000000000000000000",
+        //                 "uid": "100000000000001",
+        //                 "cid": "100000000000002",
+        //                 "currency": "USDT",
+        //                 "chainType": "eth",
+        //                 "addressDeposit": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+        //                 "memo": ""
+        //             }
+        //         ],
+        //         "msg": "Success",
+        //         "ts": "1790198097764",
+        //         "traceId": "6da0afcf500a1c5b3693ae3fdc804a9c"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        return this.indexBy (parsed, 'network') as DepositAddresses;
+    }
+
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'addressDeposit');
+        this.checkAddress (address);
+        const networkId = this.safeString (depositAddress, 'chainType');
+        let tag = this.safeString (depositAddress, 'memo');
+        if (tag === '') {
+            tag = undefined;
+        }
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': this.networkIdToCode (networkId),
+            'address': address,
+            'tag': tag,
+        } as DepositAddress;
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

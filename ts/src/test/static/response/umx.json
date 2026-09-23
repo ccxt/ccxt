@@ -8,6 +8,129 @@
     ],
     "options": {},
     "methods": {
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "deposit addresses of every chain",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "eth",
+                            "addressDeposit": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": ""
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "trx",
+                            "addressDeposit": "TLkFLEhyQjkkkJugaE3ZBQVFwud724np2Q",
+                            "memo": ""
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "sol",
+                            "addressDeposit": "CBi24yCHqjWu9UXXC7eYAfU3LBPfxMq5H3atUqfPJrmP",
+                            "memo": ""
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "bnb",
+                            "addressDeposit": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": ""
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1790199344758",
+                    "traceId": "48927558ad884c1a3d93329902b02389"
+                },
+                "parsedResponse": {
+                    "ERC20": {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "eth",
+                            "addressDeposit": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": ""
+                        },
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "address": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                        "tag": null
+                    },
+                    "TRC20": {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "trx",
+                            "addressDeposit": "TLkFLEhyQjkkkJugaE3ZBQVFwud724np2Q",
+                            "memo": ""
+                        },
+                        "currency": "USDT",
+                        "network": "TRC20",
+                        "address": "TLkFLEhyQjkkkJugaE3ZBQVFwud724np2Q",
+                        "tag": null
+                    },
+                    "SOL": {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "sol",
+                            "addressDeposit": "CBi24yCHqjWu9UXXC7eYAfU3LBPfxMq5H3atUqfPJrmP",
+                            "memo": ""
+                        },
+                        "currency": "USDT",
+                        "network": "SOL",
+                        "address": "CBi24yCHqjWu9UXXC7eYAfU3LBPfxMq5H3atUqfPJrmP",
+                        "tag": null
+                    },
+                    "BEP20": {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "currency": "USDT",
+                            "chainType": "bnb",
+                            "addressDeposit": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                            "memo": ""
+                        },
+                        "currency": "USDT",
+                        "network": "BEP20",
+                        "address": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                        "tag": null
+                    }
+                }
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "all deposits",
@@ -63,7 +186,7 @@
                         "txid": "0x557620d7e8bd149da77d8521f70d4fb651b0d670a62af00902276596cc182160",
                         "timestamp": 1790077333048,
                         "datetime": "2026-09-22T11:42:13.048Z",
-                        "network": "eth",
+                        "network": "ERC20",
                         "address": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
                         "addressTo": "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
                         "addressFrom": "0x18e296053cbdf986196903e889b7dca7a73882f6",

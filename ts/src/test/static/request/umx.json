@@ -8,6 +8,29 @@
     ],
     "options": {},
     "methods": {
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "deposit address of a single chain",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.umx.com/api/v1/asset/deposit/address?currency=USDT&chainType=trx",
+                "input": [
+                    "USDT",
+                    {
+                        "chainType": "trx"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "deposit addresses of every chain",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.umx.com/api/v1/asset/deposit/address?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "withdrawals of a single currency since with limit",
