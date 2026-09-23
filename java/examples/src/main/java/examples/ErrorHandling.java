@@ -38,7 +38,7 @@ public class ErrorHandling {
         // 2. Handle authentication error
         System.out.println("\n--- Test 2: Auth required without credentials ---");
         try {
-            exchange.fetchBalance((Map<String, Object>) null);
+            exchange.fetchBalance((Object) null).join();
         } catch (CompletionException e) {
             Throwable cause = unwrap(e);
             if (cause instanceof AuthenticationError) {

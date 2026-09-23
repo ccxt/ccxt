@@ -78,7 +78,7 @@ class ExchangeTypedTest {
         // Private endpoint without credentials throws AuthenticationError directly
         // (typed wrappers unwrap CompletionException — see Helpers.joinUnwrapped)
         ExchangeError ex = assertThrows(ExchangeError.class, () -> {
-            exchange.fetchBalance((Map<String, Object>) null);
+            exchange.fetchBalance();
         });
         assertTrue(ex instanceof AuthenticationError || ex instanceof ExchangeError,
                 "Expected AuthenticationError, got: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
