@@ -568,7 +568,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -584,7 +584,7 @@ public partial class derive : ccxt.derive
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -685,7 +685,7 @@ public partial class derive : ccxt.derive
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
                 callDynamically(cachedOrders, "append", new object[] {parsed});
-                object messageHashSymbol = add(add(topic, ":"), symbol);
+                string? messageHashSymbol = ((string)add(add(topic, ":"), symbol));
                 client.resolve(this.orders, messageHashSymbol);
             }
         }
@@ -706,7 +706,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -722,7 +722,7 @@ public partial class derive : ccxt.derive
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -762,7 +762,7 @@ public partial class derive : ccxt.derive
             Dictionary<string, object> trade = this.parseTrade(message);
             callDynamically(myTrades, "append", new object[] {trade});
             client.resolve(myTrades, topic);
-            object messageHash = add(topic, this.safeString(trade, "symbol", ""));
+            string? messageHash = ((string)add(topic, this.safeString(trade, "symbol", "")));
             client.resolve(myTrades, messageHash);
         }
     }

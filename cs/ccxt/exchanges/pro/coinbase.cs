@@ -525,7 +525,7 @@ public partial class coinbase : ccxt.coinbase
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 }
                 newTickers.Add(result);
-                object messageHash = add(add(channel, "::"), symbol);
+                string? messageHash = ((string)add(add(channel, "::"), symbol));
                 client.resolve(result, messageHash);
                 this.tryResolveUsdc(client, messageHash, result);
             }
@@ -739,7 +739,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -747,7 +747,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "level2";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, false, symbolVar, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }

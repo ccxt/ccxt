@@ -454,7 +454,7 @@ public partial class coinex : ccxt.coinex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -465,7 +465,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
@@ -1034,7 +1034,7 @@ public partial class coinex : ccxt.coinex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1049,7 +1049,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");

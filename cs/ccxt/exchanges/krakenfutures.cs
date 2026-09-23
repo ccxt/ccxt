@@ -4232,7 +4232,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
         IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
-        object endpoint = add(add(version, "/"), this.implodeParams(path, parameters));
+        string? endpoint = ((string)add(add(version, "/"), this.implodeParams(path, parameters)));
         parameters = this.omit(parameters, this.extractParams(path));
         object query = endpoint;
         string postData = "";

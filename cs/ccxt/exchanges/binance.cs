@@ -13095,7 +13095,7 @@ public partial class binance : Exchange
      */
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -13116,7 +13116,7 @@ public partial class binance : Exchange
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? subType = null;
@@ -16771,7 +16771,7 @@ public partial class binance : Exchange
      */
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -16834,7 +16834,7 @@ public partial class binance : Exchange
         //
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             List<object> result = ((List<object>)this.parseOpenInterestsHistory(response, market));
             for (int i = 0; i < (result?.Count ?? 0); i++)
             {

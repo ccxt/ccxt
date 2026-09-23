@@ -6491,7 +6491,7 @@ public partial class bingx : Exchange
         List<string> keys = this.sort(rawKeys);
         for (int i = 0; i < (keys?.Count ?? 0); i++)
         {
-            object key = getValue(keys, i);
+            string? key = ((string)getValue(keys, i));
             object value = getValue(parameters, key);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {

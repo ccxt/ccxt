@@ -49,14 +49,14 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null)));
         string messageHash = ("trades:" + (symbolVar));
         object trades = await this.watch(url, messageHash, null, messageHash);
@@ -144,7 +144,7 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -152,7 +152,7 @@ public partial class independentreserve : ccxt.independentreserve
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((limitVar == null))
         {
             limitVar = ((Int64?)100);

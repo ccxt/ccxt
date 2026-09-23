@@ -3432,7 +3432,7 @@ public partial class pacifica : Exchange
      */
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -4069,7 +4069,7 @@ public partial class pacifica : Exchange
             List<string> sortedKeys = this.sort(keys);
             for (int i = 0; i < (sortedKeys?.Count ?? 0); i++)
             {
-                object key = getValue(sortedKeys, i);
+                string? key = ((string)getValue(sortedKeys, i));
                 result[(string)key] = this.sortJsonKeys(getValue(value, key));
             }
             return result;

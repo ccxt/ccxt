@@ -171,7 +171,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -179,7 +179,7 @@ public partial class modetrade : ccxt.modetrade
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -507,7 +507,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -515,7 +515,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = ((string)add((market.ContainsKey("id") ? market["id"] : null), "@trade"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -747,7 +747,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -761,7 +761,7 @@ public partial class modetrade : ccxt.modetrade
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -792,7 +792,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -806,7 +806,7 @@ public partial class modetrade : ccxt.modetrade
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

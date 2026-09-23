@@ -69,14 +69,14 @@ public partial class mudrex : ccxt.mudrex
 
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + (symbolVar));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         this.setBrokerHeaders();
@@ -135,7 +135,7 @@ public partial class mudrex : ccxt.mudrex
 
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -145,7 +145,7 @@ public partial class mudrex : ccxt.mudrex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);

@@ -1736,7 +1736,7 @@ public partial class bitstamp : Exchange
         // this endpoint is not aligned with "markets" endpoint
         object baseIdLower = this.safeStringLower(market, "baseId");
         string? quoteIdLower = this.safeStringLower(market, "quoteId");
-        object dashedIdLower = add(add(baseIdLower, "_"), quoteIdLower);
+        string? dashedIdLower = ((string)add(add(baseIdLower, "_"), quoteIdLower));
         if ((priceString == null))
         {
             priceString = this.safeString(trade, dashedIdLower);

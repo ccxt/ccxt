@@ -466,7 +466,7 @@ public partial class xt : ccxt.xt
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -497,7 +497,7 @@ public partial class xt : ccxt.xt
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -836,7 +836,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
             object eventVar = this.safeString(message, "event");
-            object messageHash = add(eventVar, "::contract");
+            string? messageHash = ((string)add(eventVar, "::contract"));
             client.resolve(fundingRate, messageHash);
         }
         return message;
@@ -1015,7 +1015,7 @@ public partial class xt : ccxt.xt
             }
             object eventVar = this.safeString(message, "event");
             string messageHashTail = isSpot ? "spot" : "contract";
-            object messageHash = add(add(eventVar, "::"), messageHashTail);
+            string? messageHash = ((string)add(add(eventVar, "::"), messageHashTail));
             client.resolve(ticker, messageHash);
         }
         return message;
@@ -1184,7 +1184,7 @@ public partial class xt : ccxt.xt
             }
             callDynamically(stored, "append", new object[] {parsed});
             object eventVar = this.safeString(message, "event");
-            object messageHash = add(add(eventVar, "::"), tradeType);
+            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1240,7 +1240,7 @@ public partial class xt : ccxt.xt
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
             }
             callDynamically(tradesArray, "append", new object[] {trade});
-            object messageHash = add(add(eventVar, "::"), tradeType);
+            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -1323,7 +1323,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
-            object messageHash = add(add(eventVar, "::"), tradeType);
+            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
             if (!(inOp(this.orderbooks, symbol)))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});

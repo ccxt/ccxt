@@ -5284,13 +5284,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.ADL> FetchPositionADLRank(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null), null) && (((this.has.ContainsKey("fetchPositionsADLRank") ? this.has["fetchPositionsADLRank"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             List<object> ranks = ccxt.BaseExchange.FromADLList(await this.FetchPositionsADLRank(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> rank = this.safeDict(ranks, 0);
             if ((rank == null))
@@ -6406,13 +6406,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null), null) && (((this.has.ContainsKey("fetchFundingRates") ? this.has["fetchFundingRates"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
             {
                 throw new BadSymbol ((this.id + " fetchFundingRate() supports contract markets only")) ;
@@ -6434,13 +6434,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.FundingRate> FetchFundingInterval(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null), null) && (((this.has.ContainsKey("fetchFundingIntervals") ? this.has["fetchFundingIntervals"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
             {
                 throw new BadSymbol ((this.id + " fetchFundingInterval() supports contract markets only")) ;
@@ -7645,8 +7645,8 @@ public partial class BaseExchange
         {
             month = "DEC";
         }
-        object reconstructedDate = add(add(day, month), year);
-        return ((string?)((object)(reconstructedDate)));
+        string? reconstructedDate = ((string)add(add(day, month), year));
+        return reconstructedDate;
     }
 
     public virtual string? convertMarketIdExpireDate(object date)
@@ -7679,8 +7679,8 @@ public partial class BaseExchange
         string? monthName = ((date == null) ? null : ((string)date).Substring(Math.Min(2, ((string)date).Length), Math.Min(5, ((string)date).Length) - Math.Min(2, ((string)date).Length)));
         string? month = this.safeString(monthMappping, monthName);
         object day = ((date == null) ? null : ((string)date).Substring(Math.Min(5, ((string)date).Length), Math.Min(7, ((string)date).Length) - Math.Min(5, ((string)date).Length)));
-        object reconstructedDate = add(add(day, month), year);
-        return ((string?)((object)(reconstructedDate)));
+        string? reconstructedDate = ((string)add(add(day, month), year));
+        return reconstructedDate;
     }
 
     public async virtual Task loadMarketsAndSignIn()

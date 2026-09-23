@@ -157,7 +157,7 @@ public partial class blofin : ccxt.blofin
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             callDynamically(stored, "append", new object[] {trade});
-            object messageHash = add(add(channelName, ":"), symbol);
+            string? messageHash = ((string)add(add(channelName, ":"), symbol));
             client.resolve(stored, messageHash);
         }
     }
@@ -243,7 +243,7 @@ public partial class blofin : ccxt.blofin
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object messageHash = add(add(channelName, ":"), symbol);
+        string? messageHash = ((string)add(add(channelName, ":"), symbol));
         if (!(inOp(this.orderbooks, symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -280,13 +280,13 @@ public partial class blofin : ccxt.blofin
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(result, symbolVar));
+        return ccxt.BaseExchange.ToTicker((result != null && result.ContainsKey(symbolVar) ? result[symbolVar] : null));
     }
 
     /**
@@ -338,7 +338,7 @@ public partial class blofin : ccxt.blofin
         {
             Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-            object messageHash = add(add(channelName, ":"), symbol);
+            string? messageHash = ((string)add(add(channelName, ":"), symbol));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             client.resolve(getValue(this.tickers, symbol), messageHash);
         }
@@ -663,7 +663,7 @@ public partial class blofin : ccxt.blofin
         {
             Dictionary<string, object> order = this.parseWsOrder(data[i]);
             string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
-            object messageHash = add(add(channelName, ":"), symbol);
+            string? messageHash = ((string)add(add(channelName, ":"), symbol));
             callDynamically(orders, "append", new object[] {order});
             client.resolve(orders, messageHash);
             client.resolve(orders, channelName);

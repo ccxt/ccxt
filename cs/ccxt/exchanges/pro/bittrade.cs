@@ -60,14 +60,14 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
         string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".detail");
         string? api = this.safeString(this.options, "api", "api");
@@ -139,7 +139,7 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -147,7 +147,7 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limitVar of 150 at this time
         string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
@@ -236,7 +236,7 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -246,7 +246,7 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".kline.") + interval);
         string? api = this.safeString(this.options, "api", "api");
@@ -328,7 +328,7 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (((limitVar != null)) && (!isEqual(limitVar, 150)))
@@ -340,7 +340,7 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limitVar of 150 at this time
         limitVar = ((limitVar == null)) ? 150 : limitVar;
         string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + limitVar.ToString());

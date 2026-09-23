@@ -520,7 +520,7 @@ public partial class cex : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
-        object id = add(add(bs, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        string? id = ((string)add(add(bs, "-"), quote)); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         string? symbol = ((string)add(add(bs, "/"), quote));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

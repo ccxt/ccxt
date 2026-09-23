@@ -2614,7 +2614,7 @@ public partial class limitless : PredictionExchange
         }
         string? gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
         string maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        object amountHex = maxUint;
+        string amountHex = maxUint;
         string? amount = this.safeString(parameters, "amount");
         if ((amount != null))
         {

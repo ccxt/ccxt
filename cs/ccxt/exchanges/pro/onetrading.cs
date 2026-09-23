@@ -146,14 +146,14 @@ public partial class onetrading : ccxt.onetrading
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = ("ticker." + (symbolVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -285,7 +285,7 @@ public partial class onetrading : ccxt.onetrading
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -296,7 +296,7 @@ public partial class onetrading : ccxt.onetrading
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         await this.authenticate(parameters);
@@ -320,7 +320,7 @@ public partial class onetrading : ccxt.onetrading
         int numTrades = getArrayLength(trades);
         if ((numTrades == 0))
         {
-            return await this.WatchMyTrades(((string)symbolVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), parameters);
+            return await this.WatchMyTrades(symbolVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), parameters);
         }
         return ccxt.BaseExchange.ToTradeList(trades);
     }
@@ -337,14 +337,14 @@ public partial class onetrading : ccxt.onetrading
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("book:" + (symbolVar));
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
@@ -472,7 +472,7 @@ public partial class onetrading : ccxt.onetrading
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -483,7 +483,7 @@ public partial class onetrading : ccxt.onetrading
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         await this.authenticate(parameters);
@@ -507,7 +507,7 @@ public partial class onetrading : ccxt.onetrading
         int numOrders = getArrayLength(orders);
         if ((numOrders == 0))
         {
-            return await this.WatchOrders(((string)symbolVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), parameters);
+            return await this.WatchOrders(symbolVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), parameters);
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1126,8 +1126,8 @@ public partial class onetrading : ccxt.onetrading
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1136,7 +1136,7 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -1177,7 +1177,7 @@ public partial class onetrading : ccxt.onetrading
         }
         if (((marketId != null)) && ((timeframeVar != null)))
         {
-            ((IDictionary<string,object>)getValue(subscription, marketId))[(string)timeframeVar] = true;
+            ((IDictionary<string,object>)getValue(subscription, marketId))[timeframeVar] = true;
         }
         List<object> properties = new List<object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)subscription).Keys);

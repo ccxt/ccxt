@@ -881,7 +881,7 @@ public partial class kraken : ccxt.kraken
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -889,7 +889,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         string name = "ohlc";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicV2"));
         Int64 requestId = this.requestId();
         string? messageHash = this.getMessageHash("ohlcv", null, symbolVar);
@@ -1136,7 +1136,7 @@ public partial class kraken : ccxt.kraken
         List<object> parts = ((string)data).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object integer = this.safeString(parts, 0);
         string? decimals = this.safeString(parts, 1, "");
-        object joinedResult = add(integer, decimals);
+        string? joinedResult = ((string)add(integer, decimals));
         object i = 0;
         while (isEqual(getValue(joinedResult, i), "0"))
         {

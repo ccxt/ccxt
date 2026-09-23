@@ -103,13 +103,13 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchMarkPrice(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null), null) && (((this.has.ContainsKey("fetchMarkPrices") ? this.has["fetchMarkPrices"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
@@ -578,13 +578,13 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchTickerWs(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null), null) && (((this.has.ContainsKey("fetchTickersWs") ? this.has["fetchTickersWs"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
@@ -738,13 +738,13 @@ public partial class Exchange
 
     public async virtual Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null), null) && (((this.has.ContainsKey("fetchTickers") ? this.has["fetchTickers"] : null) as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))

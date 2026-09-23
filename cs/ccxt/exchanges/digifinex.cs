@@ -2302,7 +2302,7 @@ public partial class digifinex : Exchange
      */
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
-        object idVar = id;
+        string idVar = id;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {

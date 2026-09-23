@@ -940,7 +940,7 @@ public partial class hyperliquid : Exchange
             string? mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
             object mappedBase = this.safeCurrencyCode(mappedBaseName);
             string? mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-            object mappedSymbol = add(add(mappedBase, "/"), mappedQuote);
+            string? mappedSymbol = ((string)add(add(mappedBase, "/"), mappedQuote));
             IDictionary<string, object> innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -4703,7 +4703,7 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
             object tokenName = this.safeString(currencyInfo, "name");
             string? tokenId = this.safeString(currencyInfo, "tokenId");
-            object token = add(add(tokenName, ":"), tokenId);
+            string? token = ((string)add(add(tokenName, ":"), tokenId));
             Dictionary<string, object> action = new Dictionary<string, object>() {
                 { "type", "subAccountSpotTransfer" },
                 { "subAccountUser", subAccountAddress },

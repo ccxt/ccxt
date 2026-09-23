@@ -512,8 +512,8 @@ public partial class hyperliquid : PredictionExchange
         object parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
-        object yesOutcomeSymbol = add(parentSymbol, ":YES");
-        object noOutcomeSymbol = add(parentSymbol, ":NO");
+        string? yesOutcomeSymbol = ((string)add(parentSymbol, ":YES"));
+        string? noOutcomeSymbol = ((string)add(parentSymbol, ":NO"));
         // Parse expiry from description
         string? expiry = this.safeString(desc, "expiry");
         Int64? expiryMs = null;

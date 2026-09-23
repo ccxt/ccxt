@@ -1214,7 +1214,7 @@ public partial class predictfun : PredictionExchange
         };
         IList<object> rawOutcomes = (IList<object>)(this.safeList(rawMarket, "outcomes", new List<object>() {}));
         List<object> outcomes = new List<object>() {};
-        object resolvedOutcomeRaw = null;
+        string? resolvedOutcomeRaw = null;
         int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
@@ -1224,7 +1224,7 @@ public partial class predictfun : PredictionExchange
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
             string? label = ((string)this.stripPriceFormatting(rawLabel));
             string? tokenId = this.safeString(rawOutcome, "onChainId");
-            object outcomeHandle = add(add(marketSymbol, ":"), label);
+            string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
             bool? winner = null;
             string? outcomeStatus = this.safeString(rawOutcome, "status");
             int? settleFractionRaw = null;
@@ -1258,7 +1258,7 @@ public partial class predictfun : PredictionExchange
                 }, rawOutcome) },
             });
         }
-        object resolvedOutcome = resolvedOutcomeRaw;
+        string? resolvedOutcome = resolvedOutcomeRaw;
         string collateral = "USDT";
         string marketType = (rawOutcomesLength > 2) ? "categorical" : "binary";
         string? createdDatetime = this.safeString(rawMarket, "createdAt");

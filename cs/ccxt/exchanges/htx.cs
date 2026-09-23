@@ -8307,7 +8307,7 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if (fromOrToFuturesAccount)
         {
-            object type = add(add(fromAccountId, "-to-"), toAccountId);
+            string? type = ((string)add(add(fromAccountId, "-to-"), toAccountId));
             type = this.safeString(parameters, "type", type);
             request["type"] = type;
             response = await this.spotPrivatePostV1FuturesTransfer(this.extend(request, parameters));

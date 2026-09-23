@@ -883,7 +883,7 @@ public partial class opinion : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1d";
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(this.timeframes, timeframeVar)))

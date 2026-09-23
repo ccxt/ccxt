@@ -187,7 +187,7 @@ public partial class bitvavo : ccxt.bitvavo
             object data = tickers[i];
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-            object messageHash = add(add(eventVar, "@"), marketId);
+            string? messageHash = ((string)add(add(eventVar, "@"), marketId));
             Dictionary<string, object> ticker = this.parseTicker(data, market);
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -425,7 +425,7 @@ public partial class bitvavo : ccxt.bitvavo
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -435,7 +435,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "candles";
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -667,14 +667,14 @@ public partial class bitvavo : ccxt.bitvavo
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "book";
         string messageHash = ((name + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -1078,7 +1078,7 @@ public partial class bitvavo : ccxt.bitvavo
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((symbolVar == null))
@@ -1091,7 +1091,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string name = "account";
@@ -1123,7 +1123,7 @@ public partial class bitvavo : ccxt.bitvavo
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((symbolVar == null))
@@ -1136,7 +1136,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string name = "account";

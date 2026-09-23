@@ -63,7 +63,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((limit != null))
         {
@@ -77,7 +77,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("ORDER_BOOK" + ":") + (symbolVar));
         object endPart = null;
         if ((limit == null))
@@ -118,7 +118,7 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object eventVar = this.safeString(message, "event");
-        object messageHash = add(add(eventVar, ":"), symbol);
+        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -143,7 +143,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -151,7 +151,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("TRADE" + ":") + (symbolVar));
         object trades = await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null));
         if (this.newUpdates)
@@ -186,7 +186,7 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object eventVar = this.safeString(message, "event");
-        object messageHash = add(add(eventVar, ":"), symbol);
+        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
         List<object> rawData = this.safeList(message, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(rawData, market);
         ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -377,14 +377,14 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("TICKER" + ":") + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
     }
@@ -418,7 +418,7 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.safeMarket(marketId, null, "_");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object eventVar = this.safeString(message, "event");
-        object messageHash = add(add(eventVar, ":"), symbol);
+        string? messageHash = ((string)add(add(eventVar, ":"), symbol));
         Dictionary<string, object> result = this.parseTicker(message, market);
         result["symbol"] = this.safeString(market, "symbol"); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Int64? timestamp = this.safeInteger(message, "timestamp");

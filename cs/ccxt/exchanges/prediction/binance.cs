@@ -727,14 +727,14 @@ public partial class binance : PredictionExchange
         double? liquidity = this.safeNumber(rawMarket, "liquidity");
         IList<object> rawOutcomes = (IList<object>)(this.safeList(rawMarket, "outcomes", new List<object>() {}));
         List<object> outcomes = new List<object>() {};
-        object resolvedOutcomeRaw = null;
+        string? resolvedOutcomeRaw = null;
         int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
             object rawOutcome = getValue(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
-            object outcomeHandle = add(add(marketSymbol, ":"), label);
+            string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
             string? price = this.safeString(rawOutcome, "price");
             bool? winnerRaw = null;
             int? settleFractionRaw = null;
@@ -780,7 +780,7 @@ public partial class binance : PredictionExchange
                 } },
             });
         }
-        object resolvedOutcome = resolvedOutcomeRaw;
+        string? resolvedOutcome = resolvedOutcomeRaw;
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", marketId },
             { "market", marketSymbol },

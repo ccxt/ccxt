@@ -1692,7 +1692,7 @@ public partial class woofipro : Exchange
      */
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -1710,7 +1710,7 @@ public partial class woofipro : Exchange
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((since != null))

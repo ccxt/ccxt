@@ -315,7 +315,7 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -628,7 +628,7 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -640,7 +640,7 @@ public partial class nado : ccxt.nado
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
@@ -717,7 +717,7 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -729,7 +729,7 @@ public partial class nado : ccxt.nado
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }

@@ -1038,14 +1038,14 @@ public partial class foxbit : Exchange
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
-        object typeVar = type;
+        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        typeVar = ((string)typeVar).ToUpper();
+        typeVar = typeVar.ToUpper();
         if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "STOP_LIMIT") && !isEqual(typeVar, "INSTANT"))
         {
             throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
@@ -1697,13 +1697,13 @@ public partial class foxbit : Exchange
      */
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
-        object typeVar = type;
+        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires a symbol argument")) ;
         }
-        typeVar = ((string)typeVar).ToUpper();
+        typeVar = typeVar.ToUpper();
         if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "INSTANT"))
         {
             throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;

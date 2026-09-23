@@ -1379,7 +1379,7 @@ public partial class kalshi : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1473,7 +1473,7 @@ public partial class kalshi : PredictionExchange
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         this.options["ohlcvCandleDurationSeconds"] = tf;
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),((string)timeframeVar), since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),timeframeVar, since, limit));
     }
 
     /**
@@ -3090,8 +3090,8 @@ public partial class kalshi : PredictionExchange
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
-            object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
-            object payload = ((timestamp + (method)) + (pathForSigning));
+            string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
+            object payload = ((timestamp + (method)) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());

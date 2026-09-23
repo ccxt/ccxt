@@ -2503,7 +2503,7 @@ public partial class gate : Exchange
         List<string> underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
         for (int i = 0; i < (underlyings?.Count ?? 0); i++)
         {
-            object underlying = getValue(underlyings, i);
+            string? underlying = ((string)getValue(underlyings, i));
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
             query["underlying"] = underlying;
             List<object> response = await this.publicOptionsGetContracts(query);
@@ -2549,7 +2549,7 @@ public partial class gate : Exchange
             {
                 IDictionary<string, object> market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 string? id = this.safeString(market, "name");
-                List<object> parts = ((string)underlying).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = underlying.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
                 string? baseId = this.safeString(parts, 0);
                 string? quoteId = this.safeString(parts, 1);
                 object bs = this.safeCurrencyCode(baseId);

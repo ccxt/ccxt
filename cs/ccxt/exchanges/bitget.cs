@@ -3903,7 +3903,7 @@ public partial class bitget : Exchange
                     object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                     string? month = this.safeString(expiryParts, 1);
                     string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                    object expiryString = add(add(year, month), day);
+                    string? expiryString = ((string)add(add(year, month), day));
                     type = "future";
                     future = true;
                     symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
@@ -4182,7 +4182,7 @@ public partial class bitget : Exchange
                     object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                     string? month = this.safeString(expiryParts, 1);
                     string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                    object expiryString = add(add(year, month), day);
+                    string? expiryString = ((string)add(add(year, month), day));
                     type = "future";
                     future = true;
                     symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);

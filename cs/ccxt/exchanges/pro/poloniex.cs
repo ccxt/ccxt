@@ -394,7 +394,7 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -695,7 +695,7 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> market = this.safeMarket(symbol);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(channel, timeframes);
-        object messageHash = add(add(channel, "::"), symbol);
+        string? messageHash = ((string)add(add(channel, "::"), symbol));
         List<object> parsed = this.parseWsOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = ((timeframe == null)) ? null : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);

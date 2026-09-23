@@ -136,7 +136,7 @@ public partial class bitfinex : ccxt.bitfinex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -146,7 +146,7 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
         string key = ((("trade:" + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
@@ -279,7 +279,7 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? timeframe = this.findTimeframe(interval);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object messageHash = add(add(add(add(channel, ":"), interval), ":"), marketId);
+        string? messageHash = ((string)add(add(add(add(channel, ":"), interval), ":"), marketId));
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((stored == null))
@@ -473,7 +473,7 @@ public partial class bitfinex : ccxt.bitfinex
         object channel = this.safeString(subscription, "channel");
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object messageHash = add(add(channel, ":"), marketId);
+        string? messageHash = ((string)add(add(channel, ":"), marketId));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));

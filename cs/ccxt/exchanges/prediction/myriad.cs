@@ -341,8 +341,8 @@ public partial class myriad : PredictionExchange
                 object raw = getValue(found, j);
                 object networkId = this.safeString(raw, "networkId");
                 string? marketId = this.safeString(raw, "id");
-                object key = add(add(networkId, ":"), marketId);
-                if (!(inOp(seen, key)))
+                string? key = ((string)add(add(networkId, ":"), marketId));
+                if (!(((key != null) && (seen?.ContainsKey(key) == true))))
                 {
                     seen[(string)key] = true;
                     rawMarkets.Add(raw);
@@ -714,7 +714,7 @@ public partial class myriad : PredictionExchange
         object networkId = this.safeString(position, "networkId");
         string? marketId = this.safeString(position, "marketId");
         string? outcomeId = this.safeString(position, "outcomeId");
-        object id = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
+        string? id = ((string)add(add(add(add(networkId, ":"), marketId), "/"), outcomeId));
         double? shares = this.safeNumber(position, "shares");
         double? value = this.safeNumber(position, "value");
         double? profit = this.safeNumber(position, "profit");
@@ -2438,7 +2438,7 @@ public partial class myriad : PredictionExchange
             string? outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             double? price = this.safeNumber(outcome, "price");
             string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, slug, outcomeLabel);
-            object outcomeCompositeId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
+            string? outcomeCompositeId = ((string)add(add(add(add(networkId, ":"), marketId), "/"), outcomeId));
             bool? winnerRaw = null;
             int? settleFractionRaw = null;
             if (hasResolution)
@@ -3209,7 +3209,7 @@ public partial class myriad : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             object networkId = this.safeString(info, "networkId");
             string? marketId = this.safeString(info, "marketId");
-            object key = add(add(networkId, ":"), marketId);
+            string? key = ((string)add(add(networkId, ":"), marketId));
             if (!(inOp(outcomesByMarket, key)))
             {
                 outcomesByMarket[(string)key] = new List<object>() {};
@@ -3223,7 +3223,7 @@ public partial class myriad : PredictionExchange
         List<object> promises = new List<object>() {};
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
-            object key = marketKeys[i];
+            string? key = ((string)marketKeys[i]);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
             object firstOutcome = getValue(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
@@ -3235,7 +3235,7 @@ public partial class myriad : PredictionExchange
         List<object> responses = await promiseAll(promises);
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
-            object key = marketKeys[i];
+            string? key = ((string)marketKeys[i]);
             object response = getValue(responses, i);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
             for (int j = 0; j < (grouped?.Count ?? 0); j++)

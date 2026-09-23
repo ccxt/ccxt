@@ -283,7 +283,7 @@ public partial class paradex : ccxt.paradex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -364,7 +364,7 @@ public partial class paradex : ccxt.paradex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -377,7 +377,7 @@ public partial class paradex : ccxt.paradex
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             channel = channel + ((market.ContainsKey("id") ? market["id"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         } else
@@ -480,7 +480,7 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object channel = this.safeString(parameters, "channel");
-        object messageHash = add(add(channel, "."), symbol);
+        string? messageHash = ((string)add(add(channel, "."), symbol));
         Dictionary<string, object> ticker = this.parseTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         client.resolve(ticker, channel);
@@ -499,7 +499,7 @@ public partial class paradex : ccxt.paradex
      */
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -600,7 +600,7 @@ public partial class paradex : ccxt.paradex
         string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
         ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         object channel = this.safeString(parameters, "channel");
-        object messageHash = add(add(channel, "."), symbol);
+        string? messageHash = ((string)add(add(channel, "."), symbol));
         client.resolve(fundingRate, messageHash);
     }
 

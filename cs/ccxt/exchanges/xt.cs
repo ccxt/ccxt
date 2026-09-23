@@ -6070,7 +6070,7 @@ public partial class xt : Exchange
     public virtual object mergePositionBreakInfo(object entry, object breakBySymbolSide)
     {
         object marketId = this.safeString(entry, "symbol");
-        object key = add(add(marketId, "_"), this.safeString(entry, "positionSide"));
+        string? key = ((string)add(add(marketId, "_"), this.safeString(entry, "positionSide")));
         IDictionary<string, object> breakEntry = this.safeDict(breakBySymbolSide, key);
         if ((breakEntry == null))
         {

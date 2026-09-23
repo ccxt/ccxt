@@ -4023,7 +4023,7 @@ public partial class bybit : Exchange
      */
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((symbolVar == null))
@@ -4051,7 +4051,7 @@ public partial class bybit : Exchange
         };
         Dictionary<string, object> market = this.market(symbolVar);
         Int64? fundingTimeFrameMins = this.safeInteger((market.ContainsKey("info") ? market["info"] : null), "fundingInterval");
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         string? type = null;
         var typeparametersVariable = this.getBybitType("fetchFundingRateHistory", market, parameters);
@@ -8752,7 +8752,7 @@ public partial class bybit : Exchange
 
     public async virtual Task<List<ccxt.OpenInterest>> FetchDerivativesOpenInterestHistory(string? symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

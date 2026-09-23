@@ -1641,7 +1641,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframeVar ??= "1m";
@@ -3779,7 +3779,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -3807,7 +3807,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -3833,7 +3833,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -3913,7 +3913,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -3945,7 +3945,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();

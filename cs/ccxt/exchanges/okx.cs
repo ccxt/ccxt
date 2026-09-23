@@ -6810,7 +6810,7 @@ public partial class okx : Exchange
      */
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
-        object codeVar = code;
+        string codeVar = code;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -6820,7 +6820,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "network");
         codeVar = this.safeCurrencyCode(codeVar);
         string? network = this.networkIdToCode(rawNetwork, codeVar);
-        Dictionary<string, object> responseRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)codeVar), parameters));
+        Dictionary<string, object> responseRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(codeVar, parameters));
         Dictionary<string, object> response = responseRaw;
         if ((network != null))
         {

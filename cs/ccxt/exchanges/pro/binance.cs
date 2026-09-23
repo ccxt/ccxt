@@ -1807,7 +1807,7 @@ public partial class binance : ccxt.binance
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1816,7 +1816,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stock = this.safeBool(market, "stock", false);
         IList<object> stockparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
         stock = stockparametersVariable[0];
@@ -1831,7 +1831,7 @@ public partial class binance : ccxt.binance
         }
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
         Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolVar), timeframeVar));
+        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbolVar) ? result[symbolVar] : null), timeframeVar));
     }
 
     /**
@@ -4101,7 +4101,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        object messageHash = add(accountType, ":balance");
+        string? messageHash = ((string)add(accountType, ":balance"));
         if (isEqual(getValue(this.balance, accountType), null))
         {
             ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
@@ -4919,7 +4919,7 @@ public partial class binance : ccxt.binance
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4972,7 +4972,7 @@ public partial class binance : ccxt.binance
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + (symbolVar));
         }
         string? type = null;
@@ -5732,7 +5732,7 @@ public partial class binance : ccxt.binance
         }
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        object cache = getValue(this.positions, type);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, type));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -5793,7 +5793,7 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)this.positions)[(string)accountType] = new ArrayCacheBySymbolBySide();
         }
-        object cache = getValue(this.positions, accountType);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, accountType));
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
@@ -6402,7 +6402,7 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
         }
-        object cache = getValue(this.positions, accountType);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, accountType));
         List<object> P = this.safeList(message, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < P.Count; i++)

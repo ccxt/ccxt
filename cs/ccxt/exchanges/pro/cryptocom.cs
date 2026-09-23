@@ -519,7 +519,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -530,7 +530,7 @@ public partial class cryptocom : ccxt.cryptocom
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string messageHash = "user.trade";
         messageHash = ((market != null)) ? (((messageHash + ".") + ((market.ContainsKey("id") ? market["id"] : null)))) : messageHash;
@@ -841,7 +841,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -851,7 +851,7 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = (((("candlestick" + ".") + interval) + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
         object ohlcv = await this.watchPublic(messageHash, parameters);
@@ -874,7 +874,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -944,7 +944,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -955,7 +955,7 @@ public partial class cryptocom : ccxt.cryptocom
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string messageHash = "user.order";
         messageHash = ((market != null)) ? (((messageHash + ".") + ((market.ContainsKey("id") ? market["id"] : null)))) : messageHash;

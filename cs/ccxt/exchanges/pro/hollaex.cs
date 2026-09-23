@@ -120,7 +120,7 @@ public partial class hollaex : ccxt.hollaex
             }
             (orderbook as IOrderBook).reset(snapshot);
         }
-        object messageHash = add(add(channel, ":"), marketId);
+        string? messageHash = ((string)add(add(channel, ":"), marketId));
         client.resolve(orderbook, messageHash);
     }
 
@@ -137,7 +137,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -145,7 +145,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("trade" + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         object trades = await this.watchPublic(messageHash, parameters);
         if (this.newUpdates)
@@ -189,7 +189,7 @@ public partial class hollaex : ccxt.hollaex
         {
             callDynamically(stored, "append", new object[] {parsedTrades[j]});
         }
-        object messageHash = add(add(channel, ":"), marketId);
+        string? messageHash = ((string)add(add(channel, ":"), marketId));
         client.resolve(stored, messageHash);
         client.resolve(stored, channel);
     }
@@ -207,7 +207,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -219,7 +219,7 @@ public partial class hollaex : ccxt.hollaex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
@@ -307,7 +307,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -319,7 +319,7 @@ public partial class hollaex : ccxt.hollaex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object orders = await this.watchPrivate(messageHash, parameters);

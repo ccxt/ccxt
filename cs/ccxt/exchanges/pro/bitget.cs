@@ -140,14 +140,14 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + (symbolVar));
         object instType = null;
         object uta = null;
@@ -554,8 +554,8 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -564,7 +564,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
@@ -1587,7 +1587,7 @@ public partial class bitget : ccxt.bitget
         {
             ((IDictionary<string,object>)this.positions)[instType] = new ArrayCacheBySymbolBySide();
         }
-        object cache = getValue(this.positions, instType);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.positions, instType));
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
@@ -1738,7 +1738,7 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1756,7 +1756,7 @@ public partial class bitget : ccxt.bitget
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             marketId = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
@@ -2325,7 +2325,7 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2337,7 +2337,7 @@ public partial class bitget : ccxt.bitget
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = ((messageHash + ":") + (symbolVar));
         }
         string? type = null;

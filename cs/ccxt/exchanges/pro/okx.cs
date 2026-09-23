@@ -376,7 +376,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i]);
-            object messageHash = add(add(channel, ":"), symbol);
+            string? messageHash = ((string)add(add(channel, ":"), symbol));
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
@@ -507,7 +507,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object channel = null;
         IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "channel", "tickers");
@@ -515,7 +515,7 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolVar));
     }
@@ -578,7 +578,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object channel = null;
         IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
@@ -586,9 +586,9 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(ticker, symbolVar));
+        return ccxt.BaseExchange.ToTicker((ticker != null && ticker.ContainsKey(symbolVar) ? ticker[symbolVar] : null));
     }
 
     /**
@@ -710,7 +710,7 @@ public partial class okx : ccxt.okx
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             newTickers[(string)symbol] = ticker;
         }
-        object messageHash = add(add(channel, "::"), symbol);
+        string? messageHash = ((string)add(add(channel, "::"), symbol));
         client.resolve(newTickers, messageHash);
     }
 
@@ -1735,7 +1735,7 @@ public partial class okx : ccxt.okx
             { "books50-l2-tbt", 50 },
         };
         Int64? limit = this.safeInteger(depths, channel);
-        object messageHash = add(add(channel, ":"), symbol);
+        string? messageHash = ((string)add(add(channel, ":"), symbol));
         if (action == "snapshot")
         {
             for (int i = 0; i < (data?.Count ?? 0); i++)
@@ -2001,7 +2001,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
@@ -2025,7 +2025,7 @@ public partial class okx : ccxt.okx
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             type = (market.ContainsKey("type") ? market["type"] : null);
             messageHash = add(add(messageHash, "::"), symbolVar);
         }
@@ -2228,7 +2228,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -2250,7 +2250,7 @@ public partial class okx : ccxt.okx
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             type = (market.ContainsKey("type") ? market["type"] : null);
         }
         if (isEqual(type, "future"))

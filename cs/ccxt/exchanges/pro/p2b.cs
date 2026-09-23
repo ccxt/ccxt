@@ -96,7 +96,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
@@ -134,7 +134,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -146,7 +146,7 @@ public partial class p2b : ccxt.p2b
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = (this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
         List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);
@@ -321,7 +321,7 @@ public partial class p2b : ccxt.p2b
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(channel, timeframes);
         string? symbol = this.safeString(market, "symbol");
-        object messageHash = add(add(channel, "::"), symbol);
+        string? messageHash = ((string)add(add(channel, "::"), symbol));
         IList<object> parsed = this.parseOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -439,7 +439,7 @@ public partial class p2b : ccxt.p2b
         }
         string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        object messageHash = add(add(messageHashStart, "::"), symbol);
+        string? messageHash = ((string)add(add(messageHashStart, "::"), symbol));
         client.resolve(ticker, messageHash);
         return message;
     }

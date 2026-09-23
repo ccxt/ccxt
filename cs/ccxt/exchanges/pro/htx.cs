@@ -152,14 +152,14 @@ public partial class htx : ccxt.htx
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string? topic = this.safeString(options, "name", "market.{marketId}.detail");
         if (topic == "market.{marketId}.ticker" && (((market.ContainsKey("type") ? market["type"] : null) as string) != "spot"))
@@ -275,7 +275,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -283,7 +283,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".trade.detail");
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         object trades = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
@@ -387,7 +387,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -397,7 +397,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".kline.") + interval);
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
@@ -499,7 +499,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -507,7 +507,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> allowedLimits = new List<object>() {5, 20, 150, 400};
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
@@ -958,7 +958,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -976,7 +976,7 @@ public partial class htx : ccxt.htx
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             type = (market.ContainsKey("type") ? market["type"] : null);
             subType = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
             marketId = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
@@ -1120,7 +1120,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1134,7 +1134,7 @@ public partial class htx : ccxt.htx
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             type = (market.ContainsKey("type") ? market["type"] : null);
             suffix = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
             subType = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? "linear" : "inverse";

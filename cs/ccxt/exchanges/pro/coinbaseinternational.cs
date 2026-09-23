@@ -176,7 +176,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             throw new NotSupported ((this.id + " is not supported in sandbox environment")) ;
         }
         object timestamp = this.numberToString(this.seconds());
-        object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
+        string? auth = ((string)add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password));
         string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
@@ -508,7 +508,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -518,7 +518,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(options, timeframeVar, timeframeVar);
         object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);

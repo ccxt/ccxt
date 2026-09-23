@@ -1952,7 +1952,7 @@ public partial class tokocrypto : Exchange
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
-        object typeVar = type;
+        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -1967,7 +1967,7 @@ public partial class tokocrypto : Exchange
             typeVar = "LIMIT_MAKER";
         }
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
-        string initialUppercaseType = ((string)typeVar).ToUpper();
+        string initialUppercaseType = typeVar.ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         if ((triggerPrice != null))

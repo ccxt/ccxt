@@ -137,11 +137,11 @@ public partial class kucoin : ccxt.kucoin
             Int64? pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
             object endpoint = this.safeString(firstInstanceServer, "endpoint");
             string? token = this.safeString(data, "token");
-            object result = add(add(endpoint, "?"), this.urlencode(new Dictionary<string, object>() {
+            string? result = ((string)add(add(endpoint, "?"), this.urlencode(new Dictionary<string, object>() {
     { "token", token },
     { "privateChannel", privateChannel },
     { "connectId", connectId },
-}));
+})));
             var client = this.client(result);
             client.keepAlive = pingInterval;
             return result;
@@ -361,14 +361,14 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + (symbolVar));
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
@@ -987,8 +987,8 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -997,7 +997,7 @@ public partial class kucoin : ccxt.kucoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((("candles:" + (symbolVar)) + ":") + (timeframeVar));
         object uta = false;
@@ -1048,7 +1048,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1225,7 +1225,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object uta = false;
@@ -1236,7 +1236,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ("uta:trades:" + (symbolVar));
             string channel = "trade";
             object trades = await this.subscribePublicUta(messageHash, channel, symbolVar, parameters);
@@ -1546,7 +1546,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         //
         // https://docs.kucoin.com/#level-2-market-data
         // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
@@ -1561,7 +1561,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object depth = "increment"; // '1', '5', '50' or 'increment'
             IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
             depth = depthparametersVariable[0];
@@ -2620,7 +2620,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2632,7 +2632,7 @@ public partial class kucoin : ccxt.kucoin
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         string? marketType = null;
@@ -2908,7 +2908,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await client.future(add(uniformType, ":fetchBalanceSnapshot"));
         }
-        object messageHash = add(uniformType, ":balance");
+        string? messageHash = ((string)add(uniformType, ":balance"));
         if (uta)
         {
             Dictionary<string, object> extendedParams = new Dictionary<string, object>() {
@@ -3559,7 +3559,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -3680,7 +3680,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {

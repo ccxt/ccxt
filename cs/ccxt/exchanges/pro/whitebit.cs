@@ -73,7 +73,7 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
         timeframeVar ??= "1m";
@@ -83,7 +83,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? interval = this.safeInteger(timeframes, timeframeVar);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
@@ -279,14 +279,14 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string method = "market_subscribe";
         string messageHash = ("ticker:" + (symbolVar));
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -396,7 +396,7 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -404,7 +404,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("trades" + ":") + (symbolVar));
         string method = "trades_subscribe";
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -476,7 +476,7 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((symbolVar == null))
@@ -489,7 +489,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + (symbolVar));
         string method = "deals_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, true, parameters);
@@ -618,7 +618,7 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((symbolVar == null))
@@ -631,7 +631,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orders:" + (symbolVar));
         string method = "ordersPending_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, false, parameters);

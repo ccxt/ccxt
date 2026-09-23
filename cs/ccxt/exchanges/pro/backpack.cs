@@ -212,14 +212,14 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string topic = (("ticker" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
         string messageHash = (("ticker" + ":") + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
@@ -1115,7 +1115,7 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1126,7 +1126,7 @@ public partial class backpack : ccxt.backpack
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         string topic = "account.orderUpdate";
         string messageHash = "orders";
