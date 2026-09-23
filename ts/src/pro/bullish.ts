@@ -50,7 +50,7 @@ export default class bullish extends bullishRest {
         });
     }
 
-    requestId () {
+    requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

@@ -729,8 +729,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		"event":  "sub",
 	}
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1135,7 +1134,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 		orderType = rawOrderType
 	}
 	var feeCost *float64 = this.SafeNumber(order, "n")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,

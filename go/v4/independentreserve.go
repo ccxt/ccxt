@@ -894,7 +894,7 @@ func (this *Independentreserve) fetchOrderBody(ch chan any, id any, optionalArgs
 		"orderGuid": id,
 	}, params))).Raw
 	PanicOnError(response)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -934,7 +934,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
@@ -984,7 +984,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["primaryCurrencyCode"] = GetValue(market, "baseId")
@@ -1043,7 +1043,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTrades(this.Extend(request, params))).Raw))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

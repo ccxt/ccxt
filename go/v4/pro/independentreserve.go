@@ -192,8 +192,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 		"receivedSnapshot": false,
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, nil, messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

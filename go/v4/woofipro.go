@@ -2007,7 +2007,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2835,7 +2835,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3069,7 +3069,7 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3198,7 +3198,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3393,7 +3393,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3475,7 +3475,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))

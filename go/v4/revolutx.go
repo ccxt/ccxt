@@ -920,7 +920,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
@@ -1089,7 +1089,7 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
 	var timeInForce *string = this.SafeStringUpper(order, "time_in_force")
 	var createdDate *int64 = this.SafeInteger(order, "created_date")
 	var updatedDate *int64 = this.SafeInteger(order, "updated_date")
-	var fee any = nil
+	var fee map[string]any = nil
 	if totalFee != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(totalFee),
@@ -1360,7 +1360,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//     }
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

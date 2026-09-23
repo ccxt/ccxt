@@ -135,8 +135,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"params": params,
 	}
 
-	orderbook := (<-this.WatchPublicAsync(topic, request, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topic, request, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

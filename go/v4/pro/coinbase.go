@@ -923,8 +923,7 @@ func (this *Coinbase) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 
-	orderbook := (<-this.SubscribeAsync(name, false, symbol, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync(name, false, symbol, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -990,8 +989,7 @@ func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	}
 	var name string = "level2"
 
-	orderbook := (<-this.SubscribeMultipleAsync(name, false, symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(name, false, symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

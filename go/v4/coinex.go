@@ -1342,8 +1342,7 @@ func (this *Coinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promisesUnresolved []any = []any{this.FetchSpotMarketsAsync(params), this.FetchContractMarketsAsync(params)}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var spotMarkets any = GetValue(promises, 0)
 	var swapMarkets any = GetValue(promises, 1)
 
@@ -1768,7 +1767,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
@@ -1977,7 +1976,7 @@ func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_ccy")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -3802,7 +3801,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -4206,7 +4205,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
@@ -5692,9 +5691,9 @@ func (this *Coinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -5772,9 +5771,9 @@ func (this *Coinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -5945,7 +5944,7 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")

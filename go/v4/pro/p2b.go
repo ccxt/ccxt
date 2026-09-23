@@ -376,8 +376,7 @@ func (this *P2b) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var request []any = []any{market["id"], limit, interval}
 
-	orderbook := (<-this.SubscribeAsync(name, messageHash, request, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync(name, messageHash, request, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

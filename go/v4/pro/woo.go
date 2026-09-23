@@ -218,8 +218,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		subscription["method"] = this.HandleOrderBookSubscription
 	}
 
-	orderbook := (<-this.Watch(url, topic, this.Extend(request, params), topic, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, topic, this.Extend(request, params), topic, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1156,7 +1155,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(trade, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

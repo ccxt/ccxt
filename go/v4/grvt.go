@@ -870,8 +870,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	results := (<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))))
 	//
 	// {
 	//     "results": [{
@@ -998,8 +997,7 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.SignInAsync())
 	}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response map[string]any = MapTyped(GetValue(results, 0))
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -1526,7 +1524,7 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeString *string = this.SafeString(trade, "fee")
 	if feeString != nil {
 		fee = map[string]any{
@@ -1927,9 +1925,9 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -2007,11 +2005,11 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code == nil {
 		AddElementToObject(request, "currency", nil)
 	} else {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -2551,8 +2549,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	//     }
 	//
 
-	responses := (<-promiseAll(promises))
-	PanicOnError(responses)
+	var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options.Store("userMainAccountId", mainAccountId)
@@ -3419,7 +3416,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var request any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})
@@ -3522,7 +3519,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})

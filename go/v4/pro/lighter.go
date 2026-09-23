@@ -280,8 +280,7 @@ func (this *Lighter) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var messageHash any = this.GetMessageHash("orderbook", symbol)
 
-	orderbook := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -960,7 +959,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if takerOrMaker != nil {
 		var feeRateRaw any = func() any {
 			if ccxt.IsEqual(takerOrMaker, "maker") {

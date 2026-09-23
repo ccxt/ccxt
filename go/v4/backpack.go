@@ -1574,7 +1574,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -1657,7 +1657,7 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 		}())
 	}
 	var orderId *string = this.SafeString(trade, "orderId")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	if feeAmount != nil {
@@ -1851,9 +1851,9 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if since != nil {
 		request["from"] = since
@@ -1909,9 +1909,9 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if since != nil {
 		request["from"] = since
@@ -2076,7 +2076,7 @@ func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any
 	var tag *string = this.SafeString(transaction, "platformMemo")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var internal *bool = this.SafeBool(transaction, "isInternal", false)
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -2415,7 +2415,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2584,7 +2584,7 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2922,7 +2922,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")

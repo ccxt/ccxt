@@ -1637,7 +1637,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return (hash in client.subscriptions);
     }
 
-    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined): string {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;

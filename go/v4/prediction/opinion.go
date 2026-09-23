@@ -914,8 +914,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}, params)))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var result map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))

@@ -813,8 +813,7 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
 		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
 
-		promisesResult := (<-promiseAll(promises))
-		PanicOnError(promisesResult)
+		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 		ch <- this.ArrayConcat(GetValue(promisesResult, 0), GetValue(promisesResult, 1))
 		return nil
@@ -1034,8 +1033,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			promises = append(promises, EndpointRaw(this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))))
 		}
 
-		responses := (<-promiseAll(promises))
-		PanicOnError(responses)
+		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < GetArrayLength(responses); i++ {
 			result = append(result, this.ParseMarket(GetValue(responses, i)))
 		}
@@ -2127,7 +2125,7 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//          }
 	//      ]
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol) // throws on non-existent symbol
 	}
@@ -2515,7 +2513,7 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(transaction, "type")
 	// if status field is available, then it's complete
 	var statusRaw *string = this.SafeString(transaction, "status")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *float64 = this.SafeNumber(transaction, "feeAmount")
 	if feeAmount != nil {
 		fee = map[string]any{

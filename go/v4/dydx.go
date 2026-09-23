@@ -1233,7 +1233,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["ticker"] = GetValue(market, "id")
@@ -2307,9 +2307,9 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
@@ -2579,9 +2579,9 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
@@ -2769,9 +2769,9 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
@@ -2817,9 +2817,9 @@ func (this *Dydx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{
@@ -2865,9 +2865,9 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any{

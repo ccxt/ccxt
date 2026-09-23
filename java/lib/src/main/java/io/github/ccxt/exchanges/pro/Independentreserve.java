@@ -132,13 +132,13 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object trade = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -154,7 +154,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         String datetime = this.safeString(trade, "TradeDate");
         String marketId = this.safeString(market, "Pair");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
@@ -168,9 +168,9 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "fee", null );
             put( "timestamp", Independentreserve.this.parse8601(datetime) );
             put( "datetime", datetime );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }

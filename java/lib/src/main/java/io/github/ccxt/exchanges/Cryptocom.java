@@ -1910,7 +1910,7 @@ public class Cryptocom extends CryptocomApi
         return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2050,9 +2050,9 @@ public class Cryptocom extends CryptocomApi
             ((Map<String, Object>)request).put("type", uppercaseType);
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2085,7 +2085,7 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateCreateOrder(request)).join();
             //
             //     {
@@ -2424,7 +2424,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
@@ -2451,7 +2451,7 @@ public class Cryptocom extends CryptocomApi
         return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public Object editOrderRequest(Object id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(id, null))
@@ -2475,9 +2475,9 @@ public class Cryptocom extends CryptocomApi
         }
         ((Map<String, Object>)request).put("new_quantity", this.amountToPrecision(symbol, amount));
         ((Map<String, Object>)request).put("new_price", this.priceToPrecision(symbol, price));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object editOrderRequest(Object id, String symbol, Object amount, Object... optionalArgs)
+    public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object... optionalArgs)
     {
         return this.editOrderRequest(id, symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -4753,9 +4753,9 @@ public class Cryptocom extends CryptocomApi
         return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object paramsToString(Object obj, Object level)

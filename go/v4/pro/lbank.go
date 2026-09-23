@@ -968,8 +968,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1017,8 +1016,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

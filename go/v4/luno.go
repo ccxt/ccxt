@@ -951,7 +951,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	var baseFee *float64 = this.SafeNumber(order, "fee_base")
 	var filled *string = this.SafeString(order, "base")
 	var cost *string = this.SafeString(order, "counter")
-	var fee any = nil
+	var fee map[string]any = nil
 	if quoteFee != nil {
 		fee = map[string]any{
 			"cost":     quoteFee,
@@ -1046,7 +1046,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(state, nil) {
 		request["state"] = state
 	}
@@ -1826,7 +1826,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadAccountsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
@@ -1834,7 +1834,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account any = this.SafeDict(accountsByCurrencyCode, code)
 		if IsEqual(account, nil) {

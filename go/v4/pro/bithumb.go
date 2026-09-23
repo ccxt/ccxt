@@ -525,8 +525,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request = this.Extend(request, params)
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1281,7 +1280,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_volume")
 	var cost *string = this.SafeString(order, "executed_funds")
 	var feeCost *string = this.SafeString(order, "paid_fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		var marketForFee map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
 		var feeCurrency *string = this.SafeString(marketForFee, "quote")

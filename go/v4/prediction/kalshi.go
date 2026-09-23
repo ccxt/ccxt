@@ -2080,7 +2080,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 		return "maker"
 	}()
 	var feeCost *float64 = this.SafeNumber(fill, "fee_cost")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,

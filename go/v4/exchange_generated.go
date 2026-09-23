@@ -8043,8 +8043,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
 
-	results := (<-promiseAll(tasks))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(tasks))))
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		result = this.ArrayConcat(result, GetValue(results, i))
@@ -8594,8 +8593,8 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	_ = params
 	var conversionsArray []any = this.ToArray(conversions)
 	var result []any = []any{}
-	var fromCurrency any = nil
-	var toCurrency any = nil
+	var fromCurrency map[string]any = nil
+	var toCurrency map[string]any = nil
 	for i := 0; i < len(conversionsArray); i++ {
 		var entry any = func() any {
 			if i >= 0 && i < len(conversionsArray) {
@@ -8616,18 +8615,18 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 			return this.SafeString(entry, toCurrencyKey)
 		}()
 		if fromId != nil {
-			fromCurrency = this.SafeCurrency(fromId)
+			fromCurrency = MapTyped(this.SafeCurrency(fromId))
 		}
 		if toId != nil {
-			toCurrency = this.SafeCurrency(toId)
+			toCurrency = MapTyped(this.SafeCurrency(toId))
 		}
 		var conversion map[string]any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
 		result = append(result, conversion)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 		if IsEqual(currency, nil) {
 			panic(ExchangeError(this.Id + " parseConversions() could not resolve currency"))
 		}

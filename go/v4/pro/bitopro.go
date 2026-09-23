@@ -112,8 +112,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		endPart = ccxt.Add(ccxt.Add(market["id"], ":"), this.NumberToString(limit))
 	}
 
-	orderbook := (<-this.WatchPublicAsync("order-books", messageHash, endPart))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync("order-books", messageHash, endPart))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -367,7 +366,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var amount *string = this.SafeString(trade, "volume")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 	if feeAmount != nil {

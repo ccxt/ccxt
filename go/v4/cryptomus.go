@@ -1042,7 +1042,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -1143,7 +1143,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1247,7 +1247,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeString(order, "direction")
 	var price *float64 = this.SafeNumber(order, "price")
 	var transaction []any = SafeListTypedDefault(deal, "transactions", []any{})
-	var fee any = nil
+	var fee map[string]any = nil
 	var firstTx map[string]any = SafeMapTyped(transaction, 0)
 	var feeCurrency *string = this.SafeString(firstTx, "feeCurrency")
 	if feeCurrency != nil {

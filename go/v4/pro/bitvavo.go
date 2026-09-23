@@ -900,8 +900,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -960,8 +959,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1140,8 +1138,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message
 		"market": marketId,
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

@@ -789,8 +789,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
-	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -981,7 +980,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	var messageHash any = "trades:"
 	if symbol != nil {
@@ -1182,7 +1181,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders:"
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

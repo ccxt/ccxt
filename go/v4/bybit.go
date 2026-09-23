@@ -2321,8 +2321,7 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		}
 		var rawPromises []any = []any{EndpointRaw(this.PrivateGetV5UserQueryApi(params)), EndpointRaw(this.PrivateGetV5AccountInfo(params))}
 
-		promises := (<-promiseAll(rawPromises))
-		PanicOnError(promises)
+		var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 		var response map[string]any = MapTyped(GetValue(promises, 0))
 		var accountInfo map[string]any = MapTyped(GetValue(promises, 1))
 		//
@@ -2894,8 +2893,7 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	promises := (<-promiseAll(promisesUnresolved))
-	PanicOnError(promises)
+	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		var parsedMarket any = GetValue(promises, i)
@@ -3075,8 +3073,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 			"status": "PreLaunch",
 		})))}
 
-		promises := (<-promiseAll(linearPromises))
-		PanicOnError(promises)
+		var promises []any = ListTyped(PanicOnError((<-promiseAll(linearPromises))))
 		response = this.SafeDict(promises, 0, map[string]any{})
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
@@ -4090,7 +4087,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
@@ -4508,7 +4505,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		orderType = nil
 	}
 	var feeCostString *string = this.SafeString(trade, "execFee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeRateString *string = this.SafeString(trade, "feeRate")
 		var feeCurrencyCode any = nil
@@ -5296,7 +5293,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = this.SafeInteger2(order, "updatedTime", "updatedAt")
 	var rawStatus *string = this.SafeString(order, "orderStatus")
 	var status *string = this.ParseOrderStatus(rawStatus)
-	var fee any = nil
+	var fee map[string]any = nil
 	var cumFeeDetail map[string]any = SafeMapTyped(order, "cumFeeDetail")
 	var feeCoins []string = ObjectKeys(cumFeeDetail)
 	var feeCoinId *string = this.SafeString(feeCoins, 0)
@@ -7900,9 +7897,9 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -7994,9 +7991,9 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -8129,7 +8126,7 @@ func (this *Bybit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 		return "withdrawal"
 	}()
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -8209,7 +8206,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	enableUnified := (<-this.IsUnifiedEnabledAsync())
 	PanicOnError(enableUnified)
-	var currency any = nil
+	var currency map[string]any = nil
 	var currencyKey string = "coin"
 	if IsEqual(GetValue(enableUnified, 1), true) {
 		currencyKey = "currency"
@@ -8222,7 +8219,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request[currencyKey] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -10015,10 +10012,10 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes781319)
 		return nil
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request any = map[string]any{}
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -11336,7 +11333,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -11880,7 +11877,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var subType any = nil
 	var symbolsLength int = 0
 	if symbols != nil {
@@ -12292,13 +12289,13 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 	var result map[string]any = MapTyped(this.SafeDict(data, "result", map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(result, "fromCoin")
 	var toCurrencyId *string = this.SafeString(result, "toCoin")
-	var fromCurrency any = nil
-	var toCurrency any = nil
+	var fromCurrency map[string]any = nil
+	var toCurrency map[string]any = nil
 	if fromCurrencyId != nil {
-		fromCurrency = this.Currency(fromCurrencyId)
+		fromCurrency = MapTyped(this.Currency(fromCurrencyId))
 	}
 	if toCurrencyId != nil {
-		toCurrency = this.Currency(toCurrencyId)
+		toCurrency = MapTyped(this.Currency(toCurrencyId))
 	}
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)

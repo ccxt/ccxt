@@ -640,7 +640,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var direction *string = this.SafeString(trade, "D")
 	var timestamp *int64 = this.SafeTimestamp2(trade, "TT", "T")
 	var matchRole *string = this.SafeString(trade, "m")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "F")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -870,8 +870,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	suffix = ccxt.GetValue(suffixparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(suffixparamsVariable, 1))
 
-	orderbook := (<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

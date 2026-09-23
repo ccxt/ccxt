@@ -213,7 +213,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	var isUsdcSettled any = nil
 	var isSpot any = nil
 	var typeVar any = nil
-	var market any = nil
+	var market map[string]any = nil
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1230,8 +1230,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, messageHash)
 	}
 
-	orderbook := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchTopicsAsync(url, messageHashes, topics, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -2092,8 +2091,7 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan any, client any, messageHas
 		"subType": "inverse",
 	})}
 
-	promises := (<-ccxt.PromiseAll(fetchFunctions))
-	ccxt.PanicOnError(promises)
+	var promises []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(fetchFunctions))))
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(promises); i++ {

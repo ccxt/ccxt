@@ -3014,7 +3014,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
@@ -3111,7 +3111,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -3261,7 +3261,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market", GetValue(market, "id"))
@@ -3503,7 +3503,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	} else {
 		AddElementToObject(request, "from", 1)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3789,9 +3789,9 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 	}
 	if limit != nil {
 		AddElementToObject(request, "page_size", limit)

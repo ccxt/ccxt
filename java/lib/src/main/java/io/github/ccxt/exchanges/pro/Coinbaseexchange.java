@@ -70,7 +70,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     {
         this.checkRequiredCredentials();
         String path = "/users/self/verify";
-        Object nonce = this.nonce();
+        Long nonce = this.nonce();
         String payload = ((String.valueOf(nonce) + "GET") + path);
         String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
         return new HashMap<String, Object>() {{
@@ -700,7 +700,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object trade = this.parseWsTrade((Map<String, Object>) (message));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
@@ -728,7 +728,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object trade = this.parseWsTrade((Map<String, Object>) (message));
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
             String type = "myTrades";
             String messageHash = ((type + ":") + marketId);
             Object tradesArray = this.myTrades;
@@ -744,7 +744,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // private trades
@@ -833,9 +833,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     put( "cost", Coinbaseexchange.this.parseNumber(finalFeeCost) );
     put( "currency", feeCurrency );
 }});
-        return parsed;
+        return (Map<String, Object>) (parsed);
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -974,7 +974,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 {
                     if (java.util.Objects.equals(type, "match"))
                     {
-                        Object trade = this.parseWsTrade((Map<String, Object>) (message));
+                        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
                         if (java.util.Objects.equals(((Map<String, Object>)previousOrder).get("trades"), null))
                         {
                             ((Map<String, Object>)previousOrder).put("trades", new ArrayList<Object>(Arrays.asList()));

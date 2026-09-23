@@ -399,8 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))))
 		}
 
-		responses := (<-ccxt.PromiseAll(promises))
-		ccxt.PanicOnError(responses)
+		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var length int = ccxt.GetArrayLength(responses)
 		for j := 0; j < length; j++ {
 			var response map[string]any = ccxt.SafeMapTyped(responses, j)
@@ -1132,8 +1131,7 @@ func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ..
 		"slug": slug,
 	}))}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(responses, 0)
 	//
 	//     {
@@ -1284,10 +1282,10 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var raw any = ticker
-	var book any = nil
+	var book map[string]any = nil
 	if ccxt.InOp(ticker, "market") {
 		raw = this.SafeDict(ticker, "market", map[string]any{})
-		book = this.SafeDict(ticker, "book")
+		book = ccxt.MapTyped(this.SafeDict(ticker, "book"))
 	}
 	var rawLabel any = func() any {
 		if market != nil {
@@ -1483,8 +1481,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		})))
 	}
 
-	responses := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(responses)
+	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	for i := 0; i < len(slugs); i++ {
 		var slug any = func() any {
 			if i >= 0 && i < len(slugs) {
@@ -2393,7 +2390,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	}
 	var rawStatus *string = this.SafeString(rawOrder, "status")
 	var execution any = this.SafeDict(data, "execution")
-	var fee any = nil
+	var fee map[string]any = nil
 	var filled any = nil
 	var cost any = nil
 	if !ccxt.IsEqual(execution, nil) {

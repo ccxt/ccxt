@@ -144,8 +144,7 @@ func (this *Woofipro) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.WatchPublicAsync(topic, message))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(topic, message))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -704,7 +703,7 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeValue *string = this.SafeString(trade, "fee")
 	if feeValue != nil {
 		fee = map[string]any{

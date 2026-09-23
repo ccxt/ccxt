@@ -373,8 +373,7 @@ func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	orderbook := (<-this.WatchPublicAsync(url, messageHash, request, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(url, messageHash, request, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

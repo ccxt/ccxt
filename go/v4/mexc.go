@@ -2123,7 +2123,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = nil
 	var orderId *string = nil
 	var symbol any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var typeVar any = nil
 	var side any = nil
 	var takerOrMaker any = nil
@@ -2478,7 +2478,7 @@ func (this *Mexc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var isSingularMarket bool = false
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
@@ -2753,7 +2753,7 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var isSingularMarket bool = false
 	if symbols != nil {
 		var length int = GetArrayLength(symbols)
@@ -3452,7 +3452,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3661,7 +3661,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3751,7 +3751,7 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var marketType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3933,7 +3933,7 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3980,7 +3980,7 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -4147,7 +4147,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4418,7 +4418,7 @@ func (this *Mexc) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"time", "createTime", "transactTime"})
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString(order, "feeCurrency")
 	if feeCurrency != nil {
 		var takerFee *string = this.SafeString(order, "takerFee")
@@ -5078,7 +5078,7 @@ func (this *Mexc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -6000,9 +6000,9 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 		// currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
 		// due to that I'm applying the network parameter directly so the user can control it on its side
@@ -6080,9 +6080,9 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -6204,7 +6204,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
 	var txid *string = this.SafeString2(transaction, "transHash", "txId")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(transaction, "transactionFee")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -6615,9 +6615,9 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var fromAccountType any = nil
 	var fromAccountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "fromAccountType")

@@ -695,8 +695,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"limit":  limit,
 	}
 
-	orderbook := (<-this.SubscribePublicAsync(url, messageHash, payload, channel, query, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(url, messageHash, payload, channel, query, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1590,7 +1589,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	var typeVar any = nil
 	var marketId any = "!" + "all"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		marketId = ccxt.GetValue(market, "id")
@@ -2093,7 +2092,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved

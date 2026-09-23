@@ -291,8 +291,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"orderbooks": []any{market["id"]},
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

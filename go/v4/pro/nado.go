@@ -281,8 +281,7 @@ func (this *Nado) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.AddElementToObject(this.Orderbooks, market["symbol"], this.OrderBook(snapshot, limit))
 	}
 
-	orderbook := (<-this.WatchPublicAsync("book_depth", market, messageHash, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync("book_depth", market, messageHash, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -361,8 +360,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		}
 	}
 
-	orderbook := (<-this.WatchPublicMultipleAsync("book_depth", markets, messageHashes, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicMultipleAsync("book_depth", markets, messageHashes, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1487,7 +1485,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1983,7 +1981,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 		}()
 	}
 	var feeCost any = this.ParseX18(this.SafeString(trade, "fee"))
-	var fee any = nil
+	var fee map[string]any = nil
 	if !ccxt.IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,

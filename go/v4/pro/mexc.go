@@ -252,7 +252,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbols, 0)
-	var market any = nil
+	var market map[string]any = nil
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 	}
@@ -1298,7 +1298,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "myTrades"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1518,7 +1518,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1723,7 +1723,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeString(order, "tradeType")
 	var status *string = this.SafeString2(order, "status", "state")
 	var typeVar *string = this.SafeString(order, "orderType")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString(order, "N")
 	if feeCurrency != nil {
 		fee = map[string]any{
@@ -2079,7 +2079,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil)
 	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbols, 0)
-	var market any = nil
+	var market map[string]any = nil
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
 	}

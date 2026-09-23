@@ -906,7 +906,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -984,7 +984,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger(trade, "time")
-	var fee any = nil
+	var fee map[string]any = nil
 	var rawType *string = this.SafeString(trade, "type")
 	var feeCost *string = this.SafeString(trade, "fee")
 	if feeCost != nil {
@@ -2167,7 +2167,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"contractType": contractType,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3711,7 +3711,7 @@ func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var rawStatus *string = this.SafeStringLower(transaction, "status")
 	var timestamp *int64 = this.SafeInteger(transaction, "createTime")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

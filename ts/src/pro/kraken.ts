@@ -643,7 +643,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    requestId () {
+    requestId (): number {
         // their support said that reqid must be an int32, not documented
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
@@ -1548,7 +1548,7 @@ export default class kraken extends krakenRest {
         client.resolve (this.balance[type], channel);
     }
 
-    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined): string {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;

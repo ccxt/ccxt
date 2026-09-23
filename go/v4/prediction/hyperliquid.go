@@ -1230,8 +1230,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		"type": "allMids",
 	})}
 
-	results := (<-ccxt.PromiseAll(promises))
-	ccxt.PanicOnError(results)
+	var results []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(results, 0)
 	var midsResponse any = ccxt.GetValue(results, 1)
 	var balances any = this.SafeList(response, "balances", []any{})
@@ -2350,7 +2349,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	var fee *float64 = this.SafeNumber(trade, "fee")
 	var feeCurrency *string = this.SafeString(trade, "feeToken", "USDC")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
-	var feeObject any = nil
+	var feeObject map[string]any = nil
 	if fee != nil {
 		feeObject = map[string]any{
 			"cost":     fee,

@@ -1017,8 +1017,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 
 	ch <- this.ArrayConcat(GetValue(results, 0), GetValue(results, 1))
 	return nil
@@ -1433,7 +1432,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols, nil, true, true, false)
@@ -1795,7 +1794,7 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market, "_"))
 	var symbol any = GetValue(market, "symbol")
 	var side *string = this.SafeStringLower2(trade, "side", "takerSide")
-	var fee any = nil
+	var fee map[string]any = nil
 	var priceString *string = this.SafeString2(trade, "price", "px")
 	var amountString *string = this.SafeString2(trade, "quantity", "qty")
 	var costString *string = this.SafeString2(trade, "amount", "amt")
@@ -1946,7 +1945,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes156419)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2182,7 +2181,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 	var rawType *string = this.SafeString(order, "type")
 	var typeVar *string = this.ParseOrderType(rawType)
 	var id *string = this.SafeStringN(order, []any{"orderNumber", "id", "orderId", "ordId"})
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString2(order, "tokenFeeCurrency", "feeCcy")
 	var feeCost *string = nil
 	var feeCurrencyCode any = nil
@@ -2295,7 +2294,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2430,7 +2429,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2864,7 +2863,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"symbols": []any{},
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbols"] = []any{GetValue(market, "id")}
@@ -2959,7 +2958,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3800,9 +3799,9 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
@@ -3844,9 +3843,9 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
 	var transactions any = this.ParseTransactions(withdrawals, currency, since, limit)
@@ -4059,9 +4058,9 @@ func (this *Poloniex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
 	PanicOnError(response)
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
 	var transactions any = this.ParseTransactions(deposits, currency, since, limit)

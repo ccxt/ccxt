@@ -4755,9 +4755,9 @@ public class Woo extends WooApi
         return this.parseMarginLoan(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

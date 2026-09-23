@@ -52,7 +52,7 @@ export default class cex extends cexRest {
         });
     }
 
-    requestId () {
+    requestId (): string {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;

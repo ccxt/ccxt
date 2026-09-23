@@ -22,7 +22,7 @@ export default class predictfun extends Exchange {
      * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name predictfun#fetchEvent
@@ -33,7 +33,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.slug] event slug, overrides the id argument when both are given
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
+    fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
     /**
      * @method
      * @name predictfun#fetchEvents
@@ -63,7 +63,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    fetchRawTopicsByQueries(queries: string[], params?: {}): Promise<any[]>;
+    fetchRawTopicsByQueries(queries: string[], params?: Dict): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -113,7 +113,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name predictfun#fetchTicker
@@ -123,7 +123,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    fetchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: Str, params?: Dict): Promise<PredictionTicker>;
     /**
      * @ignore
      * @method
@@ -148,7 +148,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name predictfun#fetchTrades
@@ -162,7 +162,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -210,7 +210,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {string} the JWT
      */
-    authenticate(params?: {}): Promise<Str>;
+    authenticate(params?: Dict): Promise<Str>;
     /**
      * @ignore
      * @method
@@ -246,7 +246,7 @@ export default class predictfun extends Exchange {
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name predictfun#fetchPositions
@@ -263,7 +263,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name predictfun#fetchPosition
@@ -274,7 +274,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.address] read another wallet's position, which needs no JWT
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPosition(outcome: string, params?: {}): Promise<PredictionPosition>;
+    fetchPosition(outcome: string, params?: Dict): Promise<PredictionPosition>;
     /**
      * @ignore
      * @method
@@ -295,7 +295,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name predictfun#cancelOrders
@@ -306,7 +306,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name predictfun#fetchOrder
@@ -317,7 +317,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name predictfun#fetchOpenOrders
@@ -330,7 +330,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name predictfun#fetchClosedOrders
@@ -343,7 +343,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @ignore
      * @method
@@ -358,7 +358,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrdersHelper(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrdersHelper(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @ignore
      * @method
@@ -451,7 +451,7 @@ export default class predictfun extends Exchange {
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
      * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
-    approve(outcome?: Str, params?: {}): Promise<any>;
+    approve(outcome?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name predictfun#watchOrderBook
@@ -462,7 +462,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    watchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name predictfun#unWatchOrderBook
@@ -472,7 +472,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    unWatchOrderBook(outcome: string, params?: {}): Promise<any>;
+    unWatchOrderBook(outcome: string, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -512,7 +512,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name predictfun#watchMyTrades
@@ -524,7 +524,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name predictfun#unWatchOrders
@@ -534,7 +534,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    unWatchOrders(outcome?: Str, params?: {}): Promise<any>;
+    unWatchOrders(outcome?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name predictfun#unWatchMyTrades
@@ -544,7 +544,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    unWatchMyTrades(outcome?: Str, params?: {}): Promise<any>;
+    unWatchMyTrades(outcome?: Str, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -562,7 +562,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    watchWalletEvents(messageHash: string, params?: {}): Promise<any>;
+    watchWalletEvents(messageHash: string, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -582,7 +582,7 @@ export default class predictfun extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    unWatchWalletEvents(channel: string, params?: {}): Promise<any>;
+    unWatchWalletEvents(channel: string, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -724,7 +724,7 @@ export default class predictfun extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

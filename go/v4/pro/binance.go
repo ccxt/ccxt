@@ -948,8 +948,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		"params":  params,
 	}
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1910,7 +1909,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "n")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "N")
@@ -3037,7 +3036,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var isBidAsk bool = (ccxt.IsEqual(channelName, "bookTicker"))
 	var isMarkPrice bool = (ccxt.IsEqual(channelName, "markPrice"))
 	var use1sFreq *bool = this.SafeBool(params, "use1sFreq", true)
-	var firstMarket any = nil
+	var firstMarket map[string]any = nil
 	var marketType any = nil
 	var symbolsDefined bool = (symbols != nil)
 	if symbols != nil {
@@ -5571,7 +5570,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var messageHash any = "orders"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -5854,7 +5853,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		lastTradeTimestamp = T
 	}
 	var lastUpdateTimestamp *int64 = T
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "n")
 	if (feeCost != nil) && (ccxt.Precise.StringGt(feeCost, "0")) {
 		var feeCurrencyId *string = this.SafeString(order, "N")
@@ -6777,7 +6776,7 @@ func (this *Binance) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved

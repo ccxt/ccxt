@@ -1566,7 +1566,7 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes119219)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1713,7 +1713,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes127819)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1870,7 +1870,7 @@ func (this *Bitmex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		// for unrealized pnl and other transactions without a timestamp
 		timestamp = 0 // see comments above
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost any = DerefScalar(this.SafeString(item, "fee"))
 	if !IsEqual(feeCost, nil) {
 		feeCost = this.ConvertToRealAmount(code, feeCost)
@@ -1951,9 +1951,9 @@ func (this *Bitmex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["count"] = limit
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 
@@ -2023,9 +2023,9 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	//         // date-based pagination not supported
 	//     }
 	//
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2453,7 +2453,7 @@ func (this *Bitmex) ParseTrade(trade any, optionalArgs ...any) any {
 	var order *string = this.SafeString(trade, "orderID")
 	var side *string = this.SafeStringLower(trade, "side")
 	// price * amount doesn't work for all symbols (e.g. XBT, ETH)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.NumberToString(this.ConvertFromRawCost(symbol, this.SafeString(trade, "execComm")))
 	if feeCostString != nil {
 		var currencyId *string = this.SafeString2(trade, "settlCurrency", "currency")
@@ -3088,7 +3088,7 @@ func (this *Bitmex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3705,7 +3705,7 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
@@ -4593,7 +4593,7 @@ func (this *Bitmex) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")

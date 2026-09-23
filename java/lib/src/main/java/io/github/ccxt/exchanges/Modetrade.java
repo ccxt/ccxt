@@ -2176,7 +2176,7 @@ public class Modetrade extends ModetradeApi
         return this.safeStringLower(types, type, type);
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(side, null))
         {
@@ -2301,9 +2301,9 @@ public class Modetrade extends ModetradeApi
             ((Map<String, Object>)request).put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"))));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, parameters));
     }
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
@@ -2343,7 +2343,7 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
@@ -2434,7 +2434,7 @@ public class Modetrade extends ModetradeApi
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
                 }
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3973,7 +3973,7 @@ public class Modetrade extends ModetradeApi
                 throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
             }
             Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             final String finalChainId = chainId;
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "chainId", finalChainId );
@@ -4416,9 +4416,9 @@ public class Modetrade extends ModetradeApi
         return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

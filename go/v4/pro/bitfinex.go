@@ -734,7 +734,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var feeValue *string = this.SafeString(trade, 9)
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeValue != nil {
 		var currencyId *string = this.SafeString(trade, 10)
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -879,8 +879,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		request["len"] = limit // string, number of price points, '25', '100', default = '25'
 	}
 
-	orderbook := (<-this.SubscribeAsync("book", symbol, this.DeepExtend(request, params)))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeAsync("book", symbol, this.DeepExtend(request, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

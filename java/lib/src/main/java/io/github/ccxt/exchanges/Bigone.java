@@ -2537,10 +2537,10 @@ public class Bigone extends BigoneApi
         return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         Object exchangeTimeCorrection = Helpers.multiply(this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0), 1000000);
-        return this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection);
+        return Helpers.toLongOrNull(this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

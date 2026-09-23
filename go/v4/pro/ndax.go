@@ -529,8 +529,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

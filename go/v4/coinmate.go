@@ -1175,7 +1175,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var id *string = this.SafeString(trade, "transactionId")
 	var timestamp *int64 = this.SafeInteger2(trade, "timestamp", "createdTimestamp")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -1619,7 +1619,7 @@ func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 	}

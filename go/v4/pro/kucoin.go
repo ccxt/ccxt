@@ -1821,7 +1821,7 @@ func (this *Kucoin) ParseWsUtaTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "M", "E", 0.000001)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "f")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fC")
@@ -1910,8 +1910,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			"depth": depth,
 		})
 
-		orderbook := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))
-		ccxt.PanicOnError(orderbook)
+		var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params, subscription))).(ccxt.OrderBookInterface)
 
 		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 		return nil
@@ -2078,8 +2077,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}
 	}
 
-	orderbook := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -2537,7 +2535,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = "orders"
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3003,7 +3001,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "myTrades"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

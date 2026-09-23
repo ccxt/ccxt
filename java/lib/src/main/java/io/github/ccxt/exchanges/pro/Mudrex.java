@@ -61,11 +61,11 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         }};
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
         Helpers.addElementToObject(this.options, "correlationId", reqid);
-        return reqid;
+        return Helpers.toLongOrNull(reqid);
     }
 
     /**

@@ -555,8 +555,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 	}
 	var authentication any = this.Authenticate()
 
-	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, authentication), messageHashes, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, authentication), messageHashes, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -606,8 +605,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol any, option
 	}
 	var authentication any = this.Authenticate()
 
-	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, authentication), messageHash, subscription))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, authentication), messageHash, subscription))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

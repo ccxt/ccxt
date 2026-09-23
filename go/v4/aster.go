@@ -1227,8 +1227,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{EndpointRaw(this.SapiPublicGetV3ExchangeInfo(params)), EndpointRaw(this.FapiPublicGetV3ExchangeInfo(params))}
 	promises = append(promises, this.SignInAsync())
 
-	results := (<-promiseAll(promises))
-	PanicOnError(results)
+	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
@@ -1831,7 +1830,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2605,7 +2604,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -3325,7 +3324,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var marketType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -4402,7 +4401,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	var request any = map[string]any{
 		"incomeType": "FUNDING_FEE",
 	}
@@ -4515,9 +4514,9 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {

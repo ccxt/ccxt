@@ -257,8 +257,7 @@ func (this *Upbit) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.WatchPublicMultipleAsync([]any{symbol}, "orderbook"))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicMultipleAsync([]any{symbol}, "orderbook"))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -698,7 +697,7 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "state"))
 	var marketId *string = this.SafeString(order, "code")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -744,7 +743,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
 	var marketId *string = this.SafeString(trade, "code")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "paid_fee")
 	if feeCost != nil {
 		fee = map[string]any{

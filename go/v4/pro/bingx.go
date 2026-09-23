@@ -742,8 +742,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		}
 	}
 
-	orderbook := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscriptionArgs))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscriptionArgs))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1224,7 +1223,7 @@ func (this *Bingx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var typeVar any = nil
 	var subType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1324,7 +1323,7 @@ func (this *Bingx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var typeVar any = nil
 	var subType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")

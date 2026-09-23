@@ -221,14 +221,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var j = 0; Helpers.isLessThan(j, length); j++)
         {
             Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
-            Object parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // public
@@ -251,7 +251,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String side = this.safeStringLower2(trade, "S", "side");
         String price = this.safeString2(trade, "p", "price");
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "v", "size")));
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -265,9 +265,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}), market));
     }
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1052,7 +1052,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
             Object rawTrade = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
-            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});

@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, St
 import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
     describe(): any;
-    requestId(): string | undefined;
+    requestId(): Str;
     subscribePublic(messageHashes: string[], channels: Strings, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, subscribeHash: string, channel: Str, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     authenticate(url: string): void;

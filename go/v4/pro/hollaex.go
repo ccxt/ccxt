@@ -90,8 +90,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var messageHash any = ccxt.Add("orderbook"+":", market["id"])
 
-	orderbook := (<-this.WatchPublicAsync(messageHash, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

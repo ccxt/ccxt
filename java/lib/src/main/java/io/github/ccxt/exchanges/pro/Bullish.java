@@ -73,11 +73,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
         Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
-        return requestId;
+        return Helpers.toLongOrNull(requestId);
     }
 
     public Object ping(Client client)

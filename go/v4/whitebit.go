@@ -2293,7 +2293,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2424,7 +2424,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -2988,7 +2988,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3265,7 +3265,7 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3467,7 +3467,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 		amount = filled
 	}
 	var dealFee *string = this.SafeString(order, "dealFee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if dealFee != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(dealFee),
@@ -3553,7 +3553,7 @@ func (this *Whitebit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"orderId": ParseInt(id),
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -3620,10 +3620,10 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3694,10 +3694,10 @@ func (this *Whitebit) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -4273,7 +4273,7 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{
 		"transactionMethod": 1,
 		"uniqueId":          id,
@@ -4281,7 +4281,7 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 		"offset":            0,
 	}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ticker"] = GetValue(currency, "id")
 	}
 
@@ -4361,14 +4361,14 @@ func (this *Whitebit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{
 		"transactionMethod": 1,
 		"limit":             100,
 		"offset":            0,
 	}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -4458,7 +4458,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
@@ -4855,9 +4855,9 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ticker"] = GetValue(currency, "id")
 	}
 	if limit != nil {

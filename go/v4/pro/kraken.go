@@ -1020,10 +1020,9 @@ func (this *Kraken) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}
 	}
 
-	orderbook := (<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultiHelperAsync("orderbook", "book", symbols, map[string]any{
 		"limit": limit,
-	}, this.Extend(requiredParams, params)))
-	ccxt.PanicOnError(orderbook)
+	}, this.Extend(requiredParams, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1617,7 +1616,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if market != nil {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if ccxt.InOp(trade, "fees") {
 		var fees any = this.SafeList(trade, "fees", []any{})
 		var firstFee map[string]any = ccxt.SafeMapTyped(fees, 0)

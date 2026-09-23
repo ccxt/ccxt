@@ -348,7 +348,7 @@ export default class bingx extends bingxRest {
         return limit;
     }
 
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined): string {
         let hash = unifiedChannel;
         if (symbol !== undefined) {
             hash += '::' + symbol;

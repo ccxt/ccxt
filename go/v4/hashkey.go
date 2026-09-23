@@ -1568,7 +1568,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1722,7 +1722,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString(trade, "commission")
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
 	var feeInfo any = this.SafeDict(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if !IsEqual(feeInfo, nil) {
 		feeCost = this.SafeString(feeInfo, "fee")
 		feeCurrncyId = this.SafeString(feeInfo, "feeCoinId")
@@ -2317,9 +2317,9 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2393,9 +2393,9 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2570,7 +2570,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(transaction, "time")
 	var amount *float64 = this.SafeNumber(transaction, "quantity")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3422,7 +3422,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3550,7 +3550,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var request map[string]any = map[string]any{}
 	var orderIds string = Join(ids, ",")
 	request["ids"] = orderIds
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3619,7 +3619,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3697,7 +3697,7 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3763,7 +3763,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	var methodNameparamsVariable []any = this.HandleParamString(params, "methodName", methodName)
 	methodName = GetValue(methodNameparamsVariable, 0)
 	params = GetValue(methodNameparamsVariable, 1)
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var accountId any = nil
@@ -3929,7 +3929,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

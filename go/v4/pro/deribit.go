@@ -761,8 +761,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		descriptor = interval
 	}
 
-	orderbook := (<-this.WatchMultipleWrapperAsync("book", descriptor, symbols, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync("book", descriptor, symbols, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil

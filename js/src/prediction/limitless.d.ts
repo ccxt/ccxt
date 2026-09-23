@@ -17,7 +17,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(raw: Dict): Market;
     /**
      * @method
@@ -28,7 +28,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
+    fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
     /**
      * @ignore
      * @method
@@ -52,7 +52,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    fetchTicker(outcome: Str, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: Str, params?: Dict): Promise<PredictionTicker>;
     /**
      * @ignore
      * @method
@@ -73,7 +73,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: Dict): Promise<PredictionTickers>;
     /**
      * @method
      * @name limitless#fetchTrades
@@ -85,7 +85,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name limitless#fetchOrderBook
@@ -96,7 +96,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name limitless#fetchOHLCV
@@ -109,7 +109,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: Str, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name limitless#fetchOrders
@@ -121,7 +121,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchOpenOrders
@@ -133,7 +133,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchClosedOrders
@@ -145,7 +145,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchOrdersByIds
@@ -156,7 +156,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrdersByIds(ids: any, outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrdersByIds(ids: any, outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchOrder
@@ -167,7 +167,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    fetchOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @ignore
      * @method
@@ -215,7 +215,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]
      */
-    fetchAccounts(params?: {}): Promise<Account[]>;
+    fetchAccounts(params?: Dict): Promise<Account[]>;
     /**
      * @method
      * @name limitless#createOrder
@@ -229,7 +229,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
     signOrderRequest(signRequest: Dict, marketSymbol: any): string;
     hashMessage(message: any): string;
     signHash(hash: any, privateKey: any): string;
@@ -248,7 +248,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
      * @returns {object} the transaction receipt
      */
-    approve(params?: {}): Promise<any>;
+    approve(params?: Dict): Promise<any>;
     /**
      * @method
      * @name limitless#cancelOrder
@@ -259,7 +259,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrder(id: Str, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: Str, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name limitless#redeem
@@ -270,7 +270,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
      * @returns {object} the raw redemption response
      */
-    redeem(outcome?: Str, params?: {}): Promise<any>;
+    redeem(outcome?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name limitless#cancelOrders
@@ -281,7 +281,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#cancelAllOrders
@@ -292,7 +292,7 @@ export default class limitless extends Exchange {
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    cancelAllOrders(outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelAllOrders(outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchMyTrades
@@ -304,7 +304,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @ignore
      * @method
@@ -325,7 +325,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
     getPositionFromClobEntry(label: Str, entry?: NullableDict): PredictionPosition | undefined;
     /**
      * @ignore
@@ -361,7 +361,7 @@ export default class limitless extends Exchange {
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    fetchRawActiveMarkets(params?: {}, categoryId?: Str): Promise<any[]>;
+    fetchRawActiveMarkets(params?: Dict, categoryId?: Str): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -372,7 +372,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    fetchRawMarketsByTags(tags: string[], params?: {}): Promise<any[]>;
+    fetchRawMarketsByTags(tags: string[], params?: Dict): Promise<any[]>;
     /**
      * @ignore
      * @method
@@ -386,7 +386,7 @@ export default class limitless extends Exchange {
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

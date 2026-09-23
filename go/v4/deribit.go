@@ -2118,7 +2118,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -2542,7 +2542,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "order_state"))
 	var side *string = this.SafeStringLower(order, "direction")
 	var feeCostString *string = this.SafeString(order, "commission")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		feeCostString = Precise.StringAbs(feeCostString)
 		fee = map[string]any{
@@ -2610,7 +2610,7 @@ func (this *Deribit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3024,7 +3024,7 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchOpenOrders", params)
@@ -3079,7 +3079,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var response any = nil
 	if limit != nil {
 		request["count"] = limit
@@ -3219,7 +3219,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"include_old": true,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if limit != nil {
 		request["count"] = limit // default 10
 	}
@@ -3482,7 +3482,7 @@ func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var address *string = this.SafeString(transaction, "address")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var typeVar string = "deposit"
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		typeVar = "withdrawal"
 		fee = map[string]any{

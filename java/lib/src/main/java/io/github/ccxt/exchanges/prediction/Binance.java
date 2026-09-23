@@ -190,9 +190,9 @@ public class Binance extends BinanceApi
         }});
     }
 
-    public Object nonce()
+    public Long nonce()
     {
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**

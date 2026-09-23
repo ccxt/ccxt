@@ -1177,7 +1177,7 @@ func (this *Deepcoin) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var side *string = this.SafeString(trade, "side")
 	var execType *string = this.SafeString(trade, "execType")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "fee")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCcy")
@@ -1331,9 +1331,9 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1403,9 +1403,9 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1689,9 +1689,9 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2495,7 +2495,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	var methodNameparamsVariable []any = this.HandleParamString(params, "methodName", methodName)
 	methodName = GetValue(methodNameparamsVariable, 0)
 	params = GetValue(methodNameparamsVariable, 1)
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3077,7 +3077,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		if GetValue(market, "spot") == true {
@@ -3177,7 +3177,7 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
 		average = nil
 	}
 	var feeCurrencyId *string = this.SafeString(order, "feeCcy")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCurrencyId != nil {
 		var feeCost *string = this.SafeString(order, "fee")
 		fee = map[string]any{
@@ -3312,7 +3312,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var marketType any = "swap"
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
@@ -3518,7 +3518,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	}
 	symbols = this.MarketSymbols(symbols, "swap", true, true, true)
 	var subType any = "linear"
-	var firstMarket any = nil
+	var firstMarket map[string]any = nil
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		firstMarket = this.Market(firstSymbol)
@@ -3788,7 +3788,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes297019)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

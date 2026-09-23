@@ -310,8 +310,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		},
 	}
 
-	orderbook := (<-this.SubscribePublicAsync(name, "orderbooks", []any{symbol}, this.DeepExtend(request, params)))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.SubscribePublicAsync(name, "orderbooks", []any{symbol}, this.DeepExtend(request, params)))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -1040,7 +1039,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1426,7 +1425,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
@@ -1490,7 +1489,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1554,7 +1553,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)

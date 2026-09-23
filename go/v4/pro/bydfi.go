@@ -697,8 +697,7 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		messageHashes = append(messageHashes, ccxt.Add("orderbook::", symbol))
 	}
 
-	orderbook := (<-this.WatchPublicAsync(messageHashes, channels, params))
-	ccxt.PanicOnError(orderbook)
+	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHashes, channels, params))).(ccxt.OrderBookInterface)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
@@ -952,7 +951,7 @@ func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var rawStatus *string = this.SafeString(order, "st")
 	var rawType *string = this.SafeString(order, "t")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
