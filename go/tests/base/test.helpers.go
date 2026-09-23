@@ -360,6 +360,10 @@ func ListTyped(v any) []any {
 	return ccxt.ListTyped(v)
 }
 
+func BoxAbsent(v any) any {
+	return ccxt.BoxAbsent(v)
+}
+
 func GetArgMap(args []any, index int, def map[string]any) map[string]any {
 	return ccxt.GetArgMap(args, index, def)
 }

@@ -4895,11 +4895,38 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
     } else if (awaitNode.parent?.kind === ts.SyntaxKind.ReturnStatement) {
         // `return await this.X()` forwards the value through `ch <- retResNNN`: refused until
         // the inner value is proven never-absent for this method
-        if (CCXT_GO_ASYNC_FORWARD_SAFE.indexOf (method) < 0) {
+        // the forward re-boxes through BoxAbsent (installCcxtGoAsyncForwardRebox), so an absent
+        // result still reaches the caller as untyped nil
+        // watch* results can be cache objects that MapTyped/ListTyped would drop: never forwarded typed
+        if ((CCXT_GO_ASYNC_FORWARD_SAFE.indexOf (method) < 0)
+            && ((typeof goTranspiler.printReturnStatement !== 'function') || /^(un)?watch/i.test (method))) {
             return undefined;
         }
     }
     return { goType: goType, wrap: (recv) => conv + '(PanicOnError(' + recv.trim () + '))' };
+}
+
+// `var retResN T = ..` + `ch <- retResN`: a nil map/slice would reach the caller as a non-nil
+// box, so the forwarded send goes through BoxAbsent (typed nil -> untyped nil)
+function installCcxtGoAsyncForwardRebox (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoAsyncForwardReboxInstalled
+        || (typeof goTranspiler.printReturnStatement !== 'function')) {
+        return;
+    }
+    const printReturn = goTranspiler.printReturnStatement;
+    goTranspiler.printReturnStatement = function (node, identation) {
+        const printed = printReturn.call (this, node, identation);
+        const m = /\n(\s*)var (retRes\d+) (?:map\[string\]any|\[\]any) = [^\n]*\n/.exec (printed);
+        if (m === null) {
+            return printed;
+        }
+        const send = new RegExp ('^(\\s*ch <- )' + m[2] + '(\\s*(?://.*)?)$', 'm');
+        if (!send.test (printed)) {
+            throw new Error ('go typed forward without its send: ' + printed.slice (0, 120));
+        }
+        return printed.replace (send, '$1BoxAbsent(' + m[2] + ')$2');
+    };
+    goTranspiler.__ccxtGoAsyncForwardReboxInstalled = true;
 }
 
 function installCcxtGoAsyncReceiveUnbox (goTranspiler) {
@@ -5024,6 +5051,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoSafeCollectionUnbox (goTranspiler);
     // B1: name the async-receive locals whose element type the core's channel carries
     installCcxtGoAsyncReceiveUnbox (goTranspiler);
+    installCcxtGoAsyncForwardRebox (goTranspiler);
     installCcxtGoEndpointConsumers (goTranspiler);
     installCcxtGoProducerDeclarations (goTranspiler);
     // destructured element read straight into a scalar local
