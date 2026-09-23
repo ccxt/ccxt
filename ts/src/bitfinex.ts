@@ -1277,12 +1277,11 @@ export default class bitfinex extends Exchange {
         let minusIndex = 0;
         if (isFetchTicker) {
             minusIndex = 1;
-        } else {
-            const marketId = this.safeString (ticker, 0);
-            market = this.safeMarket (marketId, market);
         }
+        const marketId = this.safeString (ticker, 0);
+        const marketResolved = (isFetchTicker) ? market : this.safeMarket (marketId, market);
         const isFundingCurrency = length >= 17;
-        symbol = this.safeSymbol (undefined, market);
+        symbol = this.safeSymbol (undefined, marketResolved);
         let last: Str = undefined;
         let bid: Str = undefined;
         let ask: Str = undefined;
@@ -1336,7 +1335,7 @@ export default class bitfinex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1586,15 +1585,11 @@ export default class bitfinex extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000) as OHLCV[];
         }
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 10000;
-        } else {
-            limit = Math.min (limit, 10000);
-        }
+        const limitResolved = (limit === undefined) ? 10000 : Math.min (limit, 10000);
         const request: Dict = {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
-            'limit': limit,
+            'limit': limitResolved,
         };
         if (since !== undefined) {
             request['start'] = since;
@@ -1609,7 +1604,7 @@ export default class bitfinex extends Exchange {
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -2048,13 +2043,13 @@ export default class bitfinex extends Exchange {
                 'cid': cid,
                 'cid_date': cidDate,
             };
-            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         } else {
             request = {
                 'id': parseInt (id),
             };
         }
-        const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
+        const paramsOmitted = (cid !== undefined) ? this.omit (params, [ 'cid', 'clientOrderId' ]) : params;
+        const response = await this.privatePostAuthWOrderCancel (this.extend (request, paramsOmitted));
         const order = this.safeValue (response, 4);
         const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
@@ -3074,6 +3069,8 @@ export default class bitfinex extends Exchange {
             request = this.version + request;
         }
         let url = this.urls['api'][api] + '/' + request;
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -3082,17 +3079,19 @@ export default class bitfinex extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            body = this.json (query);
-            const auth = '/api/' + request + nonce + body;
+            requestBody = this.json (query);
+            const auth = '/api/' + request + nonce + requestBody;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha384);
-            headers = {
+            requestHeaders = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

@@ -3088,10 +3088,11 @@ export default class coinbase extends Exchange {
         };
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly === true) {
-            params = this.omit (params, 'reduceOnly');
-            params['amount'] = amount;
-            return await this.closePosition (symbol, side, params);
+            const paramsClose = this.omit (params, 'reduceOnly');
+            paramsClose['amount'] = amount;
+            return await this.closePosition (symbol, side, paramsClose);
         }
+        let paramsMarketBuy: Dict = undefined;
         const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
@@ -3194,10 +3195,9 @@ export default class coinbase extends Exchange {
             }
             if ((market['spot'] === true) && (side === 'buy')) {
                 let total: Str = undefined;
-                let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                const cost = this.safeNumber (params, 'cost');
-                params = this.omit (params, 'cost');
+                const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (paramsRequiresPrice, 'cost');
+                paramsMarketBuy = this.omit (paramsRequiresPrice, 'cost');
                 if (cost !== undefined) {
                     total = this.costToPrecision (symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice) {
@@ -3225,7 +3225,8 @@ export default class coinbase extends Exchange {
                 };
             }
         }
-        const marginMode = this.safeString (params, 'marginMode');
+        const paramsBase = (paramsMarketBuy === undefined) ? params : paramsMarketBuy;
+        const marginMode = this.safeString (paramsBase, 'marginMode');
         if (marginMode !== undefined) {
             if (marginMode === 'isolated') {
                 request['margin_type'] = 'ISOLATED';
@@ -3233,15 +3234,14 @@ export default class coinbase extends Exchange {
                 request['margin_type'] = 'CROSS';
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
-        const preview = this.safeBool2 (params, 'preview', 'test', false);
+        const paramsOmitted = this.omit (paramsBase, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
+        const preview = this.safeBool2 (paramsOmitted, 'preview', 'test', false);
         let response = undefined;
         if (preview === true) {
-            params = this.omit (params, [ 'preview', 'test' ]);
             request = this.omit (request, 'client_order_id');
-            response = await this.v3PrivatePostBrokerageOrdersPreview (this.extend (request, params));
+            response = await this.v3PrivatePostBrokerageOrdersPreview (this.extend (request, this.omit (paramsOmitted, [ 'preview', 'test' ])));
         } else {
-            response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
+            response = await this.v3PrivatePostBrokerageOrders (this.extend (request, paramsOmitted));
         }
         //
         // successful order
@@ -3360,9 +3360,7 @@ export default class coinbase extends Exchange {
         //
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        if (symbol !== undefined) {
-            market = this.safeMarket (symbol, market);
-        }
+        const marketResolved = (symbol !== undefined) ? this.safeMarket (symbol, market) : market;
         const orderConfiguration = this.safeDict (order, 'order_configuration', {});
         const limitGTC = this.safeDict (orderConfiguration, 'limit_limit_gtc');
         const limitGTD = this.safeDict (orderConfiguration, 'limit_limit_gtd');
@@ -3400,8 +3398,8 @@ export default class coinbase extends Exchange {
         const datetime = this.safeString (order, 'created_time');
         const totalFees = this.safeString (order, 'total_fees');
         let currencyFee: Str = undefined;
-        if ((totalFees !== undefined) && (market !== undefined)) {
-            currencyFee = market['quote'];
+        if ((totalFees !== undefined) && (marketResolved !== undefined)) {
+            currencyFee = marketResolved['quote'];
         }
         return this.safeOrder ({
             'info': order,
@@ -3428,7 +3426,7 @@ export default class coinbase extends Exchange {
                 'currency': currencyFee,
             },
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -3560,8 +3558,7 @@ export default class coinbase extends Exchange {
         const preview = this.safeBool2 (params, 'preview', 'test', false);
         let response: NullableDict = undefined;
         if (preview === true) {
-            params = this.omit (params, [ 'preview', 'test' ]);
-            response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, params));
+            response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, this.omit (params, [ 'preview', 'test' ])));
         } else {
             response = await this.v3PrivatePostBrokerageOrdersEdit (this.extend (request, params));
         }
@@ -3659,10 +3656,9 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3678,12 +3674,12 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
         }
-        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, paramsOmitted));
         //
         //     {
         //         "orders": [
@@ -3750,19 +3746,17 @@ export default class coinbase extends Exchange {
         if (market !== undefined) {
             request['product_id'] = market['id'];
         }
-        if (limit === undefined) {
-            limit = 100;
-        }
-        request['limit'] = limit;
+        const limitResolved = (limit === undefined) ? 100 : limit;
+        request['limit'] = limitResolved;
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_date'] = this.iso8601 (until);
         }
-        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, paramsOmitted));
         //
         //     {
         //         "orders": [
@@ -3812,7 +3806,7 @@ export default class coinbase extends Exchange {
             first['cursor'] = cursor;
             orders[0] = first;
         }
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (orders, market, since, limitResolved);
     }
 
     /**
@@ -4052,10 +4046,9 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 250) as Trade[];
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -4071,12 +4064,12 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601 (since);
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
             request['end_sequence_timestamp'] = this.iso8601 (until);
         }
-        const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
+        const paramsOmitted = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, paramsOmitted));
         //
         //     {
         //         "fills": [
@@ -4925,21 +4918,19 @@ export default class coinbase extends Exchange {
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         let response = undefined;
-        if (type === 'future') {
-            response = await this.v3PrivateGetBrokerageCfmPositions (params);
+        if (marketType === 'future') {
+            response = await this.v3PrivateGetBrokerageCfmPositions (paramsMarketType);
         } else {
-            let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            const [ portfolio, paramsPortfolio ]: [ Str, Dict ] = this.handleOptionAndParams (paramsMarketType, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             const request: Dict = {
                 'portfolio_uuid': portfolio,
             };
-            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid (this.extend (request, params));
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid (this.extend (request, paramsPortfolio));
         }
         const positions = this.safeList (response, 'positions', []);
         return this.parsePositions (positions, symbolsNormalized);
@@ -4973,8 +4964,7 @@ export default class coinbase extends Exchange {
             };
             response = await this.v3PrivateGetBrokerageCfmPositionsProductId (this.extend (futureRequest, params));
         } else {
-            let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            const [ portfolio, paramsPortfolio ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
@@ -4982,7 +4972,7 @@ export default class coinbase extends Exchange {
                 'symbol': market['id'],
                 'portfolio_uuid': portfolio,
             };
-            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (this.extend (request, params));
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (this.extend (request, paramsPortfolio));
         }
         const position = this.safeDict (response, 'position', {});
         return this.parsePosition (position, market);
@@ -5304,6 +5294,8 @@ export default class coinbase extends Exchange {
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
@@ -5330,8 +5322,8 @@ export default class coinbase extends Exchange {
                 let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length > 0) {
-                        body = this.json (query);
-                        payload = body;
+                        requestBody = this.json (query);
+                        payload = requestBody;
                     }
                 } else {
                     if (!isV3) {
@@ -5378,7 +5370,7 @@ export default class coinbase extends Exchange {
                     const timestampString = timestamp.toString ();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-                    headers = {
+                    requestHeaders = {
                         'CB-ACCESS-KEY': this.apiKey,
                         'CB-ACCESS-SIGN': signature,
                         'CB-ACCESS-TIMESTAMP': timestampString,
@@ -5387,18 +5379,20 @@ export default class coinbase extends Exchange {
                 }
             }
             if (authorizationString !== undefined) {
-                headers = {
+                requestHeaders = {
                     'Authorization': authorizationString,
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
                     if (Object.keys (query).length > 0) {
-                        body = this.json (query);
+                        requestBody = this.json (query);
                     }
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = (requestBody === undefined) ? body : requestBody;
+        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
