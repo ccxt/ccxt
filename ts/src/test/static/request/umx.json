@@ -8,6 +8,28 @@
     ],
     "options": {},
     "methods": {
+        "fetchMarginMode": [
+            {
+                "description": "margin mode of the account",
+                "method": "fetchMarginMode",
+                "url": "https://api.umx.com/api/v1/asset/account/info",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode of the account",
+                "method": "setMarginMode",
+                "url": "https://api.umx.com/api/v1/account/marginModeSet",
+                "input": [
+                    "cross"
+                ],
+                "output": "{\"accountMode\":\"multi_currency\"}"
+            }
+        ],
         "setLeverage": [
             {
                 "description": "set the leverage of a perpetual",

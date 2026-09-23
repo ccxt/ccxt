@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ export default class umx extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': false,
@@ -99,7 +99,7 @@ export default class umx extends Exchange {
                 'repayIsolatedMargin': false,
                 'sandbox': false, // the venue has no testnet
                 'setLeverage': true,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -2641,6 +2641,95 @@ export default class umx extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
+    }
+
+    /**
+     * @method
+     * @name umx#setMarginMode
+     * @description set the margin mode of the whole trading account, the venue keeps one mode per account rather than per market
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/set-margin-mode
+     * @param {string} marginMode "cross" for the cross currency margin mode or "portfolio" for the portfolio margin mode, the venue has no isolated margin at all
+     * @param {string} [symbol] not used by umx.setMarginMode, the mode applies to the whole account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw response from the exchange
+     */
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
+        let accountMode: Str = undefined;
+        if (marginMode === 'cross') {
+            accountMode = 'multi_currency';
+        } else if (marginMode === 'portfolio') {
+            accountMode = 'portfolio';
+        } else {
+            throw new NotSupported (this.id + ' setMarginMode() marginMode must be either "cross" or "portfolio", the venue has no isolated margin');
+        }
+        const request: Dict = {
+            'accountMode': accountMode,
+        };
+        const response = await this.privatePostV1AccountMarginModeSet (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "accountName": "1000000000000000000",
+        //             "accountMode": "multi_currency"
+        //         },
+        //         "ts": "1790202048613"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchMarginMode
+     * @description fetch the margin mode of the trading account, the venue keeps one mode per account rather than per market
+     * @see https://www.umx.com/docs/coin-apis/funding-account/get-account-configuration-information
+     * @param {string} symbol unified market symbol, it is only echoed into the answer, the mode applies to the whole account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateGetV1AssetAccountInfo (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": {
+        //             "accountName": "1000000000000000000",
+        //             "pid": "1000000000000000000",
+        //             "uid": "100000000000001",
+        //             "cid": "100000000000002",
+        //             "accountStatus": "normal",
+        //             "accountType": "main_account",
+        //             "marginMode": "multi_currency",
+        //             "canDeposit": true,
+        //             "canWithdraw": true,
+        //             "autoSubscribe": null,
+        //             "depositCreditAccount": "funding",
+        //             "createTime": "1790073492000"
+        //         },
+        //         "msg": "Success",
+        //         "ts": "1790202048613",
+        //         "traceId": "138193053799000a29b584872ad0d1ca"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const modes: Dict = {
+            'multi_currency': 'cross',
+        };
+        const marginModeId = this.safeString (data, 'marginMode');
+        // portfolio passes through the fallback unchanged, it is a unified value of its own
+        const marginMode = this.safeString (modes, marginModeId, marginModeId);
+        return {
+            'info': data,
+            'symbol': this.safeString (market, 'symbol'),
+            'marginMode': marginMode,
+        } as MarginMode;
     }
 
     /**

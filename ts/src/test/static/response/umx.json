@@ -8,6 +8,80 @@
     ],
     "options": {},
     "methods": {
+        "fetchMarginMode": [
+            {
+                "description": "margin mode of the account",
+                "method": "fetchMarginMode",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "cid": "100000000000002",
+                        "accountStatus": "normal",
+                        "accountType": "main_account",
+                        "marginMode": "multi_currency",
+                        "canDeposit": true,
+                        "canWithdraw": true,
+                        "autoSubscribe": null,
+                        "depositCreditAccount": "funding",
+                        "createTime": "1790073492000"
+                    },
+                    "msg": "Success",
+                    "ts": "1790202740870",
+                    "traceId": "3f25a15ade6bae8f660a5b636f8ab8c5"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "cid": "100000000000002",
+                        "accountStatus": "normal",
+                        "accountType": "main_account",
+                        "marginMode": "multi_currency",
+                        "canDeposit": true,
+                        "canWithdraw": true,
+                        "autoSubscribe": null,
+                        "depositCreditAccount": "funding",
+                        "createTime": "1790073492000"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode of the account",
+                "method": "setMarginMode",
+                "input": [
+                    "cross"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "accountMode": "multi_currency"
+                    },
+                    "ts": "1790202186724"
+                },
+                "parsedResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "accountMode": "multi_currency"
+                    },
+                    "ts": "1790202186724"
+                }
+            }
+        ],
         "setLeverage": [
             {
                 "description": "set the leverage of a perpetual",
