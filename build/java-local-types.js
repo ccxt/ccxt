@@ -727,6 +727,12 @@ function parseStructureLocalType (printer, initializer, name) {
 const ACCESSOR_SOURCE_FILES = [
     /[\\/]base[\\/]functions[\\/]type\.ts$/,
     /[\\/]base[\\/]functions[\\/]time\.ts$/,
+    // helper fields assigned from these modules (numberToString, hmac, json, ...) resolve to the module file
+    /[\\/]base[\\/]functions[\\/]number\.ts$/,
+    /[\\/]base[\\/]functions[\\/]string\.ts$/,
+    /[\\/]base[\\/]functions[\\/]encode\.ts$/,
+    /[\\/]base[\\/]functions[\\/]crypto\.ts$/,
+    /[\\/]base[\\/]functions[\\/]misc\.ts$/,
     /[\\/]base[\\/]Exchange\.ts$/,
 ];
 
