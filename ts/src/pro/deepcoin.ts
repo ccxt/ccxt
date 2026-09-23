@@ -401,10 +401,8 @@ export default class deepcoin extends deepcoinRest {
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const trades = await this.watchPublic (market, messageHash, '2', params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -569,10 +567,8 @@ export default class deepcoin extends deepcoinRest {
         const messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe;
         const suffix = '_' + interval;
         const ohlcv = await this.watchPublic (market, messageHash, '11', params, suffix);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -733,7 +729,8 @@ export default class deepcoin extends deepcoinRest {
         // tick was rejected accepted the next coarser level
         const symbol = this.safeString (market, 'symbol');
         let aggregation: Str = undefined;
-        [ aggregation, params ] = this.handleOptionAndParams (params, methodName, 'aggregation');
+        let paramsAggregation: Dict = undefined;
+        [ aggregation, paramsAggregation ] = this.handleOptionAndParams (params, methodName, 'aggregation');
         if (aggregation === undefined) {
             const precision = this.safeDict (market, 'precision', {});
             const tickSize = this.safeNumber (precision, 'price');
@@ -742,7 +739,7 @@ export default class deepcoin extends deepcoinRest {
             }
             aggregation = this.numberToString (tickSize);
         }
-        return [ '_' + aggregation, params ];
+        return [ '_' + aggregation, paramsAggregation ];
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -884,15 +881,13 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += '::' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -963,15 +958,13 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += '::' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {

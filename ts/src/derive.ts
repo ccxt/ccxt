@@ -961,11 +961,9 @@ export default class derive extends Exchange {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
-        if (limit !== undefined) {
-            if (limit > 1000) {
-                limit = 1000;
-            }
-            request['page_size'] = limit; // default 100, max 1000
+        const limitResolved: Int = (limit !== undefined && limit > 1000) ? 1000 : limit;
+        if (limitResolved !== undefined) {
+            request['page_size'] = limitResolved; // default 100, max 1000
         }
         if (since !== undefined) {
             request['from_timestamp'] = since;
@@ -1010,7 +1008,7 @@ export default class derive extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'trades', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limitResolved);
     }
 
     override parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Trade[] {
@@ -1631,27 +1629,26 @@ export default class derive extends Exchange {
         }
         const market: Market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        let subaccountId: Str | Dict = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('cancelOrder', params);
-        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('cancelOrder', params);
+        const paramsOmitted: Dict = this.omit (paramsDeriveSubaccountId, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'instrument_name': market['id'],
             'subaccount_id': subaccountId,
         };
-        const clientOrderIdUnified = this.safeString (params, 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString (params, 'label', clientOrderIdUnified);
+        const clientOrderIdUnified = this.safeString (paramsOmitted, 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (paramsOmitted, 'label', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: Dict;
         if (isByClientOrder) {
             request['label'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clientOrderId', 'label' ]);
-            response = await this.privatePostCancelByLabel (this.extend (request, params));
+            const paramsLabel: Dict = this.omit (paramsOmitted, [ 'clientOrderId', 'label' ]);
+            response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel));
         } else {
             request['order_id'] = id;
             if (isTrigger === true) {
-                response = await this.privatePostCancelTriggerOrder (this.extend (request, params));
+                response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted));
             } else {
-                response = await this.privatePostCancel (this.extend (request, params));
+                response = await this.privatePostCancel (this.extend (request, paramsOmitted));
             }
         }
         //
@@ -1994,10 +1991,8 @@ export default class derive extends Exchange {
         const timestamp = this.safeInteger2 (rawOrder, 'creation_timestamp', 'nonce');
         const orderId = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'instrument_name');
-        if (marketId !== undefined) {
-            market = this.safeMarket (marketId, market);
-        }
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = (marketId !== undefined) ? this.safeMarket (marketId, market) : market;
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (order, 'limit_price');
         const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'desired_amount');
@@ -2057,7 +2052,7 @@ export default class derive extends Exchange {
                 'currency': 'USDC',
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -2752,17 +2747,18 @@ export default class derive extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const url = this.urls['api'][api] + '/' + path;
         if (method === 'POST') {
-            headers = {
+            const postHeaders: Dict = {
                 'Content-Type': 'application/json',
             };
             if (api === 'private') {
                 const now = this.milliseconds ().toString ();
                 const signature = this.signMessage (now, this.privateKey);
-                headers['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
-                headers['X-LyraTimestamp'] = now;
-                headers['X-LyraSignature'] = signature;
+                postHeaders['X-LyraWallet'] = this.safeString (this.options, 'deriveWalletAddress');
+                postHeaders['X-LyraTimestamp'] = now;
+                postHeaders['X-LyraSignature'] = signature;
             }
-            body = this.json (params);
+            const postBody: Str = this.json (params);
+            return { 'url': url, 'method': method, 'body': postBody, 'headers': postHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

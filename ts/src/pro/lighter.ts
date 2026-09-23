@@ -818,19 +818,18 @@ export default class lighter extends lighterRest {
         }
         const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('myTrades');
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = this.getMessageHash ('myTrades', symbol);
+            symbolResolved = market['symbol'];
+            messageHash = this.getMessageHash ('myTrades', symbolResolved);
         }
         const request: Dict = {
             'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
         const trades = await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1138,10 +1137,8 @@ export default class lighter extends lighterRest {
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
         const orders = await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     /**

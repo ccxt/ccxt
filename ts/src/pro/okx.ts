@@ -1068,10 +1068,8 @@ export default class okx extends okxRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, name, symbolValue, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1824,10 +1822,8 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, params));
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     /**
@@ -2021,10 +2017,8 @@ export default class okx extends okxRest {
         };
         const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.subscribe ('private', channel, channel, symbol, this.extend (request, params));
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {

@@ -269,10 +269,8 @@ export default class htx extends htxRest {
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const trades = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -367,10 +365,8 @@ export default class htx extends htxRest {
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const ohlcv = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -918,10 +914,8 @@ export default class htx extends htxRest {
         if (trades === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() trades is required');
         }
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
     getOrderChannelAndMessageHash (type: Str, subType: Str, market: Market = undefined, params: Dict = {}): Str[] {
@@ -1038,10 +1032,8 @@ export default class htx extends htxRest {
             'isV5': isV5Linear,
         };
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     handleOrder (client: Client, message: Dict) {

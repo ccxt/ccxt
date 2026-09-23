@@ -256,10 +256,8 @@ export default class bitstamp extends bitstampRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -302,10 +300,8 @@ export default class bitstamp extends bitstampRest {
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
-        if (market === undefined) {
-            market = this.safeMarket (undefined, market);
-        }
-        const symbol = market['symbol'];
+        const marketResolved: Market = (market === undefined) ? this.safeMarket (undefined, market) : market;
+        const symbol = marketResolved['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
         const side = (sideRaw === 0) ? 'buy' : 'sell';
         return this.safeTrade ({
@@ -322,7 +318,7 @@ export default class bitstamp extends bitstampRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -452,10 +448,8 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const orders = await this.subscribePrivate (subscription, messageHash, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -510,10 +504,8 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const trades = await this.subscribePrivate (subscription, messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     /**
