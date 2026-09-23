@@ -12584,11 +12584,11 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 			return "future"
 		}()
 		var toAccount *string = this.SafeString(params, "toAccount", defaultTo)
-		var typeVar any = DerefScalar(this.SafeString(params, "type"))
+		var typeVar *string = this.SafeString(params, "type")
 		var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var fromId *string = this.SafeString(accountsByType, fromAccount)
 		var toId *string = this.SafeString(accountsByType, toAccount)
-		if IsEqual(typeVar, nil) {
+		if typeVar == nil {
 			if fromId == nil {
 				var keys []string = ObjectKeys(accountsByType)
 				panic(ExchangeError(this.Id + " fromAccount parameter must be one of " + strings.Join(keys, ", ")))
@@ -12597,7 +12597,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 				var keys []string = ObjectKeys(accountsByType)
 				panic(ExchangeError(this.Id + " toAccount parameter must be one of " + strings.Join(keys, ", ")))
 			}
-			typeVar = *fromId + "_" + *toId
+			typeVar = SafeStringPtr(*fromId+"_"+*toId)
 		}
 		request["type"] = typeVar
 		limitKey = "size"
@@ -16257,8 +16257,8 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		}
 		if (method == "POST") && ((IsEqual(path, "order")) || (IsEqual(path, "sor/order"))) {
 			// inject in implicit API calls
-			var newClientOrderId any = DerefScalar(this.SafeString(params, "newClientOrderId"))
-			if IsEqual(newClientOrderId, nil) {
+			var newClientOrderId *string = this.SafeString(params, "newClientOrderId")
+			if newClientOrderId == nil {
 				var isSpotOrMargin bool = ((GetIndexOf(api, "sapi") > -1) || (IsEqual(api, "private")))
 				var marketType string = func() string {
 					if isSpotOrMargin {
@@ -16287,12 +16287,12 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 				checkedBatchOrders = []any{}
 				for i := 0; i < GetArrayLength(batchOrders); i++ {
 					var batchOrder any = GetValue(batchOrders, i)
-					var newClientOrderId any = DerefScalar(this.SafeString(batchOrder, "newClientOrderId"))
-					if IsEqual(newClientOrderId, nil) {
+					var newClientOrderId *string = this.SafeString(batchOrder, "newClientOrderId")
+					if newClientOrderId == nil {
 						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
 						var broker map[string]any = SafeMapTyped(this.Options, "broker")
 						var brokerId *string = this.SafeString(broker, "future", defaultId)
-						newClientOrderId = *brokerId + this.Uuid22()
+						newClientOrderId = SafeStringPtr(*brokerId+this.Uuid22())
 						AddElementToObject(batchOrder, "newClientOrderId", newClientOrderId)
 					}
 					AppendToArray(&checkedBatchOrders, batchOrder)

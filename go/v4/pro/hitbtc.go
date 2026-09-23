@@ -295,13 +295,13 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
-	var name any = ccxt.DerefScalar(this.SafeString2(params, "method", "defaultMethod", defaultMethod))
+	var name *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var depth *string = this.SafeString(params, "depth", "20")
 	var speed *string = this.SafeString(params, "depth", "100")
-	if ccxt.IsEqual(name, "orderbook/{depth}/{speed}") {
-		name = "orderbook/D" + *depth + "/" + *speed + "ms"
-	} else if ccxt.IsEqual(name, "orderbook/{depth}/{speed}/batch") {
-		name = "orderbook/D" + *depth + "/" + *speed + "ms/batch"
+	if name != nil && *name == "orderbook/{depth}/{speed}" {
+		name = ccxt.SafeStringPtr("orderbook/D"+*depth+"/"+*speed+"ms")
+	} else if name != nil && *name == "orderbook/{depth}/{speed}/batch" {
+		name = ccxt.SafeStringPtr("orderbook/D"+*depth+"/"+*speed+"ms/batch")
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{

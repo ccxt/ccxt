@@ -2068,9 +2068,9 @@ func (this *Htx) HandlePositions(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
-		var position any = this.ParsePosition(rawPosition)
-		ccxt.AddElementToObject(position, "timestamp", timestamp)
-		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
+		position["timestamp"] = timestamp
+		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
 		if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 			marginMode = ccxt.SafeStringPtr(defaultMarginMode)

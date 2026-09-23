@@ -2831,11 +2831,11 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amou
 	if IsEqual(typeVar, "limit") {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	params = MapTyped(this.Omit(params, "clientOrderId"))
-	if IsEqual(clientOrderId, nil) {
+	if clientOrderId == nil {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = *partner + "-" + this.Uuid22()
+		clientOrderId = SafeStringPtr(*partner+"-"+this.Uuid22())
 	}
 	request["newClientOrderId"] = clientOrderId
 	// timeInForce is passed directly from params
@@ -2979,10 +2979,10 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 		panic(NotSupported(this.Id + " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price"))
 	}
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
-	if IsEqual(clientOrderId, nil) {
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId == nil {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = *partner + "-" + this.Uuid22()
+		clientOrderId = SafeStringPtr(*partner+"-"+this.Uuid22())
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName")
 	if isTrigger {

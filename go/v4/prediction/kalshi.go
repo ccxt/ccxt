@@ -2034,9 +2034,9 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var ticker *string = this.SafeString2(fill, "ticker", "market_ticker")
 	// the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
 	var sideLeg *string = this.SafeStringLower(fill, "side")
-	var outcomeKey any = ticker
+	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = *ticker + "-NO"
+		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
@@ -2654,9 +2654,9 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	// a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no')
 	// the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
 	var sideLeg *string = this.SafeStringLower(order, "side")
-	var outcomeKey any = ticker
+	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = *ticker + "-NO"
+		outcomeKey = ccxt.SafeStringPtr(*ticker+"-NO")
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
