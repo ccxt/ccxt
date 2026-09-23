@@ -31,6 +31,7 @@ export default class bitunix extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchFundingRate': true,
@@ -592,11 +593,11 @@ export default class bitunix extends Exchange {
             }
             const accountBalance: Dict = this.account ();
             const free = this.safeString (account, 'available');
-            const frozen = this.safeString (account, 'frozen');
-            const positionMargin = this.safeString (account, 'margin');
             let used = undefined;
-            if (frozen !== undefined || positionMargin !== undefined) {
-                used = Precise.stringAdd (frozen || '0', positionMargin || '0');
+            if (('frozen' in account) || ('margin' in account)) {
+                const frozen = this.safeString (account, 'frozen', '0');
+                const positionMargin = this.safeString (account, 'margin', '0');
+                used = Precise.stringAdd (frozen, positionMargin);
             }
             const total = (free !== undefined && used !== undefined) ? Precise.stringAdd (free, used) : free;
             accountBalance['free'] = free;
@@ -737,7 +738,7 @@ export default class bitunix extends Exchange {
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] oldest order timestamp in milliseconds
      * @param {int} [limit] maximum number of orders to return (endpoint maximum 100)
-     * @param {object} [params] exchange-specific parameters including skip and endTime
+     * @param {object} [params] exchange-specific parameters including skip, endTime and subAccountId for historical orders
      * @returns {Order[]} a list of unified orders
      */
     async fetchBitunixOrders (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -754,20 +755,11 @@ export default class bitunix extends Exchange {
         if (limit !== undefined) {
             request['limit'] = (limit > 100) ? 100 : limit;
         }
-        if (method === 'history') {
-            request['status'] = 'FILLED';
-        }
         const response = (method === 'pending') ? await this.privateGetApiV1FuturesTradeGetPendingOrders (this.extend (request, params)) : await this.privateGetApiV1FuturesTradeGetHistoryOrders (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orderList', []);
-        const parsed = this.parseOrders (orders);
-        const result: Order[] = [];
-        for (let i = 0; i < parsed.length; i++) {
-            if (method !== 'history' || parsed[i]['status'] === 'closed') {
-                result.push (parsed[i]);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
@@ -805,17 +797,34 @@ export default class bitunix extends Exchange {
     }
 
     /**
-     * Fetches filled futures orders from Bitunix history.
+     * Fetches non-canceled futures order history. Bitunix limits this partition to the last 90 days.
      * @method
      * @name bitunix#fetchClosedOrders
+     * @see https://www.bitunix.com/api-docs/futures/trade/get_history_orders.html
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] oldest order timestamp in milliseconds
      * @param {int} [limit] maximum number of orders to return
-     * @param {object} [params] exchange-specific parameters including skip and endTime
+     * @param {object} [params] exchange-specific parameters including status, skip, endTime and subAccountId
      * @returns {Order[]} a list of unified orders
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchBitunixOrders ('history', symbol, since, limit, params);
+    }
+
+    /**
+     * Fetches canceled futures orders. Bitunix limits this partition to the last 3 days.
+     * @method
+     * @name bitunix#fetchCanceledOrders
+     * @see https://www.bitunix.com/api-docs/futures/trade/get_history_orders.html
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] oldest order timestamp in milliseconds
+     * @param {int} [limit] maximum number of orders to return
+     * @param {object} [params] exchange-specific parameters including status, skip, endTime and subAccountId
+     * @returns {Order[]} a list of unified orders
+     */
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const requestParams: Dict = this.extend ({}, params, { 'queryCanceled': true });
+        return await this.fetchBitunixOrders ('history', symbol, since, limit, requestParams);
     }
 
     /**
@@ -945,7 +954,7 @@ export default class bitunix extends Exchange {
      * @method
      * @name bitunix#fetchPositions
      * @param {string[]} [symbols] unified market symbols
-     * @param {object} [params] exchange-specific parameters
+     * @param {object} [params] exchange-specific parameters including subAccountId and includeSubAccounts
      * @returns {Position[]} a list of unified positions
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
@@ -1071,13 +1080,26 @@ export default class bitunix extends Exchange {
             let queryString = '';
             let bodyString = '';
             if (method === 'GET') {
-                if (Object.keys (params).length > 0) {
-                    const sortedParams = this.keysort (params);
-                    const keys = Object.keys (sortedParams);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        queryString += key + this.safeString (sortedParams, key);
+                const filteredParams: Dict = {};
+                const paramKeys = Object.keys (params);
+                for (let i = 0; i < paramKeys.length; i++) {
+                    const key = paramKeys[i];
+                    const value = this.safeValue (params, key);
+                    if (value !== undefined && value !== null && value !== '') {
+                        let stringValue = this.safeString (params, key);
+                        if (stringValue === undefined) {
+                            stringValue = this.json (value);
+                        }
+                        filteredParams[key] = stringValue;
                     }
+                }
+                const sortedParams = this.keysort (filteredParams);
+                const keys = Object.keys (sortedParams);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    queryString += key + sortedParams[key];
+                }
+                if (Object.keys (sortedParams).length > 0) {
                     url += '?' + this.urlencode (sortedParams);
                 }
             } else if (method === 'POST') {

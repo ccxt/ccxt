@@ -448,6 +448,299 @@
                     "total": { "USDT": 1030 }
                 }
             }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "returns filled orders from non-canceled history",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "orderList": [
+                            {
+                                "orderId": "11111",
+                                "clientId": "22222",
+                                "symbol": "BTCUSDT",
+                                "qty": "1",
+                                "tradeQty": "1",
+                                "price": "60000",
+                                "side": "BUY",
+                                "orderType": "LIMIT",
+                                "effect": "GTC",
+                                "status": "FILLED",
+                                "fee": "0.02",
+                                "reduceOnly": false,
+                                "ctime": 1597026383085,
+                                "mtime": 1597026383185
+                            }
+                        ],
+                        "total": "1"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "11111",
+                        "clientOrderId": "22222",
+                        "timestamp": 1597026383085,
+                        "datetime": "2020-08-10T02:26:23.085Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "buy",
+                        "price": 60000,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "cost": null,
+                        "average": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": 0.02,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "11111",
+                            "clientId": "22222",
+                            "symbol": "BTCUSDT",
+                            "qty": "1",
+                            "tradeQty": "1",
+                            "price": "60000",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "effect": "GTC",
+                            "status": "FILLED",
+                            "fee": "0.02",
+                            "reduceOnly": false,
+                            "ctime": 1597026383085,
+                            "mtime": 1597026383185
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.02,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "returns canceled orders from the canceled-only history partition",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "orderList": [
+                            {
+                                "orderId": "33333",
+                                "clientId": "44444",
+                                "symbol": "BTCUSDT",
+                                "qty": "1",
+                                "tradeQty": "0",
+                                "price": "59000",
+                                "side": "SELL",
+                                "orderType": "LIMIT",
+                                "effect": "GTC",
+                                "status": "CANCELED",
+                                "fee": "0",
+                                "reduceOnly": false,
+                                "ctime": 1597026384085,
+                                "mtime": 1597026384185
+                            }
+                        ],
+                        "total": "1"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "33333",
+                        "clientOrderId": "44444",
+                        "timestamp": 1597026384085,
+                        "datetime": "2020-08-10T02:26:24.085Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 59000,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "cost": null,
+                        "average": null,
+                        "status": "canceled",
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "33333",
+                            "clientId": "44444",
+                            "symbol": "BTCUSDT",
+                            "qty": "1",
+                            "tradeQty": "0",
+                            "price": "59000",
+                            "side": "SELL",
+                            "orderType": "LIMIT",
+                            "effect": "GTC",
+                            "status": "CANCELED",
+                            "fee": "0",
+                            "reduceOnly": false,
+                            "ctime": 1597026384085,
+                            "mtime": 1597026384185
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "returns partially filled and canceled orders as canceled",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "orderList": [
+                            {
+                                "orderId": "33333",
+                                "clientId": "44444",
+                                "symbol": "BTCUSDT",
+                                "qty": "1",
+                                "tradeQty": "0.4",
+                                "price": "59000",
+                                "side": "SELL",
+                                "orderType": "LIMIT",
+                                "effect": "GTC",
+                                "status": "PART_FILLED_CANCELED",
+                                "fee": "0",
+                                "reduceOnly": false,
+                                "ctime": 1597026384085,
+                                "mtime": 1597026384185
+                            }
+                        ],
+                        "total": "1"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "33333",
+                        "clientOrderId": "44444",
+                        "timestamp": 1597026384085,
+                        "datetime": "2020-08-10T02:26:24.085Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 59000,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "filled": 0.4,
+                        "remaining": 0.6,
+                        "cost": null,
+                        "average": null,
+                        "status": "canceled",
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "reduceOnly": false,
+                        "info": {
+                            "orderId": "33333",
+                            "clientId": "44444",
+                            "symbol": "BTCUSDT",
+                            "qty": "1",
+                            "tradeQty": "0.4",
+                            "price": "59000",
+                            "side": "SELL",
+                            "orderType": "LIMIT",
+                            "effect": "GTC",
+                            "status": "PART_FILLED_CANCELED",
+                            "fee": "0",
+                            "reduceOnly": false,
+                            "ctime": 1597026384085,
+                            "mtime": 1597026384185
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "parses leverage and isolated margin mode",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "symbol": "BTCUSDT",
+                        "marginCoin": "USDT",
+                        "leverage": 12,
+                        "marginMode": "ISOLATION"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "marginCoin": "USDT",
+                        "leverage": 12,
+                        "marginMode": "ISOLATION"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": 12,
+                    "shortLeverage": 12
+                }
+            }
         ]
     }
 }

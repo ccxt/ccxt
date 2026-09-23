@@ -113,6 +113,134 @@
                 "output": { "positionMode": "HEDGE" },
                 "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "signed pending orders request for one symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_pending_orders?symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT"],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "signed history orders request sorts query keys and does not force a status",
+                "method": "fetchClosedOrders",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_orders?limit=50&startTime=1672410780000&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", 1672410780000, 50],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "passes an explicit status filter through to history orders",
+                "method": "fetchClosedOrders",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_orders?status=FILLED&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", null, null, {"status": "FILLED"}],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "signed canceled history request caps the limit at 100",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_orders?limit=100&queryCanceled=true&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", null, 500],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "sorts signed canceled-history query parameters",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_orders?limit=50&queryCanceled=true&startTime=1672410780000&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", 1672410780000, 50],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "signed history trades request sorts query keys",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_trades?limit=50&startTime=1672410780000&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", 1672410780000, 50],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "omits a null endTime from signed history-trades query",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_trades?symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", null, null, {"endTime": null}],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "omits an empty endTime from signed history-trades query",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.bitunix.com/api/v1/futures/trade/get_history_trades?symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT", null, null, {"endTime": ""}],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "signed pending positions request for one symbol",
+                "method": "fetchPositions",
+                "url": "https://fapi.bitunix.com/api/v1/futures/position/get_pending_positions?symbol=BTCUSDT",
+                "input": [["BTC/USDT:USDT"]],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "signed pending positions request for all symbols",
+                "method": "fetchPositions",
+                "url": "https://fapi.bitunix.com/api/v1/futures/position/get_pending_positions",
+                "input": [],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "signed leverage and margin mode request",
+                "method": "fetchLeverage",
+                "url": "https://fapi.bitunix.com/api/v1/futures/account/get_leverage_margin_mode?marginCoin=USDT&symbol=BTCUSDT",
+                "input": ["BTC/USDT:USDT"],
+                "output": null,
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "signed change leverage request body",
+                "method": "setLeverage",
+                "url": "https://fapi.bitunix.com/api/v1/futures/account/change_leverage",
+                "input": [10, "BTC/USDT:USDT"],
+                "output": { "symbol": "BTCUSDT", "leverage": 10, "marginCoin": "USDT" },
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "maps unified isolated to Bitunix ISOLATION",
+                "method": "setMarginMode",
+                "url": "https://fapi.bitunix.com/api/v1/futures/account/change_margin_mode",
+                "input": ["isolated", "BTC/USDT:USDT"],
+                "output": { "symbol": "BTCUSDT", "marginMode": "ISOLATION", "marginCoin": "USDT" },
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            },
+            {
+                "description": "maps unified cross to Bitunix CROSS",
+                "method": "setMarginMode",
+                "url": "https://fapi.bitunix.com/api/v1/futures/account/change_margin_mode",
+                "input": ["cross", "BTC/USDT:USDT"],
+                "output": { "symbol": "BTCUSDT", "marginMode": "CROSS", "marginCoin": "USDT" },
+                "headers": { "api-key": "key", "language": "en-US", "Content-Type": "application/json" }
+            }
         ]
     }
 }
