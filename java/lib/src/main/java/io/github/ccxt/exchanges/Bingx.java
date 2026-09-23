@@ -1554,7 +1554,7 @@ public class Bingx extends BingxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "symbol");
+        String id = this.safeString(market, "symbol");
         List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
@@ -5143,7 +5143,7 @@ public class Bingx extends BingxApi
             }
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
         }
-        Object rawType = ((String)this.safeStringLower2(order, "type", "o"));
+        String rawType = ((String)this.safeStringLower2(order, "type", "o"));
         String stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
         String triggerPrice = stopPrice;
         if (!java.util.Objects.equals(stopPrice, null))
@@ -5175,7 +5175,7 @@ public class Bingx extends BingxApi
             put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", lastTradeTimestamp );
             put( "lastUpdateTimestamp", Bingx.this.safeInteger(finalOrder, "updateTime") );
-            put( "type", Bingx.this.parseOrderType((String) (rawType)) );
+            put( "type", Bingx.this.parseOrderType(rawType) );
             put( "timeInForce", Bingx.this.safeString(finalOrder, "timeInForce") );
             put( "postOnly", null );
             put( "side", Bingx.this.parseOrderSide((String) (finalSide)) );
@@ -8643,7 +8643,7 @@ public class Bingx extends BingxApi
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i);
-            Object tierString = this.safeString(tier, "tier");
+            String tierString = this.safeString(tier, "tier");
             List<Object> tierParts = new ArrayList<Object>(Arrays.asList(((String)tierString).split(java.util.regex.Pattern.quote(" "))));
             String marketId = this.safeString(tier, "symbol");
             market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "swap"));

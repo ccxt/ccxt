@@ -181,15 +181,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTicker", (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -285,13 +285,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 symbols = Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTickers", (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -299,7 +299,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
-                final Object finalInstType = instType;
+                final String finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", finalInstType );
                 }};
@@ -572,13 +572,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 symbols = Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -586,7 +586,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
-                final Object finalInstType = instType;
+                final String finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", finalInstType );
                 }};
@@ -699,15 +699,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
             String interval = this.safeString(timeframes, timeframe);
             String messageHash = null;
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = ((List<Object>) instTypeparametersVariable).get(1);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -781,14 +781,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String interval = this.safeString(timeframes, timeframe);
             Object channel = null;
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object instType = null;
+            String instType = null;
             Object messageHash = null;
             Object values = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
             Object uta = ((List<Object>)values).get(0);
             var instTypeparametersVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = ((List<Object>) instTypeparametersVariable).get(1);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -1083,15 +1083,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ((("unsubscribe:" + messageHashTopic) + ":") + ((Map<String, Object>)market).get("symbol"));
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType((String) (methodName), (Map<String, Object>) (market), uta, parameters);
-            instType = ((List<Object>) instTypeparametersVariable).get(0);
+            instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
             parameters = ((List<Object>) instTypeparametersVariable).get(1);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -1162,11 +1162,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object instType = null;
+                String instType = null;
                 var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), uta, parameters);
-                instType = ((List<Object>) instTypeparametersVariable).get(0);
+                instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) instTypeparametersVariable).get(1);
-                final Object finalInstType = instType;
+                final String finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", finalInstType );
                 }};
@@ -1462,11 +1462,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object instType = null;
+                String instType = null;
                 var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, parameters);
-                instType = ((List<Object>) instTypeparametersVariable).get(0);
+                instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
                 parameters = ((List<Object>) instTypeparametersVariable).get(1);
-                final Object finalInstType = instType;
+                final String finalInstType = instType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", finalInstType );
                 }};
@@ -1804,7 +1804,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> market = null;
             Object messageHash = "";
             Object subscriptionHash = "positions";
-            Object instType = "USDT-FUTURES";
+            String instType = "USDT-FUTURES";
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -1814,7 +1814,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
                 var instTypeparametersVariable = this.getInstType("watchPositions", (Map<String, Object>) (market), uta, parameters);
-                instType = ((List<Object>) instTypeparametersVariable).get(0);
+                instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
                 parameters = ((List<Object>) instTypeparametersVariable).get(1);
             }
             if (Helpers.isTrue(uta))
@@ -1822,7 +1822,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = "UTA";
             }
             messageHash = Helpers.add((instType + ":positions"), messageHash);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -2168,14 +2168,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 messageHash = (messageHash + ":usdcfutures"); // non unified channel
             }
-            Object instType = null;
+            String instType = null;
             if (java.util.Objects.equals(market, null) && java.util.Objects.equals(type, "spot"))
             {
                 instType = "SPOT";
             } else
             {
                 var instTypeparametersVariable = this.getInstType("watchOrders", (Map<String, Object>) (market), uta, parameters);
-                instType = ((List<Object>) instTypeparametersVariable).get(0);
+                instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
                 parameters = ((List<Object>) instTypeparametersVariable).get(1);
             }
             if (java.util.Objects.equals(type, "spot") && (!java.util.Objects.equals(symbol, null)))
@@ -2210,7 +2210,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 channel = "order";
             }
             subscriptionHash = ((subscriptionHash + ":") + instType);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
@@ -2769,7 +2769,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object instType = null;
+            String instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -2780,7 +2780,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             } else
             {
                 var instTypeparametersVariable = this.getInstType("watchMyTrades", (Map<String, Object>) (market), uta, parameters);
-                instType = ((List<Object>) instTypeparametersVariable).get(0);
+                instType = (String) ((List<Object>) instTypeparametersVariable).get(0);
                 parameters = ((List<Object>) instTypeparametersVariable).get(1);
             }
             if (Helpers.isTrue(uta))
@@ -2788,7 +2788,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = "UTA";
             }
             Object subscriptionHash = ("fill:" + instType);
-            final Object finalInstType = instType;
+            final String finalInstType = instType;
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};

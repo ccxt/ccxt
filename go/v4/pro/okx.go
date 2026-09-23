@@ -2834,7 +2834,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 	}
 }
-func (this *Okx) RequestId() any {
+func (this *Okx) RequestId() string {
 	var ts string = ccxt.ToString(this.Milliseconds())
 	var randomNumber int64 = this.RandNumber(4)
 	var randomPart string = ccxt.ToString(randomNumber)
@@ -2874,7 +2874,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = this.GetUrl("private", "private")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var op any = nil
 	var opparamsVariable []any = this.HandleOptionAndParams(params, "createOrderWs", "op", "batch-orders")
 	op = ccxt.GetValue(opparamsVariable, 0)
@@ -2972,7 +2972,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = this.GetUrl("private", "private")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var op any = nil
 	var opparamsVariable []any = this.HandleOptionAndParams(params, "editOrderWs", "op", "amend-order")
 	op = ccxt.GetValue(opparamsVariable, 0)
@@ -3027,7 +3027,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = this.GetUrl("private", "private")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	params = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdId"}))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -3086,7 +3086,7 @@ func (this *Okx) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = this.GetUrl("private", "private")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var args []any = []any{}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
@@ -3144,7 +3144,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required."))
 	}
 	var url any = this.GetUrl("private", "private")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"id": messageHash,
 		"op": "mass-cancel",

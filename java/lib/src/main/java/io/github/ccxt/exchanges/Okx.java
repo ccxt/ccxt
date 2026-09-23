@@ -3549,11 +3549,11 @@ public class Okx extends OkxApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final Object finalMarketType = marketType;
+            final String finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};
@@ -3693,11 +3693,11 @@ public class Okx extends OkxApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            final Object finalMarketType = marketType;
+            final String finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};
@@ -4458,7 +4458,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             var query = ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -6668,10 +6668,10 @@ public class Okx extends OkxApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
             }
-            Object type = null;
+            String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
-            type = ((List<Object>) typequeryVariable).get(0);
+            type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
             if (!java.util.Objects.equals(limit, null))
@@ -6906,10 +6906,10 @@ public class Okx extends OkxApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
             }
-            Object type = null;
+            String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            type = ((List<Object>) typequeryVariable).get(0);
+            type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
             if (!java.util.Objects.equals(limit, null))
@@ -7139,7 +7139,7 @@ public class Okx extends OkxApi
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
             if ((!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(since, null)))
@@ -7294,7 +7294,7 @@ public class Okx extends OkxApi
                 }
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             if (!java.util.Objects.equals(type, null))
             {
@@ -8481,7 +8481,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
@@ -9647,7 +9647,7 @@ public class Okx extends OkxApi
                 }
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             if (java.util.Objects.equals(type, "swap"))
             {
@@ -11202,10 +11202,10 @@ public class Okx extends OkxApi
                 put( "ccy", finalCurrencyId );
                 put( "period", finalTimeframe );
             }};
-            Object type = null;
+            String type = null;
             Map<String, Object> response = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (java.util.Objects.equals(type, "option"))
             {
@@ -11543,15 +11543,15 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports futures and options markets only")) ;
             }
-            final Object finalType = type;
+            final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalType) );
                 put( "uly", Helpers.add((((Map<String, Object>)market).get("baseId") + "-"), ((Map<String, Object>)market).get("quoteId")) );
@@ -11675,9 +11675,9 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, null)) || (java.util.Objects.equals(marketType, "spot")))
             {
@@ -11687,7 +11687,7 @@ public class Okx extends OkxApi
             {
                 throw new NotSupported((this.id + " fetchUnderlyingAssets() supports contract markets only")) ;
             }
-            final Object finalMarketType = marketType;
+            final String finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Okx.this.convertToInstrumentType(finalMarketType) );
             }};

@@ -5870,14 +5870,14 @@ public Object describe()
         // numberToString is typed as nullable under strictNullChecks; cast to string
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
-        Object stringifiedNumber = this.numberToString(number);
+        String stringifiedNumber = this.numberToString(number);
         Object convertedNumber = ((Object)Helpers.parseFloat(stringifiedNumber));
         return Helpers.parseInt(convertedNumber);
     }
 
     public Object parseToNumeric(Object number)
     {
-        Object stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        String stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
@@ -8039,7 +8039,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object id = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+            String id = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             if (!java.util.Objects.equals(id, null))
             {
                 ((List<Object>)result).add(id);
@@ -8903,12 +8903,12 @@ public Object describe()
         return code;
     }
 
-    public Object marketId(String symbol)
+    public String marketId(String symbol)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(market, null))
         {
-            return ((Map<String, Object>)market).get("id");
+            return (String) ((Map<String, Object>)market).get("id");
         }
         return symbol;
     }

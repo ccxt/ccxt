@@ -4101,12 +4101,12 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 			request["symbol"] = GetValue(market, "id")
 		}
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "swap") {
-		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
+	if typeVar == nil || *typeVar != "swap" {
+		panic(NotSupported(this.Id + " fetchFundingRates() does not support " + *typeVar + " markets"))
 	} else {
 		var subType any = nil
 		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchFundingRates", market, params, "linear")
@@ -5927,11 +5927,11 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		return nil
 	}()))
 	var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("createOrders", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
-	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
+	if (category != nil && *category == "inverse") && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " createOrders does not allow inverse orders for non UTA2.0 account"))
 	}
 	var request map[string]any = map[string]any{
@@ -6207,11 +6207,11 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market map[string]any = MapTyped(this.Market(GetValue(orderSymbols, 0)))
 	var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("editOrders", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
-	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
+	if (category != nil && *category == "inverse") && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " editOrders does not allow inverse orders for non UTA2.0 account"))
 	}
 	var request map[string]any = map[string]any{
@@ -6399,11 +6399,11 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	if enableUnifiedAccount != true {
 		panic(NotSupported(this.Id + " cancelOrders() supports UTA accounts only"))
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("cancelOrders", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
-	if IsEqual(category, "inverse") {
+	if category != nil && *category == "inverse" {
 		panic(NotSupported(this.Id + " cancelOrders does not allow inverse orders"))
 	}
 	var ordersRequests []any = []any{}
@@ -6843,9 +6843,9 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var marketType any = nil
+	var marketType *string = nil
 	marketTypeparamsVariable := this.GetBybitType("fetchOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -7663,9 +7663,9 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	AddElementToObject(request, "category", typeVar)
 	if limit != nil {
@@ -9162,9 +9162,9 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
-			var typeVar any = nil
+			var typeVar *string = nil
 			typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params)
-			typeVar = GetValue(typeVarparamsVariable, 0)
+			typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 			params = MapTyped(GetValue(typeVarparamsVariable, 1))
 			var tradeMode any = nil
 			if IsEqual(marginMode, "cross") {
@@ -11199,9 +11199,9 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyLiquidations", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	AddElementToObject(request, "category", typeVar)
 	if limit != nil {
@@ -11542,9 +11542,9 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	AddElementToObject(request, "category", typeVar)
 	if symbol != nil {
@@ -12465,11 +12465,11 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchLongShortRatioHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "option")) {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "option") {
 		panic(NotSupported(this.Id + " fetchLongShortRatioHistory() only support linear and inverse markets"))
 	}
 	if timeframe == nil {

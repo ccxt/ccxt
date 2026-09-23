@@ -1244,14 +1244,14 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
-	if marketType == "swap" {
+	if marketType != nil && *marketType == "swap" {
 		request["instrument_id"] = market["id"]
 
 		response = (<-this.PublicSwapGetPublicDepth(this.Extend(request, query))).Raw
@@ -1302,7 +1302,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//
 	var timestamp *int64 = nil
 	var orderBook any = nil
-	if marketType == "swap" {
+	if marketType != nil && *marketType == "swap" {
 		orderBook = this.SafeDict(response, "data", map[string]any{})
 		timestamp = this.SafeInteger(orderBook, "timestamp")
 	} else {

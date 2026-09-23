@@ -2238,13 +2238,13 @@ func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
-func (this *Hyperliquid) RequestId() any {
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *Hyperliquid) RequestId() int64 {
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
 func (this *Hyperliquid) WrapAsPostAction(request any) any {
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	return map[string]any{
 		"requestId": requestId,
 		"request": map[string]any{

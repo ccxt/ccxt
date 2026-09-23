@@ -2866,7 +2866,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	marginModequeryVariable := this.GetMarginMode(trigger, params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{
 		"account": marginMode,
@@ -4402,7 +4402,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	request := GetValue(requestrequestParamsVariable, 0)
 	requestParams := GetValue(requestrequestParamsVariable, 1)
 	marginModerequestQueryVariable := this.GetMarginMode(false, requestParams)
-	marginMode := GetValue(marginModerequestQueryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModerequestQueryVariable, 0))
 	requestQuery := GetValue(marginModerequestQueryVariable, 1)
 	if symbol != nil {
 		var market map[string]any = MapTyped(this.Market(symbol))
@@ -4414,15 +4414,15 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateUnifiedGetAccounts(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if typeVar == "spot" {
-		if IsEqual(marginMode, "spot") {
+		if marginMode != nil && *marginMode == "spot" {
 
 			response = (<-this.PrivateSpotGetAccounts(this.Extend(request, requestQuery))).Raw
 			PanicOnError(response)
-		} else if IsEqual(marginMode, "margin") {
+		} else if marginMode != nil && *marginMode == "margin" {
 
 			response = (<-this.PrivateMarginGetAccounts(this.Extend(request, requestQuery)))
 			PanicOnError(response)
-		} else if IsEqual(marginMode, "cross_margin") {
+		} else if marginMode != nil && *marginMode == "cross_margin" {
 
 			response = (<-this.PrivateMarginGetCrossAccounts(this.Extend(request, requestQuery)))
 			PanicOnError(response)
@@ -4647,7 +4647,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var isolated bool = IsEqual(marginMode, "margin") && (typeVar == "spot")
+	var isolated bool = (marginMode != nil && *marginMode == "margin") && (typeVar == "spot")
 	var data any = response
 	if InOp(data, "balances") {
 		var flatBalances []any = []any{}
@@ -5233,7 +5233,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var typeVar any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var request any = map[string]any{}
 	var market any = func() any {
 		if symbol != nil {
@@ -5259,7 +5259,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			AddElementToObject(request, "currency_pair", GetValue(market, "id")) // Should always be set for non-trigger
 		}
 		marginModeparamsVariable := this.GetMarginMode(false, params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = GetValue(marginModeparamsVariable, 1)
 		AddElementToObject(request, "account", marginMode)
 	}
@@ -7323,9 +7323,9 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 		}
 	}
 	var lastIdfinalParamsVariable []any = this.HandleParamString2(params, "lastId", "last_id")
-	lastId := GetValue(lastIdfinalParamsVariable, 0)
+	var lastId *string = SafeStringPtr(GetValue(lastIdfinalParamsVariable, 0))
 	finalParams := GetValue(lastIdfinalParamsVariable, 1)
-	if !IsEqual(lastId, nil) {
+	if lastId != nil {
 		AddElementToObject(request, "last_id", lastId)
 	}
 	return []any{request, finalParams}

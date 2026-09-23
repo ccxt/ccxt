@@ -6457,9 +6457,9 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	this.CheckNoStockSymbols(symbols, "fetchBidsAsks")
 	var market any = this.GetMarketFromSymbols(symbols)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBidsAsks", market, params)
@@ -6473,7 +6473,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var response any = nil
-	if IsEqual(typeVar, "option") {
+	if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.EapiPublicGetTicker(params)).Raw
 		PanicOnError(response)
@@ -6485,7 +6485,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.DapiPublicGetTickerBookTicker(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 		if symbols != nil {
 			request["symbols"] = this.Json(this.MarketIds(symbols))
 		}
@@ -6493,7 +6493,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PublicGetTickerBookTicker(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchBidsAsks() does not support ", typeVar), " markets yet")))
+		panic(NotSupported(this.Id + " fetchBidsAsks() does not support " + *typeVar + " markets yet"))
 	}
 	if !IsArray(response) {
 		response = []any{response}
@@ -6533,9 +6533,9 @@ func (this *Binance) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchLastPrices", market, params)
@@ -6550,12 +6550,12 @@ func (this *Binance) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.DapiPublicGetTickerPrice(params)).Raw
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 
 		response = (<-this.PublicGetTickerPrice(params))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchLastPrices() does not support ", typeVar), " markets yet")))
+		panic(NotSupported(this.Id + " fetchLastPrices() does not support " + *typeVar + " markets yet"))
 	}
 
 	ch <- this.ParseLastPrices(response, symbols)
@@ -6642,9 +6642,9 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	this.CheckNoStockSymbols(symbols, "fetchTickers")
 	var market any = this.GetMarketFromSymbols(symbols)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
@@ -6659,7 +6659,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		response = (<-this.DapiPublicGetTicker24hr(params))
 		PanicOnError(response)
-	} else if IsEqual(typeVar, "spot") {
+	} else if typeVar != nil && *typeVar == "spot" {
 		var rolling *bool = this.SafeBool(params, "rolling", false)
 		params = MapTyped(this.Omit(params, "rolling"))
 		if rolling != nil && *rolling == true {
@@ -6683,12 +6683,12 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PublicGetTicker24hr(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if IsEqual(typeVar, "option") {
+	} else if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.EapiPublicGetTicker(params)).Raw
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchTickers() does not support ", typeVar), " markets yet")))
+		panic(NotSupported(this.Id + " fetchTickers() does not support " + *typeVar + " markets yet"))
 	}
 
 	ch <- this.ParseTickers(response, symbols)
@@ -6733,9 +6733,9 @@ func (this *Binance) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMarkPrice", market, params, "swap")
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
@@ -6758,7 +6758,7 @@ func (this *Binance) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 		response = (<-this.DapiPublicGetPremiumIndex(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchMarkPrice() does not support ", typeVar), " markets yet")))
+		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
 	}
 	if IsArray(response) {
 
@@ -6803,16 +6803,16 @@ func (this *Binance) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarkPrices", market, params, "linear")
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(typeVar, "option") {
+	if typeVar != nil && *typeVar == "option" {
 
 		response = (<-this.EapiPublicGetMark(params)).Raw
 		PanicOnError(response)
@@ -6825,7 +6825,7 @@ func (this *Binance) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.DapiPublicGetPremiumIndex(params)).Raw
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchMarkPrices() does not support ", typeVar), " markets yet")))
+		panic(NotSupported(this.Id + " fetchMarkPrices() does not support " + *typeVar + " markets yet"))
 	}
 
 	ch <- this.ParseTickers(response, symbols)
@@ -13231,15 +13231,15 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTradingFees", nil, params, "linear")
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isSpotOrMargin bool = (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin"))
+	var isSpotOrMargin bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
 	var isLinear bool = this.IsLinear(typeVar, subType)
 	var isInverse bool = this.IsInverse(typeVar, subType)
 	var response any = nil
@@ -13426,7 +13426,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		ch <- result
 		return nil
 	}
-	panic(NotSupported(Add(Add(this.Id+" fetchTradingFees() is not supported for ", typeVar), " markets")))
+	panic(NotSupported(this.Id + " fetchTradingFees() is not supported for " + *typeVar + " markets"))
 }
 
 /**

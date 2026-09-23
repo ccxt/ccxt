@@ -1057,9 +1057,9 @@ public class Deepcoin extends DeepcoinApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1323,9 +1323,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1825,9 +1825,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2782,11 +2782,11 @@ public class Deepcoin extends DeepcoinApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType((String) (marketType)));
+            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(marketType));
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100
@@ -3531,8 +3531,8 @@ public class Deepcoin extends DeepcoinApi
         String marketId = this.safeString(order, "instId");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(order, "cTime");
-        Object timestampString = this.safeString(order, "cTime", "");
-        if (((String)timestampString).length() < 13)
+        String timestampString = this.safeString(order, "cTime", "");
+        if (timestampString.length() < 13)
         {
             timestamp = this.safeTimestamp(order, "cTime");
         }
@@ -3693,7 +3693,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true));
-            Object marketType = "swap";
+            String marketType = "swap";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -3701,9 +3701,9 @@ public class Deepcoin extends DeepcoinApi
                 market = (Map<String, Object>) this.market(firstSymbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            String instrumentType = this.convertToInstrumentType((String) (marketType));
+            String instrumentType = this.convertToInstrumentType(marketType);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
             }};
@@ -4245,9 +4245,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = "spot";
+            String marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{

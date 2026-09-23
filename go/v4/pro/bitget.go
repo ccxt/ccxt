@@ -2022,9 +2022,9 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var subType any = nil
+	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("watchOrders", market, params, "linear")
-	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	subType = ccxt.SafeStringPtr(ccxt.GetValue(subTypeparamsVariable, 0))
 	params = ccxt.GetValue(subTypeparamsVariable, 1)
 	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (symbol == nil) {
 		marketId = "default"

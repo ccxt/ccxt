@@ -2696,7 +2696,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }});
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");
-            Object tradeFee = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
+            Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
             tradeFee = this.extend(new HashMap<String, Object>() {{}}, tradeFee);
             String symbol = this.safeString(trade, "symbol");
             if (!java.util.Objects.equals(orderId, null) && !java.util.Objects.equals(tradeFee, null) && !java.util.Objects.equals(symbol, null))

@@ -59,9 +59,9 @@ func (this *Cex) Describe() any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Cex) RequestId() any {
+func (this *Cex) RequestId() string {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return ccxt.ToString(requestId)
@@ -87,7 +87,7 @@ func (this *Cex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
 		"e":    "get-balance",
@@ -418,7 +418,7 @@ func (this *Cex) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var request map[string]any = this.Extend(map[string]any{
 		"e":    "ticker",
 		"oid":  messageHash,
@@ -547,7 +547,7 @@ func (this *Cex) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var request map[string]any = this.Extend(map[string]any{
 		"e":   "get-balance",
 		"oid": messageHash,
@@ -1459,7 +1459,7 @@ func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any 
 		"order_id": ccxt.ToString(id),
 	}, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var request map[string]any = map[string]any{
 		"e":    "get-order",
 		"oid":  messageHash,
@@ -1511,7 +1511,7 @@ func (this *Cex) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
 		"pair": []any{market["baseId"], market["quoteId"]},
 	}, params)
@@ -1565,7 +1565,7 @@ func (this *Cex) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
 		"pair":   []any{market["baseId"], market["quoteId"]},
 		"amount": amount,
@@ -1633,7 +1633,7 @@ func (this *Cex) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 		"price":    price,
 		"order_id": id,
 	}, params)
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"e":    "cancel-replace-order",
@@ -1683,7 +1683,7 @@ func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 	var data map[string]any = this.Extend(map[string]any{
 		"order_id": id,
 	}, params)
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
 		"e":    "cancel-order",
@@ -1729,7 +1729,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) a
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var messageHash any = this.RequestId()
+	var messageHash string = this.RequestId()
 	var data map[string]any = this.Extend(map[string]any{
 		"cancel-orders": ids,
 	}, params)

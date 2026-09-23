@@ -49,8 +49,8 @@ func (this *Mudrex) Ping(client any) any {
 		"method": "PING",
 	}
 }
-func (this *Mudrex) RequestId() any {
-	var reqid any = this.Sum(this.SafeInteger(this.Options, "correlationId", 0), 1)
+func (this *Mudrex) RequestId() int64 {
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "correlationId", 0), 1).(int64)
 	this.Options.Store("correlationId", reqid)
 	return reqid
 }

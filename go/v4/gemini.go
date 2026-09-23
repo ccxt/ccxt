@@ -2585,9 +2585,9 @@ func (this *Gemini) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 
 	var indexedByNetwork map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressesByNetworkAsync(code, params))))
-	var networkCode any = nil
+	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCode = GetValue(networkCodeparamsVariable, 0)
+	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
 	params = MapTyped(GetValue(networkCodeparamsVariable, 1))
 
 	ch <- this.SafeValue(indexedByNetwork, networkCode)

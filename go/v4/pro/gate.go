@@ -2905,10 +2905,10 @@ func (this *Gate) GetMarketTypeByUrl(url any) any {
 	}
 	return "spot"
 }
-func (this *Gate) RequestId() any {
+func (this *Gate) RequestId() int64 {
 	// their support said that reqid must be an int32, not documented
 	this.LockId()
-	var reqid any = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
 	this.Options.Store("reqid", reqid)
 	this.UnlockId()
 	return reqid
@@ -2925,7 +2925,7 @@ func (this *Gate) subscribePublicBody(ch chan any, url any, messageHash any, pay
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
 	_ = subscription
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var time int64 = this.Seconds()
 	var request map[string]any = map[string]any{
 		"id":      requestId,
@@ -2956,7 +2956,7 @@ func (this *Gate) subscribePublicMultipleBody(ch chan any, url any, messageHashe
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var time int64 = this.Seconds()
 	var request map[string]any = map[string]any{
 		"id":      requestId,
@@ -2980,7 +2980,7 @@ func (this *Gate) unSubscribePublicMultipleBody(ch chan any, url any, topic any,
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var time int64 = this.Seconds()
 	var request map[string]any = map[string]any{
 		"id":      requestId,
@@ -3043,7 +3043,7 @@ func (this *Gate) requestPrivateBody(ch chan any, url any, reqParams any, channe
 	// uid is required for some subscriptions only so it's not a part of required credentials
 	var event string = "api"
 	if requestId == nil {
-		var reqId any = this.RequestId()
+		var reqId int64 = this.RequestId()
 		requestId = ccxt.ToString(reqId)
 	}
 	var messageHash any = requestId
@@ -3106,7 +3106,7 @@ func (this *Gate) subscribePrivateBody(ch chan any, url any, messageHash any, pa
 		"KEY":    this.ApiKey,
 		"SIGN":   signature,
 	}
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"id":      requestId,
 		"time":    time,

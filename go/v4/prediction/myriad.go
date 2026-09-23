@@ -4170,14 +4170,14 @@ func (this *Myriad) ParseEvent(rawEvent any) any {
 		"info":             rawEvent,
 	})
 }
-func (this *Myriad) RequestId(url any) any {
+func (this *Myriad) RequestId(url any) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if ccxt.IsEqual(existing, nil) {
 		this.Options.Store("requestId", this.CreateSafeDictionary())
 	}
 	var options any = ccxt.GetValue(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	if !ccxt.IsEqual(url, nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	}
@@ -4213,7 +4213,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan any, url any) any {
 	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
 	if ccxt.IsEqual(connectSent, nil) {
 		this.Options.Store("wsConnected", false)
-		var requestId any = this.RequestId(url)
+		var requestId int64 = this.RequestId(url)
 		// give the anonymous connect a name so the params object is non-empty (PHP serialises an
 		// empty array as a JSON array, which Centrifugo rejects)
 		var connectMsg map[string]any = map[string]any{
@@ -4265,7 +4265,7 @@ func (this *Myriad) subscribeMyriadChannelBody(ch chan any, messageHash any, cha
 	// finish the connect handshake first so the subscribe frame is sent after the connect reply
 
 	ccxt.PanicOnError((<-this.ConnectCentrifugoAsync(url)))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{
 			"channel": channel,
@@ -4375,7 +4375,7 @@ func (this *Myriad) watchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.SeedOrderBookAsync(outcome, sym, limit)))
 	}
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{
 			"channel": channel,
@@ -4744,7 +4744,7 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		resolvedSymbols = append(resolvedSymbols, this.SafeOutcomeSymbol(ccxt.GetValue(outcomes, i), outcomeObj))
 		if ccxt.IsEqual(this.SafeValue(seenChannels, channel), nil) {
 			ccxt.AddElementToObject(seenChannels, channel, true)
-			var requestId any = this.RequestId(url)
+			var requestId int64 = this.RequestId(url)
 			var subscribeMsg map[string]any = map[string]any{
 				"subscribe": map[string]any{
 					"channel": channel,
@@ -5039,7 +5039,7 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.SeedPositionBalancesAsync(trader)))
 	}
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{
 			"channel": channel,

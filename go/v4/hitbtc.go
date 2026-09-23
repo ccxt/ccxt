@@ -2164,14 +2164,14 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var response any = nil
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.PrivateGetSpotFee(query)).Raw
 		PanicOnError(response)
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivateGetFuturesFee(query)).Raw
 		PanicOnError(response)
@@ -3566,12 +3566,12 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		var queryMarketIds any = this.MarketIds(symbols)
 		request["symbols"] = Join(queryMarketIds, ",")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "swap") {
-		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
+	if typeVar == nil || *typeVar != "swap" {
+		panic(NotSupported(this.Id + " fetchFundingRates() does not support " + *typeVar + " markets"))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw))

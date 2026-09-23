@@ -39,8 +39,8 @@ func (this *Ndax) Describe() any {
 		},
 	})
 }
-func (this *Ndax) RequestId() any {
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *Ndax) RequestId() int64 {
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
@@ -73,7 +73,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var name string = "SubscribeLevel1"
 	var messageHash any = ccxt.Add(name+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
 		"InstrumentId": this.SafeInteger(market, "id"),
@@ -162,7 +162,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var name string = "SubscribeTrades"
 	var messageHash any = ccxt.Add(name+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
 		"InstrumentId":     this.SafeInteger(market, "id"),
@@ -281,7 +281,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var name string = "SubscribeTicker"
 	var messageHash any = ccxt.Add(name+":"+timeframe+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var payload map[string]any = map[string]any{
 		"OMSId":            omsId,
 		"InstrumentId":     this.SafeInteger(market, "id"),
@@ -495,7 +495,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var name string = "SubscribeLevel2"
 	var messageHash any = ccxt.Add(name+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	limit = func() any {
 		if limit == nil {
 			return 100

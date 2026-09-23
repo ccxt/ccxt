@@ -3474,14 +3474,14 @@ func (this *Okx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
-	if IsEqual(marketType, "option") {
+	if marketType != nil && *marketType == "option" {
 		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
@@ -3600,14 +3600,14 @@ func (this *Okx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
-	if IsEqual(marketType, "option") {
+	if marketType != nil && *marketType == "option" {
 		var defaultUnderlying *string = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
 		var currencyId *string = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
 		if currencyId == nil {
@@ -6285,10 +6285,10 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var query any = nil
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
-	typeVar = GetValue(typeVarqueryVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query = GetValue(typeVarqueryVariable, 1)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
@@ -6507,10 +6507,10 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var query any = nil
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-	typeVar = GetValue(typeVarqueryVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query = GetValue(typeVarqueryVariable, 1)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
@@ -6722,7 +6722,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-	typeVar := GetValue(typeVarqueryVariable, 0)
+	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
 	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
 	if (limit != nil) && (since == nil) {
@@ -6862,9 +6862,9 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
-	typeVar := GetValue(typeVarqueryVariable, 0)
+	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
-	if !IsEqual(typeVar, nil) {
+	if typeVar != nil {
 		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
 	}
 	if limit != nil {
@@ -7930,12 +7930,12 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
-	typeVar := GetValue(typeVarqueryVariable, 0)
+	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	if !IsEqual(typeVar, nil) {
+	if typeVar != nil {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 
@@ -8973,9 +8973,9 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-	typeVar := GetValue(typeVarqueryVariable, 0)
+	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 	// AccountBillsArchive has the same cost as AccountBills but supports three months of data
@@ -10658,11 +10658,11 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
-	if (!IsEqual(typeVar, "future")) && (!IsEqual(typeVar, "option")) {
+	if (typeVar == nil || *typeVar != "future") && (typeVar == nil || *typeVar != "option") {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports futures and options markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -10782,14 +10782,14 @@ func (this *Okx) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = GetValue(marketTypeparamsVariable, 1)
-	if (marketType == nil) || (IsEqual(marketType, "spot")) {
-		marketType = "option"
+	if (marketType == nil) || (marketType != nil && *marketType == "spot") {
+		marketType = SafeStringPtr("option")
 	}
-	if (!IsEqual(marketType, "option")) && (!IsEqual(marketType, "swap")) && (!IsEqual(marketType, "future")) {
+	if (marketType == nil || *marketType != "option") && (marketType == nil || *marketType != "swap") && (marketType == nil || *marketType != "future") {
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{

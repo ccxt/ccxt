@@ -993,7 +993,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //         }
         //     }
         //
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "spot.obu"))
         {
             this.handleNewSpotOrderBook(client, (Map<String, Object>) (message));
@@ -1324,7 +1324,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public void handleTickerAndBidAsk(Object objectName, Client client, Map<String, Object> message)
     {
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String rawMarketType = this.safeString(parts, 0);
         String marketType = (((java.util.Objects.equals(rawMarketType, "futures")))) ? "contract" : "spot";
@@ -1684,7 +1684,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //     }
         //   }
         //
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String rawMarketType = this.safeString(channelParts, 0);
         String marketType = (((java.util.Objects.equals(rawMarketType, "spot")))) ? "spot" : "contract";
@@ -2022,7 +2022,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Helpers.addElementToObject(this.balance, code, account);
             }
         }
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String rawType = this.safeString(parts, 0);
         Object channelType = this.getSupportedMapping(rawType, new HashMap<String, Object>() {{
@@ -2811,7 +2811,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
                 }
                 // remove subscriptions for watchSymbols
-                Object channel = this.safeString(message, "channel");
+                String channel = this.safeString(message, "channel");
                 if ((!java.util.Objects.equals(channel, null)) && (((String)channel).indexOf(".") > 0))
                 {
                     List<Object> parsedChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
@@ -2848,7 +2848,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
-        Object channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel");
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "balance", "handleBalanceSubscription");
             put( "spot.order_book_update", "handleOrderBookSubscription");

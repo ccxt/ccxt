@@ -28,47 +28,47 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #1, should prevail: param
 	//
 	var marketType1params1Variable []any = exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault")
-	marketType1 := ccxt.GetValue(marketType1params1Variable, 0)
+	var marketType1 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType1params1Variable, 0))
 	params1 := ccxt.GetValue(marketType1params1Variable, 1)
 	Assert(func() bool { _, ok := initialParams["defaultType"]; return ok }())
 	Assert(!(ccxt.InOp(params1, "defaultType")))
-	Assert((marketType1 == "valueFromParam"))
+	Assert((marketType1 != nil && *marketType1 == "valueFromParam"))
 	//
 	// case #2, should prevail: market.type
 	//
 	var marketType2params2Variable []any = exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault")
-	marketType2 := ccxt.GetValue(marketType2params2Variable, 0)
+	var marketType2 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType2params2Variable, 0))
 	params2 := ccxt.GetValue(marketType2params2Variable, 1)
-	Assert((marketType2 == "spot"))
+	Assert((marketType2 != nil && *marketType2 == "spot"))
 	//
 	// case #3, should prevail: valueDefault
 	//
 	var marketType3params3Variable []any = exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault")
-	marketType3 := ccxt.GetValue(marketType3params3Variable, 0)
+	var marketType3 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType3params3Variable, 0))
 	params3 := ccxt.GetValue(marketType3params3Variable, 1)
-	Assert((marketType3 == "valueDefault"))
+	Assert((marketType3 != nil && *marketType3 == "valueDefault"))
 	//
 	// case #4, should prevail: method options
 	//
 	var marketType4params4Variable []any = exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{})
-	marketType4 := ccxt.GetValue(marketType4params4Variable, 0)
+	var marketType4 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType4params4Variable, 0))
 	params4 := ccxt.GetValue(marketType4params4Variable, 1)
-	Assert((marketType4 == "valueFromMethodOptions"))
+	Assert((marketType4 != nil && *marketType4 == "valueFromMethodOptions"))
 	//
 	// case #5, should prevail: options
 	//
 	var marketType5params5Variable []any = exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
-	marketType5 := ccxt.GetValue(marketType5params5Variable, 0)
+	var marketType5 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType5params5Variable, 0))
 	params5 := ccxt.GetValue(marketType5params5Variable, 1)
-	Assert((marketType5 == "valueFromOptions"))
+	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
 	ccxt.AddElementToObject(exchange.Options, "defaultType", nil)
 	var marketType6params6Variable []any = exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
-	marketType6 := ccxt.GetValue(marketType6params6Variable, 0)
+	var marketType6 *string = ccxt.SafeStringPtr(ccxt.GetValue(marketType6params6Variable, 0))
 	params6 := ccxt.GetValue(marketType6params6Variable, 1)
-	Assert((marketType6 == "spot"))
+	Assert((marketType6 != nil && *marketType6 == "spot"))
 	// fake assertion to avoid unused vars
 	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
 }

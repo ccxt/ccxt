@@ -314,7 +314,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
 //
-// The three names below have the SAME retyped signature and the same call-site
+// The names below have the SAME retyped signature and the same call-site
 // behaviour as JAVA_STRING_RETURN_METHODS (locals fed by them need no cast), but their
 // return expressions cannot all be typed by the printer alone, so the producer return
 // sites carry the `(String)` checkcast that every call site used to carry (the local
@@ -323,6 +323,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
 //   * safeSymbol (1 decl, BaseExchange)      -> Helpers.GetValue(market, "symbol")
 //   * safeCurrencyCode (2 decls, base + kraken) -> Helpers.GetValue(currency, "code")
 //   * getExtendedCurrencyCodeById (1 decl, extended) -> Helpers.GetValue(currency, "code")
+//   * marketId (1 decl, BaseExchange; 0 venue overrides) -> market['id'], else the String symbol
 //
 // Every return path of every declaration is the market/currency row's own string field
 // (`market['symbol']` / `currency['code']`) or null/undefined when the key is absent —
@@ -335,7 +336,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
 //   * every other return expression (kraken's Helpers.add chain, `super.safeCurrencyCode`,
 //     the safeString reads, the `code` local) already prints String — no cast.
 export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
-    'getExtendedCurrencyCodeById', 'safeCurrencyCode', 'safeSymbol',
+    'getExtendedCurrencyCodeById', 'marketId', 'safeCurrencyCode', 'safeSymbol',
 ]);
 
 // listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites:
@@ -588,7 +589,9 @@ function safeDictLocalType (printer, initializer, name) {
     if (!resolvesToMethodNamed (printer, initializer, name)) {
         return undefined;
     }
-    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true };
+    // later Map producer writes (extend/deepExtend/safeDict/awaits) join; their checkcast is printed by the write hook
+    const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_DICT_TYPE;
+    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
 }
 
 // ===== parse* structure locals (B-10) =====
@@ -3648,6 +3651,19 @@ const HANDLE_VENUE_ELEMENT_TYPES = {
     'handleApiKeyIndex': { element0: 'Long', file: /(?:^|[\\/])ts[\\/]src[\\/]lighter\.ts$/ },
     'handleAccountIndex': { element0: 'Long', file: /(?:^|[\\/])ts[\\/]src[\\/]lighter\.ts$/ },
     'handleHfAndParams': { element0: 'Boolean', file: /(?:^|[\\/])ts[\\/]src[\\/]kucoin\.ts$/ },
+    // String-typed locals, the String walletAddress field, or a `[Str, Dict]` option contract
+    'getBybitType': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]bybit\.ts$/ },
+    'getInstType': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]pro[\\/]bitget\.ts$/ },
+    'handlePublicAddress': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/](?:dydx|hyperliquid)\.ts$/ },
+    'handlePortfolioAndParams': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]coinbaseinternational\.ts$/ },
+    'getMarginMode': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]gate\.ts$/ },
+    'orderBookSuffix': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]pro[\\/]deepcoin\.ts$/ },
+    // null or "cross": any other margin mode throws NotSupported before the return
+    'customHandleMarginModeAndParams': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]cryptocom\.ts$/ },
+    'resolveAuthType': { element0: 'String', file: /(?:^|[\\/])ts[\\/]src[\\/]pro[\\/]binance\.ts$/ },
+    'handleUTAAndParams': { element0: 'Boolean', file: /(?:^|[\\/])ts[\\/]src[\\/]bitget\.ts$/ },
+    // overrides that only rewrite params, then return the audited base producer's tuple
+    'handleMarketTypeAndParams': { element0: 'String', stringDefaultArg: 3, file: /(?:^|[\\/])ts[\\/]src[\\/](?:okx|deepcoin)\.ts$/ },
 };
 
 function handleVenueElementType (printer, node) {
@@ -3658,6 +3674,12 @@ function handleVenueElementType (printer, node) {
     const spec = HANDLE_VENUE_ELEMENT_TYPES[String (callNode.expression.name.escapedText)];
     if (spec === undefined) {
         return undefined;
+    }
+    if (spec.stringDefaultArg !== undefined) {
+        const defaultArgument = callNode.arguments[spec.stringDefaultArg];
+        if (defaultArgument !== undefined && !handleIsStringValued (printer, defaultArgument)) {
+            return undefined;
+        }
     }
     let declaration;
     try {
@@ -3692,9 +3714,14 @@ const HANDLE_ELEMENT_1_TYPE = 'java.util.Map<String, Object>';
 const HANDLE_DECLARATION_FILE = /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
 
 // base helpers DECLARED `String` in the Java base (BaseExchange.java / SafeMethods.java)
-const HANDLE_DECLARED_STRING_ACCESSORS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+const HANDLE_DECLARED_STRING_ACCESSORS = new Set ([
+    'safeString', 'safeString2', 'safeStringN', 'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
+    'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN',
+]);
 // hand-written base methods declared `String` in BaseExchange.java
-const HANDLE_DECLARED_STRING_METHODS = new Set ([ 'iso8601', 'numberToString', 'uuid', 'uuid16', 'uuid22', 'uuidv1' ]);
+const HANDLE_DECLARED_STRING_METHODS = new Set ([
+    'iso8601', 'numberToString', 'uuid', 'uuid16', 'uuid22', 'uuidv1', 'yyyymmdd', 'ymdhms',
+]);
 const HANDLE_PRECISE_STRING_STATICS = new Set ([
     'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringAbs',
     'stringNeg', 'stringMax', 'stringMin', 'stringOr',
@@ -4138,6 +4165,16 @@ function isHandleDestructuringCallee (node) {
     return isThisOrSuperCall (current) && String (current.expression.name.escapedText).includes ('andle');
 }
 
+// the handle* family plus the audited venue tuple producers (getBybitType, getInstType, ...)
+function isHandleOrVenueTupleCallee (node) {
+    let current = node;
+    while (current !== undefined && (ts.isParenthesizedExpression (current) || ts.isAwaitExpression (current))) {
+        current = current.expression;
+    }
+    return isHandleDestructuringCallee (node)
+        || (isThisCall (current) && Object.hasOwn (HANDLE_VENUE_ELEMENT_TYPES, String (current.expression.name.escapedText)));
+}
+
 // `var <holder> = ` -> `java.util.List<Object> <holder> = (java.util.List<Object>) ` on the
 // line the reads prove; returns undefined when the line is not the expected holder
 function handleRetypeHolderLine (line, holderName) {
@@ -4153,7 +4190,7 @@ function handleRetypeHolderLine (line, holderName) {
 // `const [a, b] = this.handleX (...)`: type the holder and, for the audited handlers, the
 // element declarations whose uses survive the scan
 function handleRetypeBindingPatternBlock (printer, tupleTypes, declaration, printed) {
-    if (!isHandleDestructuringCallee (declaration.initializer)) {
+    if (!isHandleOrVenueTupleCallee (declaration.initializer)) {
         return printed;
     }
     const elements = declaration.name.elements;
@@ -4164,7 +4201,7 @@ function handleRetypeBindingPatternBlock (printer, tupleTypes, declaration, prin
         return printed; // the element reads must prove the cast this rewrite hoists
     }
     const lines = printed.split ('\n');
-    const holder = handleRetypeHolderLine (lines[0], holderName);
+    const holder = isHandleDestructuringCallee (declaration.initializer) ? handleRetypeHolderLine (lines[0], holderName) : undefined;
     let retyped = holder !== undefined;
     if (holder !== undefined) {
         lines[0] = holder;
@@ -4274,7 +4311,7 @@ function handleUntilOptionEchoType (printer, assignment, index, element) {
 // `[a, b] = this.handleX (...)` printed by printCustomBinaryExpressionIfAny: type the
 // holder and cast the element writes whose target declaration this section retyped
 function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed) {
-    if (!isHandleDestructuringCallee (node.right)) {
+    if (!isHandleOrVenueTupleCallee (node.right)) {
         return printed;
     }
     const elements = node.left.elements;
@@ -4285,7 +4322,8 @@ function handleRetypeDestructuringAssignment (printer, tupleTypes, node, printed
         return printed; // the reads must prove the cast this rewrite hoists
     }
     const lines = printed.split ('\n');
-    const holder = handleRetypeHolderLine (lines[0], holderName);
+    // a venue producer's holder already infers its typed List return: leave it as printed
+    const holder = isHandleDestructuringCallee (node.right) ? handleRetypeHolderLine (lines[0], holderName) : lines[0];
     if (holder === undefined) {
         return printed;
     }
@@ -5514,10 +5552,12 @@ export function installJavaLocalTypes (transpiler) {
             }
             return printed.slice (0, head) + '(' + javaType + ') ' + printed.slice (head);
         }
-        if (!isThisCall (right)) {
-            return printed;
-        }
         if (!isProvablyOfType (printer, right, javaType, undefined)) {
+            // writeOk-admitted producer writes (section 10/13 accumulators) take their own checkcast
+            const info = javaType === JAVA_SAFE_DICT_TYPE ? accumulatorWriteInfo (printer, right) : undefined;
+            return info === undefined || info.type !== javaType ? printed : accumulatorCastWrite (printer, node, printed, info);
+        }
+        if (!isThisCall (right)) {
             return printed;
         }
         const call = right.expression.name.escapedText;
@@ -5953,6 +5993,11 @@ function dataflowValueType (printer, node, context) {
             return dataflowResolveRead (printer, context, node) ?? joinParameterReadType (printer, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+            // `v as string` prints `v` or `((String)v)`: String exactly when v already is
+            return (node.type?.kind === ts.SyntaxKind.StringKeyword
+                && dataflowValueType (printer, node.expression, context) === JAVA_DATAFLOW_STRING) ? JAVA_DATAFLOW_STRING : undefined;
         case ts.SyntaxKind.ConditionalExpression:
             // an arm gets no checkcast, so a structure call (printed `Object`) cannot type it
             if (dataflowIsStructureCall (printer, node.whenTrue) || dataflowIsStructureCall (printer, node.whenFalse)) {
@@ -7640,7 +7685,20 @@ function numericIsSameFamilyWrite (printer, node, javaType) {
     if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
         return javaType !== 'int';
     }
+    if (javaType === 'Long' && numericLongLiteralText (right) !== undefined) {
+        return true; // printed with the L suffix by the write hook (installJavaNumericLocalTypes)
+    }
     return numericFamilyCallType (printer, right) === javaType;
+}
+
+// `0` / `-5` -> the Java long literal text, undefined for any other shape
+function numericLongLiteralText (node) {
+    const negative = node !== undefined && ts.isPrefixUnaryExpression (node) && node.operator === ts.SyntaxKind.MinusToken;
+    const literal = negative ? node.operand : node;
+    if (literal === undefined || literal.kind !== ts.SyntaxKind.NumericLiteral || !/^\d{1,15}$/.test (literal.text)) {
+        return undefined;
+    }
+    return (negative ? '-' : '') + literal.text;
 }
 
 function numericReceiverCallIsSafe (method) {
@@ -7917,6 +7975,27 @@ export function installJavaNumericLocalTypes (transpiler) {
         numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
         declaredNumericTypes.set (declaration, javaType);
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
+    };
+    // (5) `x = 0` on a Long local: Java never boxes an int into Long, so print `x = 0L`
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        const literal = node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)
+            ? numericLongLiteralText (unwrapNumericExpression (node.right)) : undefined;
+        let declaration;
+        try {
+            declaration = literal === undefined ? undefined : printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        if (declaration === undefined || declaredNumericTypes.get (declaration) !== 'Long') {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        const tail = at === -1 ? '' : printed.slice (at + marker.length);
+        const m = tail.match (/^(\(?)(-?\d+)(\)?)$/);
+        return m === null || m[2] !== literal ? printed : printed.slice (0, at + marker.length) + m[1] + m[2] + 'L' + m[3];
     };
     // SS-15: the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
     // installed after every family wrapper so it reads the token the whole chain produced
@@ -9574,7 +9653,8 @@ function safeListLocalTypeOf (printer, declaration, isProFile) {
     if (!safeListDefaultIsList (printer, initializer, name)) {
         return undefined;
     }
-    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, { noCastAssertions: true })) {
+    const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_LIST_TYPE;
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, { noCastAssertions: true, writeOk })) {
         return undefined;
     }
     return name;
@@ -9588,6 +9668,7 @@ export function patchJavaSafeListLocalTypes (transpiler) {
         return;
     }
     printer._javaSafeListTypesPatched = true;
+    const typed = new WeakSet ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -9615,7 +9696,24 @@ export function patchJavaSafeListLocalTypes (transpiler) {
         if (!value.startsWith ('this.' + name + '(')) {
             return printed;
         }
+        typed.add (declaration);
         return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${JAVA_SAFE_LIST_CAST} ${value}`;
+    };
+    // later safeList*/arrayConcat writes are declared Object in Java: same checkcast as the declaration
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        const info = declaration !== undefined && typed.has (declaration) ? accumulatorWriteInfo (printer, node.right) : undefined;
+        return info === undefined || info.type !== JAVA_SAFE_LIST_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
     };
 }
 
@@ -10073,6 +10171,16 @@ function accumulatorWriteInfo (printer, node) {
         return { type: collection.type, cast: collection.cast ? '(' + collection.type + ')' : '' };
     }
     return undefined;
+}
+
+// `x = <producer>` -> `x = <cast> <producer>` for a producer declared Object in Java
+function accumulatorCastWrite (printer, node, printed, info) {
+    const marker = `${printer.printNode (node.left, 0)} = `;
+    const at = printed.indexOf (marker);
+    if (info.cast === '' || at === -1 || printed.startsWith (info.cast, at + marker.length)) {
+        return printed;
+    }
+    return printed.slice (0, at + marker.length) + info.cast + ' ' + printed.slice (at + marker.length);
 }
 
 function joinedAccumulatorTypeOf (printer, declaration) {

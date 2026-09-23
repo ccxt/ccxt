@@ -1685,12 +1685,12 @@ public class Hyperliquid extends HyperliquidApi
                 String wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
                 // feeInt defaults to 0: the builder is attached for statistics purposes only and the
                 // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
-                Object feeInt = this.safeInteger(this.options, "feeInt", 0);
+                Long feeInt = this.safeInteger(this.options, "feeInt", 0);
                 if (!Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
-                    feeInt = 0;
+                    feeInt = 0L;
                 }
-                final Object finalFeeInt = feeInt;
+                final Long finalFeeInt = feeInt;
                 ((Map<String, Object>)orderAction).put("builder", new HashMap<String, Object>() {{
         put( "b", wallet );
         put( "f", finalFeeInt );

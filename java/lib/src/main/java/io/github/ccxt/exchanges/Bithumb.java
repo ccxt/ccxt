@@ -1252,10 +1252,10 @@ public class Bithumb extends BithumbApi
                     ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
                 } else
                 {
-                    Object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
+                    Long maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
                     if ((java.util.Objects.equals(maxMarketIdsPerRequest, null)) || (Helpers.isLessThan(maxMarketIdsPerRequest, 1)))
                     {
-                        maxMarketIdsPerRequest = 300;
+                        maxMarketIdsPerRequest = 300L;
                     }
                     Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)

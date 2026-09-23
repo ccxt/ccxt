@@ -1935,12 +1935,12 @@ public class Cryptocom extends CryptocomApi
         String broker = this.safeString(this.options, "broker", "CCXT");
         ((Map<String, Object>)request).put("broker_id", broker);
         String marketType = null;
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         List<Object> marginModeparametersVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", parameters);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
         {

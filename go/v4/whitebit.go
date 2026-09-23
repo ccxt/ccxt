@@ -2988,12 +2988,12 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var requestType []any = []any{}
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		var isMargin any = nil
 		var isMarginparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "isMargin", false)
 		isMargin = GetValue(isMarginparamsVariable, 0)
@@ -3003,10 +3003,10 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		} else {
 			requestType = append(requestType, "spot")
 		}
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 		requestType = append(requestType, "futures")
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " type")))
+		panic(NotSupported(this.Id + " cancelAllOrders() does not support " + *typeVar + " type"))
 	}
 	request["type"] = requestType
 

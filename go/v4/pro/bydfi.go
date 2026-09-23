@@ -95,9 +95,9 @@ func (this *Bydfi) Ping(client any) any {
 		"method": "ping",
 	}
 }
-func (this *Bydfi) RequestId() any {
+func (this *Bydfi) RequestId() int64 {
 	this.LockId()
-	var reqid any = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
+	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1).(int64)
 	this.Options.Store("reqid", reqid)
 	this.UnlockId()
 	return reqid
@@ -115,7 +115,7 @@ func (this *Bydfi) watchPublicBody(ch chan any, messageHashes any, channels any,
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscription
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var id any = this.RequestId()
+	var id int64 = this.RequestId()
 	var subscriptionParams map[string]any = map[string]any{
 		"id": id,
 	}
@@ -153,7 +153,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)
 	var subscription map[string]any = map[string]any{}
 	if ccxt.IsEqual(privateSubscription, nil) {
-		var id any = this.RequestId()
+		var id int64 = this.RequestId()
 		var timestamp string = ccxt.ToString(this.Milliseconds())
 		var payload any = ccxt.Add(this.ApiKey, timestamp)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "hex")

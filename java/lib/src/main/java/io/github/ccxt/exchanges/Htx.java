@@ -9468,11 +9468,11 @@ public class Htx extends HtxApi
                         toAccountId = "linear-swap";
                     }
                     // check if cross-margin or isolated
-                    Object symbol = this.safeString(parameters, "symbol");
+                    String symbol = this.safeString(parameters, "symbol");
                     parameters = (Map<String, Object>) this.omit(parameters, "symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        symbol = this.marketId((String) (symbol));
+                        symbol = this.marketId(symbol);
                         ((Map<String, Object>)request).put("margin-account", symbol);
                     } else
                     {

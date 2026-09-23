@@ -500,7 +500,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         if (java.util.Objects.equals(type, "DATA"))
         {
-            Object topic = this.safeString(message, "channel", "");
+            String topic = this.safeString(message, "channel", "");
             Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");

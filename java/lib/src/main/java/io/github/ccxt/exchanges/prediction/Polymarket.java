@@ -2968,7 +2968,7 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object o = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
-                Object orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
                     // a distinct salt per order so two identical orders in one batch don't collide

@@ -428,12 +428,12 @@ public class P2b extends P2bApi
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        Object base = ((String)this.safeCurrencyCode(baseId));
-        Object quote = ((String)this.safeCurrencyCode(quoteId));
+        String base = ((String)this.safeCurrencyCode(baseId));
+        String quote = ((String)this.safeCurrencyCode(quoteId));
         Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
-        final Object finalBase = base;
+        final String finalBase = base;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", ((finalBase + "/") + quote) );
