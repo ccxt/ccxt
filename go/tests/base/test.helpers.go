@@ -400,6 +400,10 @@ func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
 	return ccxt.GetArgInt64Ptr(args, index, def)
 }
 
+func Int64PtrTyped(v any) *int64 {
+	return ccxt.Int64PtrTyped(v)
+}
+
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	return ccxt.GetArgFloat64Ptr(args, index, def)
 }

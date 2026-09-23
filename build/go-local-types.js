@@ -3104,15 +3104,45 @@ function ccxtGoWriteSiteCallee (goTranspiler, node) {
     return printed.startsWith ('exchange.') ? ('this.' + printed.substring (9)) : printed;
 }
 
+// an integer literal, or Math.min/Math.max over integer literals and plain identifiers whose
+// value is already an integer box or *int64 (both deref'd by mathMin/mathMax); Int64PtrTyped
+// then stores the same integer behind a pointer
+function ccxtGoWriteSiteIsIntegerProducer (right) {
+    const isIntLiteral = (n) => (n?.kind === ts.SyntaxKind.NumericLiteral) && /^[0-9]+$/.test (n.text);
+    if (isIntLiteral (right)) {
+        return true;
+    }
+    const callee = right?.expression;
+    if ((right?.kind !== ts.SyntaxKind.CallExpression) || (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (callee.expression?.escapedText !== 'Math') || !['min', 'max'].includes (callee.name?.escapedText)) {
+        return false;
+    }
+    const left = right.parent?.left;
+    return (right.arguments.length === 2) && right.arguments.every ((a) => isIntLiteral (a)
+        || ((a.kind === ts.SyntaxKind.Identifier) && (left?.kind === ts.SyntaxKind.Identifier) && (a.escapedText === left.escapedText)));
+}
+
 // the write-site conversion admitted for a declared Go type, or undefined when the right-hand
 // side is not a whole admitted producer call
 function ccxtGoWriteSiteConversion (goTranspiler, goType, right) {
+    if ((goType === '*int64') && ccxtGoWriteSiteIsIntegerProducer (right)) {
+        return 'Int64PtrTyped';
+    }
     const callee = ccxtGoWriteSiteCallee (goTranspiler, right);
     if (callee === undefined) {
         return undefined;
     }
     const admitted = CCXT_GO_WRITESITE_CONVERSIONS[callee];
     return (admitted === undefined) ? undefined : admitted[goType];
+}
+
+// the declaration a name resolves to (checker symbol), or undefined
+function ccxtGoParamDeclarationOf (goTranspiler, n) {
+    try {
+        return goTranspiler.getChecker ().getSymbolAtLocation (n)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
 }
 
 // the veto cases of the shipped goLocalIsSafeToType, re-stated for the re-check below
@@ -3138,8 +3168,13 @@ function ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, goType) {
     && (parent.parent.left === parent)
     && (parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
         // `[x, params] = f()` prints a MapTyped element read only for a GetArg-bound Dict parameter
+        const index = parent.elements.indexOf (n);
+        if ((goType === 'map[string]any') && (typeof goTranspiler.goGetArgTupleWriteIsDict === 'function')) {
+            const decl = ccxtGoParamDeclarationOf (goTranspiler, n);
+            return !goTranspiler.goGetArgTupleWriteIsDict (decl, parent.parent.right, index);
+        }
         return !((goType === 'map[string]any') && (typeof goTranspiler.goGetArgBindsDictElement === 'function')
-            && goTranspiler.goGetArgBindsDictElement (n, parent.parent.right, parent.elements.indexOf (n)));
+            && goTranspiler.goGetArgBindsDictElement (n, parent.parent.right, index));
     }
     if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
         const op = parent.operatorToken.kind;

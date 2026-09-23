@@ -2165,6 +2165,17 @@ func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
 	return def
 }
 
+// Int64PtrTyped stores an integer write (literal, mathMin/mathMax result, *int64) into a *int64
+// local; absent stays a nil pointer.
+func Int64PtrTyped(v any) *int64 {
+	res := GetArgInt64Ptr([]any{v}, 0, nil)
+	if res == nil {
+		return nil
+	}
+	num := *res
+	return &num
+}
+
 // GetArgFloat64Ptr is GetArgStringPtr for a `number` parameter (`price`, `amount`).
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	if len(args) <= index {
