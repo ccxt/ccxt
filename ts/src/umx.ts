@@ -2686,7 +2686,7 @@ export default class umx extends Exchange {
      * @see https://www.umx.com/docs/coin-apis/funding-account/get-account-configuration-information
      * @param {string} symbol unified market symbol, it is only echoed into the answer, the mode applies to the whole account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure} whose marginMode is "cross" or "portfolio", the venue has no isolated margin
      */
     override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadMarkets ();
