@@ -1264,7 +1264,7 @@ public class Bitfinex extends BitfinexApi
             {
                 continue;
             }
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             List<Object> dwStatuses = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(network, null))
             {
@@ -1705,7 +1705,7 @@ public class Bitfinex extends BitfinexApi
         String firstValue = this.safeString(ticker, 0);
         Boolean hasMarketId = (!java.util.Objects.equals(firstValue, null)) && (Helpers.isTrue(firstValue.startsWith(((String)"t"))) || Helpers.isTrue(firstValue.startsWith(((String)"f"))));
         Boolean isFetchTicker = !Boolean.TRUE.equals(hasMarketId);
-        Object symbol = null;
+        String symbol = null;
         Integer minusIndex = 0;
         if (Boolean.TRUE.equals(isFetchTicker))
         {
@@ -1751,7 +1751,7 @@ public class Bitfinex extends BitfinexApi
             high = this.safeString(ticker, (9L - ((long) minusIndex)));
             low = this.safeString(ticker, (10L - ((long) minusIndex)));
         }
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final String finalHigh = high;
         final String finalLow = low;
         final String finalBid = bid;

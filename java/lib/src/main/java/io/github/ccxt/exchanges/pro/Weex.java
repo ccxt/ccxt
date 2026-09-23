@@ -1119,7 +1119,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstEntry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         String interval = this.safeString(firstEntry, "i");
-        Object timeframe = this.findTimeframe(interval);
+        String timeframe = this.findTimeframe(interval);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -2255,9 +2255,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         String rawStatus = this.safeStringLower(order, "status");
         String rawType = this.safeString(order, "type");
-        Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        Object stopLossPrice = null;
-        Object takeProfitPrice = null;
+        String triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
         if (java.util.Objects.equals(rawType, "TAKE_PROFIT_MARKET") || java.util.Objects.equals(rawType, "TAKE_PROFIT"))
         {
             takeProfitPrice = triggerPrice;
@@ -2268,8 +2268,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         final Object finalRawType = rawType;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        final Object finalStopLossPrice = stopLossPrice;
-        final Object finalTakeProfitPrice = takeProfitPrice;
+        final String finalStopLossPrice = stopLossPrice;
+        final String finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Weex.this.safeString(order, "id") );
             put( "clientOrderId", Weex.this.safeString(order, "clientOrderId") );

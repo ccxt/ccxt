@@ -1404,7 +1404,7 @@ public class Mexc extends MexcApi
             String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            Object status = null;
+            String status = null;
             Long updated = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1425,7 +1425,7 @@ public class Mexc extends MexcApi
                 status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
-            final Object finalStatus = status;
+            final String finalStatus = status;
             final Long finalUpdated = updated;
             final Map<String, Object> finalResponse = response;
             return new HashMap<String, Object>() {{
@@ -1590,10 +1590,10 @@ public class Mexc extends MexcApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString2(chain, "netWork", "network");
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                final Object finalNetwork = network;
+                final String finalNetwork = network;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -6293,7 +6293,7 @@ final String finalRiskIncrVol = riskIncrVol;
             if (!java.util.Objects.equals(networkCode, null))
             {
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-                Object networkUnified = this.networkIdToCode(networkCode, code);
+                String networkUnified = this.networkIdToCode(networkCode, code);
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
                 {
@@ -6371,7 +6371,7 @@ final String finalRiskIncrVol = riskIncrVol;
             }
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             Object networkId = null;
-            Object networkUnified = this.networkIdToCode(networkCode, code);
+            String networkUnified = this.networkIdToCode(networkCode, code);
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
@@ -6433,7 +6433,7 @@ final String finalRiskIncrVol = riskIncrVol;
             Object result = null;
             if (!java.util.Objects.equals(network, null))
             {
-                Object netCode = this.networkIdToCode(network, code);
+                String netCode = this.networkIdToCode(network, code);
                 result = (((java.util.Objects.equals(netCode, null)))) ? null : this.safeDict(addressStructures, netCode);
             } else
             {
@@ -7897,7 +7897,7 @@ final String finalRiskIncrVol = riskIncrVol;
         {
             Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String networkId = this.safeString(networkEntry, "network");
-            Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+            String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if (!java.util.Objects.equals(networkCode, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{

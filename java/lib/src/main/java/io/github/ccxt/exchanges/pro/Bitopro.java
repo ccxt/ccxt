@@ -391,7 +391,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //
         String id = this.safeString(trade, "matchID");
         String orderId = this.safeString(trade, "orderID");
-        Object timestamp = this.safeTimestamp(trade, "transactionTimestamp");
+        Long timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         String baseId = this.safeString(trade, "base");
         String quoteId = this.safeString(trade, "quote");
         String base = this.safeCurrencyCode((String) (baseId));

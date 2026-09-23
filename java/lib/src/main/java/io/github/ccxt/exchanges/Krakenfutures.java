@@ -1044,7 +1044,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object volumes = new HashMap<String, Object>() {{}};
+            Map<String, Object> volumes = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
@@ -1057,7 +1057,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        }
                 //    }
                 //
-                volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
+                volumes = (Map<String, Object>) this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
             }
             List<Object> feeSchedules = (List<Object>) this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
@@ -5083,11 +5083,11 @@ final Object finalI = i;
         String endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         String query = endpoint;
-        Object postData = "";
+        String postData = "";
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(parameters));
-            body = (String) (postData);
+            body = postData;
         } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
         {
             if (((Map<?, ?>)parameters).containsKey("orderIds"))

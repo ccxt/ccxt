@@ -1025,10 +1025,10 @@ public class Toobit extends ToobitApi
         {
             Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString(rawNetwork, "chainType");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -2575,7 +2575,7 @@ public class Toobit extends ToobitApi
             }
             rawSideLower = this.safeString(sideParts, 0);
         }
-        Object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        String triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (java.util.Objects.equals(triggerPrice, "0.0"))
         {
             triggerPrice = null;
@@ -2583,7 +2583,7 @@ public class Toobit extends ToobitApi
         final Map<String, Object> finalMarket = market;
         final Object finalRawType = rawType;
         final String finalRawSideLower = rawSideLower;
-        final Object finalTriggerPrice = triggerPrice;
+        final String finalTriggerPrice = triggerPrice;
         final Object finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
@@ -4276,7 +4276,7 @@ public class Toobit extends ToobitApi
             ((Map<String, Object>)extraQuery).put("recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             ((Map<String, Object>)extraQuery).put("timestamp", String.valueOf(timestamp));
             Map<String, Object> queryExtended = this.extend(query, extraQuery);
-            Object queryString = "";
+            String queryString = "";
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 // everything else except Batch-Orders
@@ -4300,7 +4300,7 @@ public class Toobit extends ToobitApi
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (!java.util.Objects.equals(queryString, ""))
             {
-                queryString = Helpers.add(queryString, ("&signature=" + signature));
+                queryString = (queryString + ("&signature=" + signature));
                 url = (url + ("?" + queryString));
             } else
             {

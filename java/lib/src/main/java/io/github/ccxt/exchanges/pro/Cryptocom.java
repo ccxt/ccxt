@@ -1267,7 +1267,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(message, "interval");
-        Object timeframe = this.findTimeframe(interval);
+        String timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))

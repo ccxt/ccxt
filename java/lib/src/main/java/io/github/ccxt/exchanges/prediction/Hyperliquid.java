@@ -767,7 +767,7 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String coin = this.safeString(info, "coinName");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -830,7 +830,7 @@ public class Hyperliquid extends HyperliquidApi
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Object requestedOutcomeObj = this.safeOutcome((String) (requested));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested));
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
                 }
@@ -918,7 +918,7 @@ public class Hyperliquid extends HyperliquidApi
         //
         Long timestamp = this.safeInteger(raw, "time");
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
-        Object mkt = this.safeOutcome((String) (null), market);
+        Map<String, Object> mkt = this.safeOutcome((String) (null), market);
         String outcome = this.safeString(mkt, "outcome");
         List<Object> levels = (List<Object>) this.safeList(raw, "levels", new ArrayList<Object>(Arrays.asList()));
         List<Object> rawBids = (List<Object>) this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList()));
@@ -999,7 +999,7 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "l2Book" );
@@ -1078,7 +1078,7 @@ public class Hyperliquid extends HyperliquidApi
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
             Map<String, Object> market = (Map<String, Object>) this.market(this.safeString(outcomeObj, "market"));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -1290,7 +1290,7 @@ public class Hyperliquid extends HyperliquidApi
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Object requestedOutcomeObj = this.safeOutcome((String) (requested));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested));
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
                 }
@@ -1341,7 +1341,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
                 String tradeCoin = ("#" + (coin == null ? null : ((String)coin).substring(Math.min(1, ((String)coin).length()))));
-                Object outcomeObj = this.safeOutcome(tradeCoin);
+                Map<String, Object> outcomeObj = this.safeOutcome(tradeCoin);
                 if (!java.util.Objects.equals(outcomes, null))
                 {
                     String outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1388,7 +1388,7 @@ public class Hyperliquid extends HyperliquidApi
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
-        Object outcomeObj = this.safeOutcome((String) (null), market);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (null), market);
         String totalStr = this.safeString(position, "total");
         Double total = this.parseNumber(totalStr);
         String entryNtlStr = this.safeString(position, "entryNtl");
@@ -1608,7 +1608,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> parameters = parameters3;
             (this.initializeClient()).join();
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             String marketSymbol = this.safeString(outcomeObj, "market");
@@ -1843,7 +1843,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             (this.initializeClient()).join();
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
             Long nonce = this.milliseconds();
@@ -2013,7 +2013,7 @@ public class Hyperliquid extends HyperliquidApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
@@ -2105,7 +2105,7 @@ public class Hyperliquid extends HyperliquidApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
@@ -2178,7 +2178,7 @@ public class Hyperliquid extends HyperliquidApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
-                Object outcomeObj = this.outcome((String) (outcome));
+                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
                 String expected = this.safeString(outcomeObj, "outcome");
                 if (!java.util.Objects.equals(this.safeString(parsed, "outcome"), expected))
                 {
@@ -2239,7 +2239,7 @@ public class Hyperliquid extends HyperliquidApi
         Object entry = this.safeDict(order, "order", order); // eslint-disable-line
         String status = this.parseOrderStatus(this.safeString2(order, "ccxtStatus", "status"));
         String coin = this.safeString(entry, "coin");
-        Object outcomeObj = this.safeOutcome((String) (coin), market);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
         Object resolvedMarket = (((!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, "")))) ? this.safeMarket(marketSymbol, market) : market;
         String sideRaw = this.safeString(entry, "side");
@@ -2367,7 +2367,7 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome))).join();
-            Object outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "recentTrades" );
@@ -2526,7 +2526,7 @@ public class Hyperliquid extends HyperliquidApi
         String price = this.safeString(trade, "px");
         String amount = this.safeString(trade, "sz");
         String coin = this.safeString(trade, "coin");
-        Object outcomeObj = this.safeOutcome((String) (coin), market);
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
         Object resolvedMarket = (((!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, "")))) ? this.safeMarket(marketSymbol, market) : market;
         String rawSide = this.safeString(trade, "side");

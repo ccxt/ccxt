@@ -334,7 +334,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
         Boolean isGenerationTwo = (java.util.Objects.equals(content, null));
-        Object tickerMessage = null;
+        Map<String, Object> tickerMessage = null;
         if (Boolean.TRUE.equals(isGenerationTwo))
         {
             tickerMessage = message;
@@ -347,7 +347,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        Object symbol = null;
+        String symbol = null;
         if (Boolean.TRUE.equals(isGenerationTwo))
         {
             symbol = this.safeSymbol(marketId, null, "-");
@@ -832,7 +832,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
             String code = this.safeString(rawTrade, "code");
             Boolean isGenerationTwo = (!java.util.Objects.equals(code, null));
-            Object fallbackSymbol = null;
+            String fallbackSymbol = null;
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
                 fallbackSymbol = this.safeSymbol(marketId, null, "-");

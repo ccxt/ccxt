@@ -1384,10 +1384,10 @@ public class Xt extends XtApi
                 {
                     Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
                     String networkId = this.safeString(rawNetwork, "chain");
-                    Object networkCode = this.networkIdToCode(networkId, code);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        final Object finalNetworkCode = networkCode;
+                        final String finalNetworkCode = networkCode;
                         ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
         put( "info", rawNetwork );
         put( "id", networkId );
@@ -3488,7 +3488,7 @@ public class Xt extends XtApi
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "type", ((String)finalType).toUpperCase() );
             }};
-            Object timeInForce = null;
+            String timeInForce = null;
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -7513,7 +7513,7 @@ final Map<String, Object> finalMarket = market;
         String marginMode = ((Boolean.TRUE.equals(isCross))) ? "cross" : "isolated";
         Double collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
-        Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
+        String liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
         Long timestamp = this.safeInteger(position, "closeTime");
         final Map<String, Object> finalMarket = market;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{

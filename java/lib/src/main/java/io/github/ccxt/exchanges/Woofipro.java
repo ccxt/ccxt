@@ -1176,10 +1176,10 @@ public class Woofipro extends WoofiproApi
             String networkId = this.safeString(networkEntry, "chain_id");
             Map<String, Object> networkRow = (Map<String, Object>) this.safeDict(indexedChains, networkId);
             String networkName = this.safeString(networkRow, "name", networkId);
-            Object networkCode = this.networkIdToCode(networkName, code);
+            String networkCode = this.networkIdToCode(networkName, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)resultingNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -2485,7 +2485,7 @@ public class Woofipro extends WoofiproApi
         //
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("timestamp", "created_time", "createdTime")));
         String orderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "orderId", "algoOrderId")));
-        Object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
+        String clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -2501,7 +2501,7 @@ public class Woofipro extends WoofiproApi
         }
         String side = this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
-        Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
+        String average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
         String remaining = Precise.stringSub(amount, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");

@@ -1445,7 +1445,7 @@ public class Onetrading extends OnetradingApi
         String marketId = this.safeString(trade, "instrument_code");
         String symbol = this.safeSymbol(marketId, market, "_");
         String feeCostString = this.safeString(feeInfo, "fee_amount");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
@@ -1462,7 +1462,7 @@ public class Onetrading extends OnetradingApi
         }
         final Object finalTrade = trade;
         final Long finalTimestamp = timestamp;
-        final Object finalTakerOrMaker = takerOrMaker;
+        final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Onetrading.this.safeString2(finalTrade, "trade_id", "sequence") );

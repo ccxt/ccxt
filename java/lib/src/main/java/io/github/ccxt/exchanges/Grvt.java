@@ -2291,7 +2291,7 @@ public class Grvt extends GrvtApi
         //        }
         //    }
         //
-        Object direction = null;
+        String direction = null;
         String txId = null;
         Object networkCode = null;
         String addressFrom = this.safeString(transaction, "from_account_id");
@@ -2300,7 +2300,7 @@ public class Grvt extends GrvtApi
         String code = this.safeCurrencyCode(currencyId, currency);
         if (transaction.containsKey("transfer_metadata"))
         {
-            Object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
+            String metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
             if (!java.util.Objects.equals(metaData, null))
             {
                 Object parsedMeta = this.parseJson(metaData);
@@ -2318,7 +2318,7 @@ public class Grvt extends GrvtApi
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
         final String finalTxId = txId;
-        final Object finalDirection = direction;
+        final String finalDirection = direction;
         final Object finalNetworkCode = networkCode;
         final String finalAddressFrom = addressFrom;
         final String finalAddressTo = addressTo;

@@ -1045,7 +1045,7 @@ public class Bullish extends BullishApi
         Object inverse = null;
         String expiryDatetime = null;
         Double contractSize = null;
-        Object optionType = null;
+        String optionType = null;
         Object strike = null;
         Object margin = false;
         if (java.util.Objects.equals(type, "spot"))
@@ -1096,7 +1096,7 @@ public class Bullish extends BullishApi
         final Double finalContractSize = contractSize;
         final String finalExpiryDatetime = expiryDatetime;
         final Object finalStrike = strike;
-        final Object finalOptionType = optionType;
+        final String finalOptionType = optionType;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -3348,7 +3348,7 @@ public class Bullish extends BullishApi
                     {
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
-                        Object networkCode = this.networkIdToCode(networkId, code);
+                        String networkCode = this.networkIdToCode(networkId, code);
                         if (java.util.Objects.equals(network, networkCode))
                         {
                             data = entry;

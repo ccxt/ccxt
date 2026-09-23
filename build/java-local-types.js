@@ -1850,6 +1850,8 @@ const VENUE_RETURN_KINDS = {
     'createRegularOrderRequest': [ JAVA_ARRAY_TYPE_MAP () ], 'postActionRequest': [ JAVA_ARRAY_TYPE_MAP () ],
     'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
+    'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
+    'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -1948,6 +1950,19 @@ function venueReturnCast (printer, node, method, javaType) {
         return undefined;
     }
     return '(' + javaType + ')';
+}
+
+// `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
+function omitZeroStringLocalType (printer, call, name) {
+    if (name !== 'omitZero' || call.arguments.length !== 1
+        || !isStaticallyStringExpression (printer, unwrapParens (call.arguments[0]), undefined)) {
+        return undefined;
+    }
+    const file = resolvedSignatureFile (printer, call);
+    if (file === undefined || !HELPER_SOURCE_FILE.test (file)) {
+        return undefined;
+    }
+    return { type: 'String', nonNull: false, strictPlus: true };
 }
 
 // ===== method signature retype =====
@@ -2628,6 +2643,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (venue !== undefined) {
         return { type: venue };
     }
+    const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
+    if (omitZero !== undefined) {
+        return omitZero;
+    }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
     if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
         // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
@@ -2741,7 +2760,8 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return wsMapReadType (node) === javaType;
             }
             if (javaType === JAVA_STRUCTURE_TYPE) {
-                return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
+                return (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name))
+                    || safeDictLocalType (printer, node, name) !== undefined;
             }
             if (javaType === 'String') {
                 if (name === 'parse8601') {
@@ -5500,7 +5520,8 @@ export function installJavaLocalTypes (transpiler) {
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
                 && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
-            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
+            || (javaType === JAVA_STRUCTURE_TYPE && (STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
+                || SAFE_DICT_ACCESSORS.has (call)))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
         // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
         // are declared `String` in the hand-written base now, so a write to a String local
@@ -5917,7 +5938,7 @@ function dataflowValueType (printer, node, context) {
             if (node.escapedText === 'undefined') {
                 return 'null';
             }
-            return dataflowResolveRead (printer, context, node);
+            return dataflowResolveRead (printer, context, node) ?? joinParameterReadType (printer, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
         case ts.SyntaxKind.ConditionalExpression:
@@ -5939,13 +5960,15 @@ function dataflowValueType (printer, node, context) {
         case ts.SyntaxKind.ArrayLiteralExpression:
             // prints `new java.util.ArrayList<Object>(java.util.Arrays.asList(...))`
             return JAVA_ARRAY_TYPE;
+        case ts.SyntaxKind.ElementAccessExpression:
+            return joinListElementType (printer, node);
         case ts.SyntaxKind.CallExpression: {
             const callee = node.expression;
             if (!ts.isPropertyAccessExpression (callee)) {
                 return undefined;
             }
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return dataflowThisCallType (printer, node);
+                return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node);
             }
             if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.escapedText) ? JAVA_DATAFLOW_STRING : undefined;
@@ -7408,9 +7431,8 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //   * safeIntegerProduct2 / safeIntegerProductN (and SafeMethods.SafeNumberN) -> NOT
 //     typed: they hand the caller's raw defaultValue back on the failure path, so the
 //     box is whatever the call site passed (an Integer for the ubiquitous `0`).
-//   * safeTimestamp / safeTimestamp2 are NOT narrowable for the same reason (the Java
-//     safeTimestampN returns the caller's default untouched) — already documented in
-//     section 3; they are absent here too.
+//   * safeTimestamp / safeTimestamp2 / safeTimestampN -> Long: the hand-written
+//     SafeMethods.safeTimestampN is declared Long and converts the default to Long.
 //
 // UPSTREAM RETYPES (the other half of the slice — all declaration-only):
 //   * java/lib/src/main/java/io/github/ccxt/BaseExchange.java: safeInteger / safeInteger2
@@ -7481,6 +7503,10 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
     'seconds': 'Long',
     'parse8601': 'Long',
     'parseTimeframe': 'int',
+    // SafeMethods.safeTimestampN converts the default through toLongQuiet as well
+    'safeTimestamp': 'Long',
+    'safeTimestamp2': 'Long',
+    'safeTimestampN': 'Long',
 };
 
 // calls whose Java DECLARED return type moves Object -> Long/Double in this slice: a
@@ -7492,6 +7518,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
 const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
     'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct',
     'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
+    'safeTimestamp', 'safeTimestamp2', 'safeTimestampN',
 ]);
 
 // GENERATED methods whose erased `Object` return type installJavaNumericLocalTypes
@@ -10306,4 +10333,78 @@ export function patchJavaTernaryLocalTypes (transpiler) {
         const typed = info.cast ? `(${info.type}) (${value})` : value;
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${typed}`;
     };
+}
+
+// ===== 15. write-site join producers for null-init / copy / ternary locals =====
+// Hand-written base methods declared with this box on every Java overload and never
+// overridden by a venue; a call must resolve to the ts/src/base declaration.
+const JOIN_BASE_PRODUCER_TYPES = new Map ([
+    ...[ 'safeStringLower', 'safeStringLower2', 'safeStringLowerN', 'safeStringUpper', 'safeStringUpper2',
+        'safeStringUpperN', 'safeSymbol', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat',
+        'urlencodeBase64', 'rawencode', 'json', 'uuid', 'uuid16', 'uuid22', 'ymdhms', 'yymmdd', 'yyyymmdd',
+        'capitalize', 'decode', 'strip', 'stringToBase64', 'binaryToBase64', 'binaryToBase16',
+        'encodeURIComponent', 'intToBase16', 'symbol', 'handleTimeInForce' ].map ((n) => [ n, JAVA_DATAFLOW_STRING ]),
+    [ 'safeIntegerProduct', 'Long' ],
+]);
+
+function joinBaseProducerType (printer, node) {
+    const name = String (node.expression.name.escapedText);
+    const type = JOIN_BASE_PRODUCER_TYPES.get (name);
+    return (type !== undefined && resolvesToBaseAccessor (printer, node, name)) ? type : undefined;
+}
+
+// a read of the enclosing method's own parameter answers the type its signature prints
+const JOIN_PARAMETER_TYPES = new Map ([
+    [ 'String', JAVA_DATAFLOW_STRING ], [ 'Long', 'Long' ], [ 'Double', 'Double' ], [ 'Boolean', 'Boolean' ],
+    [ 'java.util.Map<String, Object>', JAVA_STRUCTURE_TYPE ], [ 'Map<String, Object>', JAVA_STRUCTURE_TYPE ],
+]);
+
+function joinParameterReadType (printer, identifier) {
+    if (typeof printer.javaNativeParameterType !== 'function') {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isParameter (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.name.escapedText !== identifier.escapedText
+        || !ts.isMethodDeclaration (declaration.parent) || enclosingFunction (identifier) !== declaration.parent) {
+        return undefined;
+    }
+    // an async body reads a hoisted copy whose declaration other passes type
+    if (typeof printer.isAsyncFunction !== 'function' || printer.isAsyncFunction (declaration.parent)) {
+        return undefined;
+    }
+    let printed;
+    try {
+        printed = printer.javaNativeParameterType (declaration);
+    } catch (e) {
+        return undefined;
+    }
+    return typeof printed === 'string' ? JOIN_PARAMETER_TYPES.get (printed.trim ()) : undefined;
+}
+
+// `xs[i]` on a declared List<String> with an int loop counter prints the guarded native
+// `xs.get(i)` (printer javaDeclaredListElementRead), statically String
+function joinListElementType (printer, node) {
+    const receiver = node.expression;
+    if (!ts.isIdentifier (receiver) || typeof printer.javaDeclaredListElementRead !== 'function'
+        || typeof printer.javaPrimitiveCounterIndex !== 'function' || typeof printer.javaDeclaredTypeOf !== 'function') {
+        return undefined;
+    }
+    try {
+        if (!printer.javaPrimitiveCounterIndex (node.argumentExpression)
+            || !/^(java\.util\.)?List<String>$/.test (String (printer.javaDeclaredTypeOf (receiver) ?? '').trim ())) {
+            return undefined;
+        }
+        const name = printer.printNode (receiver, 0);
+        const read = printer.javaDeclaredListElementRead (node, true);
+        return (typeof read === 'string' && read.startsWith (`(${name} == null || `) && read.endsWith (`: ${name}.get(${printer.printNode (node.argumentExpression, 0)}))`))
+            ? JAVA_DATAFLOW_STRING : undefined;
+    } catch (e) {
+        return undefined;
+    }
 }

@@ -1223,7 +1223,7 @@ public class Tokocrypto extends TokocryptoApi
         String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString2(trade, "t", "a");
         id = this.safeString2(trade, "id", "tradeId", id);
-        Object side = null;
+        String side = null;
         String orderId = this.safeString(trade, "orderId");
         Boolean buyerMaker = (Boolean) this.safeBool2(trade, "m", "isBuyerMaker");
         String takerOrMaker = null;
@@ -1258,7 +1258,7 @@ public class Tokocrypto extends TokocryptoApi
             takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
         }
         final String finalId = id;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3353,7 +3353,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(api, "sapiV3")) || (java.util.Objects.equals(api, "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(api, "dapiPrivate")) || (java.util.Objects.equals(api, "dapiPrivateV2")) || (java.util.Objects.equals(api, "fapiPrivate")) || (java.util.Objects.equals(api, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
-            Object query = null;
+            String query = null;
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Map<String, Object> extendedParams = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", Tokocrypto.this.nonce() );
@@ -3378,7 +3378,7 @@ public class Tokocrypto extends TokocryptoApi
                 query = this.urlencode(extendedParams);
             }
             String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
-            query = Helpers.add(query, (("&" + "signature=") + signature));
+            query = (query + (("&" + "signature=") + signature));
             headers = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
@@ -3387,7 +3387,7 @@ public class Tokocrypto extends TokocryptoApi
                 url = (url + ("?" + query));
             } else
             {
-                body = (String) (query);
+                body = query;
                 ((Map<String, Object>)headers).put("Content-Type", "application/x-www-form-urlencoded");
             }
         } else

@@ -1395,7 +1395,7 @@ public class Bingx extends BingxApi
         {
             Object rawNetwork = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(rawNetwork, "network");
-            Object networkCode = this.networkIdToCode(network, code);
+            String networkCode = this.networkIdToCode(network, code);
             Map<String, Object> limits = new HashMap<String, Object>() {{
                 put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", Bingx.this.safeNumber(rawNetwork, "withdrawMin") );
@@ -1409,7 +1409,7 @@ public class Bingx extends BingxApi
             Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawNetwork );
     put( "id", network );
@@ -2901,14 +2901,14 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            Object result = new HashMap<String, Object>() {{}};
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(result, market);
         }).thenApply(OpenInterest::new);
@@ -5144,8 +5144,8 @@ public class Bingx extends BingxApi
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
         }
         Object rawType = ((String)this.safeStringLower2(order, "type", "o"));
-        Object stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
-        Object triggerPrice = stopPrice;
+        String stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
+        String triggerPrice = stopPrice;
         if (!java.util.Objects.equals(stopPrice, null))
         {
             if ((Helpers.isGreaterThan(((String)rawType).indexOf("stop"), -1)) && (java.util.Objects.equals(stopLossPrice, null)))
@@ -5162,7 +5162,7 @@ public class Bingx extends BingxApi
         final Object finalOrder = order;
         final Map<String, Object> finalMarket = market;
         final Object finalSide = side;
-        final Object finalTriggerPrice = triggerPrice;
+        final String finalTriggerPrice = triggerPrice;
         final Object finalStopLossPrice = stopLossPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalFeeCurrencyCode = feeCurrencyCode;
@@ -6728,7 +6728,7 @@ public class Bingx extends BingxApi
         String code = (String) ((Map<String, Object>)currency).get("code");
         String address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         String networkId = this.safeString(depositAddress, "network");
-        Object networkCode = this.networkIdToCode(networkId, code);
+        String networkCode = this.networkIdToCode(networkId, code);
         // despite its name the addressWithPrefix field sometimes arrives without
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (!java.util.Objects.equals(address, null))

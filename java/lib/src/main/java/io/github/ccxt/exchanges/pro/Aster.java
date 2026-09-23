@@ -870,7 +870,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object data = message;
+        Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
@@ -1153,7 +1153,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
-        Object trade = message;
+        Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
@@ -1914,7 +1914,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k");
         String timeframeId = this.safeString(kline, "i");
-        Object timeframe = this.findTimeframe(timeframeId);
+        String timeframe = this.findTimeframe(timeframeId);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;

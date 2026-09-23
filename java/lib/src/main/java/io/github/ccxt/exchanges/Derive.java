@@ -1989,10 +1989,10 @@ public class Derive extends DeriveApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            Object rawOrder = this.safeDict(result, "raw_data");
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "raw_data");
             if (java.util.Objects.equals(rawOrder, null))
             {
-                rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+                rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             }
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);

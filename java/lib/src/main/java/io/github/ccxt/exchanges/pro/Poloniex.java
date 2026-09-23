@@ -1031,7 +1031,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(channel, timeframes);
+        String timeframe = this.findTimeframe(channel, timeframes);
         String messageHash = Helpers.add((channel + "::"), symbol);
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

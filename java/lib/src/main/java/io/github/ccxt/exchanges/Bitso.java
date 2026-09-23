@@ -2620,7 +2620,7 @@ public class Bitso extends BitsoApi
         String networkId = this.safeString2(transaction, "network", "method");
         String status = this.safeString(transaction, "status");
         String withdrawId = this.safeString(transaction, "wid");
-        Object networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
+        String networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
         String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
         final Object finalWithdrawalAddress = withdrawalAddress;
         final String finalWithdrawId = withdrawId;

@@ -677,7 +677,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         String direction = this.safeString(trade, "D");
-        Object timestamp = this.safeTimestamp2(trade, "TT", "T");
+        Long timestamp = this.safeTimestamp2(trade, "TT", "T");
         String matchRole = this.safeString(trade, "m");
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "F");
@@ -1423,7 +1423,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         String state = this.safeString(order, "Or");
-        Object timestamp = this.safeTimestamp(order, "IT");
+        Long timestamp = this.safeTimestamp(order, "IT");
         String direction = this.safeString(order, "D");
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Deepcoin.this.safeString(order, "OS") );

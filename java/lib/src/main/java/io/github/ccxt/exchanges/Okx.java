@@ -3219,11 +3219,11 @@ public class Okx extends OkxApi
             List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote("-"))));
             Object parts = this.arraySlice(idParts, 1);
             String chainPart = String.join("-", (List<String>)parts);
-            Object networkCode = this.networkIdToCode(chainPart, code);
+            String networkCode = this.networkIdToCode(chainPart, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkId = networkId;
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
@@ -7584,7 +7584,7 @@ public class Okx extends OkxApi
             networkData = this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon");
         }
         String network = this.safeString(networkData, "network");
-        Object networkCode = this.networkIdToCode(network, code);
+        String networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         final String finalTag = tag;
         return new HashMap<String, Object>() {{
@@ -7689,7 +7689,7 @@ public class Okx extends OkxApi
             String rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
             parameters = (Map<String, Object>) this.omit(parameters, "network");
             code = ((String)this.safeCurrencyCode((String) (code)));
-            Object network = this.networkIdToCode(rawNetwork, code);
+            String network = this.networkIdToCode(rawNetwork, code);
             Object responseRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object response = responseRaw;
             if (!java.util.Objects.equals(network, null))
@@ -7701,7 +7701,7 @@ public class Okx extends OkxApi
                 }
                 return result;
             }
-            Object codeNetwork = this.networkIdToCode(code, code);
+            String codeNetwork = this.networkIdToCode(code, code);
             if ((!java.util.Objects.equals(codeNetwork, null)) && (((Map<?, ?>)response).containsKey(codeNetwork)))
             {
                 return Helpers.GetValue(response, codeNetwork);
@@ -7782,7 +7782,7 @@ public class Okx extends OkxApi
             {
                 Object currencies = (this.fetchCurrencies(new Object[0])).join();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                Object networkCodeResolved = this.networkIdToCode(network, ((Map<String, Object>)currency).get("code"));
+                String networkCodeResolved = this.networkIdToCode(network, ((Map<String, Object>)currency).get("code"));
                 Map<String, Object> targetNetwork = (Map<String, Object>) ((((java.util.Objects.equals(networkCodeResolved, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((Map<String, Object>)currency).get("networks"), networkCodeResolved, new HashMap<String, Object>() {{}}));
                 fee = this.safeString(targetNetwork, "fee");
                 if (java.util.Objects.equals(fee, null))
@@ -8422,7 +8422,7 @@ public class Okx extends OkxApi
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = null;
-        Object marginMode = null;
+        String marginMode = null;
         Long longLeverage = null;
         Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
@@ -8444,7 +8444,7 @@ public class Okx extends OkxApi
             }
         }
         final String finalMarketId = marketId;
-        final Object finalMarginMode = marginMode;
+        final String finalMarginMode = marginMode;
         final Long finalLongLeverage = longLeverage;
         final Long finalShortLeverage = shortLeverage;
         return new HashMap<String, Object>() {{
@@ -11488,7 +11488,7 @@ public class Okx extends OkxApi
                     put( "fee", null );
                     put( "percentage", null );
                 }};
-                Object networkCode = this.networkIdToCode(networkId, code);
+                String networkCode = this.networkIdToCode(networkId, code);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new HashMap<String, Object>() {{

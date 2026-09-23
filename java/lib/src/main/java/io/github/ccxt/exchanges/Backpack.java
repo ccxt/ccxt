@@ -747,10 +747,10 @@ public class Backpack extends BackpackApi
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "blockchain");
             String networkIdLowerCase = this.safeStringLower(network, "blockchain");
-            Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
+            String networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -2276,7 +2276,7 @@ public class Backpack extends BackpackApi
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Double amount = this.safeNumber(transaction, "quantity");
         String networkId = this.safeStringLower2(transaction, "source", "blockchain");
-        Object network = this.networkIdToCode(networkId, code);
+        String network = this.networkIdToCode(networkId, code);
         String addressTo = this.safeString(transaction, "toAddress");
         String addressFrom = this.safeString(transaction, "fromAddress");
         String tag = this.safeString(transaction, "platformMemo");

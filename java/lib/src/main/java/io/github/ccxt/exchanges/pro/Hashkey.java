@@ -821,7 +821,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Long timestamp = this.safeInteger(trade, "t");
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m");
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
-        Object side = null;
+        String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
@@ -836,7 +836,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
         }
         final Map<String, Object> finalMarket = market;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "v", "T") );

@@ -1416,7 +1416,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String dateTime = this.safeString(message, "time");
         Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(message, "granularity");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(timeframeId, timeframes);
+        String timeframe = this.findTimeframe(timeframeId, timeframes);
         String channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -1434,7 +1434,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(stored, channel);
     }
 
-    public Object findTimeframe(Object timeframe, Object timeframes)
+    public String findTimeframe(Object timeframe, Object timeframes)
     {
         if (java.util.Objects.equals(timeframes, null))
         {
@@ -1450,12 +1450,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframes, key), "unit"), Helpers.GetValue(timeframe, "unit")) && Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(timeframes, key), "period"), Helpers.GetValue(timeframe, "period")))
             {
-                return key;
+                return (String) (key);
             }
         }
         return null;
     }
-    public Object findTimeframe(Object timeframe, Object... optionalArgs)
+    public String findTimeframe(Object timeframe, Object... optionalArgs)
     {
         return this.findTimeframe(timeframe, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }

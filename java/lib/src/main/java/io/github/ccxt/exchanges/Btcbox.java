@@ -669,7 +669,7 @@ public class Btcbox extends BtcboxApi
         //          "type":"buy"
         //      }
         //
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = this.safeTimestamp(trade, "date");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");

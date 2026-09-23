@@ -3217,7 +3217,7 @@ public class Nado extends NadoApi
         //
         String marketId = this.safeString(trade, "product_id");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = this.safeTimestamp(trade, "timestamp");
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(trade, "order");
         Boolean isArchiveMatch = !java.util.Objects.equals(rawOrder, null);
         Map<String, Object> order = (((java.util.Objects.equals(rawOrder, null)))) ? new HashMap<String, Object>() {{}} : rawOrder;
@@ -3349,7 +3349,7 @@ public class Nado extends NadoApi
         //
         String marketId = this.safeString(contract, "product_id");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object fundingTimestamp = this.safeTimestamp(contract, "next_funding_rate_timestamp");
+        Long fundingTimestamp = this.safeTimestamp(contract, "next_funding_rate_timestamp");
         final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -3392,7 +3392,7 @@ public class Nado extends NadoApi
         //
         String marketId = this.safeString(funding, "product_id");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(funding, "timestamp");
+        Long timestamp = this.safeTimestamp(funding, "timestamp");
         final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", funding );
@@ -3595,7 +3595,7 @@ public class Nado extends NadoApi
         //
         String currencyId = this.safeString(transaction, "product_id");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeTimestamp(transaction, "timestamp");
+        Long timestamp = this.safeTimestamp(transaction, "timestamp");
         Map<String, Object> preBalance = (Map<String, Object>) this.safeDict(transaction, "pre_balance", new HashMap<String, Object>() {{}});
         Map<String, Object> postBalance = (Map<String, Object>) this.safeDict(transaction, "post_balance", new HashMap<String, Object>() {{}});
         Map<String, Object> preSpot = (Map<String, Object>) this.safeDict(preBalance, "spot", new HashMap<String, Object>() {{}});

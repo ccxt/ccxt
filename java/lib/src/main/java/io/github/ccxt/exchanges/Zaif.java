@@ -659,7 +659,7 @@ public class Zaif extends ZaifApi
         //
         String side = this.safeString(trade, "trade_type");
         side = (((java.util.Objects.equals(side, "bid")))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = this.safeTimestamp(trade, "date");
         String id = this.safeString2(trade, "id", "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
@@ -894,7 +894,7 @@ public class Zaif extends ZaifApi
         //
         String side = this.safeString(order, "action");
         side = (((java.util.Objects.equals(side, "bid")))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        Long timestamp = this.safeTimestamp(order, "timestamp");
         String marketId = this.safeString(order, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "_");
         String price = this.safeString(order, "price");
