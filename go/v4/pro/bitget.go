@@ -1632,7 +1632,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
 	var feeDetail any = this.SafeList(trade, "feeDetail", []any{})
 	var first any = this.SafeDict(feeDetail, 0)
-	var fee any = nil
+	var fee map[string]any = nil
 	if !ccxt.IsEqual(first, nil) {
 		var feeCurrencyId *string = this.SafeString(first, "feeCoin")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -2464,7 +2464,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var orderFee any = this.SafeList(order, "feeDetail", []any{})
 	var fee map[string]any = ccxt.SafeMapTyped(orderFee, 0)
 	var feeAmount *string = this.SafeString(fee, "fee")
-	var feeObject any = nil
+	var feeObject map[string]any = nil
 	if feeAmount != nil {
 		var feeCurrency *string = this.SafeString(fee, "feeCoin")
 		feeObject = map[string]any{
@@ -2779,7 +2779,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var market any = nil
+		var market map[string]any = nil
 		if instType != nil && *instType == "uta" {
 			// UTA fills carry the product in 'category'; resolve the matching
 			// market so parseWsTrade yields the correct symbol (a UTA SPOT fill
@@ -2790,7 +2790,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 				marketType = "spot"
 			}
 			var marketId *string = this.SafeString2(trade, "instId", "symbol")
-			market = this.SafeMarket(marketId, nil, nil, marketType)
+			market = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 		}
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)

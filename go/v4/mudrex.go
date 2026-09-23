@@ -1061,7 +1061,7 @@ func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
@@ -1193,7 +1193,7 @@ func (this *Mudrex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1235,7 +1235,7 @@ func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1300,7 +1300,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 	}
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = this.ToArray(data)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1780,7 +1780,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1938,7 +1938,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 		// a market execution always takes liquidity, a limit execution can be either
 		takerOrMaker = "taker"
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee_amount")
 	// rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
 	var rebateString *string = this.SafeString(trade, "rebate_amount")

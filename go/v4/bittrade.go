@@ -1226,7 +1226,7 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "filled-amount", "amount")
 	var cost *string = Precise.StringMul(price, amount)
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "filled-fees")
 	var feeCurrency *string = this.SafeCurrencyCode(this.SafeString(trade, "fee-currency"))
 	var filledPoints *string = this.SafeString(trade, "filled-points")
@@ -1334,7 +1334,7 @@ func (this *Bittrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1763,7 +1763,7 @@ func (this *Bittrade) fetchOrdersByStatesBody(ch chan any, states any, optionalA
 	var request map[string]any = map[string]any{
 		"states": states,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -1985,7 +1985,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2102,7 +2102,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = this.SafeString(order, "price")
 	var cost *string = this.SafeString2(order, "filled-cash-amount", "field-cash-amount") // same typo
 	var feeCost *string = this.SafeString2(order, "filled-fees", "field-fees")            // typo in their API, filled fees
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		var feeCurrency any = func() any {
 			if IsEqual(side, "sell") {
@@ -2576,9 +2576,9 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{
 		"type": "deposit",
@@ -2632,9 +2632,9 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{
 		"type": "withdraw",

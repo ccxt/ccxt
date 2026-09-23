@@ -1054,7 +1054,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["take"] = limit
@@ -1165,7 +1165,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	var price any = nil
 	var amount *string = nil
 	var orderId any = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var side any = nil
 	var makerOrTaker any = nil
 	var reference *string = this.SafeString(trade, "reference")

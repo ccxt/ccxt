@@ -1790,7 +1790,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 		typeVar = SafeStringPtr(Replace(typeVar, "_order", ""))
 	}
 	var feeCostString *string = this.SafeString(trade, "commission")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var settlingAsset map[string]any = SafeMapTyped(product, "settling_asset")
 		var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
@@ -2328,7 +2328,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var remaining *string = this.SafeString(order, "unfilled_size")
 	var average *string = this.SafeString(order, "average_fill_price")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(order, "paid_commission")
 	if feeCostString != nil {
 		var feeCurrencyCode *string = nil
@@ -2673,7 +2673,7 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2806,7 +2806,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
@@ -2886,7 +2886,7 @@ func (this *Delta) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_ids"] = GetValue(market, "numericId") // accepts a comma-separated list of ids
@@ -2980,9 +2980,9 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset_id"] = GetValue(currency, "numericId")
 	}
 	if limit != nil {
@@ -4217,7 +4217,7 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}

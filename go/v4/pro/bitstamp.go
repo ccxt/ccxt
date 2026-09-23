@@ -777,7 +777,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	market = ccxt.MapTyped(this.SafeMarket(nil, market))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var feeCost *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,

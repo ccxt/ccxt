@@ -1561,7 +1561,7 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1671,7 +1671,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker string
@@ -1733,9 +1733,9 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 	var request map[string]any = map[string]any{
 		"types": types,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if !IsEqual(code, nil) {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["currencies"] = GetValue(currency, "id")
 	}
 	if !IsEqual(since, nil) {
@@ -2392,7 +2392,7 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2471,7 +2471,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2570,7 +2570,7 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2686,7 +2686,7 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2777,7 +2777,7 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2849,7 +2849,7 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2921,7 +2921,7 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
@@ -2981,7 +2981,7 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"client_order_id": id,
 		"quantity":        this.AmountToPrecision(symbol, amount),
@@ -3323,7 +3323,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
@@ -3575,7 +3575,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)

@@ -574,7 +574,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "amount", "quantity")
 	var feeCost *string = this.SafeString(trade, "fee_rate")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,

@@ -1318,7 +1318,7 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1365,7 +1365,7 @@ func (this *Backpack) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1469,7 +1469,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "q")
 	var cost *string = this.SafeString(order, "Z")
 	var filled *string = this.SafeString(order, "l")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString(order, "N")
 	if feeCurrency != nil {
 		fee = map[string]any{

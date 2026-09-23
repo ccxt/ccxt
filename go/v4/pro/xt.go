@@ -529,7 +529,7 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		market = this.Market(ccxt.GetValue(symbols, 0))
 	}
@@ -875,7 +875,7 @@ func (this *Xt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var name string = "order"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -923,7 +923,7 @@ func (this *Xt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var name string = "trade"
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

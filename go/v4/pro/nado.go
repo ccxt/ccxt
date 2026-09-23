@@ -1485,7 +1485,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1981,7 +1981,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 		}()
 	}
 	var feeCost any = this.ParseX18(this.SafeString(trade, "fee"))
-	var fee any = nil
+	var fee map[string]any = nil
 	if !ccxt.IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,

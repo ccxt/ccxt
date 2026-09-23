@@ -1482,7 +1482,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "taker"
 		}
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if (takerOrMaker != nil) && (cost != nil) {
 		var feeRate *string = this.SafeString(market, takerOrMaker)
 		// fees are charged in the settlement currency: the quote currency
@@ -2120,7 +2120,7 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2163,7 +2163,7 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2248,7 +2248,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2336,7 +2336,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3008,7 +3008,7 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3071,9 +3071,9 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
@@ -3171,7 +3171,7 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3910,7 +3910,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {

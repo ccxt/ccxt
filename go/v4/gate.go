@@ -3170,7 +3170,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
@@ -3843,7 +3843,7 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// let defaultType = 'future';
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -4313,7 +4313,7 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var first *string = this.SafeString(symbols, 0)
-	var market any = nil
+	var market map[string]any = nil
 	if first != nil {
 		market = this.Market(first)
 	}
@@ -5599,9 +5599,9 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 	}
 	if limit != nil {
@@ -5667,9 +5667,9 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 	}
 	if limit != nil {
@@ -7245,7 +7245,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -7293,7 +7293,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -7366,7 +7366,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	}
 
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -7797,7 +7797,7 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -8514,7 +8514,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
@@ -9215,12 +9215,12 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -9776,7 +9776,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -9997,7 +9997,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var typeVar any = nil
-	var currency any = nil
+	var currency map[string]any = nil
 	var response any = nil
 	var request any = map[string]any{}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
@@ -10005,7 +10005,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 		if code != nil {
-			currency = this.Currency(code)
+			currency = MapTyped(this.Currency(code))
 			AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
 		}
 	}
@@ -10764,7 +10764,7 @@ func (this *Gate) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		// unified account does not require a symbol
 		market = this.Market(symbol)
@@ -11114,7 +11114,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {

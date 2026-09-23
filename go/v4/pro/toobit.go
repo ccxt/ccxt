@@ -1134,7 +1134,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 		orderType = rawOrderType
 	}
 	var feeCost *float64 = this.SafeNumber(order, "n")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,

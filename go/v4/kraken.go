@@ -1601,9 +1601,9 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["asset"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -1776,7 +1776,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = nil
 	var id any = nil
 	var orderId *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	var symbol any = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
@@ -2177,7 +2177,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	var symbol any = nil
-	var market any = nil
+	var market map[string]any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2463,7 +2463,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(order, "opentm")
 	amount = DerefScalar(this.SafeString(order, "vol", amount))
 	var filled *string = this.SafeString(order, "vol_exec")
-	var fee any = nil
+	var fee map[string]any = nil
 	// kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
 	// const cost = this.safeString (order, 'cost');
 	price = DerefScalar(this.SafeString(description, "price", price))
@@ -3177,7 +3177,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(ids); i++ {
 		AddElementToObject(GetValue(trades, GetValue(ids, i)), "id", GetValue(ids, i))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3491,7 +3491,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3603,7 +3603,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

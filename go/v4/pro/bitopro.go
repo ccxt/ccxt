@@ -366,7 +366,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var amount *string = this.SafeString(trade, "volume")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 	if feeAmount != nil {

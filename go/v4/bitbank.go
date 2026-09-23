@@ -560,7 +560,7 @@ func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "amount")
 	var id *string = this.SafeString2(trade, "transaction_id", "trade_id")
 	var takerOrMaker *string = this.SafeString(trade, "maker_taker")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee_amount_quote")
 	if feeCostString != nil {
 		fee = map[string]any{
@@ -1191,7 +1191,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")

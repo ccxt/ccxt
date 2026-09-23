@@ -852,7 +852,7 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 	var request map[string]any = map[string]any{
 		"type": "FUNDING",
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -955,9 +955,9 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"type": "INTERNAL",
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var portfolios any = nil
 	var portfoliosparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "portfolios")
@@ -2463,7 +2463,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) an
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	var feeCost *float64 = this.SafeNumber(order, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost": feeCost,
@@ -2557,7 +2557,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan any, id any, optional
 		"portfolio": portfolio,
 		"id":        id,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2623,7 +2623,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 	var request map[string]any = map[string]any{
 		"portfolio": portfolio,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 		request["instrument"] = GetValue(market, "id")
@@ -2729,7 +2729,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan any, id any, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2834,7 +2834,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 		"portfolio":     portfolio,
 		"result_offset": offSet,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if (symbol != nil) && (symbol == nil || *symbol != "") {
 		market = this.Market(symbol)
 		request["instrument"] = symbol
@@ -2939,7 +2939,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 		ch <- retRes227319
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

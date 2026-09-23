@@ -1362,7 +1362,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes97319)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1803,7 +1803,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2378,7 +2378,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2537,7 +2537,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2634,7 +2634,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2926,10 +2926,10 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3008,10 +3008,10 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3405,7 +3405,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) an
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "create_time")
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
@@ -3596,9 +3596,9 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.SafeCurrency(code)
+		currency = MapTyped(this.SafeCurrency(code))
 	}
 	if since != nil {
 		request["start_time"] = since
@@ -3862,7 +3862,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

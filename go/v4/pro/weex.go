@@ -1462,7 +1462,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var marketType any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1651,7 +1651,7 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var marketResolved any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(trade, "orderSide")
-	var fee any = nil
+	var fee map[string]any = nil
 	var commission *string = this.SafeString(trade, "fillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "coin")
@@ -1718,7 +1718,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -1976,7 +1976,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketResolved any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(order, "orderSide")
-	var fee any = nil
+	var fee map[string]any = nil
 	var commission *string = this.SafeString(order, "cumFillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(order, "coin")

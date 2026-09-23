@@ -1524,7 +1524,7 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeString *string = this.SafeString(trade, "fee")
 	if feeString != nil {
 		fee = map[string]any{
@@ -1925,9 +1925,9 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -2005,11 +2005,11 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code == nil {
 		AddElementToObject(request, "currency", nil)
 	} else {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "currency", []any{GetValue(currency, "code")})
 	}
 	if limit != nil {
@@ -3416,7 +3416,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var request any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})
@@ -3519,7 +3519,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "base", []any{})

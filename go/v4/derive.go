@@ -1341,7 +1341,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2214,7 +2214,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2310,7 +2310,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2699,7 +2699,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		"order_id":      id,
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -2806,7 +2806,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
@@ -3081,7 +3081,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")

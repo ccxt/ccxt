@@ -2212,7 +2212,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		isSpot = GetValue(market, "spot")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var commission *string = this.SafeString(trade, "commission")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "commissionAsset")
@@ -2633,9 +2633,9 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	var maxLimit int = 100
 	var paginate bool = false
@@ -3119,7 +3119,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3207,7 +3207,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -3273,7 +3273,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3347,7 +3347,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3440,7 +3440,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3612,7 +3612,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3673,7 +3673,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4189,7 +4189,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4334,9 +4334,9 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	var request any = map[string]any{}
 	var items any = nil
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 	if IsEqual(accountType, "contract") {
 		if !IsEqual(currency, nil) {
@@ -4538,7 +4538,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		ch <- BoxAbsent(retRes361019)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request any = map[string]any{
 		"incomeType": "position_funding",
 	}

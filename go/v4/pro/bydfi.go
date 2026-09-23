@@ -951,7 +951,7 @@ func (this *Bydfi) ParseWsOrder(order any, optionalArgs ...any) any {
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var rawStatus *string = this.SafeString(order, "st")
 	var rawType *string = this.SafeString(order, "t")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

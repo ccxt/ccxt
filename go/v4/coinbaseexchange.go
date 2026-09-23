@@ -1765,7 +1765,7 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size", filled)
 	var cost *string = this.SafeString(order, "executed_value")
 	var feeCost *float64 = this.SafeNumber(order, "fill_fees")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1882,7 +1882,7 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan any, id any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1978,7 +1978,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "id")
@@ -2501,11 +2501,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	}
 
 	PanicOnError((<-this.LoadAccountsAsync()))
-	var currency any = nil
+	var currency map[string]any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	if IsEqual(id, nil) {
 		if code != nil {
-			currency = this.Currency(code)
+			currency = MapTyped(this.Currency(code))
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account any = this.SafeDict(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {

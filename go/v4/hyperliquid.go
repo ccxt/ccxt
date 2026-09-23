@@ -1836,7 +1836,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
@@ -3938,7 +3938,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		"type": method,
 		"user": userAddress,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		// check if is hip3 symbol
@@ -4135,7 +4135,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"type": "historicalOrders",
 		"user": userAddress,
@@ -4245,7 +4245,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4565,7 +4565,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -5499,7 +5499,7 @@ func (this *Hyperliquid) ParseTransaction(transaction any, optionalArgs ...any) 
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "time")
 	var delta map[string]any = SafeMapTyped(transaction, "delta")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *int64 = this.SafeInteger(delta, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -5748,7 +5748,7 @@ func (this *Hyperliquid) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(item, "time")
 	var delta map[string]any = SafeMapTyped(item, "delta")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *int64 = this.SafeInteger(delta, "fee")
 	if feeCost != nil {
 		fee = map[string]any{
@@ -6106,7 +6106,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

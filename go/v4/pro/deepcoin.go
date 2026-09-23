@@ -640,7 +640,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var direction *string = this.SafeString(trade, "D")
 	var timestamp *int64 = this.SafeTimestamp2(trade, "TT", "T")
 	var matchRole *string = this.SafeString(trade, "m")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "F")
 	if feeCost != nil {
 		fee = map[string]any{

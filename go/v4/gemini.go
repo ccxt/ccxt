@@ -2125,7 +2125,7 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//          }
 	//      ]
 	//
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol) // throws on non-existent symbol
 	}
@@ -2513,7 +2513,7 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(transaction, "type")
 	// if status field is available, then it's complete
 	var statusRaw *string = this.SafeString(transaction, "status")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeAmount *float64 = this.SafeNumber(transaction, "feeAmount")
 	if feeAmount != nil {
 		fee = map[string]any{

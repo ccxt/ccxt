@@ -1404,7 +1404,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
 	var takerOrMaker *string = nil
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
@@ -1981,7 +1981,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")
@@ -2192,7 +2192,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	//     }
 	//
 	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2234,7 +2234,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")

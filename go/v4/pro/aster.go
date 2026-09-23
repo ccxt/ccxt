@@ -1127,7 +1127,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "n")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "N")
@@ -2276,7 +2276,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2338,7 +2338,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -2570,7 +2570,7 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) any {
 		lastTradeTimestamp = T
 	}
 	var lastUpdateTimestamp *int64 = T
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "n")
 	if (feeCost != nil) && (ccxt.Precise.StringGt(feeCost, "0")) {
 		var feeCurrencyId *string = this.SafeString(order, "N")

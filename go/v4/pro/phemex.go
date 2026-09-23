@@ -980,7 +980,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	var messageHash any = "trades:"
 	if symbol != nil {
@@ -1181,7 +1181,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash any = "orders:"
-	var market any = nil
+	var market map[string]any = nil
 	var typeVar any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

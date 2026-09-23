@@ -1012,7 +1012,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		return symbolsArray
 	}()
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var firstMarket any = nil
+	var firstMarket map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		firstMarket = this.Market(firstSymbol)

@@ -1465,7 +1465,7 @@ func (this *Cex) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1690,7 +1690,7 @@ func (this *Cex) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

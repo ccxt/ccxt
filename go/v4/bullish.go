@@ -1277,7 +1277,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -1440,7 +1440,7 @@ func (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any {
 	var currency any = GetValue(market, "quote")
 	var code *string = this.SafeCurrencyCode(currency)
 	var feeCost *float64 = this.SafeNumber(trade, "quoteFee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
@@ -1936,7 +1936,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes151119)
 		return nil
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -2240,7 +2240,7 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2522,7 +2522,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
@@ -2745,9 +2745,9 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 	}
 
 	ch <- this.ParseTransactions(data, currency, since, limit)
@@ -3419,9 +3419,9 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["assetSymbol"] = GetValue(currency, "id")
 	}
 	var until *int64 = this.SafeInteger(params, "until")

@@ -1430,7 +1430,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var until any = this.SafeInteger(params, "until")
 	params = MapTyped(this.Omit(params, "until"))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

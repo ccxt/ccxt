@@ -1809,7 +1809,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3050,7 +3050,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3137,7 +3137,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3226,7 +3226,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4156,7 +4156,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}

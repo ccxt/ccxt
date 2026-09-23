@@ -1155,7 +1155,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCost *float64 = this.SafeNumber(trade, "fee")
 	if feeCost != nil {
 		fee = map[string]any{

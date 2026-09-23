@@ -255,12 +255,12 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 func (this *BaseExchange) DeepExtend2(objs ...any) map[string]any {
 	outDict := make(map[string]any)
 	for _, obj := range objs {
-		if obj == nil {
+		if derefScalar(obj) == nil {
 			obj = make(map[string]any)
 		}
 		if reflect.TypeOf(obj).Kind() == reflect.Map {
 			for key, value := range obj.(map[string]any) {
-				if value != nil && reflect.TypeOf(value).Kind() == reflect.Map {
+				if derefScalar(value) != nil && reflect.TypeOf(value).Kind() == reflect.Map {
 					if _, exists := outDict[key]; exists {
 						outDict[key] = this.DeepExtend2(outDict[key], value)
 					} else {
@@ -296,7 +296,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	}
 
 	for _, x := range objs {
-		if x == nil {
+		if derefScalar(x) == nil {
 			continue
 		}
 
@@ -321,7 +321,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 
 		for k, v2 := range dictX {
 			v1 := outObj.(map[string]any)[k]
-			if v1 != nil && v2 != nil &&
+			if derefScalar(v1) != nil && derefScalar(v2) != nil &&
 				(reflect.TypeOf(v1).Kind() == reflect.Map || reflect.TypeOf(v1) == reflect.TypeOf(&sync.Map{})) &&
 				(reflect.TypeOf(v2).Kind() == reflect.Map || reflect.TypeOf(v2) == reflect.TypeOf(&sync.Map{})) {
 

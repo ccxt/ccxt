@@ -3685,7 +3685,7 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString(trade, "side")
 	var orderId *string = this.SafeString(trade, "ordId")
 	var feeCostString *string = this.SafeString(trade, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(trade, "feeCcy")
@@ -5834,7 +5834,7 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 		// "sz" refers to the trade currency amount
 		amount = this.SafeString(order, "sz")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(order, "feeCcy")
@@ -6102,7 +6102,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
@@ -6282,7 +6282,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
@@ -6504,7 +6504,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = GetValue(market, "id")
@@ -6712,7 +6712,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instId", GetValue(market, "id"))
@@ -6872,9 +6872,9 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "ccy", GetValue(currency, "id"))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
@@ -7007,7 +7007,7 @@ func (this *Okx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	var feeCostString *string = this.SafeString(item, "fee")
-	var fee any = nil
+	var fee map[string]any = nil
 	if feeCostString != nil {
 		fee = map[string]any{
 			"cost":     this.ParseNumber(Precise.StringNeg(feeCostString)),
@@ -7389,9 +7389,9 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "ccy", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -7479,9 +7479,9 @@ func (this *Okx) fetchDepositBody(ch chan any, id any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"depId": id,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 
@@ -7538,9 +7538,9 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		AddElementToObject(request, "ccy", GetValue(currency, "id"))
 	}
 	if since != nil {
@@ -7620,9 +7620,9 @@ func (this *Okx) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"wdId": id,
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 
@@ -8576,12 +8576,12 @@ func (this *Okx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency any = nil
+	var currency map[string]any = nil
 	var request map[string]any = map[string]any{
 		"type": "1",
 	}
 	if code != nil {
-		currency = this.Currency(code)
+		currency = MapTyped(this.Currency(code))
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -8960,7 +8960,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = ToString(limit) // default 100, max 100
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
@@ -10254,7 +10254,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var market any = nil
+	var market map[string]any = nil
 	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}
@@ -10347,7 +10347,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 	}
 	// handle unified currency code or symbol
 	var currencyId any = nil
-	var market any = nil
+	var market map[string]any = nil
 	if ((this.Markets != nil) && (InOp(this.Markets, symbol))) || ((this.Markets_by_id != nil) && (InOp(this.Markets_by_id, symbol))) {
 		market = this.Market(symbol)
 		currencyId = GetValue(market, "baseId")
@@ -11505,13 +11505,13 @@ func (this *Okx) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any)
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy")
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy")
-	var fromCurrency any = nil
-	var toCurrency any = nil
+	var fromCurrency map[string]any = nil
+	var toCurrency map[string]any = nil
 	if fromCurrencyId != nil {
-		fromCurrency = this.Currency(fromCurrencyId)
+		fromCurrency = MapTyped(this.Currency(fromCurrencyId))
 	}
 	if toCurrencyId != nil {
-		toCurrency = this.Currency(toCurrencyId)
+		toCurrency = MapTyped(this.Currency(toCurrencyId))
 	}
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)

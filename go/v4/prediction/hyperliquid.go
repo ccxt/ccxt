@@ -2349,7 +2349,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	var fee *float64 = this.SafeNumber(trade, "fee")
 	var feeCurrency *string = this.SafeString(trade, "feeToken", "USDC")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
-	var feeObject any = nil
+	var feeObject map[string]any = nil
 	if fee != nil {
 		feeObject = map[string]any{
 			"cost":     fee,
