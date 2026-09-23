@@ -617,10 +617,9 @@ export default class bitmex extends Exchange {
         const symbolValue: Str = this.safeSymbol (symbol);
         const market = this.market (symbolValue);
         const oldPrecision = this.safeBool (this.options, 'oldPrecision');
-        if ((market['spot'] === true) && (oldPrecision !== true)) {
-            amount = this.convertFromRealAmount (market['base'], amount);
-        }
-        return super.amountToPrecision (symbolValue, amount);
+        const isRealAmount = (market['spot'] === true) && (oldPrecision !== true);
+        const amountResolved = isRealAmount ? this.convertFromRealAmount (market['base'], amount) : amount;
+        return super.amountToPrecision (symbolValue, amountResolved);
     }
 
     convertFromRawQuantity (symbol: Str, rawQuantity: Str, currencySide: Str = 'base'): Num {
@@ -1188,9 +1187,10 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        let query: Dict = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, query, 100) as Order[];
         }
         let market: Market = undefined;
         let request: Dict = {};
@@ -1204,12 +1204,12 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'endTime');
+        const until = this.safeInteger2 (query, 'until', 'endTime');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
+            query = this.omit (query, [ 'until' ]);
             request['endTime'] = this.iso8601 (until);
         }
-        request = this.deepExtend (request, params);
+        request = this.deepExtend (request, query);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -1274,9 +1274,10 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        let query: Dict = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, query, 100) as Trade[];
         }
         let market: Market = undefined;
         let request: Dict = {};
@@ -1290,12 +1291,12 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (500, limit);
         }
-        const until = this.safeInteger2 (params, 'until', 'endTime');
+        const until = this.safeInteger2 (query, 'until', 'endTime');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
+            query = this.omit (query, [ 'until' ]);
             request['endTime'] = this.iso8601 (until);
         }
-        request = this.deepExtend (request, params);
+        request = this.deepExtend (request, query);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -1785,9 +1786,10 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        let query: Dict = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, query) as OHLCV[];
         }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
@@ -1809,14 +1811,14 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (query, 'until');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
+            query = this.omit (query, [ 'until' ]);
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
         let useOpenTimestamp: Bool = undefined;
-        [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
+        [ useOpenTimestamp, query ] = this.handleOptionAndParams (query, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
@@ -1828,7 +1830,7 @@ export default class bitmex extends Exchange {
         } else {
             request['reverse'] = true;
         }
-        const response = await this.publicGetTradeBucketed (this.extend (request, params));
+        const response = await this.publicGetTradeBucketed (this.extend (request, query));
         //
         //     [
         //         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
@@ -2106,9 +2108,10 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        let query: Dict = undefined;
+        [ paginate, query ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, query) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -2123,12 +2126,12 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (limit, 1000); // api maximum 1000
         }
-        const until = this.safeInteger2 (params, 'until', 'endTime');
+        const until = this.safeInteger2 (query, 'until', 'endTime');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
+            query = this.omit (query, [ 'until' ]);
             request['endTime'] = this.iso8601 (until);
         }
-        const response = await this.publicGetTrade (this.extend (request, params));
+        const response = await this.publicGetTrade (this.extend (request, query));
         //
         //     [
         //         {
@@ -2190,7 +2193,7 @@ export default class bitmex extends Exchange {
             }
         }
         const postOnly = this.safeBool (params, 'postOnly');
-        params = this.omit (params, [ 'reduceOnly', 'postOnly' ]);
+        let query: Dict = this.omit (params, [ 'reduceOnly', 'postOnly' ]);
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
         const request: Dict = {
@@ -2212,12 +2215,12 @@ export default class bitmex extends Exchange {
             request['execInst'] = execInstructions.join (',');
         }
         // support for unified trigger format
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
+        const triggerPrice = this.safeNumberN (query, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        let trailingAmount = this.safeString2 (query, 'trailingAmount', 'pegOffsetValue');
         const isTriggerOrder = triggerPrice !== undefined;
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
-            const triggerDirection = this.safeString (params, 'triggerDirection');
+            const triggerDirection = this.safeString (query, 'triggerDirection');
             const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
@@ -2251,17 +2254,17 @@ export default class bitmex extends Exchange {
                 request['stopPx'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
             }
             request['ordType'] = orderType;
-            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount' ]);
+            query = this.omit (query, [ 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount' ]);
         }
         if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
             request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
         }
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderId = this.safeString2 (query, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+            query = this.omit (query, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -2270,6 +2273,7 @@ export default class bitmex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
+        const omitKeys: string[] = [];
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
@@ -2298,7 +2302,8 @@ export default class bitmex extends Exchange {
                 trailingAmount = '-' + trailingAmount;
             }
             request['pegOffsetValue'] = this.parseToNumeric (trailingAmount);
-            params = this.omit (params, [ 'triggerDirection', 'trailingAmount' ]);
+            omitKeys.push ('triggerDirection');
+            omitKeys.push ('trailingAmount');
         }
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
         if (origClOrdID !== undefined) {
@@ -2307,7 +2312,9 @@ export default class bitmex extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clOrdID'] = clientOrderId;
             }
-            params = this.omit (params, [ 'origClOrdID', 'clOrdID', 'clientOrderId' ]);
+            omitKeys.push ('origClOrdID');
+            omitKeys.push ('clOrdID');
+            omitKeys.push ('clientOrderId');
         } else {
             request['orderID'] = id;
         }
@@ -2320,7 +2327,7 @@ export default class bitmex extends Exchange {
         }
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         request['text'] = brokerId;
-        const response = await this.privatePutOrder (this.extend (request, params));
+        const response = await this.privatePutOrder (this.extend (request, this.omit (params, omitKeys)));
         return this.parseOrder (response);
     }
 
@@ -2345,9 +2352,9 @@ export default class bitmex extends Exchange {
             request['orderID'] = id;
         } else {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const query = (clientOrderId === undefined) ? params : this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        const response = await this.privateDeleteOrder (this.extend (request, query));
         const order = this.safeDict (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
@@ -2380,9 +2387,9 @@ export default class bitmex extends Exchange {
             request['orderID'] = ids;
         } else {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const query = (clientOrderId === undefined) ? params : this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        const response = await this.privateDeleteOrder (this.extend (request, query));
         return this.parseOrders (response);
     }
 
@@ -2912,8 +2919,7 @@ export default class bitmex extends Exchange {
             const timeframes = [ 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' ];
             if ((splitSymbolLength > 1) && this.inArray (splitSymbol[1], timeframes)) {
                 const code = this.currency (splitSymbol[0]);
-                symbol = code['id'] + ':' + splitSymbol[1];
-                request['symbol'] = symbol;
+                request['symbol'] = code['id'] + ':' + splitSymbol[1];
             } else {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -3646,9 +3652,8 @@ export default class bitmex extends Exchange {
         const until = this.safeString (params, 'until');
         if (until !== undefined) {
             request['endTime'] = this.iso8601 (since);
-            params = this.omit (params, 'until');
         }
-        const response = await this.publicGetSettlement (this.extend (request, params));
+        const response = await this.publicGetSettlement (this.extend (request, this.omit (params, 'until')));
         //
         //    [
         //        {
@@ -3768,17 +3773,17 @@ export default class bitmex extends Exchange {
 
     override sign (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = '/api/' + this.version + '/' + path;
+        const format = this.safeString (params, '_format');
         if (method === 'GET') {
             if (Object.keys (params).length > 0) {
                 query += '?' + this.urlencode (params);
             }
         } else {
-            const format = this.safeString (params, '_format');
             if (format !== undefined) {
                 query += '?' + this.urlencode ({ '_format': format });
-                params = this.omit (params, '_format');
             }
         }
+        const bodyParams = ((method !== 'GET') && (format !== undefined)) ? this.omit (params, '_format') : params;
         const url = this.urls['api'][api] + query;
         const isAuthenticated = this.checkRequiredCredentials (false);
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
@@ -3786,7 +3791,7 @@ export default class bitmex extends Exchange {
             let auth = method + query;
             const apiExpires = this.safeInteger (this.options, 'api-expires'); // backwards compatibility
             let expires = this.safeIntegerProduct (this.options, 'recvWindow', 0.001, apiExpires);
-            headers = {
+            const signedHeaders: Dict = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
@@ -3796,14 +3801,17 @@ export default class bitmex extends Exchange {
             }
             const stringExpires = expires.toString ();
             auth += stringExpires;
-            headers['api-expires'] = stringExpires;
+            signedHeaders['api-expires'] = stringExpires;
+            let signedBody: Str = undefined;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys (params).length > 0) {
-                    body = this.json (params);
-                    auth += body;
+                if (Object.keys (bodyParams).length > 0) {
+                    signedBody = this.json (bodyParams);
+                    auth += signedBody;
                 }
             }
-            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            signedHeaders['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            const bodyResolved: Str = (signedBody === undefined) ? body : signedBody;
+            return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
