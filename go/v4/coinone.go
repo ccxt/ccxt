@@ -675,8 +675,7 @@ func (this *Coinone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V2PrivatePostAccountBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountBalance(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -717,8 +716,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["size"] = limit // only support 5, 10, 15, 16
 	}
 
-	response := (<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "result": "success",
@@ -1150,8 +1148,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"qty":             this.AmountToPrecision(symbol, amount),
 	}
 
-	response := (<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1198,8 +1195,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"currency": market["id"],
 	}
 
-	response := (<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {

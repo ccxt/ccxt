@@ -1032,8 +1032,7 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	markets := (<-this.PublicGetMarkets(params)).Raw
-	PanicOnError(markets)
+	var markets []any = ListTyped(PanicOnError((<-this.PublicGetMarkets(params)).Raw))
 
 	//
 	//     [
@@ -1483,8 +1482,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PublicGetMarketsTicker24h(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketsTicker24h(params)).Raw))
 
 	//
 	//     [
@@ -1533,8 +1531,7 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetV2Currencies(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetV2Currencies(params)).Raw))
 
 	//
 	//    [
@@ -1659,8 +1656,7 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		return nil
 	}
 
-	response := (<-this.PublicGetMarketsSymbolTicker24h(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSymbolTicker24h(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1882,8 +1878,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		return nil
 	}
 
-	trades := (<-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))).Raw
-	PanicOnError(trades)
+	var trades []any = ListTyped(PanicOnError((<-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2018,8 +2013,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	response := (<-this.PrivateGetTrades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -3071,8 +3065,7 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		"id": id,
 	}
 
-	trades := (<-this.PrivateGetOrdersIdTrades(this.Extend(request, params))).Raw
-	PanicOnError(trades)
+	var trades []any = ListTyped(PanicOnError((<-this.PrivateGetOrdersIdTrades(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3221,8 +3214,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"accountType": "SPOT",
 	}
 
-	response := (<-this.PrivateGetAccountsBalances(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsBalances(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3420,8 +3412,7 @@ func (this *Poloniex) createDepositAddressBody(ch chan any, code any, optionalAr
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
 	params = extraParams
 
-	response := (<-this.PrivatePostWalletsAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletsAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3460,8 +3451,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
 	params = extraParams
 
-	response := (<-this.PrivateGetWalletsAddresses(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletsAddresses(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -3566,8 +3556,7 @@ func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccoun
 		"toAccount":   toId,
 	}
 
-	response := (<-this.PrivatePostAccountsTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountsTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -3644,8 +3633,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
 		request["paymentId"] = tag
 	}
 
-	response := (<-this.PrivatePostV2WalletsWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2WalletsWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4262,8 +4250,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	}
 	request["mgnMode"] = ToUpper(marginMode)
 
-	response := (<-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, params))).Raw))
 
 	//
 	//  for one-way mode:

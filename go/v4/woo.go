@@ -4235,8 +4235,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
-	response := (<-this.V1PrivatePostInterestRepay(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostInterestRepay(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "success": true,

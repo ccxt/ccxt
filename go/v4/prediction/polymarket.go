@@ -1769,8 +1769,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome any, optionalArg
 		"token_id": tokenId,
 	}
 
-	response := (<-this.ClobPublicGetBook(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPublicGetBook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -2420,8 +2419,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"signature_type": signatureType,
 	}
 
-	response := (<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2682,8 +2680,7 @@ func (this *Polymarket) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	response := (<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParsePredictionOrder(response)
 	return nil

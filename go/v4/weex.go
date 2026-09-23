@@ -949,8 +949,7 @@ func (this *Weex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetApiV3Coins(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV3Coins(params)).Raw))
 
 	//
 	//     [
@@ -1625,8 +1624,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets"))
 	}
 
-	response := (<-this.PublicGetApiV3MarketTickerPrice(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV3MarketTickerPrice(params)).Raw))
 
 	//
 	//     [
@@ -1745,8 +1743,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
 
-	response := (<-this.ContractGetCapiV3MarketPremiumIndex(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketPremiumIndex(params)).Raw))
 
 	//
 	//     [
@@ -2285,8 +2282,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOpenInterest(response, market)
 	return nil
@@ -2351,8 +2347,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = this.SafeString(market, "id")
 	}
 
-	response := (<-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketPremiumIndex(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2456,8 +2451,7 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.ContractGetCapiV3MarketFundingRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketFundingRate(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseFundingRateHistories(response, market, since, limit)
 	return nil
@@ -2657,8 +2651,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.PrivateGetApiV3AccountTransferRecords(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AccountTransferRecords(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3762,8 +3755,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.PrivateGetApiV3AllOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AllOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -4727,8 +4719,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))).Raw))
 
 	ch <- this.ParsePositions(response, []any{market["symbol"]})
 	return nil
@@ -4877,8 +4868,7 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.ContractPrivatePostCapiV3ClosePositions(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractPrivatePostCapiV3ClosePositions(params)).Raw))
 
 	//
 	//     [
@@ -4925,8 +4915,7 @@ func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))).Raw))
 	var orders any = this.ParseOrders(response, market)
 
 	ch <- this.SafeDict(orders, 0)
@@ -4964,8 +4953,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	response := (<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -5428,8 +5416,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
 		return "reduce"
 	}()
 
-	response := (<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, params))).Raw))
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": this.ParseNumber(amount),

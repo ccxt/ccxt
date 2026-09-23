@@ -686,8 +686,7 @@ func (this *Upbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetMarketAll(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketAll(params)).Raw))
 
 	//
 	//    [
@@ -1285,8 +1284,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"count":  limit,
 	}
 
-	response := (<-this.PublicGetTradesTicks(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradesTicks(this.Extend(request, params))).Raw))
 
 	//
 	//     [ {             market: "BTC-ETH",

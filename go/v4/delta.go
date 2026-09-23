@@ -2031,8 +2031,7 @@ func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	response := (<-this.PrivateGetWalletBalances(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletBalances(params)).Raw))
 
 	//
 	//     {

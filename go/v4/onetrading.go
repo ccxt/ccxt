@@ -497,8 +497,7 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetCurrencies(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrencies(params)).Raw))
 
 	//
 	//     [
@@ -560,8 +559,7 @@ func (this *Onetrading) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.PublicGetInstruments(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstruments(params)).Raw))
 
 	//
 	//     [
@@ -1045,8 +1043,7 @@ func (this *Onetrading) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		"instrument_code": market["id"],
 	}
 
-	response := (<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickerInstrumentCode(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1171,8 +1168,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		request["depth"] = limit
 	}
 
-	response := (<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params))).Raw))
 	//
 	// level 1
 	//
@@ -1479,8 +1475,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountBalances(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBalances(params)).Raw))
 
 	//
 	//     {
@@ -1703,8 +1698,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 	params = MapTyped(this.Omit(params, "timeInForce"))
 	request["time_in_force"] = timeInForce
 
-	response := (<-this.PrivatePostAccountOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     {

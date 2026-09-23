@@ -2788,8 +2788,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		request["postOnly"] = postOnly
 	}
 
-	response := (<-this.LimitlessPrivatePostOrders(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivatePostOrders(this.Extend(request, params))).Raw))
 	var parsedOrder any = this.ParsePredictionOrder(response, outcomeObj)
 	// the create-order response omits a status field; a freshly accepted order is open
 	if ccxt.IsEqual(ccxt.GetValue(parsedOrder, "status"), nil) {
@@ -2986,8 +2985,7 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		"order_id": id,
 	}
 
-	response := (<-this.LimitlessPrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw))
 	// the delete response carries no order body, so backfill the id and the resulting status
 	var order any = this.ParsePredictionOrder(response)
 	if ccxt.IsEqual(ccxt.GetValue(order, "id"), nil) {

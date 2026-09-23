@@ -7143,8 +7143,7 @@ func (this *Xt) transferBody(ch chan any, code any, amount any, fromAccount any,
 		"to":       toAccountId,
 	}
 
-	response := (<-this.PrivateSpotPostBalanceTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotPostBalanceTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//   {

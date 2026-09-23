@@ -2202,8 +2202,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
 	}
 	request["side"] = sideRequest
 
-	response := (<-this.PrivatePostV1Twap(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1Twap(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3411,8 +3410,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		request["uuid"] = id
 	}
 
-	response := (<-this.PrivateGetV1Withdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1Withdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3566,8 +3564,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 		request["uuid"] = id
 	}
 
-	response := (<-this.PrivateGetV1Deposit(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1Deposit(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3718,8 +3715,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 	}
 	request["net_type"] = network
 
-	response := (<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3776,8 +3772,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	request["net_type"] = network
 
-	response := (<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3825,8 +3820,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	response := (<-this.PrivateGetV1DepositsCoinAddresses(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1DepositsCoinAddresses(params)).Raw))
 
 	//
 	//     [

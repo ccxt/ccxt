@@ -1511,8 +1511,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "timestamp": "1583652948",
@@ -1618,8 +1617,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"pair": market["id"],
 	}
 
-	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params))).Raw
-	PanicOnError(ticker)
+	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerPair(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -1666,8 +1664,7 @@ func (this *Bitstamp) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PublicGetTicker(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTicker(params)).Raw))
 
 	//
 	// {
@@ -1929,8 +1926,7 @@ func (this *Bitstamp) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"time": "hour",
 	}
 
-	response := (<-this.PublicGetTransactionsPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTransactionsPair(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2114,8 +2110,7 @@ func (this *Bitstamp) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostAccountBalances(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountBalances(params)).Raw))
 
 	//
 	//     [
@@ -2160,8 +2155,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		"market_symbol": market["id"],
 	}
 
-	response := (<-this.PrivatePostFeesTrading(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesTrading(this.Extend(request, params))).Raw))
 	//
 	//     [
 	//         {
@@ -2236,8 +2230,7 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostFeesTrading(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesTrading(params)).Raw))
 
 	//
 	//     [
@@ -2284,8 +2277,7 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostFeesWithdrawal(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesWithdrawal(params)).Raw))
 
 	//
 	//     [
@@ -2350,8 +2342,7 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivatePostFeesWithdrawal(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesWithdrawal(params)).Raw))
 	//
 	//     [
 	//         {
@@ -2536,8 +2527,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		request["id"] = id
 	}
 
-	response := (<-this.PrivatePostReplaceOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplaceOrder(this.Extend(request, params))).Raw))
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
@@ -2575,8 +2565,7 @@ func (this *Bitstamp) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"id": id,
 	}
 
-	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -2731,8 +2720,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		request["id"] = id
 	}
 
-	response := (<-this.PrivatePostOrderStatus(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, params))).Raw))
 
 	//
 	//      {
@@ -3020,8 +3008,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}
 
-	response := (<-this.PrivatePostWithdrawalRequests(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostWithdrawalRequests(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3452,8 +3439,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
@@ -3491,8 +3477,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		"market_symbol": market["id"],
 	}
 
-	response := (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -3580,8 +3565,7 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 
-	response := (<-this.PrivatePostOpenOrdersAll(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivatePostOpenOrdersAll(params)).Raw))
 
 	//
 	//     [

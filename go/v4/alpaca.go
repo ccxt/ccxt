@@ -708,8 +708,7 @@ func (this *Alpaca) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"status":      "active",
 	}
 
-	assets := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params))).Raw
-	PanicOnError(assets)
+	var assets []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Assets(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1543,8 +1542,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	request["client_order_id"] = this.GenerateClientOrderId(params)
 	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 
-	order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params))).Raw
-	PanicOnError(order)
+	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2Orders(this.Extend(request, params))).Raw))
 
 	//
 	//   {
@@ -1612,8 +1610,7 @@ func (this *Alpaca) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	response := (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Raw))
 
 	//
 	//   {
@@ -1696,8 +1693,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw
-	PanicOnError(order)
+	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw))
 	var marketId *string = this.SafeString(order, "symbol")
 	var market any = this.SafeMarket(marketId)
 
@@ -1763,8 +1759,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.TraderPrivateGetV2Orders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Orders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1950,8 +1945,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	request["client_order_id"] = this.GenerateClientOrderId(params)
 	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 
-	response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2136,8 +2130,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2252,8 +2245,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		"asset": currency["id"],
 	}
 
-	response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2330,8 +2322,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 		"amount":  this.NumberToString(amount),
 	}
 
-	response := (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params))).Raw))
 
 	//
 	//     {

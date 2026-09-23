@@ -3261,8 +3261,7 @@ func (this *Grvt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		"leverage":       this.NumberToString(leverage),
 	}
 
-	response := (<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params))).Raw))
 
 	//
 	//    {

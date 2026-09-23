@@ -1334,8 +1334,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetQuoteV1Depth(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.CommonGetQuoteV1Depth(this.Extend(request, params))).Raw))
 	//
 	//    {
 	//        "t": "1755593995237",
@@ -1407,8 +1406,7 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1Trades(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1758,8 +1756,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1823,8 +1820,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	response := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1907,8 +1903,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	response := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -2004,8 +1999,7 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	response := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -3008,8 +3002,7 @@ func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount 
 		"toAccountType":   toId,
 	}
 
-	response := (<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -3488,8 +3481,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
-	response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted))).Raw))
 
 	//
 	//     {
@@ -3568,8 +3560,7 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
 		request["addressExt"] = tag
 	}
 
-	response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	// {

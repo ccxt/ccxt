@@ -708,8 +708,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"cointype": market["id"],
 	}
 
-	orderbook := (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
-	PanicOnError(orderbook)
+	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount")
 	return nil

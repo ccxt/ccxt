@@ -3485,8 +3485,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000))+1209600)
 	var nonce *string = this.NumberToString(this.Nonce())
 
-	account := (<-this.FetchExtendedAccountAsync())
-	PanicOnError(account)
+	var account map[string]any = MapTyped(PanicOnError((<-this.FetchExtendedAccountAsync())))
 	var starkKey *string = this.SafeString(account, "l2Key")
 	var collateralPosition *string = this.SafeString(account, "l2Vault")
 	var info map[string]any = SafeMapTyped(market, "info")

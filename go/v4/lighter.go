@@ -1423,8 +1423,7 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostSendTx(request)).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -1847,8 +1846,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	response := (<-this.PublicGetOrderBookOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookOrders(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "code": 200,
@@ -3274,8 +3272,7 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostSendTx(request)).Raw))
 
 	ch <- this.ParseTransfer(response)
 	return nil
@@ -3746,8 +3743,7 @@ func (this *Lighter) withdrawBody(ch chan any, code any, amount any, address any
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostSendTx(request)).Raw))
 
 	ch <- this.ParseTransaction(response)
 	return nil
@@ -4187,8 +4183,7 @@ func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostSendTx(request)).Raw))
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -4464,8 +4459,7 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 		"tx_info": txInfo,
 	}
 
-	response := (<-this.PublicPostSendTx(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostSendTx(request)).Raw))
 
 	ch <- this.ParseMarginModification(response, market)
 	return nil

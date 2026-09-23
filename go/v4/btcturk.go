@@ -496,8 +496,7 @@ func (this *Btcturk) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUsersBalances(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUsersBalances(params)).Raw))
 
 	//
 	//     {
@@ -889,8 +888,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		}
 	}
 
-	response := (<-this.GraphGetKlinesHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.GraphGetKlinesHistory(this.Extend(request, params))).Raw))
 
 	//
 	//    {

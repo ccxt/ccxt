@@ -848,8 +848,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetUserAssets(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserAssets(params)).Raw))
 
 	//
 	//     {

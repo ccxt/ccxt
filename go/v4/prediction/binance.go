@@ -201,8 +201,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	if queriesLength > 0 {
 		var eventParams any = this.Omit(params, []any{"limit"})
 
-		events := (<-this.FetchEventsAsync(eventParams))
-		ccxt.PanicOnError(events)
+		var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(eventParams))))
 		var eventsLength int = ccxt.GetArrayLength(events)
 		var queryMarkets []any = []any{}
 		for ei := 0; ei < eventsLength; ei++ {
@@ -651,10 +650,9 @@ func (this *Binance) fetchEventBody(ch chan any, id any, optionalArgs ...any) an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	events := (<-this.FetchEventsAsync(this.Extend(map[string]any{
+	var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(this.Extend(map[string]any{
 		"eventId": id,
-	}, params)))
-	ccxt.PanicOnError(events)
+	}, params)))))
 
 	ch <- this.SafeDict(events, 0)
 	return nil
@@ -963,8 +961,7 @@ func (this *Binance) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 		"marketId": this.SafeString(info, "marketId"),
 	}
 
-	response := (<-this.SapiPrivateGetOrderBookLastTradePrice(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderBookLastTradePrice(this.Extend(request, params))).Raw))
 
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
@@ -1124,8 +1121,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 		"tokenId":  this.SafeString2(outcomeObj, "outcomeId", "id"),
 	}
 
-	response := (<-this.SapiPrivateGetOrderBook(this.Extend(request, params))).Raw
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderBook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "outcome": "YES",

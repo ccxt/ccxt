@@ -6330,8 +6330,7 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -6402,8 +6401,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
-	response := (<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -6689,8 +6687,7 @@ func (this *Bingx) setMarginBody(ch chan any, symbol any, amount any, optionalAr
 		"type":   typeVar,
 	}
 
-	response := (<-this.SwapV2PrivatePostTradePositionMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.SwapV2PrivatePostTradePositionMargin(this.Extend(request, params))).Raw))
 
 	//
 	//    {

@@ -551,8 +551,7 @@ func (this *Coinbaseinternational) fetchAccountsBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.V1PrivateGetPortfolios(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfolios(params)).Raw))
 
 	//
 	//    [
@@ -1162,8 +1161,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 		"asset": currency["id"],
 	}
 
-	rawNetworks := (<-this.V1PublicGetAssetsAssetNetworks(request)).Raw
-	PanicOnError(rawNetworks)
+	var rawNetworks []any = ListTyped(PanicOnError((<-this.V1PublicGetAssetsAssetNetworks(request)).Raw))
 	//
 	//    [
 	//        {
@@ -1425,8 +1423,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan any, symbol any, op
 		"instrument": this.MarketId(symbol),
 	}
 
-	position := (<-this.V1PrivateGetPortfoliosPortfolioPositionsInstrument(this.Extend(request, params))).Raw
-	PanicOnError(position)
+	var position map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioPositionsInstrument(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -1532,8 +1529,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan any, optionalArgs 
 		"portfolio": portfolio,
 	}
 
-	response := (<-this.V1PrivateGetPortfoliosPortfolioPositions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioPositions(this.Extend(request, params))).Raw))
 	//
 	//    [
 	//        {
@@ -1770,8 +1766,7 @@ func (this *Coinbaseinternational) fetchMarketsBody(ch chan any, optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.V1PublicGetInstruments(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.V1PublicGetInstruments(params)).Raw))
 
 	//
 	//    [
@@ -1988,8 +1983,7 @@ func (this *Coinbaseinternational) fetchCurrenciesBody(ch chan any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	currencies := (<-this.V1PublicGetAssets(params)).Raw
-	PanicOnError(currencies)
+	var currencies []any = ListTyped(PanicOnError((<-this.V1PublicGetAssets(params)).Raw))
 
 	//
 	//    [
@@ -2111,8 +2105,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol any, opti
 		"instrument": this.MarketId(symbol),
 	}
 
-	ticker := (<-this.V1PublicGetInstrumentsInstrumentQuote(this.Extend(request, params))).Raw
-	PanicOnError(ticker)
+	var ticker map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInstrumentsInstrumentQuote(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -2195,8 +2188,7 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan any, optionalArgs ..
 		"portfolio": portfolio,
 	}
 
-	balances := (<-this.V1PrivateGetPortfoliosPortfolioBalances(this.Extend(request, params))).Raw
-	PanicOnError(balances)
+	var balances []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioBalances(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -2403,8 +2395,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	request["tif"] = tif
 	params = this.Omit(params, []any{"client_order_id", "user", "postOnly", "timeInForce"})
 
-	response := (<-this.V1PrivatePostOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostOrders(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -2559,8 +2550,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan any, id any, optional
 		market = this.Market(symbol)
 	}
 
-	orders := (<-this.V1PrivateDeleteOrdersId(this.Extend(request, params))).Raw
-	PanicOnError(orders)
+	var orders map[string]any = MapTyped(PanicOnError((<-this.V1PrivateDeleteOrdersId(this.Extend(request, params))).Raw))
 
 	//
 	//    {
@@ -2626,8 +2616,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 		request["instrument"] = GetValue(market, "id")
 	}
 
-	orders := (<-this.V1PrivateDeleteOrders(this.Extend(request, params))).Raw
-	PanicOnError(orders)
+	var orders []any = ListTyped(PanicOnError((<-this.V1PrivateDeleteOrders(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrders(orders, market)
 	return nil
@@ -2693,8 +2682,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id any, symbol any
 	}
 	request["client_order_id"] = clientOrderId
 
-	order := (<-this.V1PrivatePutOrdersId(this.Extend(request, params))).Raw
-	PanicOnError(order)
+	var order map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePutOrdersId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -2739,8 +2727,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan any, id any, optionalA
 		"portfolio": portfolio,
 	}
 
-	order := (<-this.V1PrivateGetOrdersId(this.Extend(request, params))).Raw
-	PanicOnError(order)
+	var order map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrdersId(this.Extend(request, params))).Raw))
 
 	//
 	//    {

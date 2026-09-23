@@ -1181,8 +1181,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"orderId": id,
 	}
 
-	order := (<-this.IndexerGetOrdersOrderId(this.Extend(request, params))).Raw
-	PanicOnError(order)
+	var order map[string]any = MapTyped(PanicOnError((<-this.IndexerGetOrdersOrderId(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -1242,8 +1241,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.IndexerGetOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.IndexerGetOrders(this.Extend(request, params))).Raw))
 
 	//
 	// [
@@ -2186,8 +2184,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		"market": market["id"],
 	}
 
-	response := (<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -2483,8 +2480,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	response := (<-this.NodeRpcGetBroadcastTxSync(request)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
 
 	//
 	// {

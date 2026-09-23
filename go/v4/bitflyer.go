@@ -586,8 +586,7 @@ func (this *Bitflyer) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetGetbalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetbalance(params)).Raw))
 
 	//
 	//     [
@@ -643,8 +642,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"product_code": market["id"],
 	}
 
-	orderbook := (<-this.PublicGetGetboard(this.Extend(request, params))).Raw
-	PanicOnError(orderbook)
+	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetboard(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
@@ -707,8 +705,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		"product_code": market["id"],
 	}
 
-	response := (<-this.PublicGetGetticker(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetticker(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -817,8 +814,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["count"] = limit
 	}
 
-	response := (<-this.PublicGetGetexecutions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetexecutions(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1077,8 +1073,7 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"count":        limit,
 	}
 
-	response := (<-this.PrivateGetGetchildorders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetchildorders(this.Extend(request, params))).Raw))
 	var orders any = this.ParseOrders(response, market, since, limit)
 	if symbol != nil {
 		orders = this.FilterBy(orders, "symbol", symbol)
@@ -1239,8 +1234,7 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	response := (<-this.PrivateGetGetexecutions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetexecutions(this.Extend(request, params))).Raw))
 
 	//
 	//    [
@@ -1355,8 +1349,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 		"amount":        amount,
 	}
 
-	response := (<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -1407,8 +1400,7 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit // default 100
 	}
 
-	response := (<-this.PrivateGetGetcoinins(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinins(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1468,8 +1460,7 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["count"] = limit // default 100
 	}
 
-	response := (<-this.PrivateGetGetcoinouts(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinouts(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1618,8 +1609,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		"product_code": market["id"],
 	}
 
-	response := (<-this.PublicGetGetfundingrate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetfundingrate(this.Extend(request, params))).Raw))
 
 	//
 	//    {

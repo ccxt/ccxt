@@ -12631,8 +12631,7 @@ func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	}
 	params = MapTyped(this.Omit(params, "holdSide"))
 
-	response := (<-this.PrivateMixPostV2MixAccountSetMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixAccountSetMargin(this.Extend(request, params))).Raw))
 
 	//
 	//     {

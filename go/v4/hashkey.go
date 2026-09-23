@@ -1449,8 +1449,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetQuoteV1Depth(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetQuoteV1Depth(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "t": 1721681436393,
@@ -1509,8 +1508,7 @@ func (this *Hashkey) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetQuoteV1Trades(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Trades(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -1934,8 +1932,7 @@ func (this *Hashkey) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.PublicGetQuoteV1Ticker24hr(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Ticker24hr(params)).Raw))
 
 	ch <- this.ParseTickers(response, symbols)
 	return nil
@@ -2020,8 +2017,7 @@ func (this *Hashkey) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2231,8 +2227,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
-	response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "canDeposit": true,
@@ -2335,8 +2330,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	response := (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2411,8 +2405,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["endTime"] = until
 	}
 
-	response := (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2492,8 +2485,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code any, amount any, address any
 		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
 	}
 
-	response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2653,8 +2645,7 @@ func (this *Hashkey) transferBody(ch chan any, code any, amount any, fromAccount
 		"toAccountId":   toAccount,
 	}
 
-	response := (<-this.PrivatePostApiV1AccountAssetTransfer(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountAssetTransfer(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -2713,8 +2704,7 @@ func (this *Hashkey) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetApiV1AccountType(params)).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountType(params)).Raw))
 
 	//
 	//     [
@@ -2842,8 +2832,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
 
-	response := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -3280,8 +3269,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol any, typeVar any, s
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	response := (<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4295,8 +4283,7 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		"timestamp": this.Milliseconds(),
 	}
 
-	response := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -4504,8 +4491,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol any, option
 		"symbol": market["id"],
 	}
 
-	response := (<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -4661,8 +4647,7 @@ func (this *Hashkey) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	var market map[string]any = MapTyped(this.Market(symbol))
 	request["symbol"] = market["id"]
 
-	response := (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))).Raw))
 
 	//
 	//     {
@@ -4816,8 +4801,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 		"amount": amountString,
 	}
 
-	response := (<-this.PrivatePostApiV1FuturesPositionMargin(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesPositionMargin(this.Extend(request, params))).Raw))
 
 	//
 	//     {

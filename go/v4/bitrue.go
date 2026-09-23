@@ -2585,8 +2585,7 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit // default 100, max 1000
 	}
 
-	response := (<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))).Raw))
 
 	//
 	//     [

@@ -460,8 +460,7 @@ func (this *Coincheck) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetAccountsBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsBalance(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -604,8 +603,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetOrderBooks(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBooks(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -682,8 +680,7 @@ func (this *Coincheck) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		"pair": market["id"],
 	}
 
-	ticker := (<-this.PublicGetTicker(this.Extend(request, params))).Raw
-	PanicOnError(ticker)
+	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
 
 	//
 	// {
@@ -1059,8 +1056,7 @@ func (this *Coincheck) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	response := (<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params))).Raw))
 
 	//
 	//    {

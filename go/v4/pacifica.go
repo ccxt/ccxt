@@ -1842,8 +1842,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "start_time", since)
 	}
 
-	response := (<-this.PublicGetTradesHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -2749,8 +2748,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -3147,8 +3145,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetOrdersHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrdersHistory(this.Extend(request, params))).Raw))
 	//
 	// {
 	//   "success": true,
@@ -4044,8 +4041,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountBalanceHistory(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [
@@ -4181,8 +4177,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 
-	response := (<-this.PublicGetFundingHistory(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingHistory(this.Extend(request, params))).Raw))
 	// {
 	//   "success": true,
 	//   "data": [

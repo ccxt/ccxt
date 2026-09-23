@@ -943,8 +943,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "timestamp": 1701166703284,
@@ -2109,8 +2108,7 @@ func (this *Bitteam) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))).Raw))
 
 	//
 	//     [
@@ -2450,8 +2448,7 @@ func (this *Bitteam) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	response := (<-this.PrivateGetTradeApiCcxtBalance(params)).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtBalance(params)).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil

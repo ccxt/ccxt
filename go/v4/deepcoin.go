@@ -1241,8 +1241,7 @@ func (this *Deepcoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 
-	response := (<-this.PrivateGetDeepcoinAccountBalances(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAccountBalances(this.Extend(request, params))).Raw))
 
 	ch <- this.ParseBalance(response)
 	return nil
