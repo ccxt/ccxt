@@ -730,7 +730,7 @@ public class Lbank extends LbankApi
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
@@ -837,7 +837,7 @@ public class Lbank extends LbankApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((((base + "/") + quote) + ":") + settle);
+                String symbol = ((((base + "/") + quote) + ":") + settle);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
@@ -1683,7 +1683,7 @@ public class Lbank extends LbankApi
         Double fundingRate = this.safeNumber(ticker, "fundingRate");
         Long fundingTime = this.safeInteger(ticker, "nextFeeTime");
         Long positionFeeTime = this.safeInteger(ticker, "positionFeeTime");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(positionFeeTime, null))
         {
             Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
@@ -3723,7 +3723,7 @@ public class Lbank extends LbankApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             String echostr = (this.uuid22() + this.uuid16());
             query = this.extend(new HashMap<String, Object>() {{
                 put( "api_key", Lbank.this.apiKey );
@@ -3744,7 +3744,7 @@ public class Lbank extends LbankApi
             }}, query)));
             Object encoded = this.encode(auth);
             Object hash = this.hash(encoded, md5());
-            Object uppercaseHash = ((String)hash).toUpperCase();
+            String uppercaseHash = ((String)hash).toUpperCase();
             Object sign = null;
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
@@ -3794,7 +3794,7 @@ public class Lbank extends LbankApi
         Object secretLength = Helpers.subtract(Helpers.getArrayLength(secret), 0);
         Object numLines = this.parseToInt(Helpers.divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
-        Object pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; Helpers.isLessThan(i, numLines); i++)
         {
             Object start = Helpers.multiply(i, lineLength);

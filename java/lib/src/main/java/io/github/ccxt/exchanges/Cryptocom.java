@@ -1094,7 +1094,7 @@ public class Cryptocom extends CryptocomApi
                 Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled");
                 Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = (((!java.util.Objects.equals(expiryString, null)))) ? Helpers.parseInt(expiryString) : null;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 String type = null;
                 Object contract = null;
                 if (java.util.Objects.equals(inst_type, "CCY_PAIR"))
@@ -1787,7 +1787,7 @@ public class Cryptocom extends CryptocomApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         final Object finalSide = side;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -2080,7 +2080,7 @@ public class Cryptocom extends CryptocomApi
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         final Object finalSide = side;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instrument_name", ((Map<String, Object>)market).get("id") );
@@ -4528,11 +4528,11 @@ public class Cryptocom extends CryptocomApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<Object> paramsKeys = new ArrayList<Object>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
-            Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
+            String payload = (Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Object paramsKeysLength = ((List<?>)paramsKeys).size();
             final Object finalPath = path;

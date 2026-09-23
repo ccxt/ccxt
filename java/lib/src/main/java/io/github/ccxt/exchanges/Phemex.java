@@ -1635,7 +1635,7 @@ public class Phemex extends PhemexApi
         var precise = new Precise(stringN);
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
-        Object preciseString = String.valueOf(precise);
+        String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
     }
 
@@ -5628,7 +5628,7 @@ final Object finalI = i;
             Long timestamp = this.seconds();
             Long xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
             Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
-            Object expiryString = String.valueOf(expiry);
+            String expiryString = String.valueOf(expiry);
             headers = new HashMap<String, Object>() {{
                 put( "x-phemex-access-token", Phemex.this.apiKey );
                 put( "x-phemex-request-expiry", expiryString );
@@ -5649,7 +5649,7 @@ final Object finalI = i;
                 body = payload;
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            Object auth = Helpers.add(Helpers.add(Helpers.add(requestPath, queryString), expiryString), payload);
+            String auth = Helpers.add((Helpers.add(requestPath, queryString) + expiryString), payload);
             ((Map<String, Object>)headers).put("x-phemex-request-signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
         url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)), url);
@@ -6025,7 +6025,7 @@ final Object finalI = i;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
             }
-            Object customSymbol = null;
+            String customSymbol = null;
             if (Boolean.TRUE.equals(isUsdtSettled))
             {
                 customSymbol = (("." + ((Map<String, Object>)market).get("id")) + "FR8H"); // phemex requires a custom symbol for funding rate history

@@ -195,7 +195,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             Object streamBaseId = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
             Object streamQuoteId = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";
             String stream = (((((prefix + "@") + interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
-            Object messageHash = stream;
+            String messageHash = stream;
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             this.setBrokerHeaders();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -244,12 +244,12 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
         String msg = this.safeString(error, "msg");
-        Object feedback = ((this.id + " ") + msg);
+        String feedback = ((this.id + " ") + msg);
         if (java.util.Objects.equals(code, "429"))
         {
-            throw new RateLimitExceeded((String)feedback) ;
+            throw new RateLimitExceeded(feedback) ;
         }
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)

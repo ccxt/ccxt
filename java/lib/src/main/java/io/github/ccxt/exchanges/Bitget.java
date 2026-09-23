@@ -3930,7 +3930,7 @@ public class Bitget extends BitgetApi
                     settleId = this.safeString(supportMarginCoins, 0);
                 }
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 Object type = null;
                 Boolean swap = false;
                 Boolean spot = false;
@@ -3976,7 +3976,7 @@ public class Bitget extends BitgetApi
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
                         Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        Object expiryString = Helpers.add((year + month), day);
+                        String expiryString = Helpers.add((year + month), day);
                         type = "future";
                         future = true;
                         symbol = ((((symbol + ":") + settle) + "-") + expiryString);
@@ -3991,12 +3991,12 @@ public class Bitget extends BitgetApi
                     var precise = new Precise(priceStep);
                     precise.decimals = Helpers.mathMax(precise.decimals, priceDecimals);
                     precise.reduce();
-                    Object priceString = String.valueOf(precise);
+                    String priceString = String.valueOf(precise);
                     pricePrecision = this.parseNumber(priceString);
                     var preciseAmount = new Precise(amountStep);
                     preciseAmount.decimals = Helpers.mathMax(preciseAmount.decimals, amountDecimals);
                     preciseAmount.reduce();
-                    Object amountString = String.valueOf(preciseAmount);
+                    String amountString = String.valueOf(preciseAmount);
                     amountPrecision = this.parseNumber(amountString);
                     marginModes = new HashMap<String, Object>() {{
                         put( "cross", true );
@@ -4230,7 +4230,7 @@ public class Bitget extends BitgetApi
                 {
                     settle = this.safeCurrencyCode(settleId);
                 }
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 String type = null;
                 Boolean swap = false;
                 Boolean spot = false;
@@ -4280,7 +4280,7 @@ public class Bitget extends BitgetApi
                         Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
                         Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
-                        Object expiryString = Helpers.add((year + month), day);
+                        String expiryString = Helpers.add((year + month), day);
                         type = "future";
                         future = true;
                         symbol = ((((symbol + ":") + settle) + "-") + expiryString);
@@ -12316,7 +12316,7 @@ final Object finalMinNotional = minNotional;
         Long timestamp = this.safeInteger(contract, "ts");
         Double markPrice = this.safeNumber(contract, "markPrice");
         Double indexPrice = this.safeNumber(contract, "indexPrice");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(interval, null))
         {
             intervalString = (interval + "h");
@@ -15002,8 +15002,8 @@ final Object finalMinNotional = minNotional;
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
-            Object auth = (Helpers.add(timestamp, method) + payload);
+            String timestamp = String.valueOf(this.nonce());
+            Object auth = ((timestamp + method) + payload);
             if (java.util.Objects.equals(method, "POST"))
             {
                 body = this.json(parameters);

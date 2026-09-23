@@ -1085,7 +1085,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
-            Object messageHash = "myOrder";
+            String messageHash = "myOrder";
             List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
             final Object finalMessageHash = messageHash;
             Object request = this.buildGen2SubscriptionRequest(messageHash, (Map<String, Object>) (new HashMap<String, Object>() {{
@@ -1146,7 +1146,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object cachedOrders = this.orders;
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         client.resolve(cachedOrders, messageHash);
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
 
@@ -1264,7 +1264,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     {
         if ((message instanceof String))
         {
-            Object content = ((String)message).toLowerCase();
+            String content = ((String)message).toLowerCase();
             if (java.util.Objects.equals(content, "pong"))
             {
                 this.handlePong(client, message);

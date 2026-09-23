@@ -868,14 +868,14 @@ public class Gemini extends GeminiApi
                 Object marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
                 marketId = Helpers.replace(((String)marketId), "*", "");
                 // const base = this.safeCurrencyCode (baseId);
-                Object minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
+                String minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
                 List<Object> minAmountParts = (List<Object>) Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                Object amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
+                String amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
                 List<Object> amountPrecisionParts = (List<Object>) Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Object startingIndex = Helpers.subtract(idLength, 3);
-                Object pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
+                String pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
                 List<Object> pricePrecisionParts = (List<Object>) Helpers.split(pricePrecisionString, " ");
                 String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
                 String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), quoteId, ""));
@@ -1132,11 +1132,11 @@ public class Gemini extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
+            String marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (((String)marketIdUpper).indexOf("PERP") >= 0);
-            Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
+            String marketIdWithoutPerp = Helpers.replace(marketIdUpper, (String)"PERP", (String)"");
             Map<String, Object> conflictingMarkets = (Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
-            Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
+            Object lowerCaseId = marketIdWithoutPerp.toLowerCase();
             if (conflictingMarkets.containsKey(lowerCaseId))
             {
                 Object conflictingMarket = (conflictingMarkets == null || lowerCaseId == null ? null : conflictingMarkets.get(lowerCaseId));
@@ -1152,7 +1152,7 @@ public class Gemini extends GeminiApi
                 for (var i = 0; i < Helpers.getArrayLength(quoteCurrencies); i++)
                 {
                     Object quoteCurrency = Helpers.GetValue(quoteCurrencies, i);
-                    if (Helpers.isTrue(((String)marketIdWithoutPerp).endsWith(((String)quoteCurrency))))
+                    if (Helpers.isTrue(marketIdWithoutPerp.endsWith(((String)quoteCurrency))))
                     {
                         Long quoteLength = this.parseToInt(Helpers.multiply(-1, Helpers.getArrayLength(quoteCurrency)));
                         baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);
@@ -1169,7 +1169,7 @@ public class Gemini extends GeminiApi
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
         String settle = this.safeCurrencyCode((String) (settleId));
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settleId, null))
         {
             symbol = ((symbol + ":") + settle);
@@ -2596,7 +2596,7 @@ public class Gemini extends GeminiApi
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object finalUrl = url;
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "request", finalUrl );

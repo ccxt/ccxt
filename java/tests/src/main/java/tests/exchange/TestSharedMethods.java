@@ -212,7 +212,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Assert(false, (("datetime is not parseable: " + dt) + logText));
                 }
-                Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
+                Double diff = (Double) Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isGreaterThanOrEqual(diff, 500))
                 {
                     Object dtParsedString = exchange.iso8601(dtParsed);
@@ -834,7 +834,7 @@ public class TestSharedMethods extends BaseTest {
                 }
                 if (!java.util.Objects.equals(ohlcv, null))
                 {
-                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
                     if (Helpers.isLessThanOrEqual(ohlcvLength, 1))
                     {
                         // if only 1 day of listing, then allow it

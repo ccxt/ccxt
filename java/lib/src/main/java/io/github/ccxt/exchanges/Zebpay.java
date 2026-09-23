@@ -1354,7 +1354,7 @@ public class Zebpay extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object upperCaseType = ((String)type).toUpperCase();
+            String upperCaseType = ((String)type).toUpperCase();
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
@@ -1425,7 +1425,7 @@ public class Zebpay extends ZebpayApi
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "stopLossPrice");
         String quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -2097,7 +2097,7 @@ public class Zebpay extends ZebpayApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -2187,7 +2187,7 @@ public class Zebpay extends ZebpayApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalStatus = status;
@@ -2424,7 +2424,7 @@ public class Zebpay extends ZebpayApi
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
         String tail = ("/api/" + this.implodeParams(path, parameters));
         url = Helpers.add(url, tail);
-        Object timestamp = String.valueOf(this.milliseconds());
+        String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryLength = ((List<?>)Helpers.objectKeys(query)).size();
@@ -2498,7 +2498,7 @@ public class Zebpay extends ZebpayApi
         //
         String errorCode = this.safeString2(response, "code", "statusCode");
         String message = this.safeString2(response, "msg", "statusDescription");
-        Object feedback = ((this.id + " ") + message);
+        String feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);

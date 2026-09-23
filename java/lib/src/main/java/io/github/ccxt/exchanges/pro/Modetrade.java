@@ -756,7 +756,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object ts = String.valueOf(this.nonce());
+                String ts = String.valueOf(this.nonce());
                 Object auth = ts;
                 Object secret = this.secret;
                 if (((String)secret).indexOf("ed25519:") >= 0)
@@ -1138,7 +1138,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
             client.resolve(this.orders, topic);
-            Object messageHashSymbol = Helpers.add((topic + ":"), symbol);
+            String messageHashSymbol = Helpers.add((topic + ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }

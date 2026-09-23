@@ -1317,10 +1317,10 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
-        Object messageHash = "orders";
-        Object messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
+        String messageHash = "orders";
+        String messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
         client.resolve(this.orders, messageWithType);
-        messageHash = Helpers.add(messageHash, (":" + symbol));
+        messageHash = (messageHash + (":" + symbol));
         client.resolve(this.orders, messageHash);
     }
 
@@ -1701,7 +1701,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             Client client = this.client(url);
             Long time = this.milliseconds();
-            Object timestamp = String.valueOf(time);
+            String timestamp = String.valueOf(time);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);

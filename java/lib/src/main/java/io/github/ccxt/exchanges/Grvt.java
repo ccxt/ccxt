@@ -1027,7 +1027,7 @@ public class Grvt extends GrvtApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         String type = null;
         String typeRaw = this.safeString(market, "kind");
         if (java.util.Objects.equals(typeRaw, "PERPETUAL"))
@@ -2586,7 +2586,7 @@ public class Grvt extends GrvtApi
             {
                 throw new InvalidOrder((this.id + " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 clientOrderId = Helpers.add((String.valueOf(this.nonce()) + "000"), String.valueOf(this.requestId()));
@@ -2799,13 +2799,13 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
-            Object precisionValueStr = String.valueOf(precisionValue);
+            String precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
             List<Object> sizeParts = (List<Object>) Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Object sizeDecLengthStr = String.valueOf(sizeDecLength);
+            String sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)size), ".", "")), sizeMultiplier), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instrument_hash") );
@@ -2819,7 +2819,7 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = (List<Object>) Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Object limitDecLengthStr = String.valueOf(limitDecLength);
+                String limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = (((java.util.Objects.equals(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)price), ".", "")), this.convertToBigIntCustom(priceMultiplier)), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 ((Map<String, Object>)legOrder).put("limitPrice", this.parseToInt(priceInteger));
@@ -4091,7 +4091,7 @@ public class Grvt extends GrvtApi
                 body = this.json(parameters);
             }
         }
-        Object isPrivate = ((String)api).startsWith("private");
+        Boolean isPrivate = ((String)api).startsWith("private");
         if (java.util.Objects.equals(isPrivate, true))
         {
             this.checkRequiredCredentials();

@@ -579,7 +579,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (java.util.Objects.equals(authenticated, null))
             {
                 Object requestId = this.requestId(url);
-                Object now = String.valueOf(this.milliseconds());
+                String now = String.valueOf(this.milliseconds());
                 Object signature = this.signMessage(now, this.privateKey);
                 String deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -653,7 +653,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            Object topic = (this.numberToString(subaccountId) + ".orders");
+            String topic = (this.numberToString(subaccountId) + ".orders");
             Object messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -762,7 +762,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
                 }
                 Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
-                Object messageHashSymbol = Helpers.add((topic + ":"), symbol);
+                String messageHashSymbol = Helpers.add((topic + ":"), symbol);
                 client.resolve(this.orders, messageHashSymbol);
             }
         }
@@ -798,7 +798,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", (Map<String, Object>) (parameters));
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            Object topic = (this.numberToString(subaccountId) + ".trades");
+            String topic = (this.numberToString(subaccountId) + ".trades");
             Object messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
             {

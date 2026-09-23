@@ -1144,7 +1144,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                         ((List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 2), 1));
                     }
                 }
-                Object payload = String.join(":", (List<String>)payloadArray);
+                String payload = String.join(":", (List<String>)payloadArray);
                 Object calculatedChecksum = this.crc32(payload, true);
                 if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
                 {
@@ -3036,7 +3036,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 String auth = ((timestamp + "GET") + "/user/verify");
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
@@ -3443,7 +3443,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = null;
-        Object subMessageHash = null;
+        String subMessageHash = null;
         if (Boolean.TRUE.equals(isUta))
         {
             messageHash = ("unsubscribe:kline:" + symbol);
@@ -3460,7 +3460,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
         }
-        this.cleanUnsubscription(client, (String) (subMessageHash), messageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
     }
 
     public Map<String, Object> handleUnSubscriptionStatus(Client client, Map<String, Object> message)

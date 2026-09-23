@@ -847,7 +847,7 @@ public class Blofin extends BlofinApi
         String settle = this.safeCurrencyCode(settleId);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
             symbol = ((symbol + ":") + settle);
@@ -4010,7 +4010,7 @@ public class Blofin extends BlofinApi
         } else if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             headers = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Blofin.this.apiKey );
                 put( "ACCESS-PASSPHRASE", Blofin.this.password );
@@ -4035,7 +4035,7 @@ public class Blofin extends BlofinApi
                 }
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(request, method), timestamp), timestamp), sign_body);
+            String auth = (((Helpers.add(request, method) + timestamp) + timestamp) + sign_body);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             ((Map<String, Object>)headers).put("ACCESS-SIGN", signature);
         }

@@ -149,7 +149,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        Object messageHash = Helpers.add((channel + ":"), marketId);
+        String messageHash = Helpers.add((channel + ":"), marketId);
         client.resolve(orderbook, messageHash);
     }
 
@@ -223,7 +223,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
         }
-        Object messageHash = Helpers.add((channel + ":"), marketId);
+        String messageHash = Helpers.add((channel + ":"), marketId);
         client.resolve(stored, messageHash);
         client.resolve(stored, channel);
     }
@@ -299,8 +299,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Object rawTrades = this.safeValue(message, "data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        Object dataLength = Helpers.getArrayLength(rawTrades);
-        if (Helpers.isEqual(dataLength, 0))
+        Integer dataLength = Helpers.getArrayLength(rawTrades);
+        if ((dataLength != null && dataLength == 0))
         {
             return;
         }
@@ -330,7 +330,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object messageHash = Helpers.add((channel + ":"), marketId);
+            String messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.myTrades, messageHash);
         }
     }
@@ -440,8 +440,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String channel = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         // usually the first message is an empty array
-        Object dataLength = Helpers.getArrayLength(data);
-        if (Helpers.isEqual(dataLength, 0))
+        Integer dataLength = Helpers.getArrayLength(data);
+        if ((dataLength != null && dataLength == 0))
         {
             return;
         }
@@ -479,7 +479,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object messageHash = Helpers.add((channel + ":"), marketId);
+            String messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.orders, messageHash);
         }
     }

@@ -922,7 +922,7 @@ public class Bitfinex extends BitfinexApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object labels = new ArrayList<Object>(Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
-            Object config = String.join(",", (List<String>)labels);
+            String config = String.join(",", (List<String>)labels);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "config", config );
             }};
@@ -967,7 +967,7 @@ public class Bitfinex extends BitfinexApi
                 Object splitQuote = new ArrayList<Object>(Arrays.asList(((String)quote).split(java.util.regex.Pattern.quote("F0"))));
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 // baseId = 'f' + baseId;
                 // quoteId = 'f' + quoteId;
                 String settle = null;
@@ -1060,7 +1060,7 @@ public class Bitfinex extends BitfinexApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object labels = new ArrayList<Object>(Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
-            Object config = String.join(",", (List<String>)labels);
+            String config = String.join(",", (List<String>)labels);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "config", config );
             }};
@@ -2247,7 +2247,7 @@ public class Bitfinex extends BitfinexApi
         Boolean postOnlyParam = (Boolean) this.safeBool(parameters, "postOnly", false);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         Object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         if (!java.util.Objects.equals(trailingAmount, null))
         {
             orderType = "TRAILING STOP";
@@ -3645,12 +3645,12 @@ public class Bitfinex extends BitfinexApi
             String statusMessage = this.safeString(response, 0);
             if (java.util.Objects.equals(statusMessage, "error"))
             {
-                Object feedback = ((this.id + " ") + response);
+                String feedback = ((this.id + " ") + response);
                 String message = this.safeString(response, 2, "");
                 // same message as in v1
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             String text = this.safeString(response, 7);
             if (!java.util.Objects.equals(text, "success"))
@@ -3837,7 +3837,7 @@ public class Bitfinex extends BitfinexApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             body = this.json(query);
             String auth = ((("/api/" + request) + nonce) + body);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha384());
@@ -4609,8 +4609,8 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object interestLength = Helpers.getArrayLength(interest);
-        Object openInterestIndex = (((Helpers.isEqual(interestLength, 23)))) ? 17 : 18;
+        Integer interestLength = Helpers.getArrayLength(interest);
+        Object openInterestIndex = ((((interestLength != null && interestLength == 23)))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);
         return this.safeOpenInterest(new HashMap<String, Object>() {{

@@ -1417,7 +1417,7 @@ public class Coinex extends CoinexApi
                 String quoteId = this.safeString(market, "quote_ccy");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1520,7 +1520,7 @@ public class Coinex extends CoinexApi
                 String quote = this.safeCurrencyCode(quoteId);
                 String settleId = (((java.util.Objects.equals(subType, "linear")))) ? "USDT" : baseId;
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((((base + "/") + quote) + ":") + settle);
+                String symbol = ((((base + "/") + quote) + ":") + settle);
                 Object leveragesLength = ((List<?>)leverages).size();
     final Object finalBase = base;
                 final Object finalLeveragesLength = leveragesLength;
@@ -6468,9 +6468,9 @@ final Object finalI = i;
         path = this.implodeParams(path, parameters);
         Object version = Helpers.GetValue(api, 0);
         Object requestUrl = Helpers.GetValue(api, 1);
-        Object url = Helpers.add((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), requestUrl), "/"), version) + "/"), path);
+        String url = Helpers.add((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), requestUrl), "/"), version) + "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object nonce = String.valueOf(this.nonce());
+        String nonce = String.valueOf(this.nonce());
         if (java.util.Objects.equals(method, "POST"))
         {
             List<Object> parts = (List<Object>) Helpers.split(path, "/");
@@ -6567,7 +6567,7 @@ final Object finalI = i;
                 {
                     preparedString = (preparedString + ("?" + urlencoded));
                 }
-                preparedString = Helpers.add(preparedString, Helpers.add(nonce, this.secret));
+                preparedString = (preparedString + (nonce + this.secret));
                 Object signature = this.hash(this.encode(preparedString), sha256());
                 final Object finalNonce_3 = nonce;
                 headers = new HashMap<String, Object>() {{

@@ -898,7 +898,7 @@ public class Tokocrypto extends TokocryptoApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
@@ -2070,7 +2070,7 @@ public class Tokocrypto extends TokocryptoApi
                 type = "LIMIT_MAKER";
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId")));
-            Object initialUppercaseType = ((String)type).toUpperCase();
+            String initialUppercaseType = ((String)type).toUpperCase();
             Object uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             if (!java.util.Objects.equals(triggerPrice, null))

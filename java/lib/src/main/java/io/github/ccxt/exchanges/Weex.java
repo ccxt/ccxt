@@ -1251,7 +1251,7 @@ public class Weex extends WeexApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object active = true;
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Boolean isSpot = true;
         Object isLinear = null;
         Object isInverse = null;

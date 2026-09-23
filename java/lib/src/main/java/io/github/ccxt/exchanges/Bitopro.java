@@ -522,7 +522,7 @@ public class Bitopro extends BitoproApi
         String quoteId = this.safeString(market, "quote");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Map<String, Object> limits = new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
                 put( "min", Bitopro.this.safeNumber(market, "minLimitBaseAmount") );
@@ -1098,8 +1098,8 @@ public class Bitopro extends BitoproApi
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        Object length = Helpers.getArrayLength(candles);
-        if (Helpers.isEqual(length, 0))
+        Integer length = Helpers.getArrayLength(candles);
+        if ((length != null && length == 0))
         {
             return candles;
         }
@@ -1114,7 +1114,7 @@ public class Bitopro extends BitoproApi
             timestamp = since;
         }
         Object i = 0;
-        Object candleLength = Helpers.getArrayLength(candles);
+        Integer candleLength = Helpers.getArrayLength(candles);
         Object resultLength = 0;
         while ((Helpers.isLessThan(resultLength, limit)) && (Helpers.isLessThan(i, candleLength)))
         {
@@ -1360,7 +1360,7 @@ public class Bitopro extends BitoproApi
                 put( "amount", Bitopro.this.amountToPrecision(symbol, amount) );
                 put( "timestamp", Bitopro.this.milliseconds() );
             }};
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(orderType, "LIMIT"))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));

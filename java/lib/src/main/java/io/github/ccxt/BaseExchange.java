@@ -4557,7 +4557,7 @@ public Object describe()
         Object length = ((List<?>)usedProxies).size();
         if (Helpers.isGreaterThan(length, 1))
         {
-            Object joinedProxyNames = String.join(",", (List<String>)usedProxies);
+            String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
@@ -4630,7 +4630,7 @@ public Object describe()
         Object length = ((List<?>)usedProxies).size();
         if (Helpers.isGreaterThan(length, 1))
         {
-            Object joinedProxyNames = String.join(",", (List<String>)usedProxies);
+            String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new ArrayList<Object>(Arrays.asList(httpProxy, httpsProxy, socksProxy));
@@ -4670,7 +4670,7 @@ public Object describe()
         Object length = ((List<?>)usedProxies).size();
         if (Helpers.isGreaterThan(length, 1))
         {
-            Object joinedProxyNames = String.join(",", (List<String>)usedProxies);
+            String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new ArrayList<Object>(Arrays.asList(wsProxy, wssProxy, wsSocksProxy));
@@ -7109,7 +7109,7 @@ public Object describe()
         Object amount = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object price = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object takerOrMaker = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object id = null;
+        String id = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
             id = this.numberToString(timestamp);
@@ -7694,7 +7694,7 @@ public Object describe()
             Object returnAsJson = returnAsJson3;
             Object startRegex = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object endRegex = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object errorMessage = "";
+            String errorMessage = "";
             Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
             Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
             try
@@ -7770,7 +7770,7 @@ public Object describe()
                 return null;
             } else
             {
-                throw new BadResponse((String)errorMessage) ;
+                throw new BadResponse(errorMessage) ;
             }
         });
 
@@ -9149,8 +9149,8 @@ public Object describe()
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, marketId);
-                Object numMarkets = Helpers.getArrayLength(markets);
-                if (Helpers.isEqual(numMarkets, 1))
+                Integer numMarkets = Helpers.getArrayLength(markets);
+                if ((numMarkets != null && numMarkets == 1))
                 {
                     return Helpers.GetValue(markets, 0);
                 } else
@@ -10415,8 +10415,8 @@ public Object describe()
         for (var i = 0; i < ((List<?>)leverageSuffixes).size(); i++)
         {
             String leverageSuffix = (String) Helpers.GetValue(leverageSuffixes, i);
-            Object endsWithSuffix = ((String)currencyCode).endsWith(leverageSuffix);
-            if (Helpers.isTrue(endsWithSuffix))
+            Boolean endsWithSuffix = ((String)currencyCode).endsWith(leverageSuffix);
+            if (Boolean.TRUE.equals(endsWithSuffix))
             {
                 if (!Helpers.isTrue(checkBaseCoin))
                 {
@@ -10424,8 +10424,8 @@ public Object describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    Object baseCurrencyCode = Helpers.replace(((String)currencyCode), leverageSuffix, "");
-                    if ((!java.util.Objects.equals(existingCurrencies, null)) && ((baseCurrencyCode != null && ((Map<?, ?>)existingCurrencies).containsKey(baseCurrencyCode))))
+                    String baseCurrencyCode = Helpers.replace(((String)currencyCode), leverageSuffix, "");
+                    if ((!java.util.Objects.equals(existingCurrencies, null)) && (((Map<?, ?>)existingCurrencies).containsKey(baseCurrencyCode)))
                     {
                         return true;
                     }
@@ -11418,8 +11418,8 @@ public Object describe()
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-        Object lowercaseAccount = ((String)account).toLowerCase();
-        if ((lowercaseAccount != null && accountsByType.containsKey(lowercaseAccount)))
+        String lowercaseAccount = ((String)account).toLowerCase();
+        if (accountsByType.containsKey(lowercaseAccount))
         {
             return (accountsByType == null || !(lowercaseAccount instanceof String) ? null : accountsByType.get(lowercaseAccount));
         }
@@ -11450,7 +11450,7 @@ public Object describe()
         Object optionsLength = ((List<?>)options).size();
         if ((java.util.Objects.equals(argument, null)) || ((Helpers.isGreaterThan(optionsLength, 0)) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))
         {
-            Object messageOptions = String.join(", ", (List<String>)options);
+            String messageOptions = String.join(", ", (List<String>)options);
             String message = (Helpers.add((((this.id + " ") + methodName) + "() requires a "), argumentName) + " argument");
             if (!java.util.Objects.equals(messageOptions, ""))
             {
@@ -11791,17 +11791,17 @@ public Object describe()
                             ((Map<String, Object>)parameters).put("until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (this.verbose)
                         {
-                            Object backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
                             }
                             this.log(backwardMessage);
                         }
-                        if (Helpers.isEqual(responseLength, 0))
+                        if ((responseLength != null && responseLength == 0))
                         {
                             break;
                         }
@@ -11821,17 +11821,17 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (this.verbose)
                         {
-                            Object forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
                             }
                             this.log(forwardMessage);
                         }
-                        if (Helpers.isEqual(responseLength, 0))
+                        if ((responseLength != null && responseLength == 0))
                         {
                             break;
                         }
@@ -11967,7 +11967,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
                 if (Helpers.isGreaterThan(requiredCalls, maxCalls))
                 {
                     throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCalls)) + " required calls is ") + String.valueOf(requiredCalls))) ;
@@ -12075,7 +12075,7 @@ public Object describe()
                     {
                         Object cursorString = (((java.util.Objects.equals(cursorValue, null)))) ? "" : cursorValue;
                         Object iteration = (Helpers.add(i, 1));
-                        Object cursorMessage = Helpers.add((((((("Cursor pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor "), cursorString);
+                        String cursorMessage = Helpers.add((((((("Cursor pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor "), cursorString);
                         this.log(cursorMessage);
                     }
                     if (java.util.Objects.equals(responseLength, 0))
@@ -12163,14 +12163,14 @@ public Object describe()
                     ((Map<String, Object>)parameters).put((String)((String)pageKey), Helpers.add(i, 1));
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequest, parameters })).join();
                     errors = 0;
-                    Object responseLength = Helpers.getArrayLength(response);
+                    Integer responseLength = Helpers.getArrayLength(response);
                     if (this.verbose)
                     {
-                        Object iteration = String.valueOf((Helpers.add(i, 1)));
-                        Object incrementalMessage = Helpers.add((((("Incremental pagination call " + iteration) + " method ") + method) + " response length "), String.valueOf(responseLength));
+                        String iteration = String.valueOf((Helpers.add(i, 1)));
+                        String incrementalMessage = Helpers.add((((("Incremental pagination call " + iteration) + " method ") + method) + " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
-                    if (Helpers.isEqual(responseLength, 0))
+                    if ((responseLength != null && responseLength == 0))
                     {
                         break;
                     }
@@ -12586,7 +12586,7 @@ public Object describe()
         {
             month = "DEC";
         }
-        Object reconstructedDate = Helpers.add((day + month), year);
+        String reconstructedDate = Helpers.add((day + month), year);
         return reconstructedDate;
     }
 
@@ -12620,7 +12620,7 @@ public Object describe()
         Object monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
         String month = this.safeString(monthMappping, monthName);
         Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
-        Object reconstructedDate = Helpers.add((day + month), year);
+        String reconstructedDate = Helpers.add((day + month), year);
         return reconstructedDate;
     }
 

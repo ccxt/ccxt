@@ -628,7 +628,7 @@ public class Independentreserve extends IndependentreserveApi
         Long timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
         String baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         String quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
-        Object defaultMarketId = null;
+        String defaultMarketId = null;
         if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
         {
             defaultMarketId = ((baseId + "/") + quoteId);
@@ -1038,7 +1038,7 @@ public class Independentreserve extends IndependentreserveApi
         Double cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         String baseId = this.safeString(trade, "PrimaryCurrencyCode");
         String quoteId = this.safeString(trade, "SecondaryCurrencyCode");
-        Object marketId = null;
+        String marketId = null;
         if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
         {
             marketId = ((baseId + "/") + quoteId);
@@ -1477,10 +1477,10 @@ public class Independentreserve extends IndependentreserveApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = String.valueOf(Helpers.GetValue(parameters, key));
-                ((List<Object>)auth).add(Helpers.add((key + "="), value));
+                String value = String.valueOf(Helpers.GetValue(parameters, key));
+                ((List<Object>)auth).add(((key + "=") + value));
             }
-            Object message = String.join(",", (List<String>)auth);
+            String message = String.join(",", (List<String>)auth);
             String signature = (String) this.hmac(this.encode(message), this.encode(this.secret), sha256());
             Map<String, Object> query = new HashMap<String, Object>() {{}};
             ((Map<String, Object>)query).put("apiKey", this.apiKey);

@@ -916,7 +916,7 @@ public class Digifinex extends DigifinexApi
                 Boolean spot = java.util.Objects.equals(settle, null);
                 Boolean swap = !Boolean.TRUE.equals(spot);
                 Object margin = (((!java.util.Objects.equals(marginMode, null)))) ? true : null;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 Object isInverse = null;
                 Object isLinear = null;
                 if (Boolean.TRUE.equals(swap))

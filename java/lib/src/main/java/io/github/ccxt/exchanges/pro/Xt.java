@@ -270,7 +270,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
-                    Object param = Helpers.add((name + "@"), listenKey);
+                    String param = Helpers.add((name + "@"), listenKey);
                     ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -278,7 +278,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
-            Object messageHash = ((name + "::") + tradeType);
+            String messageHash = ((name + "::") + tradeType);
             if (!java.util.Objects.equals(symbols, null))
             {
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
@@ -346,7 +346,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
-                    Object param = Helpers.add((name + "@"), listenKey);
+                    String param = Helpers.add((name + "@"), listenKey);
                     ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -354,7 +354,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
-            Object subMessageHash = ((name + "::") + tradeType);
+            String subMessageHash = ((name + "::") + tradeType);
             Map<String, Object> request = this.extend(unsubscribe, parameters);
             Object tail = access;
             if (Boolean.TRUE.equals(isContract))
@@ -1163,7 +1163,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             String eventVar = this.safeString(message, "event");
             String messageHashTail = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
-            Object messageHash = ((eventVar + "::") + messageHashTail);
+            String messageHash = ((eventVar + "::") + messageHashTail);
             client.resolve(ticker, messageHash);
         }
         return message;
@@ -1254,7 +1254,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             ((List<Object>)newTickers).add(ticker);
         }
-        Object messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
+        String messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
         Object messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
@@ -1332,7 +1332,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             String eventVar = this.safeString(message, "event");
-            Object messageHash = ((eventVar + "::") + tradeType);
+            String messageHash = ((eventVar + "::") + tradeType);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1388,7 +1388,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
-            Object messageHash = ((eventVar + "::") + tradeType);
+            String messageHash = ((eventVar + "::") + tradeType);
             client.resolve(tradesArray, messageHash);
         }
         return message;

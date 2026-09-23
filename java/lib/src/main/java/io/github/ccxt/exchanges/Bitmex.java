@@ -1190,7 +1190,7 @@ public class Bitmex extends BitmexApi
         Boolean active = java.util.Objects.equals(status, "Open"); // Open, Settled, Unlisted
         Long expiry = null;
         String expiryDatetime = null;
-        Object symbol = null;
+        String symbol = null;
         if (Boolean.TRUE.equals(spot))
         {
             symbol = ((base + "/") + quote);
@@ -4028,7 +4028,7 @@ public class Bitmex extends BitmexApi
         String baseId = this.safeString(interest, "rootSymbol");
         String quoteSymbol = this.safeCurrencyCode(quoteId);
         String baseSymbol = this.safeCurrencyCode(baseId);
-        Object symbol = baseSymbol;
+        String symbol = baseSymbol;
         if (!java.util.Objects.equals(quoteSymbol, null))
         {
             symbol = ((((baseSymbol + "/") + quoteSymbol) + ":") + quoteSymbol);
@@ -4634,7 +4634,7 @@ public class Bitmex extends BitmexApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object query = Helpers.add((("/api/" + this.version) + "/"), path);
+        String query = Helpers.add((("/api/" + this.version) + "/"), path);
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -4669,8 +4669,8 @@ public class Bitmex extends BitmexApi
             {
                 throw new ExchangeError((this.id + " sign() missing expires")) ;
             }
-            Object stringExpires = String.valueOf(expires);
-            auth = Helpers.add(auth, stringExpires);
+            String stringExpires = String.valueOf(expires);
+            auth = (auth + stringExpires);
             ((Map<String, Object>)headers).put("api-expires", stringExpires);
             if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT") || java.util.Objects.equals(method, "DELETE"))
             {

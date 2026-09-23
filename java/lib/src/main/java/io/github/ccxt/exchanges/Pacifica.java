@@ -955,7 +955,7 @@ public class Pacifica extends PacificaApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isSwap))
         {
             symbol = ((symbol + ":") + settle);
@@ -2033,7 +2033,7 @@ public class Pacifica extends PacificaApi
         }};
         String operationType = null;
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -4407,7 +4407,7 @@ public class Pacifica extends PacificaApi
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorId, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            Object codeAsString = String.valueOf(code);
+            String codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError(feedback) ;

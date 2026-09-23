@@ -547,7 +547,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String messageHash = "orders";
         client.resolve(orders, messageHash);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 
@@ -683,7 +683,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
 

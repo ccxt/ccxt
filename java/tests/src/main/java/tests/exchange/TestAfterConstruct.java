@@ -70,7 +70,7 @@ public class TestAfterConstruct extends BaseTest {
             List<Object> collectedNetworkCodes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
             {
-                Object networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
+                String networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
                 Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i))) + "\" in different uppercase/lowercase format"));
                 ((List<Object>)collectedNetworkCodes).add(networkCodeLower);
             }

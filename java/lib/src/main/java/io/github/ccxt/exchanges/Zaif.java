@@ -369,7 +369,7 @@ public class Zaif extends ZaifApi
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );

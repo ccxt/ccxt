@@ -1918,7 +1918,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
-            Object length = Helpers.getArrayLength(trades);
+            Integer length = Helpers.getArrayLength(trades);
             if (Helpers.isLessThanOrEqual(length, 0))
             {
                 return new ArrayList<Object>(Arrays.asList());
@@ -2242,11 +2242,11 @@ public class Kraken extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
-        Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = ((base + "/") + quote);
+        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
+        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String symbol = ((base + "/") + quote);
         final Object finalBase = base;
         market = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2401,7 +2401,7 @@ public class Kraken extends KrakenApi
             orderDescription = this.safeString(order, "descr");
         }
         String side = null;
-        Object rawType = null;
+        String rawType = null;
         String marketId = null;
         Object price = null;
         String amount = null;
@@ -2526,11 +2526,11 @@ final Object finalId = id;
         // while spaced strings from "order" sentence (when other fields not available)
         if (!java.util.Objects.equals(rawType, null))
         {
-            if (Helpers.isTrue(((String)rawType).startsWith("take-profit")))
+            if (Helpers.isTrue(rawType.startsWith(((String)"take-profit"))))
             {
                 takeProfitPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
-            } else if (Helpers.isTrue(((String)rawType).startsWith("stop-loss")))
+            } else if (Helpers.isTrue(rawType.startsWith(((String)"stop-loss"))))
             {
                 stopLossPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
@@ -2542,7 +2542,7 @@ final Object finalId = id;
                 stopLossPrice = triggerPrice;
             }
         }
-        String typeParsed = this.parseOrderType((String) (rawType));
+        String typeParsed = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
@@ -2633,7 +2633,7 @@ final Object finalId = id;
             {
                 ((Map<String, Object>)request).put("volume", this.costToPrecision(symbol, cost));
             }
-            Object extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
+            String extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
             ((Map<String, Object>)request).put("oflags", extendedOflags);
         } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
@@ -2669,14 +2669,14 @@ final Object finalId = id;
             }
         } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            Object trailingPercentString = null;
+            String trailingPercentString = null;
             if (!java.util.Objects.equals(trailingPercent, null))
             {
                 trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
             String trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? ("+" + trailingAmount) : null; // must use + for this
             String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
-            Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
+            String trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((Map<String, Object>)request).put("trigger", trailingActivationPriceType);
             if (Boolean.TRUE.equals(isLimitOrder) || (!java.util.Objects.equals(trailingLimitAmount, null)) || (!java.util.Objects.equals(trailingLimitPercent, null)))
@@ -2684,7 +2684,7 @@ final Object finalId = id;
                 ((Map<String, Object>)request).put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
-                    Object trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
+                    String trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     ((Map<String, Object>)request).put("price", trailingPercentString);
                     ((Map<String, Object>)request).put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
@@ -2743,7 +2743,7 @@ final Object finalId = id;
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
         if (java.util.Objects.equals(postOnly, true))
         {
-            Object extendedPostFlags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",post") : "post";
+            String extendedPostFlags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",post") : "post";
             ((Map<String, Object>)request).put("oflags", extendedPostFlags);
         }
         if ((!java.util.Objects.equals(flags, null)) && !(request.containsKey("oflags")))
@@ -3918,7 +3918,7 @@ final Object finalId = id;
     {
         String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (!java.util.Objects.equals(cursor, null) && Helpers.isGreaterThan(dataLength, 0))
         {
             Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
@@ -4434,7 +4434,7 @@ final Object finalId = id;
             Boolean isCancelOrderBatch = (java.util.Objects.equals(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 final Object finalNonce = nonce;
@@ -4449,7 +4449,7 @@ final Object finalId = id;
                     put( "nonce", finalNonce_2 );
                 }}, parameters));
             }
-            Object auth = this.encode(Helpers.add(nonce, body));
+            Object auth = this.encode((nonce + body));
             Object hash = this.hash(auth, sha256(), "binary");
             Object binary = this.encode(url);
             Object binhash = this.binaryConcat(binary, hash);
@@ -4504,7 +4504,7 @@ final Object finalId = id;
                 String message = ((this.id + " ") + body);
                 if (Helpers.inOp(response, "error"))
                 {
-                    Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
+                    Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
                     if (Helpers.isGreaterThan(numErrors, 0))
                     {
                         for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)

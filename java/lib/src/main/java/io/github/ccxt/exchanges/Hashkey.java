@@ -1191,7 +1191,7 @@ public class Hashkey extends HashkeyApi
         String marketType = "spot";
         Boolean isSpot = true;
         Boolean isSwap = false;
-        Object suffix = "";
+        String suffix = "";
         Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
         String secondPart = this.safeString(parts, 1);
         if (java.util.Objects.equals(secondPart, "PERPETUAL"))
@@ -1200,10 +1200,10 @@ public class Hashkey extends HashkeyApi
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, "underlying");
-            suffix = Helpers.add(suffix, (":" + settleId));
+            suffix = (suffix + (":" + settleId));
         }
         String base = this.safeCurrencyCode(baseId);
-        Object symbol = Helpers.add(((base + "/") + quote), suffix);
+        String symbol = (((base + "/") + quote) + suffix);
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "TRADING");
         Object isLinear = null;
@@ -3510,7 +3510,7 @@ public class Hashkey extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object orderIds = String.join(",", (List<String>)ids);
+            String orderIds = String.join(",", (List<String>)ids);
             ((Map<String, Object>)request).put("ids", orderIds);
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))

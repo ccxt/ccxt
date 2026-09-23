@@ -938,7 +938,7 @@ public class Paradex extends ParadexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
@@ -947,7 +947,7 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            Object deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
+            String deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
             symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
@@ -1524,7 +1524,7 @@ public class Paradex extends ParadexApi
         // against an index, and this rate is the amount for a whole period
         String hours = this.safeString(this.safeDict(market, "info", new HashMap<String, Object>() {{}}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        Object interval = null;
+        String interval = null;
         if ((!java.util.Objects.equals(hours, null)) && Precise.stringGt(hours, "0"))
         {
             interval = (hours + "h");
@@ -2215,8 +2215,8 @@ public class Paradex extends ParadexApi
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object orderType = ((String)type).toUpperCase();
-        Object orderSide = ((String)((String)side)).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
+        String orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market", ((Map<String, Object>)market).get("id") );

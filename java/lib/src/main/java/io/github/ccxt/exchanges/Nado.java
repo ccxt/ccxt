@@ -2014,10 +2014,10 @@ public class Nado extends NadoApi
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
                 String settleId = ((Boolean.TRUE.equals(contract))) ? quoteId : null;
                 String settle = ((Boolean.TRUE.equals(contract))) ? quote : null;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(contract))
                 {
-                    symbol = Helpers.add(symbol, (":" + settle));
+                    symbol = (symbol + (":" + settle));
                 }
                 String tradingStatus = this.safeString(market, "trading_status");
                 Boolean active = (!java.util.Objects.equals(tradingStatus, "not_tradable"));
@@ -3544,7 +3544,7 @@ public class Nado extends NadoApi
         {
             subaccount = "default";
         }
-        Object address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
+        String address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
         if ((Helpers.getArrayLength(address) != 40))
         {
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;
@@ -3554,7 +3554,7 @@ public class Nado extends NadoApi
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }
-        return Helpers.add(Helpers.add("0x", address), this.padHex(encoded, 24, false));
+        return Helpers.add(("0x" + address), this.padHex(encoded, 24, false));
     }
 
     public CompletableFuture<Object> queryContracts(Object... optionalArgs)
@@ -3719,7 +3719,7 @@ public class Nado extends NadoApi
         Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
+        String v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
         return ((("0x" + this.padHex(r, 64)) + this.padHex(s, 64)) + v);
     }
 

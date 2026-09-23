@@ -858,7 +858,7 @@ public class Coinsph extends CoinsphApi
         } else if ((Helpers.inOp(config, "byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
-            Object symbolsAmount = Helpers.getArrayLength(symbols);
+            Integer symbolsAmount = Helpers.getArrayLength(symbols);
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {

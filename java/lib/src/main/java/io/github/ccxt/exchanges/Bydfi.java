@@ -648,7 +648,7 @@ public class Bydfi extends BydfiApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         Boolean inverse = (Boolean) this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
         String marketMaxQty = this.safeString(market, "marketMaxQty");
@@ -3692,7 +3692,7 @@ public class Bydfi extends BydfiApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
-        Object endpoint = Helpers.add("/", path);
+        String endpoint = Helpers.add("/", path);
         Object query = "";
         Map<String, Object> sortedParams = this.keysort(parameters);
         if (java.util.Objects.equals(method, "GET"))
@@ -3706,10 +3706,10 @@ public class Bydfi extends BydfiApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             if (java.util.Objects.equals(method, "GET"))
             {
-                Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), query);
+                String payload = ((this.apiKey + timestamp) + query);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new HashMap<String, Object>() {{
                     put( "X-API-KEY", Bydfi.this.apiKey );
@@ -3719,7 +3719,7 @@ public class Bydfi extends BydfiApi
             } else
             {
                 body = this.json(sortedParams);
-                Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), body);
+                String payload = ((this.apiKey + timestamp) + body);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 headers = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );

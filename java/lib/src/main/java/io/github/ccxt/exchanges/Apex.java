@@ -793,7 +793,7 @@ public class Apex extends ApexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((baseId + "/") + quote) + ":") + settle);
+        String symbol = ((((baseId + "/") + quote) + ":") + settle);
         Object expiry = 0;
         Double takerFee = this.parseNumber("0.0002");
         Double makerFee = this.parseNumber("0.0005");
@@ -1526,7 +1526,7 @@ public class Apex extends ApexApi
                 if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
                     Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
-                    Object numMarkets = Helpers.getArrayLength(markets);
+                    Integer numMarkets = Helpers.getArrayLength(markets);
                     if (Helpers.isGreaterThan(numMarkets, 0))
                     {
                         if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0), "id2"), marketId))
@@ -1549,7 +1549,7 @@ public class Apex extends ApexApi
 
     public Object addHyphenBeforeUsdt(Object symbol)
     {
-        Object uppercaseSymbol = ((String)symbol).toUpperCase();
+        String uppercaseSymbol = ((String)symbol).toUpperCase();
         Object index = ((String)uppercaseSymbol).indexOf("USDT");
         String symbolChar = this.safeString(symbol, Helpers.subtract(index, 1));
         if (Helpers.isGreaterThan(index, 0) && !java.util.Objects.equals(symbolChar, "-"))
@@ -1617,12 +1617,12 @@ public class Apex extends ApexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            Object orderSide = ((String)side).toUpperCase();
+            String orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
             Object orderPrice = "0";
             if (!java.util.Objects.equals(price, null))
@@ -1852,7 +1852,7 @@ public class Apex extends ApexApi
                     put( "timestampSeconds", finalTimestampSeconds );
                 }};
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                Object amountStr = String.valueOf(amount);
+                String amountStr = String.valueOf(amount);
                 Long ts = timestampSeconds; // java req
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "amount", amountStr );
@@ -2430,13 +2430,13 @@ public class Apex extends ApexApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
+        String url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
         headers = new HashMap<String, Object>() {{
             put( "User-Agent", "apex-CCXT" );
             put( "Accept", "application/json" );
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
-        Object signPath = Helpers.add("/api/", path);
+        String signPath = Helpers.add("/api/", path);
         Object signBody = body;
         if (!java.util.Objects.equals(((String)method).toUpperCase(), "POST"))
         {
@@ -2453,8 +2453,8 @@ public class Apex extends ApexApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
-            Object messageString = Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), signPath);
+            String timestamp = String.valueOf(this.milliseconds());
+            Object messageString = ((timestamp + ((String)method).toUpperCase()) + signPath);
             if (!java.util.Objects.equals(signBody, null))
             {
                 messageString = Helpers.add(messageString, signBody);
@@ -2492,7 +2492,7 @@ public class Apex extends ApexApi
             String feedback = ((this.id + " ") + body);
             String message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            Object status = String.valueOf(code);
+            String status = String.valueOf(code);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
             throw new ExchangeError(feedback) ;
         }

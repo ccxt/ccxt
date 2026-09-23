@@ -727,7 +727,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "trade_p" : "trade";
             String messageHash = ("trade:" + symbol);
-            Object method = (name + ".subscribe");
+            String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -777,7 +777,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "orderbook_p" : "orderbook";
             String messageHash = ("orderbook:" + symbol);
-            Object method = (name + ".subscribe");
+            String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -826,7 +826,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
             String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "kline_p" : "kline";
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
-            Object method = (name + ".subscribe");
+            String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
@@ -1129,7 +1129,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             client.resolve(cachedTrades, hash);
         }
         // generic subscription
-        Object messageHash = ((channel + ":") + type);
+        String messageHash = ((channel + ":") + type);
         client.resolve(cachedTrades, messageHash);
     }
 
@@ -1369,8 +1369,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Object messageLength = Helpers.getArrayLength(message);
-            if (Helpers.isEqual(messageLength, 0))
+            Integer messageLength = Helpers.getArrayLength(message);
+            if ((messageLength != null && messageLength == 0))
             {
                 return;
             }
@@ -1824,7 +1824,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
                 Object expiration = (this.seconds() + expiryDelta);
-                Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
+                String payload = Helpers.add(this.apiKey, String.valueOf(expiration));
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1832,7 +1832,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "params", new ArrayList<Object>(Arrays.asList("API", Phemex.this.apiKey, signature, expiration)) );
                     put( "id", requestId );
                 }};
-                Object subscriptionHash = String.valueOf(requestId);
+                String subscriptionHash = String.valueOf(requestId);
                 Map<String, Object> message = this.extend(request, parameters);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {

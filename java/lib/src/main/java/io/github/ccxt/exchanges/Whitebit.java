@@ -836,7 +836,7 @@ public class Whitebit extends WhitebitApi
         String type = null;
         String settle = null;
         Object settleId = null;
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
         Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
@@ -5349,7 +5349,7 @@ public class Whitebit extends WhitebitApi
         if (java.util.Objects.equals(accessibility, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
             String request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
             List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);

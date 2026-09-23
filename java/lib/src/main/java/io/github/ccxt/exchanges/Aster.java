@@ -1382,7 +1382,7 @@ public class Aster extends AsterApi
         String quote = this.safeCurrencyCode(quoteId);
         Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
         Object spot = null;
-        Object symbol = null;
+        String symbol = null;
         String settle = null;
         String settleId = null;
         Object swap = null;
@@ -2351,7 +2351,7 @@ public class Aster extends AsterApi
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Long timestamp = this.safeInteger(contract, "time");
         String interval = this.safeString(contract, "fundingIntervalHours");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(interval, null))
         {
             intervalString = (interval + "h");
@@ -3450,7 +3450,7 @@ public class Aster extends AsterApi
          * @returns {object} request to be sent to the exchange
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
         final Object finalSide = side;
@@ -4897,10 +4897,10 @@ public class Aster extends AsterApi
             }
             Object pricePrecision = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (java.util.Objects.equals(truncatedLiquidationPrice, null))
@@ -5434,7 +5434,7 @@ public class Aster extends AsterApi
 
     public String encodeValuesWithJson(Map<String, Object> values)
     {
-        Object encodedString = "";
+        String encodedString = "";
         List<Object> keys = new ArrayList<Object>(values.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {

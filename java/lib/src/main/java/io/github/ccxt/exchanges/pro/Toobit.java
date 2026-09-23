@@ -889,10 +889,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             return;
         }
         String type = (((java.util.Objects.equals(marketType, "spot")))) ? "spot" : "contract";
-        Object messageHash = (type + ":fetchBalanceSnapshot");
+        String messageHash = (type + ":fetchBalanceSnapshot");
         if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
         {
-            client.future((String)messageHash);
+            client.future(messageHash);
             this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (marketType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
     }
@@ -1015,7 +1015,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
-            Object messageHash = "orders";
+            String messageHash = "orders";
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = ((messageHash + ":") + symbol);
@@ -1161,7 +1161,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = ((messageHash + ":") + symbol);
@@ -1259,7 +1259,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             (this.authenticate()).join();
             String type = "swap"; // the only account type that carries positions here
-            Object messageHash = "";
+            String messageHash = "";
             if (!this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
@@ -1569,8 +1569,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (!java.util.Objects.equals(code, null))
         {
             String desc = this.safeString(message, "desc");
-            Object msg = ((((this.id + " code: ") + code) + " message: ") + desc);
-            var exception = new ExchangeError(((String)msg)); // c# fix
+            String msg = ((((this.id + " code: ") + code) + " message: ") + desc);
+            var exception = new ExchangeError(msg); // c# fix
             client.reject(exception);
             return true;
         }

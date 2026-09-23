@@ -1377,7 +1377,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Object market = null;
-            Object messageHash = "order";
+            String messageHash = "order";
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);

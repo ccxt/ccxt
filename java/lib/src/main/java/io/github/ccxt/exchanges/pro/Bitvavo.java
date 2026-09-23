@@ -109,7 +109,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -237,7 +237,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
-            Object messageHash = Helpers.add((eventVar + "@"), marketId);
+            String messageHash = Helpers.add((eventVar + "@"), marketId);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -287,7 +287,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
-            Object messageHash = ((eventVar + ":") + symbol);
+            String messageHash = ((eventVar + ":") + symbol);
             client.resolve(ticker, messageHash);
         }
         client.resolve(result, eventVar);
@@ -362,7 +362,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String name = "trades";
-        Object messageHash = ((name + "@") + marketId);
+        String messageHash = ((name + "@") + marketId);
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -586,7 +586,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
-        Object messageHash = ((((name + "@") + marketId) + "_") + interval);
+        String messageHash = ((((name + "@") + marketId) + "_") + interval);
         List<Object> candles = (List<Object>) this.safeList(message, "candle", new ArrayList<Object>(Arrays.asList()));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -783,7 +783,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String name = "book";
-            Object messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -988,7 +988,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object messageHash = Helpers.add((eventVar + "@"), ((Map<String, Object>)market).get("id"));
+        String messageHash = Helpers.add((eventVar + "@"), ((Map<String, Object>)market).get("id"));
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -1035,7 +1035,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 return null;
             }
             String name = "getBook";
-            Object messageHash = ((name + "@") + marketId);
+            String messageHash = ((name + "@") + marketId);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1077,7 +1077,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String marketId = this.safeString(response, "market");
         String symbol = this.safeSymbol(marketId, null, "-");
         String name = "book";
-        Object messageHash = ((name + "@") + marketId);
+        String messageHash = ((name + "@") + marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -1124,7 +1124,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             String marketId = this.safeString(marketIds, i);
             String symbol = this.safeSymbol(marketId, null, "-");
-            Object messageHash = ((name + "@") + marketId);
+            String messageHash = ((name + "@") + marketId);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Object subscription = this.safeValue(client.subscriptions, messageHash);
@@ -1193,9 +1193,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 continue;
             }
             Object subscription = Helpers.GetValue(client.subscriptions, key);
-            Object subHash = Helpers.replace(((String)key), "unsubscribe:", "");
+            String subHash = Helpers.replace(((String)key), "unsubscribe:", "");
             this.cleanCache(subscription);
-            this.cleanUnsubscription(client, (String) (subHash), (String) (key));
+            this.cleanUnsubscription(client, subHash, (String) (key));
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
@@ -1553,10 +1553,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     public Object requestId()
     {
-        Object ts = String.valueOf(this.milliseconds());
+        String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
-        Object randomPart = String.valueOf(randomNumber);
-        return Helpers.parseInt(Helpers.add(ts, randomPart));
+        String randomPart = String.valueOf(randomNumber);
+        return Helpers.parseInt((ts + randomPart));
     }
 
     public CompletableFuture<Object> watchRequest(Object action, Map<String, Object> request)
@@ -1565,7 +1565,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return BaseExchange.supplyAsync(() -> {
 
             Object messageHash = this.requestId();
-            Object messageHashStr = String.valueOf(messageHash);
+            String messageHashStr = String.valueOf(messageHash);
             ((Map<String, Object>)request).put("action", action);
             ((Map<String, Object>)request).put("requestId", messageHash);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -2250,7 +2250,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             if (java.util.Objects.equals(future, null))
             {
                 Long timestamp = this.milliseconds();
-                Object stringTimestamp = String.valueOf(timestamp);
+                String stringTimestamp = String.valueOf(timestamp);
                 String auth = (((stringTimestamp + "GET/") + this.version) + "/websocket");
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 String action = "authenticate";

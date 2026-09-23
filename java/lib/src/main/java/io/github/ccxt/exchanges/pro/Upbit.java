@@ -96,7 +96,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                Object messageHash = Helpers.add((channel + ":"), symbol);
+                String messageHash = Helpers.add((channel + ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 if (!(Helpers.inOp(subscriptions, messageHash)))
                 {
@@ -812,7 +812,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
         }
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
-        Object messageHash = "myOrder";
+        String messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
         messageHash = ((messageHash + ":") + symbol);
         client.resolve(this.orders, messageHash);

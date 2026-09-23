@@ -477,7 +477,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object currentTopic = (("trade" + ".") + ((Map<String, Object>)market).get("id"));
+                String currentTopic = (("trade" + ".") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(currentTopic);
             }
             Object trades = (this.watchPublicMultiple(topics, topics, parameters)).join();
@@ -518,7 +518,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object currentTopic = (("trade" + ".") + ((Map<String, Object>)market).get("id"));
+                String currentTopic = (("trade" + ".") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + ((Map<String, Object>)market).get("symbol")));
                 ((List<Object>)topics).add(currentTopic);
             }
@@ -578,7 +578,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
         }
-        Object channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
+        String channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -671,7 +671,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subMessageHash = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
+            String subMessageHash = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol"));
             return (this.unWatchPublicMultiple("ticker", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"))), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), parameters)).join();
         });
@@ -1005,7 +1005,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object subMessageHash = (((("candlestick" + ".") + interval) + ".") + ((Map<String, Object>)market).get("id"));
+            String subMessageHash = (((("candlestick" + ".") + interval) + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = ((("unsubscribe:ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframe);
             Object subExtend = new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))) );
@@ -1856,8 +1856,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (java.util.Objects.equals(authenticated, null))
             {
                 Object method = "public/auth";
-                Object nonce = String.valueOf(this.nonce());
-                Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
+                String nonce = String.valueOf(this.nonce());
+                String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;
                 Map<String, Object> request = new HashMap<String, Object>() {{

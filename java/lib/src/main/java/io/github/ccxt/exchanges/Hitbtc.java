@@ -935,7 +935,7 @@ public class Hitbtc extends HitbtcApi
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 String settleId = null;
                 String settle = null;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 String type = "spot";
                 Object contractSize = null;
                 Object linear = null;
@@ -1392,7 +1392,7 @@ public class Hitbtc extends HitbtcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object marketIds = this.marketIds(symbols);
-                Object delimited = String.join(",", (List<String>)marketIds);
+                String delimited = String.join(",", (List<String>)marketIds);
                 ((Map<String, Object>)request).put("symbols", delimited);
             }
             Map<String, Object> response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
@@ -4724,7 +4724,7 @@ public class Hitbtc extends HitbtcApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object payload = new ArrayList<Object>(Arrays.asList(method, ("/api/3/" + implodedPath)));
             if (java.util.Objects.equals(method, "GET"))
             {
@@ -4740,7 +4740,7 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             ((List<Object>)payload).add(timestamp);
-            Object payloadString = String.join("", (List<String>)payload);
+            String payloadString = String.join("", (List<String>)payload);
             String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             String secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             String encoded = this.stringToBase64(secondPayload);

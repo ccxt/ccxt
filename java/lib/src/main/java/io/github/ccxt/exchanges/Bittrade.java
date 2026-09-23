@@ -2756,7 +2756,7 @@ public class Bittrade extends BittradeApi
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object content = new ArrayList<Object>(Arrays.asList(method, this.hostname, url, auth));
             // eslint-disable-next-line quotes
-            Object payload = String.join("\n", (List<String>)content);
+            String payload = String.join("\n", (List<String>)content);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );

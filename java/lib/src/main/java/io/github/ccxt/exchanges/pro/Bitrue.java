@@ -392,13 +392,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             Object url = null;
-            Object channel = null;
+            String channel = null;
             Object cbId = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 String baseIdLower = this.safeStringLower(market, "baseId");
                 String quoteIdLower = this.safeStringLower(market, "quoteId");
-                Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+                String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
                 channel = (("market_" + wsId) + "_depth_step0");
                 cbId = wsId;
                 url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
@@ -582,7 +582,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbol);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
@@ -723,7 +723,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
@@ -840,7 +840,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbol);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");

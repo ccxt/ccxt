@@ -1834,12 +1834,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         Boolean isSpot = (java.util.Objects.equals(typeId, "SPOT"));
         Object fees = this.fees;
-        Object symbol = ((baseId + "/") + quoteId);
+        String symbol = ((baseId + "/") + quoteId);
         String settleId = null;
         if (!Boolean.TRUE.equals(isSpot))
         {
             settleId = quoteId;
-            symbol = Helpers.add(symbol, (":" + quoteId));
+            symbol = (symbol + (":" + quoteId));
         }
         Object isLinear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
         Object isInverse = ((Boolean.TRUE.equals(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));
@@ -2255,7 +2255,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object typeId = ((String)type).toUpperCase();
+            String typeId = ((String)type).toUpperCase();
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
             Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
@@ -2999,7 +2999,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object payload = "";
             if (!java.util.Objects.equals(method, "GET"))
             {
@@ -3009,7 +3009,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     payload = body;
                 }
             }
-            String auth = ((Helpers.add(nonce, method) + savedPath) + payload);
+            String auth = (((nonce + method) + savedPath) + payload);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{

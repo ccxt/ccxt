@@ -303,7 +303,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 {
                     limit = 25;
                 }
-                Object topic = Helpers.add((("orderBook" + String.valueOf(limit)) + ".H."), ((Map<String, Object>)market).get("id2"));
+                String topic = Helpers.add((("orderBook" + String.valueOf(limit)) + ".H."), ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -359,8 +359,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object url = this.safeString(this.options, "wsPublicUrl");
         if (java.util.Objects.equals(url, null))
         {
-            Object timeStamp = String.valueOf(this.milliseconds());
-            url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "&timestamp="), timeStamp);
+            String timeStamp = String.valueOf(this.milliseconds());
+            url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "&timestamp=") + timeStamp);
             Helpers.addElementToObject(this.options, "wsPublicUrl", url);
         }
         return url;
@@ -371,8 +371,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object url = this.safeString(this.options, "wsPrivateUrl");
         if (java.util.Objects.equals(url, null))
         {
-            Object timeStamp = String.valueOf(this.milliseconds());
-            url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "&timestamp="), timeStamp);
+            String timeStamp = String.valueOf(this.milliseconds());
+            url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "&timestamp=") + timeStamp);
             Helpers.addElementToObject(this.options, "wsPrivateUrl", url);
         }
         return url;
@@ -480,7 +480,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             symbol = ((Map<String, Object>)market).get("symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbol);
-            Object topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
+            String topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
             Object topics = new ArrayList<Object>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
         }).thenApply(Ticker::new);
@@ -515,7 +515,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 Object symbol = Helpers.GetValue((List<String>)(symbols), i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
+                String topic = Helpers.add(("instrumentInfo" + ".H."), ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("ticker:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1099,7 +1099,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             String request_path = "/ws/accounts";
             String http_method = "GET";
             String messageString = (((timestamp + http_method) + request_path));

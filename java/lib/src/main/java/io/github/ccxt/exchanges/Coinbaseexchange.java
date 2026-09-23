@@ -2767,7 +2767,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object payload = "";
             if (!java.util.Objects.equals(method, "GET"))
             {
@@ -2777,7 +2777,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     payload = body;
                 }
             }
-            String what = ((Helpers.add(nonce, method) + request) + payload);
+            String what = (((nonce + method) + request) + payload);
             Object secret = null;
             try
             {
@@ -2814,10 +2814,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             if (java.util.Objects.equals(Helpers.GetValue(body, 0), "{"))
             {
                 String message = this.safeString(response, "message");
-                Object feedback = ((this.id + " ") + message);
+                String feedback = ((this.id + " ") + message);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             throw new ExchangeError(((this.id + " ") + body)) ;
         }

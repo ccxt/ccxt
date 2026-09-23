@@ -886,7 +886,7 @@ public class Modetrade extends ModetradeApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
@@ -2022,13 +2022,13 @@ public class Modetrade extends ModetradeApi
          * @returns {object} request to be sent to the exchange
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(side, null))
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2319,7 +2319,7 @@ public class Modetrade extends ModetradeApi
                 {
                     ((Map<String, Object>)request).put("side", ((String)side).toUpperCase());
                 }
-                Object orderType = ((String)type).toUpperCase();
+                String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -3927,7 +3927,7 @@ public class Modetrade extends ModetradeApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
             if (((String)apiKey).indexOf("ed25519:") < 0)
@@ -3941,7 +3941,7 @@ public class Modetrade extends ModetradeApi
                 put( "orderly-key", finalApiKey );
                 put( "orderly-timestamp", finalTs );
             }};
-            auth = ((((Helpers.add(ts, method) + "/") + version) + "/") + pathWithParams);
+            auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
             if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT"))
             {
                 body = this.json(parameters);

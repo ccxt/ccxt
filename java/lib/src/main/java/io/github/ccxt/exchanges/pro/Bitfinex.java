@@ -128,7 +128,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Client client = this.client(url);
             Object subMessageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
             String messageHash = ((Helpers.add("unsubscribe:", channel) + ":") + marketId);
-            Object unSubTopic = Helpers.add((Helpers.add(("unsubscribe" + ":"), topic) + ":"), symbol);
+            String unSubTopic = Helpers.add((Helpers.add(("unsubscribe" + ":"), topic) + ":"), symbol);
             String channelId = this.safeString(client.subscriptions, unSubTopic);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
@@ -192,8 +192,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
-            Object key = ((("trade:" + interval) + ":") + ((Map<String, Object>)market).get("id"));
-            Object messageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
+            String key = ((("trade:" + interval) + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
             final Object finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -236,11 +236,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String channel = "candles";
-            Object subMessageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
+            String subMessageHash = ((((channel + ":") + interval) + ":") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Client client = this.client(url);
-            Object subId = ((("unsubscribe:trade:" + interval) + ":") + ((Map<String, Object>)market).get("id")); // trade here because we use the key
+            String subId = ((("unsubscribe:trade:" + interval) + ":") + ((Map<String, Object>)market).get("id")); // trade here because we use the key
             String channelId = this.safeString(client.subscriptions, subId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
@@ -502,7 +502,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object trade = this.parseWsTrade((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+        String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -552,7 +552,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String channel = this.safeString(subscription, "channel");
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object messageHash = Helpers.add((channel + ":"), marketId);
+        String messageHash = Helpers.add((channel + ":"), marketId);
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -636,7 +636,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //    ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object numFields = Helpers.getArrayLength(trade);
+        Integer numFields = Helpers.getArrayLength(trade);
         Boolean isPublic = Helpers.isLessThanOrEqual(numFields, 8);
         Object marketId = ((Helpers.isTrue((!Boolean.TRUE.equals(isPublic))))) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
@@ -732,7 +732,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, market);
         String channel = "ticker";
-        Object messageHash = ((channel + ":") + marketId);
+        String messageHash = ((channel + ":") + marketId);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         client.resolve(parsed, messageHash);
     }
@@ -853,7 +853,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         String symbol = this.safeSymbol(marketId);
         String channel = "book";
-        Object messageHash = ((channel + ":") + marketId);
+        String messageHash = ((channel + ":") + marketId);
         String prec = this.safeString(subscription, "prec", "P0");
         Boolean isRaw = (java.util.Objects.equals(prec, "R0"));
         // if it is an initial snapshot
@@ -973,7 +973,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 ((List<Object>)stringArray).add(this.numberToString(Helpers.opNeg(aski1)));
             }
         }
-        Object payload = String.join(":", (List<String>)stringArray);
+        String payload = String.join(":", (List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
         if (!Helpers.isEqual(responseChecksum, localChecksum))
@@ -1399,7 +1399,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(this.orders, messageHash);
         }
     }

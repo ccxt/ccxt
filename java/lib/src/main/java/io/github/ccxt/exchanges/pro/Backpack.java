@@ -119,7 +119,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String instruction = "subscribe";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
@@ -149,18 +149,18 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
-            Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
-            this.cleanUnsubscription(client, (String) (subMessageHash), (String) (messageHash));
+            String subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
+            this.cleanUnsubscription(client, subMessageHash, (String) (messageHash));
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
                 if (((Map<?, ?>)this.tickers).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.tickers).remove((String)symbol);
                 }
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
@@ -179,14 +179,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
@@ -207,7 +207,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     }
                 } else
                 {
-                    Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orders:", "");
+                    String symbol = Helpers.replace(((String)messageHash), "unsubscribe:orders:", "");
                     Object cache = this.orders;
                     if ((!java.util.Objects.equals(cache, null)) && (((Map<?, ?>)cache).containsKey(symbol)))
                     {
@@ -227,7 +227,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     }
                 } else
                 {
-                    Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:positions:", "");
+                    String symbol = Helpers.replace(((String)messageHash), "unsubscribe:positions:", "");
                     if (Helpers.inOp(this.positions, symbol))
                     {
                         ((Map<String,Object>)this.positions).remove((String)symbol);
@@ -258,7 +258,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object topic = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
+            String topic = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = (("ticker" + ":") + symbol);
             return (this.watchPublic(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
         }).thenApply(Ticker::new);
@@ -1610,7 +1610,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
         Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
-        Object symbolSpecificMessageHash = ((messageHash + ":") + ((Map<String, Object>)parsedPosition).get("symbol"));
+        String symbolSpecificMessageHash = ((messageHash + ":") + ((Map<String, Object>)parsedPosition).get("symbol"));
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolSpecificMessageHash);
     }

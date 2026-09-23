@@ -1070,7 +1070,7 @@ public class Delta extends DeltaApi
                 }
                 Object linear = (java.util.Objects.equals(settle, quote));
                 String optionType = null;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                 {
                     symbol = ((symbol + ":") + settle);
@@ -4721,12 +4721,12 @@ public class Delta extends DeltaApi
         } else if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.seconds());
+            String timestamp = String.valueOf(this.seconds());
             headers = new HashMap<String, Object>() {{
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
-            Object auth = (Helpers.add(method, timestamp) + requestPath);
+            Object auth = ((method + timestamp) + requestPath);
             if (java.util.Objects.equals(method, "GET"))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)

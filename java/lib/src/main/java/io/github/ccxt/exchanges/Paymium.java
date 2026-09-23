@@ -825,7 +825,7 @@ public class Paymium extends PaymiumApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = (nonce + url);
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{

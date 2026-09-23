@@ -601,7 +601,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = (messageType + ".order_book_update");
                 payload = new ArrayList<Object>(Arrays.asList(marketId, interval));
-                Object stringLimit = String.valueOf(limit);
+                String stringLimit = String.valueOf(limit);
                 ((List<Object>)payload).add(stringLimit);
             }
             final Object finalSymbol = symbol;
@@ -674,7 +674,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = (messageType + ".order_book_update");
                 payload = new ArrayList<Object>(Arrays.asList(marketId, interval));
-                Object stringLimit = String.valueOf(limit);
+                String stringLimit = String.valueOf(limit);
                 ((List<Object>)payload).add(stringLimit);
             }
             String subMessageHash = (("orderbook" + ":") + symbol);
@@ -1132,7 +1132,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     Helpers.addElementToObject(this.bidsasks, symbol, parsedItem);
                 }
             }
-            Object messageHash = ((objectName + ":") + symbol);
+            String messageHash = ((objectName + ":") + symbol);
             client.resolve(parsedItem, messageHash);
         }
     }
@@ -1397,7 +1397,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String timeframeId = this.safeString(parts, 0);
             Object timeframe = this.findTimeframe(timeframeId);
             Object prefix = (timeframe + "_");
-            Object marketId = Helpers.replace(subscription, (String)prefix, (String)"");
+            String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -2109,7 +2109,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object messageHash = Helpers.add((hashPrefix + ":"), (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
+            String messageHash = Helpers.add((hashPrefix + ":"), (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, hashPrefix);
@@ -2768,7 +2768,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Client client = this.client(url);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
-                    Object tempSubscriptionHash = String.valueOf(requestId);
+                    String tempSubscriptionHash = String.valueOf(requestId);
                     Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
                 }
             }
@@ -2871,7 +2871,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageHash = requestId;
             Long time = this.seconds();
             // unfortunately, PHP demands double quotes for the escaped newline symbol
-            Object signatureString = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
+            String signatureString = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
             String signature = (String) this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
             final Object finalRequestId = requestId;
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2949,7 +2949,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
-                Object tempSubscriptionHash = String.valueOf(requestId);
+                String tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw
                 Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
             }

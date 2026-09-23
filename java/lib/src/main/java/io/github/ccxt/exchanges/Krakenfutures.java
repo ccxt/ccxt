@@ -593,12 +593,12 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
                 Boolean swap = (java.util.Objects.equals(type, "swap"));
                 Boolean future = (java.util.Objects.equals(type, "future"));
-                Object symbol = id;
+                String symbol = id;
                 Object split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String splitMarket = this.safeString(split, 1);
-                Object baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
+                String baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
                 String quoteId = "usd"; // always USD
-                String base = this.safeCurrencyCode((String) (baseId));
+                String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 // swap == perpetual
                 String settle = null;
@@ -4568,9 +4568,9 @@ final Object finalI = i;
         Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("access"), api, new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, method, new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
-        Object endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
+        String endpoint = Helpers.add((version + "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        Object query = endpoint;
+        String query = endpoint;
         Object postData = "";
         if (java.util.Objects.equals(path, "batchorder"))
         {
@@ -4591,12 +4591,12 @@ final Object finalI = i;
         if (java.util.Objects.equals(api, "private") || java.util.Objects.equals(access, "private"))
         {
             this.checkRequiredCredentials();
-            Object auth = (postData + "/api/");
+            String auth = (postData + "/api/");
             if (!java.util.Objects.equals(api, "private"))
             {
                 auth = (auth + (api + "/"));
             }
-            auth = Helpers.add(auth, endpoint); // 1
+            auth = (auth + endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2
             Object secret = this.base64ToBinary(this.secret); // 3
             String signature = (String) this.hmac(hash, secret, sha512(), "base64"); // 4-5

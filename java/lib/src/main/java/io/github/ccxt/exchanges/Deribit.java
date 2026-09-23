@@ -872,8 +872,8 @@ public class Deribit extends DeribitApi
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
-        Object id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
-        Object symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
+        String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
+        String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
         final Object finalBase = base;
         final Object finalQuote = quote;
         final Object finalSettle = settle;
@@ -1353,7 +1353,7 @@ public class Deribit extends DeribitApi
                     Long expiry = this.safeInteger(market, "expiration_timestamp");
                     Double strike = null;
                     String optionType = null;
-                    Object symbol = id;
+                    String symbol = id;
                     String type = "swap";
                     if (Boolean.TRUE.equals(future))
                     {
@@ -4898,7 +4898,7 @@ public class Deribit extends DeribitApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = Helpers.add(((((("/" + "api/") + this.version) + "/") + api) + "/"), path);
+        String request = Helpers.add(((((("/" + "api/") + this.version) + "/") + api) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -4909,8 +4909,8 @@ public class Deribit extends DeribitApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object timestamp = String.valueOf(this.milliseconds());
+            String nonce = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.milliseconds());
             String requestBody = "";
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {

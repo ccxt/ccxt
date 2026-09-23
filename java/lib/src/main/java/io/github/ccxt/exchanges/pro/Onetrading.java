@@ -363,8 +363,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             trades = this.filterBySymbolSinceLimit(trades, symbol, since, limit);
-            Object numTrades = Helpers.getArrayLength(trades);
-            if (Helpers.isEqual(numTrades, 0))
+            Integer numTrades = Helpers.getArrayLength(trades);
+            if ((numTrades != null && numTrades == 0))
             {
                 return (this.watchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
@@ -562,8 +562,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             orders = this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-            Object numOrders = Helpers.getArrayLength(orders);
-            if (Helpers.isEqual(numOrders, 0))
+            Integer numOrders = Helpers.getArrayLength(orders);
+            if ((numOrders != null && numOrders == 0))
             {
                 return (this.watchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
@@ -1320,7 +1320,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(message, "granularity");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(timeframeId, timeframes);
-        Object channel = ((("ohlcv." + symbol) + ".") + timeframe);
+        String channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);

@@ -1092,7 +1092,7 @@ public class Coinspot extends CoinspotApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
-            Object sideUpper = ((String)side).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             if (java.util.Objects.equals(type, "market"))
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
@@ -1197,7 +1197,7 @@ public class Coinspot extends CoinspotApi
         Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
+        String fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);
         if (java.util.Objects.equals(accessType, "private"))
         {

@@ -1604,7 +1604,7 @@ public class P2b extends P2bApi
             String errorCode = this.safeString(response, "errorCode");
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            Object codeAsString = String.valueOf(code);
+            String codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError(feedback) ;

@@ -376,7 +376,7 @@ public class Btcbox extends BtcboxApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Btcbox.this.safeString(market, "symbol") );
@@ -1012,7 +1012,7 @@ public class Btcbox extends BtcboxApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/"), path);
+        String url = Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -1025,7 +1025,7 @@ public class Btcbox extends BtcboxApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "key", Btcbox.this.apiKey );
                 put( "nonce", nonce );

@@ -384,7 +384,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
-        Object messageHash = Helpers.add((channel + "::"), symbol);
+        String messageHash = Helpers.add((channel + "::"), symbol);
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -502,7 +502,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        Object messageHash = Helpers.add((messageHashStart + "::"), symbol);
+        String messageHash = Helpers.add((messageHashStart + "::"), symbol);
         client.resolve(ticker, messageHash);
         return message;
     }

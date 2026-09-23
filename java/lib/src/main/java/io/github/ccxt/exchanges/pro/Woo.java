@@ -189,7 +189,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             method = ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String topic = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
             String urlUid = (((!java.util.Objects.equals(this.uid, "")))) ? ("/" + this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
@@ -1153,7 +1153,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object ts = String.valueOf(this.nonce());
+                String ts = String.valueOf(this.nonce());
                 String auth = ("|" + ts);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1525,7 +1525,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
             client.resolve(this.orders, topic);
-            Object messageHashSymbol = Helpers.add((topic + ":"), symbol);
+            String messageHashSymbol = Helpers.add((topic + ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }

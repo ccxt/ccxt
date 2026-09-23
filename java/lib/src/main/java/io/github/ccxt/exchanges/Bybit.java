@@ -3023,7 +3023,7 @@ public class Bybit extends BybitApi
                 String quoteId = this.safeString(market, "quoteCoin");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 String status = this.safeString(market, "status");
                 Boolean active = (java.util.Objects.equals(status, "Trading"));
                 Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter");
@@ -3217,7 +3217,7 @@ public class Bybit extends BybitApi
                 {
                     settle = this.safeCurrencyCode(settleId);
                 }
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
                 Map<String, Object> leverage = (Map<String, Object>) this.safeDict(market, "leverageFilter", new HashMap<String, Object>() {{}});
@@ -4048,7 +4048,7 @@ public class Bybit extends BybitApi
         Double indexPrice = this.safeNumber(ticker, "indexPrice");
         Map<String, Object> info = (Map<String, Object>) this.safeDict(this.safeMarket(marketId, market, null, "swap"), "info");
         Long fundingInterval = this.safeInteger(info, "fundingInterval");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(fundingInterval, null))
         {
             Long interval = this.parseToInt((((double) fundingInterval) / ((double) 60)));
@@ -5569,7 +5569,7 @@ public class Bybit extends BybitApi
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         symbol = (String) (((Map<String, Object>)market).get("symbol"));
-        Object lowerCaseType = ((String)type).toLowerCase();
+        String lowerCaseType = ((String)type).toLowerCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
         }};
@@ -12431,7 +12431,7 @@ final Object finalMarket = market;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
+        String url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -12445,7 +12445,7 @@ final Object finalMarket = market;
             Boolean isV3UnifiedMargin = ((String)url).indexOf("unified/v3") >= 0;
             Boolean isV3Contract = ((String)url).indexOf("contract/v3") >= 0;
             Boolean isV5UnifiedAccount = ((String)url).indexOf("v5") >= 0;
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             if (Boolean.TRUE.equals(isOpenapi))
             {
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -12457,7 +12457,7 @@ final Object finalMarket = market;
                     // '[]' on empty arrays even when forced to use objects
                     body = "{}";
                 }
-                Object payload = Helpers.add(Helpers.add(timestamp, this.apiKey), body);
+                String payload = ((timestamp + this.apiKey) + body);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
@@ -12542,7 +12542,7 @@ final Object finalMarket = market;
                 } else
                 {
                     url = (url + ("?" + this.rawencode(sortedQuery, true)));
-                    url = Helpers.add(url, ("&sign=" + signature));
+                    url = (url + ("&sign=" + signature));
                 }
             }
         }

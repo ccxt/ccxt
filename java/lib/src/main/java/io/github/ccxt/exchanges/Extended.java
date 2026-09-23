@@ -748,7 +748,7 @@ public class Extended extends ExtendedApi
         Long created = this.safeInteger(market, "createdAt");
         String settleId = null;
         String settle = null;
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Boolean isSpot = false;
         String type = this.safeStringLower(market, "type");
         Object contractSize = null;
@@ -765,7 +765,7 @@ public class Extended extends ExtendedApi
             type = "swap";
             settleId = quoteId;
             settle = quote;
-            symbol = Helpers.add(symbol, (":" + settle));
+            symbol = (symbol + (":" + settle));
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;
@@ -3288,8 +3288,8 @@ public class Extended extends ExtendedApi
             }
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
-            Object uppercaseSide = ((String)((String)side)).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
+            String uppercaseSide = ((String)((String)side)).toUpperCase();
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 throw new BadRequest((this.id + " createOrder() supports limit orders for spot markets only")) ;

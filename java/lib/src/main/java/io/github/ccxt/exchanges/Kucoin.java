@@ -2494,7 +2494,7 @@ public class Kucoin extends KucoinApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((((base + "/") + quote) + ":") + settle);
+                String symbol = ((((base + "/") + quote) + ":") + settle);
                 String type = "swap";
                 if (Boolean.TRUE.equals(future))
                 {
@@ -2689,7 +2689,7 @@ public class Kucoin extends KucoinApi
                 String settle = this.safeCurrencyCode(settleId);
                 String hasMargin = this.safeString(market, "marginMode");
                 Object isMarginable = (((java.util.Objects.equals(hasMargin, "1")))) ? true : false;
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 if (!java.util.Objects.equals(settle, null))
                 {
                     symbol = (symbol + (":" + settle));
@@ -5285,7 +5285,7 @@ public class Kucoin extends KucoinApi
             ((Map<String, Object>)request).put("reduceOnly", true);
             ((Map<String, Object>)request).put("stopPriceType", triggerPriceTypeValue);
         }
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (java.util.Objects.equals(uppercaseType, "LIMIT"))
         {
@@ -6744,7 +6744,7 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object lowercaseStatus = ((String)status).toLowerCase();
+            String lowercaseStatus = ((String)status).toLowerCase();
             Long until = this.safeInteger(parameters, "until");
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object hf = null;
@@ -7056,7 +7056,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            Object lowercaseStatus = ((String)status).toLowerCase();
+            String lowercaseStatus = ((String)status).toLowerCase();
             if (java.util.Objects.equals(lowercaseStatus, "open"))
             {
                 lowercaseStatus = "active";
@@ -14086,7 +14086,7 @@ final Object finalMarket = market;
         String defaultVersion = this.safeString(methodVersions, path, ((Map<String, Object>)this.options).get("version"));
         String version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        Object endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, parameters));
+        String endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, parameters));
         if (java.util.Objects.equals(api, "utaV2"))
         {
             endpoint = ("/api/ua/v2/" + this.implodeParams(path, parameters));
@@ -14122,7 +14122,7 @@ final Object finalMarket = market;
             {
                 if ((java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/place")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/place/batch")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/cancel")) || (java.util.Objects.equals(endpoint, "/api/ua/v1/classic/order/cancel/batch")))
                 {
-                    endpoint = Helpers.add(endpoint, ("?tradeType=" + tradeType));
+                    endpoint = (endpoint + ("?tradeType=" + tradeType));
                 }
                 body = this.json(query);
                 endpart = body;
@@ -14137,7 +14137,7 @@ final Object finalMarket = market;
         if (Boolean.TRUE.equals(isPrivate) || Boolean.TRUE.equals(isFuturePrivate) || Boolean.TRUE.equals(isBroker) || Boolean.TRUE.equals(isEarn) || Boolean.TRUE.equals(isUtaPrivate))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = this.extend(new HashMap<String, Object>() {{
                 put( "KC-API-KEY-VERSION", "2" );
@@ -14154,7 +14154,7 @@ final Object finalMarket = market;
             {
                 ((Map<String, Object>)headers).put("KC-API-PASSPHRASE", this.password);
             }
-            Object payload = Helpers.add(Helpers.add(Helpers.add(timestamp, method), endpoint), endpart);
+            String payload = (((timestamp + method) + endpoint) + endpart);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             ((Map<String, Object>)headers).put("KC-API-SIGN", signature);
             Object partner = this.safeDict(this.options, "partner", new HashMap<String, Object>() {{}});

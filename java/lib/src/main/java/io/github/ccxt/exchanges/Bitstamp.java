@@ -1233,7 +1233,7 @@ public class Bitstamp extends BitstampApi
                 String quote = this.safeCurrencyCode((String) (quoteId));
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 String type = null;
                 String subType = null;
                 if (java.util.Objects.equals(marketTypeRaw, "SPOT"))
@@ -1813,7 +1813,7 @@ public class Bitstamp extends BitstampApi
         // this endpoint is not aligned with "markets" endpoint
         String baseIdLower = this.safeStringLower(market, "baseId");
         String quoteIdLower = this.safeStringLower(market, "quoteId");
-        Object dashedIdLower = ((baseIdLower + "_") + quoteIdLower);
+        String dashedIdLower = ((baseIdLower + "_") + quoteIdLower);
         if (java.util.Objects.equals(priceString, null))
         {
             priceString = this.safeString(trade, dashedIdLower);
@@ -3303,7 +3303,7 @@ public class Bitstamp extends BitstampApi
             {
                 if (((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf("_") >= 0)
                 {
-                    Object marketId = Helpers.replace(((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))), "_", "");
+                    String marketId = Helpers.replace(((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))), "_", "");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3774,7 +3774,7 @@ public class Bitstamp extends BitstampApi
             this.checkRequiredCredentials();
             Object xAuth = ("BITSTAMP " + this.apiKey);
             String xAuthNonce = this.uuid();
-            Object xAuthTimestamp = String.valueOf(this.milliseconds());
+            String xAuthTimestamp = String.valueOf(this.milliseconds());
             String xAuthVersion = "v2";
             String contentType = "";
             final Object finalXAuth = xAuth;

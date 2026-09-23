@@ -1111,7 +1111,7 @@ public class Woo extends WooApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = null;
         String settle = null;
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Object contractSize = null;
         Object linear = null;
         Object inverse = null;
@@ -1844,13 +1844,13 @@ public class Woo extends WooApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderSide = ((String)((String)side)).toUpperCase();
+            String orderSide = ((String)((String)side)).toUpperCase();
             final Object finalOrderSide = orderSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -4234,7 +4234,7 @@ public class Woo extends WooApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             final Object finalTs = ts;
             headers = new HashMap<String, Object>() {{
@@ -4243,7 +4243,7 @@ public class Woo extends WooApi
             }};
             if (java.util.Objects.equals(version, "v3"))
             {
-                auth = ((((Helpers.add(ts, method) + "/") + version) + "/") + pathWithParams);
+                auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
                 if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT"))
                 {
                     body = this.json(parameters);
@@ -4466,7 +4466,7 @@ public class Woo extends WooApi
         Long estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Long lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
         String intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
-        Object interval = null;
+        String interval = null;
         if (!java.util.Objects.equals(intervalString, null))
         {
             interval = (intervalString + "h");

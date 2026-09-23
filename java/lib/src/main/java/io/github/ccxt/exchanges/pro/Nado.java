@@ -2304,14 +2304,14 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         if ((((String)messageHash).indexOf("trade:") == 0))
         {
-            Object symbol = Helpers.replace(((String)messageHash), "trade:", "");
+            String symbol = Helpers.replace(((String)messageHash), "trade:", "");
             if (((Map<?, ?>)this.trades).containsKey(symbol))
             {
                 ((Map<String,Object>)this.trades).remove((String)symbol);
             }
         } else if ((((String)messageHash).indexOf("orderbook:") == 0))
         {
-            Object symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
+            String symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
             {
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -2327,7 +2327,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if ((((String)messageHash).indexOf("ticker:") == 0))
         {
-            Object symbol = Helpers.replace(((String)messageHash), "ticker:", "");
+            String symbol = Helpers.replace(((String)messageHash), "ticker:", "");
             if (((Map<?, ?>)this.tickers).containsKey(symbol))
             {
                 ((Map<String,Object>)this.tickers).remove((String)symbol);
@@ -2341,7 +2341,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if ((((String)messageHash).indexOf("bidask:") == 0))
         {
-            Object symbol = Helpers.replace(((String)messageHash), "bidask:", "");
+            String symbol = Helpers.replace(((String)messageHash), "bidask:", "");
             if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
             {
                 ((Map<String,Object>)this.bidsasks).remove((String)symbol);

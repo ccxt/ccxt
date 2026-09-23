@@ -1317,9 +1317,9 @@ public class Btcturk extends BtcturkApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
-            Object auth = Helpers.add(this.apiKey, nonce);
+            String auth = (this.apiKey + nonce);
             headers = new HashMap<String, Object>() {{
                 put( "X-PCK", Btcturk.this.apiKey );
                 put( "X-Stamp", nonce );

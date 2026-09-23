@@ -168,8 +168,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             if (java.util.Objects.equals(privateSubscription, null))
             {
                 Object id = this.requestId();
-                Object timestamp = String.valueOf(this.milliseconds());
-                Object payload = Helpers.add(this.apiKey, timestamp);
+                String timestamp = String.valueOf(this.milliseconds());
+                String payload = (this.apiKey + timestamp);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1294,8 +1294,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            Object subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
-            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), subHashIsPrefix);
+            String subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
+            this.cleanUnsubscription(client, subHash, (String) (unsubHash), subHashIsPrefix);
         }
         this.cleanCache(subscription);
     }

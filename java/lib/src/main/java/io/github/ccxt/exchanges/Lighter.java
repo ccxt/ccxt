@@ -1021,9 +1021,9 @@ public class Lighter extends LighterApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = ((String)((String)side)).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "market_index", Lighter.this.parseToInt(((Map<String, Object>)market).get("id")) );
         }};
@@ -1621,7 +1621,7 @@ public class Lighter extends LighterApi
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 if (!java.util.Objects.equals(settle, null))
                 {
                     symbol = ((symbol + ":") + settle);

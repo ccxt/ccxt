@@ -1755,7 +1755,7 @@ public class Xt extends XtApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Double minAmount = null;
         Double maxAmount = null;
@@ -6421,7 +6421,7 @@ final Object finalMarket = market;
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            Object key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
+            String key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
             ((Map<String, Object>)breakBySymbolSide).put((String)key, breakEntry);
         }
         return breakBySymbolSide;
@@ -6436,7 +6436,7 @@ final Object finalMarket = market;
     public Object mergePositionBreakInfo(Map<String, Object> entry, Map<String, Object> breakBySymbolSide)
     {
         String marketId = this.safeString(entry, "symbol");
-        Object key = ((marketId + "_") + this.safeString(entry, "positionSide"));
+        String key = ((marketId + "_") + this.safeString(entry, "positionSide"));
         Map<String, Object> breakEntry = (Map<String, Object>) this.safeDict(breakBySymbolSide, key);
         if (java.util.Objects.equals(breakEntry, null))
         {
@@ -7169,7 +7169,7 @@ final Object finalMarket = market;
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         String request = ("/" + this.implodeParams(path, parameters));
-        Object payload = null;
+        String payload = null;
         if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
         {
             if (Boolean.TRUE.equals(signed))
@@ -7221,7 +7221,7 @@ final Object finalMarket = market;
                 isUndefinedBody = false;
             }
             body = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : this.json(body);
-            Object payloadString = null;
+            String payloadString = null;
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
                 payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
@@ -7237,7 +7237,7 @@ final Object finalMarket = market;
                     }
                 } else
                 {
-                    payloadString = Helpers.add(payloadString, Helpers.add((((("#" + method) + "#") + payload) + "#"), body));
+                    payloadString = (payloadString + Helpers.add((((("#" + method) + "#") + payload) + "#"), body));
                 }
                 ((Map<String, Object>)headers).put("xt-validate-algorithms", "HmacSHA256");
                 ((Map<String, Object>)headers).put("xt-validate-recvwindow", recvWindow);
@@ -7256,7 +7256,7 @@ final Object finalMarket = market;
                     }
                 } else
                 {
-                    payloadString = Helpers.add(payloadString, Helpers.add((("#" + payload) + "#"), body));
+                    payloadString = (payloadString + Helpers.add((("#" + payload) + "#"), body));
                 }
             }
             String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());

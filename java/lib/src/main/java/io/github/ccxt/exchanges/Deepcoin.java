@@ -709,7 +709,7 @@ public class Deepcoin extends DeepcoinApi
         String settle = null;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Object isLinear = null;
         if (Boolean.TRUE.equals(swap))
         {

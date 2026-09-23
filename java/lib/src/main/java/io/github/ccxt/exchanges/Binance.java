@@ -5104,9 +5104,9 @@ public class Binance extends BinanceApi
                 if ((java.util.Objects.equals(fetchMargins, true)) && (res instanceof List))
                 {
                     List<Object> keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
-                    Object length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
+                    Integer length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
                     // first one is the cross-margin promise
-                    if (Helpers.isEqual(length, 0))
+                    if ((length != null && length == 0))
                     {
                         Helpers.addElementToObject(this.options, "crossMarginPairsData", keysList);
                     } else
@@ -5424,7 +5424,7 @@ public class Binance extends BinanceApi
         Object fees = this.fees;
         Object linear = null;
         Object inverse = null;
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String strike = null;
         if (Boolean.TRUE.equals(contract))
         {
@@ -7768,7 +7768,7 @@ public class Binance extends BinanceApi
             put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "side", ((String)finalSide).toUpperCase() );
         }};
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Object uppercaseType = initialUppercaseType;
         Object postOnly = this.isPostOnly(java.util.Objects.equals(initialUppercaseType, "MARKET"), java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters);
         if (Boolean.TRUE.equals(postOnly))
@@ -9217,10 +9217,10 @@ public class Binance extends BinanceApi
         String marketType = this.safeString(parameters, "type", ((Map<String, Object>)market).get("type"));
         Boolean stock = (Boolean) this.safeBool(market, "stock", false);
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
-        Object upperCaseSide = ((String)side).toUpperCase();
+        String upperCaseSide = ((String)side).toUpperCase();
         final Object finalUpperCaseSide = upperCaseSide;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -9258,7 +9258,7 @@ public class Binance extends BinanceApi
         Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
         Boolean isPriceMatch = !java.util.Objects.equals(priceMatch, null);
         Boolean priceRequiredForTrailing = true;
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         Object stopPrice = null;
         if (Boolean.TRUE.equals(isTrailingPercentOrder))
         {
@@ -11822,7 +11822,7 @@ public class Binance extends BinanceApi
         String tradedCurrency = this.safeCurrencyCode(currencyId);
         Map<String, Object> bnb = (Map<String, Object>) this.currency("BNB");
         Object earnedCurrency = ((Map<String, Object>)bnb).get("code");
-        Object applicantSymbol = ((earnedCurrency + "/") + tradedCurrency);
+        String applicantSymbol = ((earnedCurrency + "/") + tradedCurrency);
         Boolean tradedCurrencyIsQuote = false;
         if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(applicantSymbol)))
         {
@@ -11834,7 +11834,7 @@ public class Binance extends BinanceApi
             put( "currency", finalEarnedCurrency );
             put( "cost", Binance.this.parseNumber(feeCostString) );
         }};
-        Object symbol = null;
+        String symbol = null;
         String amountString = null;
         String costString = null;
         String side = null;
@@ -12469,8 +12469,8 @@ public class Binance extends BinanceApi
                     market = this.market(symbol);
                     parameters = this.omit(parameters, "symbol");
                 }
-                Object fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
-                Object toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
+                String fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
+                String toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
                 Object isolatedSymbol = null;
                 if (!java.util.Objects.equals(market, null))
                 {
@@ -12491,8 +12491,8 @@ public class Binance extends BinanceApi
                     }
                 }
                 Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
-                Boolean fromIsolated = !((fromId != null && accountsById.containsKey(fromId)));
-                Boolean toIsolated = !((toId != null && accountsById.containsKey(toId)));
+                Boolean fromIsolated = !(accountsById.containsKey(fromId));
+                Boolean toIsolated = !(accountsById.containsKey(toId));
                 if (Boolean.TRUE.equals(fromIsolated) && (java.util.Objects.equals(market, null)))
                 {
                     isolatedSymbol = fromId; // allow user provide symbol as the from/to account
@@ -12543,10 +12543,10 @@ public class Binance extends BinanceApi
                             }
                         }
                     }
-                    ((Map<String, Object>)request).put("type", Helpers.add(Helpers.add(fromId, "_"), toId));
+                    ((Map<String, Object>)request).put("type", ((fromId + "_") + toId));
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", Helpers.add(Helpers.add(fromId, "_"), toId));
+                    ((Map<String, Object>)request).put("type", ((fromId + "_") + toId));
                 }
             }
             Map<String, Object> response = (this.sapiPostAssetTransfer(this.extend(request, parameters))).join();
@@ -13727,7 +13727,7 @@ public class Binance extends BinanceApi
         Double fundingRate = this.safeNumber(contract, "lastFundingRate");
         Long fundingTime = this.safeInteger(contract, "nextFundingTime");
         String interval = this.safeString(contract, "fundingIntervalHours");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(interval, null))
         {
             intervalString = (interval + "h");
@@ -14034,10 +14034,10 @@ public class Binance extends BinanceApi
             }
             Object pricePrecision = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (!java.util.Objects.equals(truncatedLiquidationPrice, null) && java.util.Objects.equals(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))

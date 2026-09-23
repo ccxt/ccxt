@@ -2095,7 +2095,7 @@ public class Foxbit extends FoxbitApi
         String quoteId = this.safeString(quoteAssets, "symbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "default_fees");
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -2524,7 +2524,7 @@ public class Foxbit extends FoxbitApi
         parameters = this.omit(parameters, this.extractParams(path));
         Long timestamp = this.milliseconds();
         Object query = "";
-        Object signatureQuery = "";
+        String signatureQuery = "";
         if (java.util.Objects.equals(method, "GET"))
         {
             List<Object> paramKeys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());

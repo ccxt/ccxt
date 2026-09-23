@@ -84,7 +84,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        Object id = String.valueOf(this.requestId());
+        String id = String.valueOf(this.requestId());
         return new HashMap<String, Object>() {{
             put( "jsonrpc", "2.0" );
             put( "type", "command" );
@@ -118,7 +118,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
             Object request = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object id = String.valueOf(this.requestId());
+            String id = String.valueOf(this.requestId());
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
@@ -145,7 +145,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "JWT_COOKIE", token );
             }};
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "cookies", cookies);
-            Object id = String.valueOf(this.requestId());
+            String id = String.valueOf(this.requestId());
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );

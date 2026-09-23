@@ -280,7 +280,7 @@ public class Mudrex extends MudrexApi
         {
             ((Map<String, Object>)requestHeaders).put("Partner-Id", brokerId);
         }
-        Object methodUpper = ((String)method).toUpperCase();
+        String methodUpper = ((String)method).toUpperCase();
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -416,7 +416,7 @@ public class Mudrex extends MudrexApi
             String priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
             // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-            Object assetPair = Helpers.add((((Map<String, Object>)market).get("baseId") + "/"), ((Map<String, Object>)market).get("quoteId"));
+            String assetPair = Helpers.add((((Map<String, Object>)market).get("baseId") + "/"), ((Map<String, Object>)market).get("quoteId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assets", assetPair );
                 put( "aggregation", Mudrex.this.safeString(Mudrex.this.timeframes, timeframe, timeframe) );
@@ -473,7 +473,7 @@ public class Mudrex extends MudrexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> assetTicks = (Map<String, Object>) this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
-            List<Object> ohlcvs = (List<Object>) this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(assetTicks, assetPair.toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -700,7 +700,7 @@ public class Mudrex extends MudrexApi
         }
         String quote = "USDT";
         String settle = "USDT";
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(base, null))
         {
             symbol = ((((base + "/") + quote) + ":") + settle);

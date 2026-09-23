@@ -198,7 +198,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{trade});
-            Object messageHash = Helpers.add((channelName + ":"), symbol);
+            String messageHash = Helpers.add((channelName + ":"), symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -297,7 +297,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object messageHash = Helpers.add((channelName + ":"), symbol);
+        String messageHash = Helpers.add((channelName + ":"), symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -402,7 +402,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
-            Object messageHash = Helpers.add((channelName + ":"), symbol);
+            String messageHash = Helpers.add((channelName + ":"), symbol);
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
         }
@@ -589,7 +589,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object interval = Helpers.replace(channelName, (String)"candle", (String)"");
+        String interval = Helpers.replace(channelName, (String)"candle", (String)"");
         Object unifiedTimeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
@@ -767,7 +767,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             Object symbol = ((Map<String, Object>)order).get("symbol");
-            Object messageHash = Helpers.add((channelName + ":"), symbol);
+            String messageHash = Helpers.add((channelName + ":"), symbol);
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(orders, messageHash);
             client.resolve(orders, channelName);
@@ -839,7 +839,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            Object messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
+            String messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
             client.resolve(position, messageHash);
         }
     }
@@ -953,7 +953,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isGreaterThan(symbolsLength, 0))
             {
                 for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
@@ -1081,7 +1081,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             this.checkRequiredCredentials();
             Long milliseconds = this.milliseconds();
             String messageHash = "authenticate_hash";
-            Object timestamp = String.valueOf(milliseconds);
+            String timestamp = String.valueOf(milliseconds);
             String nonce = ("n_" + timestamp);
             String auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));

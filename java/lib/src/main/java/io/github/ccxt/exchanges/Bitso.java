@@ -635,10 +635,10 @@ public class Bitso extends BitsoApi
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                Object base = ((String)baseId).toUpperCase();
-                Object quote = ((String)quoteId).toUpperCase();
-                base = this.safeCurrencyCode((String) (base));
-                quote = this.safeCurrencyCode((String) (quote));
+                String base = ((String)baseId).toUpperCase();
+                String quote = ((String)quoteId).toUpperCase();
+                base = this.safeCurrencyCode(base);
+                quote = this.safeCurrencyCode(quote);
                 Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "fees", new HashMap<String, Object>() {{}});
                 Map<String, Object> flatRate = (Map<String, Object>) this.safeDict(fees, "flat_rate", new HashMap<String, Object>() {{}});
                 String takerString = this.safeString(flatRate, "taker");
@@ -1512,7 +1512,7 @@ public class Bitso extends BitsoApi
             {
                 market = this.market(symbol);
             }
-            Object oids = String.join(",", (List<String>)ids);
+            String oids = String.join(",", (List<String>)ids);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
@@ -2391,7 +2391,7 @@ public class Bitso extends BitsoApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             endpoint = ("/api" + endpoint);
             Object content = new ArrayList<Object>(Arrays.asList(nonce, method, endpoint));
             Object request = String.join("", (List<String>)content);
@@ -2404,7 +2404,7 @@ public class Bitso extends BitsoApi
                 }
             }
             String signature = (String) this.hmac(this.encode(request), this.encode(this.secret), sha256());
-            Object auth = ((((this.apiKey + ":") + nonce) + ":") + signature);
+            String auth = ((((this.apiKey + ":") + nonce) + ":") + signature);
             headers = new HashMap<String, Object>() {{
                 put( "Authorization", ("Bitso " + auth) );
             }};

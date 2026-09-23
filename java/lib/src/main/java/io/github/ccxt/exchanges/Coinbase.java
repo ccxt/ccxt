@@ -2230,7 +2230,7 @@ public class Coinbase extends CoinbaseApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))
         {
@@ -2553,7 +2553,7 @@ public class Coinbase extends CoinbaseApi
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
                 Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
-                Object marketId = ((baseId + delimiter) + quoteId);
+                String marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 ((Map<String, Object>)result).put((String)symbol, this.parseTicker((rates == null || baseId == null ? null : rates.get(baseId)), market));
@@ -4723,7 +4723,7 @@ public class Coinbase extends CoinbaseApi
                 sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));
             } else
             {
-                Object now = String.valueOf(this.seconds());
+                String now = String.valueOf(this.seconds());
                 sinceString = Precise.stringSub(now, String.valueOf(requestedDuration));
             }
             ((Map<String, Object>)request).put("start", sinceString);
@@ -6408,7 +6408,7 @@ public class Coinbase extends CoinbaseApi
         String pathPart = ((Boolean.TRUE.equals(isV3))) ? "api/v3" : "v2";
         String fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object savedPath = fullPath;
+        String savedPath = fullPath;
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -6487,8 +6487,8 @@ public class Coinbase extends CoinbaseApi
                 {
                     Object nonce = this.nonce();
                     Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
-                    Object timestampString = String.valueOf(timestamp);
-                    Object auth = Helpers.add(Helpers.add(Helpers.add(timestampString, method), savedPath), payload);
+                    String timestampString = String.valueOf(timestamp);
+                    String auth = (((timestampString + method) + savedPath) + payload);
                     String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                     final Object finalTimestampString = timestampString;
                     headers = new HashMap<String, Object>() {{

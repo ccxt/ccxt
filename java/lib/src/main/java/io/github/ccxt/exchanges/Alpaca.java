@@ -690,7 +690,7 @@ public class Alpaca extends AlpacaApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
+            String jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
@@ -782,7 +782,7 @@ public class Alpaca extends AlpacaApi
         {
             quote = "USD";
         }
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String status = this.safeString(asset, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         Double minAmount = this.safeNumber(asset, "min_order_size");
@@ -1358,7 +1358,7 @@ public class Alpaca extends AlpacaApi
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         String uuid = this.uuid();
         Object parts = new ArrayList<Object>(Arrays.asList(((String)uuid).split(java.util.regex.Pattern.quote("-"))));
-        Object random_id = String.join("", (List<String>)parts);
+        String random_id = String.join("", (List<String>)parts);
         String defaultClientId = (String) this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -2844,7 +2844,7 @@ public class Alpaca extends AlpacaApi
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            Object codeAsString = String.valueOf(code);
+            String codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError(feedback) ;

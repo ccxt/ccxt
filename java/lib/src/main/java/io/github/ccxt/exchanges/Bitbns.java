@@ -417,7 +417,7 @@ public class Bitbns extends BitbnsApi
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
-                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (((baseId + "_") + quoteId)) : baseId;
+                String uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (((baseId + "_") + quoteId)) : baseId;
     final Object finalBase = base;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -1596,7 +1596,7 @@ public class Bitbns extends BitbnsApi
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object nonce = String.valueOf(this.nonce());
+        String nonce = String.valueOf(this.nonce());
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)

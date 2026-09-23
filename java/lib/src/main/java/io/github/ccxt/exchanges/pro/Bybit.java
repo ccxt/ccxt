@@ -327,7 +327,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, true);
             Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "order.create" );
                 put( "reqId", requestId );
@@ -382,7 +382,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "order.amend" );
                 put( "reqId", requestId );
@@ -428,7 +428,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
             Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             if (((Map<?, ?>)orderRequest).containsKey("orderFilter"))
             {
                 ((Map<String,Object>)orderRequest).remove("orderFilter");
@@ -1124,7 +1124,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Object marketId = this.marketId((String) (symbol));
-                Object topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
+                String topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1175,7 +1175,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");
-                Object topic = ((channel + ".") + marketId);
+                String topic = ((channel + ".") + marketId);
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 ((List<Object>)subMessageHashes).add(("orderbook:" + symbol));
                 ((List<Object>)topics).add(topic);
@@ -2115,7 +2115,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             method = ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             String messageHash = ("liquidations::" + symbol);
-            Object topic = ((method + ".") + ((Map<String, Object>)market).get("id"));
+            String topic = ((method + ".") + ((Map<String, Object>)market).get("id"));
             Object newLiquidation = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), parameters)).join();
             if (this.newUpdates)
             {
@@ -2840,7 +2840,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
-            Object topicsLength = Helpers.getArrayLength(topics);
+            Integer topicsLength = Helpers.getArrayLength(topics);
             Object messageHashesLength = ((List<?>)messageHashes).size();
             if (Helpers.isEqual(topicsLength, messageHashesLength))
             {

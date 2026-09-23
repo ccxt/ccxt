@@ -918,7 +918,7 @@ public class Backpack extends BackpackApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Map<String, Object> filters = (Map<String, Object>) this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
         Double maxPrice = this.safeNumber(priceFilter, "maxPrice");
@@ -945,7 +945,7 @@ public class Backpack extends BackpackApi
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add(symbol, (":" + settle));
+            symbol = (symbol + (":" + settle));
             contractSize = 1;
         }
         String orderBookState = this.safeString(market, "orderBookState");
@@ -2916,13 +2916,13 @@ public class Backpack extends BackpackApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object endpoint = Helpers.add("/", path);
+        String endpoint = Helpers.add("/", path);
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
         Object sortedParams = (((parameters instanceof List))) ? parameters : this.keysort(parameters);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             Map<String, Object> optionInstructions = (Map<String, Object>) this.safeDict(this.options, "instructions", new HashMap<String, Object>() {{}});
             Map<String, Object> optionPathInstructions = (Map<String, Object>) this.safeDict(optionInstructions, path, new HashMap<String, Object>() {{}});
@@ -2979,7 +2979,7 @@ public class Backpack extends BackpackApi
 
     public Object generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
-        Object payload = "";
+        String payload = "";
         for (var i = 0; i < Helpers.getArrayLength(parameters); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});

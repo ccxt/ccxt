@@ -2880,7 +2880,7 @@ public class Mexc extends MexcApi
         Object marginMode = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -5299,7 +5299,7 @@ public class Mexc extends MexcApi
         String symbol = this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(contract, "timestamp");
         String interval = this.safeString(contract, "collectCycle");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(interval, null))
         {
             intervalString = (interval + "h");
@@ -7312,7 +7312,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports contract markets only")) ;
             }
-            Object marginModeLower = ((String)marginMode).toLowerCase();
+            String marginModeLower = ((String)marginMode).toLowerCase();
             if (!java.util.Objects.equals(marginModeLower, "isolated") && !java.util.Objects.equals(marginModeLower, "cross"))
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -7424,7 +7424,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             } else
             {
                 this.checkRequiredCredentials();
-                Object timestamp = String.valueOf(this.nonce());
+                String timestamp = String.valueOf(this.nonce());
                 Object auth = "";
                 headers = new HashMap<String, Object>() {{
                     put( "ApiKey", Mexc.this.apiKey );
@@ -7445,7 +7445,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                         url = (url + ("?" + auth));
                     }
                 }
-                auth = Helpers.add(Helpers.add(this.apiKey, timestamp), auth);
+                auth = ((this.apiKey + timestamp) + auth);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 ((Map<String, Object>)headers).put("Signature", signature);
             }

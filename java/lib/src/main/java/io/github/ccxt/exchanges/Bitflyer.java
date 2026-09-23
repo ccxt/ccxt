@@ -320,8 +320,8 @@ public class Bitflyer extends BitflyerApi
 
     public Object parseExpiryDate(Object expiry)
     {
-        Object day = Helpers.slice(expiry, 0, 2);
-        Object monthName = Helpers.slice(expiry, 2, 5);
+        String day = Helpers.slice(expiry, 0, 2);
+        String monthName = Helpers.slice(expiry, 2, 5);
         Object year = Helpers.slice(expiry, 5, 9);
         Map<String, Object> months = new HashMap<String, Object>() {{
             put( "JAN", "01" );
@@ -338,7 +338,7 @@ public class Bitflyer extends BitflyerApi
             put( "DEC", "12" );
         }};
         String month = this.safeString(months, monthName);
-        return this.parse8601((Helpers.add(((Helpers.add(year, "-") + month) + "-"), day) + "T00:00:00Z"));
+        return this.parse8601(((((Helpers.add(year, "-") + month) + "-") + day) + "T00:00:00Z"));
     }
 
     public Object safeMarket(Object... optionalArgs)
@@ -451,7 +451,7 @@ public class Bitflyer extends BitflyerApi
                 }
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
                 Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
@@ -1596,7 +1596,7 @@ public class Bitflyer extends BitflyerApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object content = new ArrayList<Object>(Arrays.asList(nonce, method, request));
             Object auth = String.join("", (List<String>)content);
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

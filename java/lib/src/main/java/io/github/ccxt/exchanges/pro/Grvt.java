@@ -592,7 +592,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String secondPart = this.safeString(parts, 1, "");
-        Object timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
+        String timeframeId = Helpers.replace(secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

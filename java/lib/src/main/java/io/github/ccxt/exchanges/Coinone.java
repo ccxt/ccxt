@@ -1101,8 +1101,8 @@ public class Coinone extends CoinoneApi
 
             Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-            Object orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
+            String orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+            String orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
             if (!java.util.Objects.equals(orderType, "LIMIT"))
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
@@ -1269,7 +1269,7 @@ public class Coinone extends CoinoneApi
         {
             quote = this.safeCurrencyCode(quoteId);
         }
-        Object symbol = null;
+        String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);

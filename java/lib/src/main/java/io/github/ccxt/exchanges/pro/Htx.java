@@ -1129,7 +1129,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             String marginMode = this.safeString(parameters, "margin", "cross");
-            Object marginPrefix = (((java.util.Objects.equals(marginMode, "cross")))) ? (prefix + "_cross") : prefix;
+            String marginPrefix = (((java.util.Objects.equals(marginMode, "cross")))) ? (prefix + "_cross") : prefix;
             messageHash = marginPrefix;
             if (!java.util.Objects.equals(marketCode, null))
             {
@@ -3441,7 +3441,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             this.checkRequiredCredentials();
             String messageHash = "auth";
-            Object relativePath = Helpers.replace(url, (String)("wss://" + hostname), (String)"");
+            String relativePath = Helpers.replace(url, (String)("wss://" + hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -3468,7 +3468,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
                 signatureParams = this.keysort(signatureParams);
                 String auth = this.urlencode(signatureParams, true); // true required in go
-                Object payload = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
+                String payload = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 Object request = null;
                 if (java.util.Objects.equals(type, "spot"))

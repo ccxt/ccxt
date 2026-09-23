@@ -1094,7 +1094,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
             Object messageHash = this.getMessageHash("ohlcv", ((Map<String, Object>)market).get("symbol"), timeframe);
-            Object subscriptionHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
+            String subscriptionHash = Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), rawTimeframe);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -1207,10 +1207,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = ((Boolean.TRUE.equals(isSpot))) ? spotHash : swapHash;
             String spotMessageHash = "spot:order";
             String swapMessageHash = "swap:order";
-            Object messageHash = ((Boolean.TRUE.equals(isSpot))) ? spotMessageHash : swapMessageHash;
+            String messageHash = ((Boolean.TRUE.equals(isSpot))) ? spotMessageHash : swapMessageHash;
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, (":" + symbol));
+                messageHash = (messageHash + (":" + symbol));
             }
             String uuid = this.uuid();
             String baseUrl = null;
@@ -1231,7 +1231,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "spot.executionReport" );
                 }};
             }
-            Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
@@ -1293,10 +1293,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = ((Boolean.TRUE.equals(isSpot))) ? spotHash : swapHash;
             String spotMessageHash = "spot:mytrades";
             String swapMessageHash = "swap:mytrades";
-            Object messageHash = ((Boolean.TRUE.equals(isSpot))) ? spotMessageHash : swapMessageHash;
+            String messageHash = ((Boolean.TRUE.equals(isSpot))) ? spotMessageHash : swapMessageHash;
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, (":" + symbol));
+                messageHash = (messageHash + (":" + symbol));
             }
             String uuid = this.uuid();
             String baseUrl = null;
@@ -1317,7 +1317,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "spot.executionReport" );
                 }};
             }
-            Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
@@ -1388,7 +1388,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "ACCOUNT_UPDATE" );
                 }};
             }
-            Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
             this.setBalanceCache(client, type, (String) (subType), subscriptionHash, (Map<String, Object>) (parameters));
             Object fetchBalanceSnapshot = null;
@@ -1513,7 +1513,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = "swap:private";
             messageHash = ("swap:positions" + messageHash);
             String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
-            Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
             this.setPositionsCache(client, (String) (type), symbols);
             Object fetchPositionsSnapshot = null;

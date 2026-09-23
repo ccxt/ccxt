@@ -679,7 +679,7 @@ public class Btcmarkets extends BtcmarketsApi
         String id = this.safeString(market, "marketId");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
         Double pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         Double minAmount = this.safeNumber(market, "minOrderAmount");
@@ -1199,7 +1199,7 @@ public class Btcmarkets extends BtcmarketsApi
                 put( "amount", Btcmarkets.this.amountToPrecision(symbol, amount) );
                 put( "side", (((java.util.Objects.equals(finalSide, "buy")))) ? "Bid" : "Ask" );
             }};
-            Object lowercaseType = ((String)type).toLowerCase();
+            String lowercaseType = ((String)type).toLowerCase();
             Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
                 put( "market", "Market" );
@@ -1788,7 +1788,7 @@ public class Btcmarkets extends BtcmarketsApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = ((method + request) + nonce);
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))

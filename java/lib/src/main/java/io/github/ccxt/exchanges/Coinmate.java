@@ -537,7 +537,7 @@ public class Coinmate extends CoinmateApi
                 String quoteId = this.safeString(market, "secondCurrency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
     final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1637,8 +1637,8 @@ public class Coinmate extends CoinmateApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
+            String nonce = String.valueOf(this.nonce());
+            String auth = ((nonce + this.uid) + this.apiKey);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{

@@ -246,7 +246,7 @@ public class Revolutx extends RevolutxApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             if (java.util.Objects.equals(method, "GET"))
             {
                 if (Helpers.isGreaterThan(queryLength, 0))
@@ -271,7 +271,7 @@ public class Revolutx extends RevolutxApi
             {
                 bodyString = body;
             }
-            String message = (((Helpers.add(timestamp, ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
+            String message = ((((timestamp + ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
@@ -434,7 +434,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, key, new HashMap<String, Object>() {{}});
                 String base = this.safeString(market, "base");
                 String quote = this.safeString(market, "quote");
-                Object marketId = ((base + "-") + quote);
+                String marketId = ((base + "-") + quote);
                 Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
                     put( "id", marketId );
                 }});

@@ -1008,7 +1008,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
         String candleType = this.safeString(subscription, "candleType");
-        Object cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add((timeframe + ":"), candleType);
+        String cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add((timeframe + ":"), candleType);
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), cacheKey);
@@ -1017,7 +1017,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Long defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)cacheKey), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), cacheKey, stored);
         }
         Long previousNonce = this.safeInteger(subscription, "nonce");
         Long nonce = this.safeInteger(message, "seq");

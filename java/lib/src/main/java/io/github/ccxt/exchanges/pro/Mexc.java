@@ -362,7 +362,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Object isSpot = ((Boolean.TRUE.equals(marketIdIsUndefined))) ? channelStartsWithSpot : ((Map<String, Object>)market).get("spot");
         String spotPrefix = "spot:";
         String messageHashPrefix = (((java.util.Objects.equals(isSpot, true)))) ? spotPrefix : "";
-        Object topic = (messageHashPrefix + "ticker");
+        String topic = (messageHashPrefix + "ticker");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -621,8 +621,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.checkRequiredCredentials();
             String channel = "login";
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
-            Object timestamp = String.valueOf(this.milliseconds());
-            Object payload = Helpers.add(this.apiKey, timestamp);
+            String timestamp = String.valueOf(this.milliseconds());
+            String payload = (this.apiKey + timestamp);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", channel );
@@ -2264,11 +2264,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
-            Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
-            this.cleanUnsubscription(client, (String) (subMessageHash), (String) (messageHash));
+            String subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
+            this.cleanUnsubscription(client, subMessageHash, (String) (messageHash));
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
                 if (((String)symbol).indexOf("unsubscribe") >= 0)
                 {
                     // unWatchTickers
@@ -2283,7 +2283,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
@@ -2303,21 +2303,21 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
                 }
             } else if (((String)messageHash).indexOf("fundingRate") >= 0)
             {
-                Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
+                String symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
                 if (((Map<?, ?>)this.fundingRates).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.fundingRates).remove((String)symbol);

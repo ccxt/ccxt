@@ -2769,16 +2769,16 @@ public class Htx extends HtxApi
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
                 String settle = this.safeCurrencyCode((String) (settleId));
-                Object symbol = ((base + "/") + quote);
+                String symbol = ((base + "/") + quote);
                 Long expiry = null;
                 if (Boolean.TRUE.equals(contract))
                 {
                     if (java.util.Objects.equals(inverse, true))
                     {
-                        symbol = Helpers.add(symbol, (":" + base));
+                        symbol = (symbol + (":" + base));
                     } else if (java.util.Objects.equals(linear, true))
                     {
-                        symbol = Helpers.add(symbol, (":" + quote));
+                        symbol = (symbol + (":" + quote));
                     }
                     if (Boolean.TRUE.equals(future))
                     {
@@ -2838,7 +2838,7 @@ public class Htx extends HtxApi
                 // 8 Delivered
                 // 9 Suspending of Trade
                 Long created = null;
-                Object createdDate = this.safeString(market, "create_date"); // i.e 20230101
+                String createdDate = this.safeString(market, "create_date"); // i.e 20230101
                 if (!java.util.Objects.equals(createdDate, null))
                 {
                     Object createdArray = this.stringToCharsArray(createdDate);
@@ -9500,7 +9500,7 @@ public class Htx extends HtxApi
                 String auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new ArrayList<Object>(Arrays.asList(method, this.hostname, url, auth));
-                Object payload = String.join("\n", (List<String>)content); // eslint-disable-line quotes
+                String payload = String.join("\n", (List<String>)content); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
@@ -9604,10 +9604,10 @@ public class Htx extends HtxApi
                     Map<String, Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                Object auth = Helpers.replace(((String)this.urlencode(request, true)), "%2c", "%2C"); // in c# it manually needs to be uppercased
+                String auth = Helpers.replace(((String)this.urlencode(request, true)), "%2c", "%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(method, hostname, url, auth));
-                Object payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
+                String payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );

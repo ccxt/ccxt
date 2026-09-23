@@ -1103,7 +1103,7 @@ public class Latoken extends LatokenApi
         String quoteId = this.safeString(trade, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
         {
             market = this.market(symbol);
@@ -1437,7 +1437,7 @@ public class Latoken extends LatokenApi
         String quoteId = this.safeString(order, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = null;
+        String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
@@ -1752,7 +1752,7 @@ public class Latoken extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
@@ -2260,7 +2260,7 @@ public class Latoken extends LatokenApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        Object requestString = request;
+        String requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
         String urlencodedQuery = this.urlencode(query);
         if (java.util.Objects.equals(method, "GET"))

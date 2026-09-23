@@ -137,7 +137,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 {
                     Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    Object subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
+                    String subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
                     ((List<Object>)rawSubscriptions).add(subscription);
                     String messageHash = ("ticker:" + symbol);
                     ((List<Object>)messageHashes).add(messageHash);
@@ -1117,7 +1117,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String name = "order";
             String subscriptionHash = name;
-            Object messageHash = name;
+            String messageHash = name;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.symbol(symbol);
@@ -1354,7 +1354,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String name = "execution";
             String subscriptionHash = name;
-            Object messageHash = name;
+            String messageHash = name;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.symbol(symbol);
@@ -1529,7 +1529,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
+                String topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ((table + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1576,7 +1576,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
+                String topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ((table + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1626,7 +1626,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String table = ("tradeBin" + this.safeString(this.timeframes, timeframe, timeframe));
-            Object messageHash = ((table + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((table + ":") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -1710,7 +1710,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         String table = this.safeString(message, "table");
-        Object interval = Helpers.replace(table, (String)"tradeBin", (String)"");
+        String interval = Helpers.replace(table, (String)"tradeBin", (String)"");
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
         List<Object> candles = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));

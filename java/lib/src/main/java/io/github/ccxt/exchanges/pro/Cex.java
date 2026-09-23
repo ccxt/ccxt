@@ -508,7 +508,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = Helpers.add((base + "/"), quote);
+        String symbol = Helpers.add((base + "/"), quote);
         Object timestamp = this.safeInteger(ticker, "timestamp");
         if (!java.util.Objects.equals(timestamp, null))
         {
@@ -771,7 +771,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String quoteId = this.safeString(trade, "symbol2");
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = Helpers.add((base + "/"), quote);
+        String symbol = Helpers.add((base + "/"), quote);
         String amount = this.safeString(trade, "amount");
         if (java.util.Objects.equals(side, "sell"))
         {
@@ -894,7 +894,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = Helpers.add((base + "/"), quote);
+        String symbol = Helpers.add((base + "/"), quote);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
         remains = this.currencyFromPrecision(base, remains);
         if (java.util.Objects.equals(this.orders, null))
@@ -1007,7 +1007,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(base, null) && !java.util.Objects.equals(quote, null))
         {
             symbol = ((base + "/") + quote);
@@ -1219,7 +1219,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = Helpers.add((base + "/"), quote);
+        String symbol = Helpers.add((base + "/"), quote);
         return symbol;
     }
 
@@ -1349,7 +1349,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        Object symbol = Helpers.add((base + "/"), quote);
+        String symbol = Helpers.add((base + "/"), quote);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
         String messageHash = ("ohlcv:" + symbol);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1771,10 +1771,10 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String error = this.safeString(data, "error");
             String eventVar = this.safeString(message, "e", "");
-            Object feedback = ((((this.id + " ") + eventVar) + " ") + error);
+            String feedback = ((((this.id + " ") + eventVar) + " ") + error);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } catch(Exception error)
         {
             String messageHash = this.safeString(message, "oid");
@@ -1862,8 +1862,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             if (java.util.Objects.equals(authenticated, null))
             {
                 this.checkRequiredCredentials();
-                Object nonce = String.valueOf(this.seconds());
-                Object auth = Helpers.add(nonce, this.apiKey);
+                String nonce = String.valueOf(this.seconds());
+                String auth = (nonce + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
                 Map<String, Object> request = new HashMap<String, Object>() {{

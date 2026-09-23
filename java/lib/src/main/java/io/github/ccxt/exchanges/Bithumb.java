@@ -2563,7 +2563,7 @@ public class Bithumb extends BithumbApi
         {
             if (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1))
             {
-                Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
+                String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
                 if (!java.util.Objects.equals(normalizedTimestamp, null))
                 {
@@ -3298,7 +3298,7 @@ public class Bithumb extends BithumbApi
         Object timestamp = this.parse8601(datetime);
         if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1)))
         {
-            Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
+            String normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
             if (!java.util.Objects.equals(normalizedTimestamp, null))
             {
@@ -3909,7 +3909,7 @@ public class Bithumb extends BithumbApi
     public Object urlencodeWithArrayBrackets(Map<String, Object> query)
     {
         List<Object> keys = new ArrayList<Object>(query.keySet());
-        Object result = "";
+        String result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -3925,7 +3925,7 @@ public class Bithumb extends BithumbApi
                     {
                         valueString = this.json(item);
                     }
-                    if (((String)result).length() > 0)
+                    if (result.length() > 0)
                     {
                         result = (result + "&");
                     }
@@ -3933,7 +3933,7 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                if (((String)result).length() > 0)
+                if (result.length() > 0)
                 {
                     result = (result + "&");
                 }
@@ -4014,7 +4014,7 @@ public class Bithumb extends BithumbApi
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 Object bodyParts = new ArrayList<Object>(Arrays.asList(((String)body).split(java.util.regex.Pattern.quote("%20"))));
                 body = String.join("+", (List<String>)bodyParts);
-                Object nonce = String.valueOf(this.nonce());
+                String nonce = String.valueOf(this.nonce());
                 Object auth = ((((endpoint + "\\") + body) + "\\") + nonce); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
                 String signature64 = this.stringToBase64(signature);

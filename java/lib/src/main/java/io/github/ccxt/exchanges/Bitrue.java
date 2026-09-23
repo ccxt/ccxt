@@ -1112,7 +1112,7 @@ public class Bitrue extends BitrueApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
             symbol = (symbol + (":" + settle));
@@ -2303,7 +2303,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3785,8 +3785,8 @@ public class Bitrue extends BitrueApi
                 }
             } else
             {
-                Object timestamp = String.valueOf(this.nonce());
-                Object signPath = null;
+                String timestamp = String.valueOf(this.nonce());
+                String signPath = null;
                 if (java.util.Objects.equals(type, "fapi"))
                 {
                     signPath = "/fapi";
@@ -3795,7 +3795,7 @@ public class Bitrue extends BitrueApi
                     signPath = "/dapi";
                 }
                 signPath = Helpers.add((((signPath + "/") + version) + "/"), path);
-                Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
+                Object signMessage = ((timestamp + method) + signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {
                     List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());

@@ -2797,7 +2797,7 @@ public class Ndax extends NdaxApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         Object depositInfo = Helpers.parseJson(depositInfoString);
-        Object depositInfoLength = Helpers.getArrayLength(depositInfo);
+        Integer depositInfoLength = Helpers.getArrayLength(depositInfo);
         String lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
         Object parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
         String address = this.safeString(parts, 0);
@@ -3315,8 +3315,8 @@ public class Ndax extends NdaxApi
             String sessionToken = this.safeString(this.options, "sessionToken");
             if (java.util.Objects.equals(sessionToken, null))
             {
-                Object nonce = String.valueOf(this.nonce());
-                Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
+                String nonce = String.valueOf(this.nonce());
+                String auth = ((nonce + this.uid) + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
                 headers = new HashMap<String, Object>() {{

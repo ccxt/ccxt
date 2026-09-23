@@ -142,8 +142,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object isLimitOrder = ((String)type).endsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        if (Helpers.isTrue(isLimitOrder))
+        Boolean isLimitOrder = ((String)type).endsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (Boolean.TRUE.equals(isLimitOrder))
         {
             if (java.util.Objects.equals(price, null))
             {
@@ -240,7 +240,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 if (Boolean.TRUE.equals(isStopLossPriceOrder))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
-                    if (Helpers.isTrue(isLimitOrder))
+                    if (Boolean.TRUE.equals(isLimitOrder))
                     {
                         Helpers.addElementToObject(request.get("params"), "order_type", "stop-loss-limit");
                     } else
@@ -250,7 +250,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 } else
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
-                    if (Helpers.isTrue(isLimitOrder))
+                    if (Boolean.TRUE.equals(isLimitOrder))
                     {
                         Helpers.addElementToObject(request.get("params"), "order_type", "take-profit-limit");
                     } else
@@ -261,7 +261,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request.get("params"), "triggers"), "price_type", priceType);
-                if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
+                if (!Boolean.TRUE.equals(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
                     Helpers.addElementToObject(request.get("params"), "order_type", "trailing-stop");
                     if (Boolean.TRUE.equals(isTrailingAmountOrder))
@@ -303,7 +303,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
                 Helpers.addElementToObject(request.get("params"), "trigger_price_type", priceType);
-                if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
+                if (!Boolean.TRUE.equals(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
                     if (Boolean.TRUE.equals(isTrailingAmountOrder))
                     {
@@ -1224,7 +1224,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     ((List<Object>)payloadArray).add(formattedBid);
                 }
             }
-            Object payload = String.join("", (List<String>)payloadArray);
+            String payload = String.join("", (List<String>)payloadArray);
             Object localChecksum = this.crc32(payload, false);
             if (!Helpers.isEqual(localChecksum, c))
             {

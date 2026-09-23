@@ -243,7 +243,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object messageHash = String.valueOf(this.nonce());
+            String messageHash = String.valueOf(this.nonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
@@ -1714,10 +1714,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 Object code = this.safeValue(error, "code");
                 String errorMessage = this.safeString(error, "message");
                 String description = this.safeString(error, "description");
-                Object feedback = ((this.id + " ") + description);
+                String feedback = ((this.id + " ") + description);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
                 if (Helpers.isInstance(e, AuthenticationError.class))

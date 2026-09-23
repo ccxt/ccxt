@@ -866,8 +866,8 @@ public class Poloniex extends PoloniexApi
         //           ],
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
-        Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
+        Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
+        Boolean isContract = (ohlcvLength != null && ohlcvLength == 9);
         if (Boolean.TRUE.equals(isContract))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
@@ -1224,14 +1224,14 @@ public class Poloniex extends PoloniexApi
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "OPEN");
         Boolean linear = java.util.Objects.equals(((Map<String, Object>)market).get("ctType"), "LINEAR");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(linear))
         {
-            symbol = Helpers.add(symbol, (":" + settle));
+            symbol = (symbol + (":" + settle));
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = Helpers.add(symbol, (":" + base));
+            symbol = (symbol + (":" + base));
         }
         String alias = this.safeString(market, "alias");
         String type = "swap";
@@ -2537,7 +2537,7 @@ public class Poloniex extends PoloniexApi
                 }
             }
         }
-        Object upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
         Object isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters);
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
@@ -3766,7 +3766,7 @@ public class Poloniex extends PoloniexApi
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 ((Map<String, Object>)depositWithdrawFees).put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
-                Object chainsLength = Helpers.getArrayLength(childChains);
+                Integer chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isGreaterThan(chainsLength, 0))
                 {
                     for (var j = 0; j < Helpers.getArrayLength(childChains); j++)
@@ -4486,7 +4486,7 @@ public class Poloniex extends PoloniexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             String auth = (method + "\n"); // eslint-disable-line quotes
             url = Helpers.add(url, ("/" + implodedPath));
             auth = (auth + ("/" + implodedPath));

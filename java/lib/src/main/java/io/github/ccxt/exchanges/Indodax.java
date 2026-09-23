@@ -754,7 +754,7 @@ public class Indodax extends IndodaxApi
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
-                Object marketId = Helpers.replace(((String)key), "_", "");
+                String marketId = Helpers.replace(((String)key), "_", "");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
                 ((Map<String, Object>)parsedTickers).put((String)marketId, parsed);

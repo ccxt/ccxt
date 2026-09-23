@@ -636,7 +636,7 @@ public class Onetrading extends OnetradingApi
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isPerp))
         {
             symbol = ((symbol + ":") + quote);
@@ -1598,7 +1598,7 @@ public class Onetrading extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;

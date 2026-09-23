@@ -423,7 +423,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 String unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 String quote = this.safeString(symbolParts, 1);
-                Object newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
+                String newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
                 if (((Map<?, ?>)this.markets).containsKey(newSymbol))
                 {
                     return (this.markets == null ? null : ((Map<?, ?>)this.markets).get(newSymbol));
@@ -695,7 +695,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             } else
             {
-                Object fetchDexesLength = Helpers.getArrayLength(fetchDexes);
+                Integer fetchDexesLength = Helpers.getArrayLength(fetchDexes);
                 // index 0 is the null main dex, so the loop runs 1..maxLimit to load
                 // exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
                 // python transpiler collapses every for-loop bound to an exclusive
@@ -1023,7 +1023,7 @@ public class Hyperliquid extends HyperliquidApi
                 String mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
                 String mappedBase = this.safeCurrencyCode(mappedBaseName);
                 String mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-                Object mappedSymbol = ((mappedBase + "/") + mappedQuote);
+                String mappedSymbol = ((mappedBase + "/") + mappedQuote);
                 Object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
                 // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
                 String amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -1136,7 +1136,7 @@ public class Hyperliquid extends HyperliquidApi
         String quote = this.safeCurrencyCode(quoteId);
         String baseId = this.safeString(market, "baseId");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         Boolean contract = true;
         Boolean swap = true;
         if (Boolean.TRUE.equals(contract))
@@ -2560,7 +2560,7 @@ public class Hyperliquid extends HyperliquidApi
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Object durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
+            Double durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
             final Object finalParameters = parameters;
             Map<String, Object> orderObj = new HashMap<String, Object>() {{
                 put( "a", Hyperliquid.this.parseToInt(((Map<String, Object>)market).get("baseId")) );
@@ -5116,7 +5116,7 @@ final Object finalClientOrderId = clientOrderId;
                 Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
                 String tokenName = this.safeString(currencyInfo, "name");
                 String tokenId = this.safeString(currencyInfo, "tokenId");
-                Object token = ((tokenName + ":") + tokenId);
+                String token = ((tokenName + ":") + tokenId);
                 final Object finalSubAccountAddress_2 = subAccountAddress;
                 final Object finalIsDeposit_2 = isDeposit;
                 Map<String, Object> action = new HashMap<String, Object>() {{
@@ -6161,7 +6161,7 @@ final Object finalClientOrderId = clientOrderId;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
+        String url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
         if (java.util.Objects.equals(method, "POST"))
         {
             headers = new HashMap<String, Object>() {{

@@ -564,8 +564,8 @@ public class Cex extends CexApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
-        Object id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        Object symbol = ((base + "/") + quote);
+        String id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        String symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1499,7 +1499,7 @@ public class Cex extends CexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currency1 = this.safeString(order, "currency1");
         String currency2 = this.safeString(order, "currency2");
-        Object marketId = null;
+        String marketId = null;
         if (!java.util.Objects.equals(currency1, null) && !java.util.Objects.equals(currency2, null))
         {
             marketId = ((currency1 + "-") + currency2);
@@ -2253,7 +2253,7 @@ public class Cex extends CexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object seconds = String.valueOf(this.seconds());
+            String seconds = String.valueOf(this.seconds());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(path, seconds), body);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

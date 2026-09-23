@@ -1145,7 +1145,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 {
                     market = this.market(current);
                 }
-                Object message = ((((channelName + ".") + ((Map<String, Object>)market).get("id")) + ".") + channelDescriptor);
+                String message = ((((channelName + ".") + ((Map<String, Object>)market).get("id")) + ".") + channelDescriptor);
                 ((List<Object>)rawSubscriptions).add(message);
                 ((List<Object>)messageHashes).add(((((channelName + "|") + ((Map<String, Object>)market).get("symbol")) + "|") + channelDescriptor));
             }

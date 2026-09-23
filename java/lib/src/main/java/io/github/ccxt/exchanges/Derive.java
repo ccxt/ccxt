@@ -1030,7 +1030,7 @@ public class Derive extends DeriveApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String marketId = this.safeString(market, "instrument_name");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String settleId = null;
         String settle = null;
         Object expiry = null;
@@ -1720,8 +1720,8 @@ public class Derive extends DeriveApi
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
-            Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)((String)side)).toLowerCase();
+            String orderType = ((String)type).toLowerCase();
+            String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
@@ -1922,8 +1922,8 @@ public class Derive extends DeriveApi
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
-            Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)((String)side)).toLowerCase();
+            String orderType = ((String)type).toLowerCase();
+            String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
             Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
@@ -3494,7 +3494,7 @@ public class Derive extends DeriveApi
             }};
             if (java.util.Objects.equals(api, "private"))
             {
-                Object now = String.valueOf(this.milliseconds());
+                String now = String.valueOf(this.milliseconds());
                 Object signature = this.signMessage(now, this.privateKey);
                 ((Map<String, Object>)headers).put("X-LyraWallet", this.safeString(this.options, "deriveWalletAddress"));
                 ((Map<String, Object>)headers).put("X-LyraTimestamp", now);

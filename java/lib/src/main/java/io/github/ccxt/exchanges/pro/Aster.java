@@ -2048,7 +2048,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 Object position = (newPositions == null || i < 0 || i >= newPositions.size() ? null : newPositions.get(i));
                 Object symbol = Helpers.GetValue(position, "symbol");
-                Object symbolMessageHash = Helpers.add((messageHash + "::"), symbol);
+                String symbolMessageHash = Helpers.add((messageHash + "::"), symbol);
                 client.resolve(position, symbolMessageHash);
             }
             client.resolve(newPositions, "positions");
@@ -2321,7 +2321,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object myTrades = this.myTrades;
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
             client.resolve(this.myTrades, messageHash);
-            Object messageHashSymbol = ((messageHash + "::") + symbol);
+            String messageHashSymbol = ((messageHash + "::") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
         }
     }

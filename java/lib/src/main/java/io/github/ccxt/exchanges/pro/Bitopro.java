@@ -73,7 +73,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "public"), "/"), path) + "/") + marketId);
+            String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "public"), "/"), path) + "/") + marketId);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         });
 
@@ -151,7 +151,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add((eventVar + ":"), symbol);
+        String messageHash = Helpers.add((eventVar + ":"), symbol);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -224,7 +224,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add((eventVar + ":"), symbol);
+        String messageHash = Helpers.add((eventVar + ":"), symbol);
         List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market);
         Object tradesCache = this.safeValue(this.trades, symbol);
@@ -266,7 +266,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "USER_TRADE";
+            String messageHash = "USER_TRADE";
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -472,7 +472,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
-        Object messageHash = Helpers.add((eventVar + ":"), symbol);
+        String messageHash = Helpers.add((eventVar + ":"), symbol);
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");

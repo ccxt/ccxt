@@ -850,7 +850,7 @@ public class Btse extends BtseApi
         String quoteId = this.safeString(market, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
         String minPriceString = this.safeString(market, "minOrderPrice");
@@ -862,7 +862,7 @@ public class Btse extends BtseApi
         String contractSize = null;
         if (!Boolean.TRUE.equals(isSpot))
         {
-            symbol = Helpers.add(symbol, (":" + quote));
+            symbol = (symbol + (":" + quote));
             contractSize = this.safeString(market, "contractSize");
             if (Boolean.TRUE.equals(isFuture))
             {
@@ -1825,7 +1825,7 @@ public class Btse extends BtseApi
         // perpetuals, observed live, the zero means no next funding and is omitted
         Object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
         Long fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
-        Object interval = null;
+        String interval = null;
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
@@ -2323,7 +2323,7 @@ public class Btse extends BtseApi
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
-            Object upperSide = ((String)((String)side)).toUpperCase();
+            String upperSide = ((String)((String)side)).toUpperCase();
             final Object finalUpperSide = upperSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );

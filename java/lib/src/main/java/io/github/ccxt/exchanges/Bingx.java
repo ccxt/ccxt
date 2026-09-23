@@ -1563,7 +1563,7 @@ public class Bingx extends BingxApi
         String type = (((!java.util.Objects.equals(settle, null)))) ? "swap" : "spot";
         Boolean spot = java.util.Objects.equals(type, "spot");
         Boolean swap = java.util.Objects.equals(type, "swap");
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
             symbol = (symbol + (":" + settle));
@@ -2424,7 +2424,7 @@ public class Bingx extends BingxApi
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Long timestamp = this.safeInteger(contract, "updateTime");
         String interval = this.safeString(contract, "fundingIntervalHours");
-        Object intervalString = null;
+        String intervalString = null;
         if (!java.util.Objects.equals(interval, null))
         {
             intervalString = (interval + "h");
@@ -5102,7 +5102,7 @@ public class Bingx extends BingxApi
             for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
             {
                 Object id = (idsToParse == null || i < 0 || i >= ((List<?>)idsToParse).size() ? null : ((List<?>)idsToParse).get(i));
-                Object stringId = String.valueOf(id);
+                String stringId = String.valueOf(id);
                 ((List<Object>)parsedIds).add(stringId);
             }
             Object response = null;
@@ -7554,7 +7554,7 @@ public class Bingx extends BingxApi
         // const sortedParams = this.keysort (params);
         List<Object> rawKeys = new ArrayList<Object>(parameters.keySet());
         Object keys = this.sort(rawKeys);
-        Object adjustedValue = null;
+        String adjustedValue = null;
         Object result = null;
         for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {

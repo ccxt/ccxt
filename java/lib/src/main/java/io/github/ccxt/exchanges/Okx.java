@@ -2856,7 +2856,7 @@ public class Okx extends OkxApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         // handle preopen empty markets
         if (java.util.Objects.equals(base, "") || java.util.Objects.equals(quote, ""))
         {
@@ -3159,7 +3159,7 @@ public class Okx extends OkxApi
             }
             Object idParts = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote("-"))));
             Object parts = this.arraySlice(idParts, 1);
-            Object chainPart = String.join("-", (List<String>)parts);
+            String chainPart = String.join("-", (List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
@@ -7651,7 +7651,7 @@ public class Okx extends OkxApi
         {
             Object chainParts = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
             Object networkParts = this.arraySlice(chainParts, 1);
-            Object networkId = String.join("-", (List<String>)networkParts);
+            String networkId = String.join("-", (List<String>)networkParts);
             if (!java.util.Objects.equals(networkId, null))
             {
                 network = this.networkIdToCode(networkId, code);

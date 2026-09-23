@@ -1288,7 +1288,7 @@ public class Coincheck extends CoincheckApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object queryString = "";
             if (java.util.Objects.equals(method, "GET"))
             {
@@ -1304,7 +1304,7 @@ public class Coincheck extends CoincheckApi
                     queryString = body;
                 }
             }
-            Object auth = Helpers.add(Helpers.add(nonce, url), queryString);
+            String auth = ((nonce + url) + queryString);
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );

@@ -664,7 +664,7 @@ public class Dydx extends DydxApi
         String quote = this.safeCurrencyCode(quoteId);
         String settleId = "USDC";
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + settle);
         Boolean contract = true;
         Boolean swap = true;
         String amountPrecisionStr = this.safeString(market, "stepSize");
@@ -1634,13 +1634,13 @@ public class Dydx extends DydxApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (java.util.Objects.equals(side, null))
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
         List<Object> subaccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
@@ -1951,7 +1951,7 @@ public class Dydx extends DydxApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
-            Object idString = String.valueOf(id);
+            String idString = String.valueOf(id);
             if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(((String)idString).indexOf("-"), -1))
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
@@ -2333,7 +2333,7 @@ public class Dydx extends DydxApi
                 gasPrice = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_GAS_PRICE");
                 denom = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_DENOM");
             }
-            Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
+            Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (java.util.Objects.equals(feeAmount, null))
             {

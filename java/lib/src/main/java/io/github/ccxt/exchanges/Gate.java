@@ -2514,7 +2514,7 @@ public class Gate extends GateApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode((String) (settleId));
         Object expiry = this.safeTimestamp(market, "expire_time");
-        Object symbol = "";
+        String symbol = "";
         String marketType = "swap";
         if (!java.util.Objects.equals(date, null))
         {
@@ -2658,7 +2658,7 @@ public class Gate extends GateApi
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
-                    Object symbol = ((base + "/") + quote);
+                    String symbol = ((base + "/") + quote);
                     Object expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
                     Boolean isCall = (Boolean) this.safeBool(market, "is_call");
@@ -9081,7 +9081,7 @@ final Object finalI = i;
             path = this.implodeParams(path, parameters);
         }
         String endPart = (((java.util.Objects.equals(path, "")))) ? "" : (Helpers.add("/", path));
-        Object entirePath = (Helpers.add("/", type) + endPart);
+        String entirePath = (Helpers.add("/", type) + endPart);
         if ((java.util.Objects.equals(type, "subAccounts")) || (java.util.Objects.equals(type, "withdrawals")))
         {
             entirePath = endPart;
@@ -9145,11 +9145,11 @@ final Object finalI = i;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Object nonce = this.nonce();
             Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
-            Object timestampString = String.valueOf(timestamp);
-            Object signaturePath = Helpers.add(("/api/" + this.version), entirePath);
+            String timestampString = String.valueOf(timestamp);
+            String signaturePath = (("/api/" + this.version) + entirePath);
             Object payloadArray = new ArrayList<Object>(Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
-            Object payload = String.join("\n", (List<String>)payloadArray);
+            String payload = String.join("\n", (List<String>)payloadArray);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new HashMap<String, Object>() {{
                 put( "KEY", Gate.this.apiKey );

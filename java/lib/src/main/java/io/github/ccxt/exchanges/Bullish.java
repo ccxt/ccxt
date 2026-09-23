@@ -988,7 +988,7 @@ public class Bullish extends BullishApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
         String amountPrecision = this.safeString(market, "quantityPrecision");
@@ -1023,7 +1023,7 @@ public class Bullish extends BullishApi
         } else
         {
             contractSize = this.safeNumber(market, "contractMultiplier");
-            symbol = Helpers.add(symbol, (":" + settle));
+            symbol = (symbol + (":" + settle));
             linear = java.util.Objects.equals(settle, quote);
             inverse = !Boolean.TRUE.equals(linear);
             if (java.util.Objects.equals(type, "swap"))
@@ -1044,7 +1044,7 @@ public class Bullish extends BullishApi
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = Helpers.add(symbol, ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4)));
+                    symbol = (symbol + ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4)));
                 }
             }
         }
@@ -3643,11 +3643,11 @@ public class Bullish extends BullishApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.microseconds());
-            Object timestamp = String.valueOf(this.getTimestamp());
+            String nonce = String.valueOf(this.microseconds());
+            String timestamp = String.valueOf(this.getTimestamp());
             if (java.util.Objects.equals(method, "GET"))
             {
-                Object payload = Helpers.add((Helpers.add(Helpers.add(timestamp, nonce), method) + "/trading-api/"), path);
+                Object payload = Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp = timestamp;
                 headers = new HashMap<String, Object>() {{
@@ -3658,7 +3658,7 @@ public class Bullish extends BullishApi
             } else if (java.util.Objects.equals(method, "POST"))
             {
                 body = this.json(parameters);
-                Object payload = Helpers.add(Helpers.add((Helpers.add(Helpers.add(timestamp, nonce), method) + "/trading-api/"), path), body);
+                Object payload = Helpers.add(Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path), body);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp_2 = timestamp;

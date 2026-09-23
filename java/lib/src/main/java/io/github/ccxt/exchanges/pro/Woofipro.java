@@ -753,7 +753,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object ts = String.valueOf(this.nonce());
+                String ts = String.valueOf(this.nonce());
                 Object auth = ts;
                 Object secret = this.secret;
                 if (((String)secret).indexOf("ed25519:") >= 0)

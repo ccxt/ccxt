@@ -447,7 +447,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
-            Object messageHash = Helpers.add((channel + ":"), symbol);
+            String messageHash = Helpers.add((channel + ":"), symbol);
             Object stored = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -824,7 +824,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((Map<String, Object>)newTickers).put((String)symbol, ticker);
         }
-        Object messageHash = Helpers.add((channel + "::"), symbol);
+        String messageHash = Helpers.add((channel + "::"), symbol);
         client.resolve(newTickers, messageHash);
     }
 
@@ -1037,7 +1037,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchLiquidationsForSymbols() type is required")) ;
             }
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -1519,7 +1519,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object interval = Helpers.replace(channel, (String)"candle", (String)"");
+        String interval = Helpers.replace(channel, (String)"candle", (String)"");
         // use a reverse lookup in a static map instead
         Object timeframe = this.findTimeframe(interval);
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1537,7 +1537,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            Object messageHash = ((channel + ":") + ((Map<String, Object>)market).get("id"));
+            String messageHash = ((channel + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -1924,7 +1924,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "books50-l2-tbt", 50 );
         }};
         Long limit = this.safeInteger(depths, channel);
-        Object messageHash = Helpers.add((channel + ":"), symbol);
+        String messageHash = Helpers.add((channel + ":"), symbol);
         if (java.util.Objects.equals(action, "snapshot"))
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -2003,7 +2003,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 String method = "GET";
                 String path = "/users/self/verify";
                 String auth = ((timestamp + method) + path);
@@ -2242,7 +2242,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() type is required")) ;
             }
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchMyTrades", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2420,7 +2420,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        Object messageHash = channel;
+        String messageHash = channel;
         if (!java.util.Objects.equals(symbol, null))
         {
             messageHash = ((channel + "::") + symbol);
@@ -2481,7 +2481,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() type is required")) ;
             }
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -2591,7 +2591,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             client.resolve(stored, channel);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object messageHash = Helpers.add((channel + ":"), (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                String messageHash = Helpers.add((channel + ":"), (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                 client.resolve(stored, messageHash);
             }
         }
@@ -2703,10 +2703,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public Object requestId()
     {
-        Object ts = String.valueOf(this.milliseconds());
+        String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
-        Object randomPart = String.valueOf(randomNumber);
-        return Helpers.add(ts, randomPart);
+        String randomPart = String.valueOf(randomNumber);
+        return (ts + randomPart);
     }
 
     /**
@@ -3118,7 +3118,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String msg = this.safeString(message, "msg");
                 if (!java.util.Objects.equals(msg, null) && Helpers.isTrue(msg.startsWith(((String)"Illegal request: {"))))
                 {
-                    Object stringifiedJson = Helpers.replace(msg, (String)"Illegal request: ", (String)"");
+                    String stringifiedJson = Helpers.replace(msg, (String)"Illegal request: ", (String)"");
                     Object parsedJson = this.parseJson(stringifiedJson);
                     id = this.safeString(parsedJson, "id");
                 }
@@ -3273,7 +3273,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleUnsubscriptionOHLCV(Client client, String symbol, Object channel)
     {
-        Object tf = Helpers.replace(((String)channel), "candle", "");
+        String tf = Helpers.replace(((String)channel), "candle", "");
         Object timeframe = this.findTimeframe(tf);
         if (java.util.Objects.equals(timeframe, null))
         {

@@ -358,7 +358,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String subMessageHash = ("orderbook:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = String.valueOf(this.nonce());
+            String id = String.valueOf(this.nonce());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", "unsubscribe" );
@@ -1227,7 +1227,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String dex = this.safeString(parameters, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
             String topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
-            Object messageHash = (topic + "::balance");
+            String messageHash = (topic + "::balance");
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             final Object finalTopic = topic;
             final Object finalUserAddress = userAddress;
@@ -1659,7 +1659,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
             Object market = null;
-            Object messageHash = "order";
+            String messageHash = "order";
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
