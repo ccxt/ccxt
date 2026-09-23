@@ -3392,7 +3392,7 @@ public class Hitbtc extends HitbtcApi
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
@@ -3467,7 +3467,7 @@ public class Hitbtc extends HitbtcApi
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
-    public Object createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object... optionalArgs)
+    public List<Object> createOrderRequest(Map<String, Object> market, Object marketType, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createOrderRequest(market, marketType, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }

@@ -2979,7 +2979,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(this.options, "wsConnected", false);
                 String token = (this.fetchSxbetRealtimeToken()).join();
-                Object requestId = this.requestId((String) (url));
+                Long requestId = this.requestId((String) (url));
                 this.registerSxbetWsRequest(requestId, "centrifugoConnected", "connect");
                 Map<String, Object> connectMsg = new HashMap<String, Object>() {{
                     put( "connect", new HashMap<String, Object>() {{

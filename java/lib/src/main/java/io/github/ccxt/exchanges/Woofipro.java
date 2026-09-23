@@ -4337,7 +4337,7 @@ public class Woofipro extends WoofiproApi
                 throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
             }
             Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "chainId", chainId );
                 put( "name", "Orderly" );

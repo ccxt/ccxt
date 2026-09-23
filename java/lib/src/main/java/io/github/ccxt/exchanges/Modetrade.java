@@ -3973,7 +3973,7 @@ public class Modetrade extends ModetradeApi
                 throw new BadRequest((this.id + " withdraw() require chainId parameter")) ;
             }
             Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
-            Object nonce = this.nonce();
+            Long nonce = this.nonce();
             final String finalChainId = chainId;
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "chainId", finalChainId );

@@ -4169,7 +4169,7 @@ final Object finalSubHash = subHash;
         return BaseExchange.supplyAsync(() -> {
 
             String topic = (this.walletEventsTopic()).join();
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "requestId", requestId );
@@ -4262,7 +4262,7 @@ final Object finalSubHash = subHash;
         return BaseExchange.supplyAsync(() -> {
 
             String topic = (this.walletEventsTopic()).join();
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "requestId", requestId );

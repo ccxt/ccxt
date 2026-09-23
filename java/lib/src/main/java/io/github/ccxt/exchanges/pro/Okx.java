@@ -165,7 +165,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 symbols = Helpers.toStringListArg(this.symbols);
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object url = this.getUrl((String) (channel), access);
+            String url = this.getUrl((String) (channel), access);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
