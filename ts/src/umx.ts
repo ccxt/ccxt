@@ -98,7 +98,7 @@ export default class umx extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false, // the venue has no testnet
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -2593,6 +2593,54 @@ export default class umx extends Exchange {
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name umx#setLeverage
+     * @description set the leverage a contract market is traded with
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/set-leverage
+     * @param {int} leverage the rate of leverage, the venue caps it per market and rejects anything above with error 50105
+     * @param {string} symbol unified symbol of a swap or future market, the venue rejects spot and option instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Leverage> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isSwap = this.safeBool (market, 'swap', false);
+        const isFuture = this.safeBool (market, 'future', false);
+        if (!isSwap && !isFuture) {
+            // the venue answers 50101 for spot and 50102 for options, this saves the round trip
+            throw new NotSupported (this.id + ' setLeverage() supports swap and future markets only');
+        }
+        const leverageString = this.numberToString (leverage);
+        const request: Dict = {
+            'symbol': market['id'],
+            'lever': leverageString,
+        };
+        const response = await this.privatePostV1TradeLever (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "accountName": "1000000000000000000",
+        //             "symbol": "ETH-USDT-PERP",
+        //             "currency": "",
+        //             "lever": "5",
+        //             "pid": "1000000000000000000",
+        //             "cid": "100000000000002",
+        //             "uid": "100000000000001"
+        //         },
+        //         "ts": "1790201234567"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

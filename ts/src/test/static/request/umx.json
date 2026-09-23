@@ -8,6 +8,18 @@
     ],
     "options": {},
     "methods": {
+        "setLeverage": [
+            {
+                "description": "set the leverage of a perpetual",
+                "method": "setLeverage",
+                "url": "https://api.umx.com/api/v1/trade/lever",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"lever\":\"5\"}"
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "leverage of a perpetual",

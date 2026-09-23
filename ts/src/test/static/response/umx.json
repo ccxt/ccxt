@@ -8,6 +8,45 @@
     ],
     "options": {},
     "methods": {
+        "setLeverage": [
+            {
+                "description": "set the leverage of a perpetual",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "symbol": "ETH-USDT-PERP",
+                        "currency": "",
+                        "lever": "5",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "ts": "1790201844107"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "symbol": "ETH-USDT-PERP",
+                        "currency": "",
+                        "lever": "5",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 5,
+                    "shortLeverage": 5
+                }
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "leverage of a perpetual",
