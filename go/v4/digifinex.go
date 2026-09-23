@@ -1422,7 +1422,7 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}())
 		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
-		var symbol any = ticker["symbol"]
+		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -3937,7 +3937,7 @@ func (this *Digifinex) transferBody(ch chan any, code any, amount any, fromAccou
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var currencyId any = currency["id"]
+	var currencyId *string = SafeStringPtr(currency["id"])
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -4905,7 +4905,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(position, "instrument_id", "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol any = GetValue(market, "symbol")
+	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var marginMode *string = this.SafeString(position, "margin_mode")
 	if marginMode != nil {
 		marginMode = SafeStringPtr(func() string {

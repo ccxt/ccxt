@@ -241,7 +241,7 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 		var market any = this.SafeMarket(marketId, nil, "-")
 		var messageHash any = ccxt.Add(ccxt.Add(event, "@"), marketId)
 		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
-		var symbol any = ticker["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -295,7 +295,7 @@ func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
 			return nil
 		}()
 		var ticker any = this.ParseWsBidAsk(data)
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		result = append(result, ticker)
 		var messageHash any = ccxt.Add(event+":", symbol)
@@ -375,7 +375,7 @@ func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var name string = "trades"
 	var messageHash any = ccxt.Add(name+"@", marketId)
 	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message, market))
@@ -551,7 +551,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var name string = "candles"
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name+"@", marketId), "_"), interval)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -610,7 +610,7 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 	var name string = "candles"
 	var marketId *string = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var interval *string = this.SafeString(message, "interval")
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
@@ -678,12 +678,12 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			}
 			return nil
 		}()))
-		var timeframeString any = func() any {
+		var timeframeString *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[1])
 			}
 			return nil
-		}()
+		}())
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {
@@ -793,12 +793,12 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 			}
 			return nil
 		}()))
-		var timeframeString any = func() any {
+		var timeframeString *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 				return ccxt.DerefScalar(symbolAndTimeframe[1])
 			}
 			return nil
-		}()
+		}())
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {
@@ -1067,7 +1067,7 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	var marketId *string = this.SafeString(message, "market")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash any = ccxt.Add(ccxt.Add(event, "@"), market["id"])
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -1304,7 +1304,7 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var name string = "account"
 	var messageHash any = ccxt.Add("order:", symbol)
@@ -1363,7 +1363,7 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
-	var marketId any = market["id"]
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var name string = "account"
 	var messageHash any = ccxt.Add("myTrades:", symbol)
@@ -2319,8 +2319,8 @@ func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("order:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "order:" + *symbol
 	var order map[string]any = ccxt.MapTyped(this.ParseOrder(message, market))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2348,8 +2348,8 @@ func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("myTrades:", symbol)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var messageHash string = "myTrades:" + *symbol
 	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message, market))
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

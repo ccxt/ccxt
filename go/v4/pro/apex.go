@@ -133,11 +133,11 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
 		var topic any = ccxt.Add("recentlyTrade.H.", market["id2"])
 		topics = append(topics, topic)
-		var messageHash any = ccxt.Add("trade:", symbol)
+		var messageHash string = "trade:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
@@ -179,7 +179,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	var parts []string = ccxt.Split(topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId, nil, nil)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -192,7 +192,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, index), market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("trade"+":", symbol)
+	var messageHash string = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -214,7 +214,7 @@ func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(trade, []any{"i", "id", "v"})
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"t", "T", "createdAt"})
 	var side *string = this.SafeStringLower2(trade, "S", "side")
 	var price *string = this.SafeString2(trade, "p", "price")
@@ -298,14 +298,14 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
 		if limit == nil {
 			limit = 25
 		}
 		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", market["id2"])
 		topics = append(topics, topic)
-		var messageHash any = ccxt.Add("orderbook:", symbol)
+		var messageHash string = "orderbook:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
@@ -411,7 +411,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -428,7 +428,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash string = "orderbook" + ":" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -506,11 +506,11 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
 		var topic any = ccxt.Add("instrumentInfo"+".H.", market["id2"])
 		topics = append(topics, topic)
-		var messageHash any = ccxt.Add("ticker:", symbol)
+		var messageHash string = "ticker:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
@@ -704,7 +704,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 		return "contract"
 	}()
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -722,7 +722,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 		}())
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
+	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -940,7 +940,7 @@ func (this *Apex) HandleMyTrades(client any, lists any) {
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
 		var rawTrade any = ccxt.GetValue(lists, i)
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
-		var symbol any = parsed["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		ccxt.AddElementToObject(symbols, symbol, true)
 		trades.(ccxt.Appender).Append(parsed)
 	}
@@ -991,7 +991,7 @@ func (this *Apex) HandleOrder(client any, lists any) {
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
 		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(ccxt.GetValue(lists, i)))
-		var symbol any = parsed["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(parsed)
 	}
@@ -1099,14 +1099,14 @@ func (this *Apex) HandlePositions(client any, lists any) {
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {

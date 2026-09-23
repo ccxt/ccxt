@@ -1495,7 +1495,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add("multi:"+channel+":", sym))
+		messageHashes = append(messageHashes, "multi:"+channel+":"+*sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1566,7 +1566,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:multi:"+channel+":", sym))
+		messageHashes = append(messageHashes, "unsubscribe:multi:"+channel+":"+*sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
@@ -2536,9 +2536,9 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHash any = channel
+	var messageHash *string = channel
 	if symbol != nil {
-		messageHash = *channel + "::" + *symbol
+		messageHash = ccxt.SafeStringPtr(*channel+"::"+*symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, messageHash)
 }

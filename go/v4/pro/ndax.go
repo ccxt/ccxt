@@ -117,7 +117,7 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(payload))
-	var symbol any = ticker["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -215,7 +215,7 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()))
-		var symbol any = trade["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 		var tradesArray any = func() any {
 			if symbol == nil {
 				return nil
@@ -342,7 +342,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(ohlcv, 8)
 		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		if marketId != nil {
 			ccxt.AddElementToObject(updates, marketId, map[string]any{})
 		}
@@ -458,7 +458,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			var timeframe string = ccxt.GetValue(timeframes, j).(string)
 			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market any = this.SafeMarket(marketId)
-			var symbol any = ccxt.GetValue(market, "symbol")
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 			var stored any = this.SafeList(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
@@ -562,7 +562,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		return

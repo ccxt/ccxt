@@ -76,8 +76,8 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
-		var symbol any = ccxt.GetValue(symbols, i)
+		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 		messageHashes = append(messageHashes, messageHash)
 		if !(ccxt.InOp(subscriptions, messageHash)) {
@@ -332,7 +332,7 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	//   "acc_trade_volume_24h": 118.38798416,
 	//   "stream_type": "SNAPSHOT" }
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
-	var symbol any = ticker["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -414,7 +414,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	//   "sequential_id": 1584508285000002,
 	//   "stream_type": "REALTIME" }
 	var trade map[string]any = ccxt.MapTyped(this.ParseTrade(message))
-	var symbol any = trade["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	if symbol == nil {
 		return
 	}
@@ -425,7 +425,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	stored.(ccxt.Appender).Append(trade)
-	var messageHash any = ccxt.Add("trade:", symbol)
+	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Upbit) HandleOHLCV(client any, message map[string]any) {

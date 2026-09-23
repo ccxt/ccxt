@@ -1103,7 +1103,7 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 		var timestamp *int64 = this.SafeInteger(data, "t")
 		ccxt.AddElementToObject(fundingRate, "timestamp", timestamp)
 		ccxt.AddElementToObject(fundingRate, "datetime", this.Iso8601(timestamp))
-		var symbol any = ccxt.GetValue(fundingRate, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		var event *string = this.SafeString(message, "event")
 		var messageHash any = ccxt.Add(event, "::contract")
@@ -1192,14 +1192,14 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	cache.(ccxt.Appender).Append(position)
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "position::contract"))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 1)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -1275,7 +1275,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 		var cv *string = this.SafeString(data, "cv")
 		var isSpot bool = (cv != nil)
 		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
-		var symbol any = ticker["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -1372,7 +1372,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var tickerData any = ccxt.GetValue(data, i)
 		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tickerData))
-		var symbol any = ticker["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
@@ -1381,14 +1381,14 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 	var messageHashStart any = ccxt.Add(ccxt.Add(this.SafeString(message, "topic"), "::"), tradeType)
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(messageHashStart, "::")))
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = func() any {
+		var messageHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(messageHashes) {
 				return ccxt.DerefScalar(messageHashes[i])
 			}
 			return nil
-		}()
+		}())
 		var parts []string = ccxt.Split(messageHash, "::")
-		var symbolsString any = ccxt.GetValue(parts, 2)
+		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 2))
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
@@ -1449,7 +1449,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 			return "contract"
 		}()
 		var market any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		var parsed any = this.ParseOHLCV(data, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -1508,7 +1508,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 			return "contract"
 		}()
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
-		var symbol any = market["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var event *string = this.SafeString(message, "event")
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(tradesArray, nil) {
@@ -1593,7 +1593,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			tradeType = "contract"
 		}
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
-		var symbol any = market["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var obAsks any = this.SafeList(data, "a")
 		var obBids any = this.SafeList(data, "b")
 		var messageHash string = *event + "::" + tradeType
@@ -1948,7 +1948,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = stored
 	}
 	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
-	var tradeSymbol any = parsedTrade["symbol"]
+	var tradeSymbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	if tradeSymbol == nil {
 		return
 	}

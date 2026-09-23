@@ -444,12 +444,12 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data))
-	var symbol any = ticker["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
 		return
 	}
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash any = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
 	messageHash = ccxt.DerefScalar(this.SafeString(message, "oid"))

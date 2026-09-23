@@ -274,7 +274,7 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
-	var symbol any = ticker["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -394,7 +394,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -526,7 +526,7 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -904,7 +904,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var tick any = this.SafeDict(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
@@ -1799,7 +1799,7 @@ func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketResolved any = this.SafeMarket(nil, market)
 	market = marketResolved
-	var symbol any = ccxt.GetValue(marketResolved, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(marketResolved, "symbol"))
 	var tradeId *string = this.SafeString(trade, "tradeId")
 	var price *string = this.SafeString(trade, "tradePrice")
 	var amount *string = this.SafeString(trade, "tradeVolume")
@@ -2087,9 +2087,9 @@ func (this *Htx) HandlePositions(client any, message any) {
 		var marginModePositions any = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
 		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-			var messageHash any = ccxt.GetValue(messageHashes, j)
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, j))
 			var parts []string = ccxt.Split(messageHash, "::")
-			var symbolsString any = ccxt.GetValue(parts, 1)
+			var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 			var symbols []string = ccxt.Split(symbolsString, ",")
 			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
 			if !this.IsEmpty(positions) {

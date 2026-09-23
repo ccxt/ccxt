@@ -177,7 +177,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var rawTrade any = ccxt.GetValue(data, i)
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
-		var symbol any = trade["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -290,7 +290,7 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -406,7 +406,7 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 			}
 			return nil
 		}()))
-		var symbol any = ticker["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -486,7 +486,7 @@ func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
 			}
 			return nil
 		}())
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 		var messageHash any = ccxt.Add("bidask:", symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -610,7 +610,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var interval string = ccxt.Replace(channelName, "candle", "")
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -631,7 +631,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = ccxt.Add("candle"+interval+":", symbol)
+	var messageHash string = "candle" + interval + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 
@@ -816,7 +816,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 			}
 			return nil
 		}()))
-		var symbol any = order["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(order["symbol"])
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -968,7 +968,7 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	var fundingRate any = this.ParseFundingRate(first)
-	var symbol any = ccxt.GetValue(fundingRate, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)

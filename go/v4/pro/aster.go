@@ -220,7 +220,7 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
@@ -291,7 +291,7 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", market["symbol"]))
@@ -413,7 +413,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var use1sFreq *bool = this.SafeBool(params, "use1sFreq", true)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var suffix string = func() string {
 			if use1sFreq != nil && *use1sFreq == true {
@@ -490,7 +490,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var use1sFreq *bool = this.SafeBool(params, "use1sFreq", true)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var suffix string = func() string {
 			if use1sFreq != nil && *use1sFreq == true {
@@ -541,7 +541,7 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var ticker map[string]any = message
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, marketType))
-	var symbol any = parsed["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, parsed)
@@ -634,7 +634,7 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
 		messageHashes = append(messageHashes, ccxt.Add("bidask:", market["symbol"]))
@@ -700,7 +700,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", market["symbol"]))
@@ -728,7 +728,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var ticker any = this.ParseWsBidAsk(data, market)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	}
@@ -869,7 +869,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		"id":     1,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var marketId *string = this.SafeStringLower(market, "id")
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(marketId, "@aggTrade"))
@@ -932,7 +932,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@aggTrade"))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trade:", market["symbol"]))
@@ -961,7 +961,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(trade, "s")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
-	var symbol any = parsed["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	if symbol == nil {
 		return
 	}
@@ -971,7 +971,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	stored.(ccxt.Appender).Append(parsed)
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", symbol))
+	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+*symbol)
 }
 func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1251,7 +1251,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		limit = 20
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), ccxt.ToString(limit)))
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
@@ -1315,7 +1315,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		limit = 20
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), limit))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", market["symbol"]))
@@ -1353,14 +1353,14 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var timestamp *int64 = this.SafeInteger(data, "T")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash string = "orderbook" + ":" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -1614,7 +1614,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol any = market["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var kline any = this.SafeDict(data, "k")
 	var timeframeId *string = this.SafeString(kline, "i")
 	var timeframe *string = this.FindTimeframe(timeframeId)
@@ -1632,7 +1632,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseWsOHLCV(kline)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -2018,8 +2018,8 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			messageHashes = append(messageHashes, ccxt.Add(messageHash+"::", symbol))
+			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			messageHashes = append(messageHashes, messageHash+"::"+*symbol)
 		}
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -2516,11 +2516,11 @@ func (this *Aster) HandleOrder(client any, message any) {
 	}
 	var cache any = this.Orders
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message, market))
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	cache.(ccxt.Appender).Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
-		var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+		var symbolMessageHash string = messageHash + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
 		client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 	}

@@ -320,7 +320,7 @@ func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var symbols any = this.Symbols
 	var output []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		if ccxt.GetValue(market, "active") == true {
 			output = append(output, symbol)
@@ -625,7 +625,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	var messageHash *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var timeframe *string = this.FindTimeframe(messageHash)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), timeframe), nil) {
@@ -733,7 +733,7 @@ func (this *Coinbaseinternational) HandleTrade(client any, message map[string]an
 	//    }
 	//
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
-	var symbol any = trade["symbol"]
+	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var channel *string = this.SafeString(message, "channel")
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

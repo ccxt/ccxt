@@ -343,9 +343,9 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var item any = data[marketId]
-		var messageHash any = ccxt.Add("orderbooks::", symbol)
+		var messageHash string = "orderbooks::" + *symbol
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -526,11 +526,11 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
-		var messageHash any = ccxt.Add(topic+"::", symbol)
+		var messageHash string = topic + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -673,11 +673,11 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		var ticker any = this.ParseWsBidAsk(data[marketId], market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		result = append(result, ticker)
-		var messageHash any = ccxt.Add(topic+"::", symbol)
+		var messageHash string = topic + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -799,7 +799,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -809,7 +809,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 			stored.(ccxt.Appender).Append(ccxt.GetValue(trades, j))
 		}
-		var messageHash any = ccxt.Add("trades::", symbol)
+		var messageHash string = "trades::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	return message
@@ -963,7 +963,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var symbol any = ccxt.GetValue(market, "symbol")
+		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
@@ -975,7 +975,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		for j := 0; j < ccxt.GetArrayLength(ohlcvs); j++ {
 			stored.(ccxt.Appender).Append(ccxt.GetValue(ohlcvs, j))
 		}
-		var messageHash any = ccxt.Add("candles::", symbol)
+		var messageHash string = "candles::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	return message
