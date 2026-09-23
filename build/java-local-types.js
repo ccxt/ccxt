@@ -1957,6 +1957,15 @@ function integerLocalHasBoxedEquality (declaration) {
 // a local initialised from a non-`this` call the printer rewrites to a known Java shape
 // (string/array method calls, Math builtins) or from a `x.length` read
 function receiverMethodLocalType (initializer) {
+    const entry = receiverMethodLocalEntry (initializer);
+    if (entry?.type === 'Integer' && ts.isVariableDeclaration (initializer.parent)
+        && integerLocalHasBoxedEquality (initializer.parent)) {
+        return undefined;
+    }
+    return entry;
+}
+
+function receiverMethodLocalEntry (initializer) {
     if (ts.isPropertyAccessExpression (initializer)) {
         return initializer.name.escapedText === 'length'
             && initializer.expression.kind !== ts.SyntaxKind.ThisKeyword
@@ -2277,9 +2286,6 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // `this.`/`super.` receiver, so the `this.`-call gate below keeps its precedence
     const receiverMethod = receiverMethodLocalType (initializer);
     if (receiverMethod !== undefined) {
-        if (receiverMethod.type === 'Integer' && integerLocalHasBoxedEquality (declaration)) {
-            return undefined;
-        }
         return receiverMethod;
     }
 
@@ -6369,10 +6375,13 @@ const LITERAL_PRINTED_STRING_ACCESSORS = new Set ([ 'urlencode', 'json', 'number
 function literalLengthReadValue (node) {
     // every Java print of a TS `.length` read is a primitive int, so an Integer local
     // accepts it by boxing alone
-    return (ts.isPropertyAccessExpression (node) && node.name !== undefined
-        && node.name.escapedText === 'length')
-        ? { type: LITERAL_INTEGER_TYPE, nonNull: true }
-        : undefined;
+    if (!ts.isPropertyAccessExpression (node) || node.name === undefined || node.name.escapedText !== 'length') {
+        return undefined;
+    }
+    if (ts.isVariableDeclaration (node.parent) && integerLocalHasBoxedEquality (node.parent)) {
+        return undefined;
+    }
+    return { type: LITERAL_INTEGER_TYPE, nonNull: true };
 }
 
 function literalArrayIsArrayValue (node) {
