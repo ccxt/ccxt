@@ -8,6 +8,85 @@
     ],
     "options": {},
     "methods": {
+        "fetchCrossBorrowRates": [
+            {
+                "description": "cross borrow rate of one currency",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.umx.com/api/v1/public/baseRates?currency=BTC",
+                "input": [
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cross borrow rates",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.umx.com/api/v1/public/baseRates",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "future settlements",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=linear_futures&symbolFamily=ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements since, until and limit",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&endTime=1789862400000&beginTime=1789603200000",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    1789603200000,
+                    2,
+                    {
+                        "until": 1789862400000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements since and until",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&endTime=1789862400000&beginTime=1789603200000",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    1789603200000,
+                    null,
+                    {
+                        "until": 1789862400000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements with limit",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT&limit=100",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    100
+                ],
+                "output": null
+            },
+            {
+                "description": "option settlements",
+                "method": "fetchSettlementHistory",
+                "url": "https://api.umx.com/api/v1/market/deliveryExercise/history?businessType=options&symbolFamily=ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "funding rate history",

@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ export default class umx extends Exchange {
                 'fetchCanceledAndClosedOrders': false,
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -83,7 +83,7 @@ export default class umx extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
-                'fetchSettlementHistory': false,
+                'fetchSettlementHistory': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1300,6 +1300,156 @@ export default class umx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as FundingRateHistory;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-delivery-and-exercise-history
+     * @param {string} symbol unified symbol of an option or delivery future, it selects the instrument family whose settlements are returned, the settled instruments themselves are delisted and carry no unified symbol
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch, the venue only accepts a bound inside the latest three months and reaches no further back than that
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 1000 and publishes no upper bound
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest settlement to fetch, the venue answers an empty list when it predates the three month bound
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if ((marketType !== 'future') && (marketType !== 'option')) {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() supports future and option markets only');
+        }
+        const businessTypes = this.safeDict (this.options, 'businessTypes', {});
+        const businessType = this.safeString (businessTypes, marketType, marketType);
+        // the endpoint is scoped to an instrument family, a single instrument can be requested on
+        // top of that but is never useful, the venue delists an instrument as soon as it settles
+        // and a listed one has no settlement yet, so the symbol argument only selects the family
+        const symbolFamily = this.safeString (market['info'], 'symbolFamily');
+        let request: Dict = {
+            'businessType': businessType,
+            'symbolFamily': symbolFamily,
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead. a
+            // range that settles more instruments than the venue default of 1000 entries is still
+            // answered with its newest 1000, which is as far back as one call can reach
+        }
+        const response = await this.publicGetV1MarketDeliveryExerciseHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT-23SEP26-4100-C",
+        //                 "type": "delivery",
+        //                 "price": "2963.51",
+        //                 "time": "1790150400000"
+        //             }
+        //         ],
+        //         "ts": "1790183386955"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const settlements = this.parseSettlements (data);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    parseSettlement (settlement: Dict): Dict {
+        const marketId = this.safeString (settlement, 'symbol');
+        const timestamp = this.safeInteger (settlement, 'time');
+        // the settled instrument is delisted at once, so its id matches no loaded market and the
+        // unified symbol falls back to the exchange id. the requested market is deliberately kept
+        // out of the lookup, safeMarket () answers it for every id it does not know, which would
+        // label the whole family with the one symbol the caller happened to pass
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId),
+            'price': this.safeNumber (settlement, 'price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parseSettlements (settlements: any[]): List {
+        const result: List = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i]));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-margin-interest-rates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] the exchange currency id to narrow the answer to a single currency, every spot margin currency is returned without it
+     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the currency code
+     */
+    override async fetchCrossBorrowRates (params: Dict = {}): Promise<CrossBorrowRates> {
+        await this.loadMarkets ();
+        const response = await this.publicGetV1PublicBaseRates (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "borrowed": "0.246318718203698832",
+        //                 "remainingQuota": "496.433781266085056973",
+        //                 "rate": "0.015"
+        //             }
+        //         ],
+        //         "ts": "1790184977577"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // the entries carry no timestamp of their own, only the envelope does
+        const timestamp = this.safeInteger (response, 'ts');
+        const rates: CrossBorrowRates = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            });
+            const rate = this.parseBorrowRate (entry) as CrossBorrowRate;
+            const code = this.safeString (rate, 'currency');
+            if (code !== undefined) {
+                rates[code] = rate;
+            }
+        }
+        return rates;
+    }
+
+    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+        const currencyId = this.safeString (info, 'currency');
+        const timestamp = this.safeInteger (info, 'ts');
+        // the venue publishes an annualised rate, which is what period describes. the borrowed
+        // amount and the remaining quota the entry carries have no home in the structure
+        return {
+            'info': info,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': this.safeNumber (info, 'rate'),
+            'period': 31536000000, // 365 days in milliseconds
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     /**

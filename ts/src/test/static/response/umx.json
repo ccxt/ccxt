@@ -8,6 +8,317 @@
     ],
     "options": {},
     "methods": {
+        "fetchCrossBorrowRates": [
+            {
+                "description": "cross borrow rate of one currency",
+                "method": "fetchCrossBorrowRates",
+                "input": [
+                    {
+                        "currency": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "currency": "BTC",
+                            "borrowed": "0.306898734203698832",
+                            "remainingQuota": "496.373201250085056973",
+                            "rate": "0.015"
+                        }
+                    ],
+                    "ts": "1790185096293"
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "currency": "BTC",
+                            "borrowed": "0.306898734203698832",
+                            "remainingQuota": "496.373201250085056973",
+                            "rate": "0.015",
+                            "ts": 1790185096293
+                        },
+                        "currency": "BTC",
+                        "rate": 0.015,
+                        "period": 31536000000,
+                        "timestamp": 1790185096293,
+                        "datetime": "2026-09-23T17:38:16.293Z"
+                    }
+                }
+            },
+            {
+                "description": "cross borrow rates",
+                "method": "fetchCrossBorrowRates",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "currency": "USDT",
+                            "borrowed": "46235581.100589146049912001",
+                            "remainingQuota": "32910831.906217412692132834",
+                            "rate": "0.05586961"
+                        },
+                        {
+                            "currency": "BTC",
+                            "borrowed": "0.306898734203698832",
+                            "remainingQuota": "496.373201250085056973",
+                            "rate": "0.015"
+                        }
+                    ],
+                    "ts": "1790185093557"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "borrowed": "46235581.100589146049912001",
+                            "remainingQuota": "32910831.906217412692132834",
+                            "rate": "0.05586961",
+                            "ts": 1790185093557
+                        },
+                        "currency": "USDT",
+                        "rate": 0.05586961,
+                        "period": 31536000000,
+                        "timestamp": 1790185093557,
+                        "datetime": "2026-09-23T17:38:13.557Z"
+                    },
+                    "BTC": {
+                        "info": {
+                            "currency": "BTC",
+                            "borrowed": "0.306898734203698832",
+                            "remainingQuota": "496.373201250085056973",
+                            "rate": "0.015",
+                            "ts": 1790185093557
+                        },
+                        "currency": "BTC",
+                        "rate": 0.015,
+                        "period": 31536000000,
+                        "timestamp": 1790185093557,
+                        "datetime": "2026-09-23T17:38:13.557Z"
+                    }
+                }
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "future settlements",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "ETH/USDT:USDT-260925"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-26JUN26",
+                            "type": "delivery",
+                            "price": "1581.97",
+                            "time": "1782460800000"
+                        }
+                    ],
+                    "ts": "1790184392300"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-26JUN26",
+                            "type": "delivery",
+                            "price": "1581.97",
+                            "time": "1782460800000"
+                        },
+                        "symbol": "ETH-USDT-26JUN26",
+                        "price": 1581.97,
+                        "timestamp": 1782460800000,
+                        "datetime": "2026-06-26T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "option settlements since and until",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    1789603200000,
+                    null,
+                    {
+                        "until": 1789862400000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-19SEP26-2720-P",
+                            "type": "delivery",
+                            "price": "2626",
+                            "time": "1789804800000"
+                        },
+                        {
+                            "symbol": "ETH-USDT-18SEP26-2340-P",
+                            "type": "delivery",
+                            "price": "2491.3",
+                            "time": "1789718400000"
+                        },
+                        {
+                            "symbol": "ETH-USDT-17SEP26-2550-P",
+                            "type": "delivery",
+                            "price": "2446.4",
+                            "time": "1789632000000"
+                        }
+                    ],
+                    "ts": "1790184386087"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-17SEP26-2550-P",
+                            "type": "delivery",
+                            "price": "2446.4",
+                            "time": "1789632000000"
+                        },
+                        "symbol": "ETH-USDT-17SEP26-2550-P",
+                        "price": 2446.4,
+                        "timestamp": 1789632000000,
+                        "datetime": "2026-09-17T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-18SEP26-2340-P",
+                            "type": "delivery",
+                            "price": "2491.3",
+                            "time": "1789718400000"
+                        },
+                        "symbol": "ETH-USDT-18SEP26-2340-P",
+                        "price": 2491.3,
+                        "timestamp": 1789718400000,
+                        "datetime": "2026-09-18T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-19SEP26-2720-P",
+                            "type": "delivery",
+                            "price": "2626",
+                            "time": "1789804800000"
+                        },
+                        "symbol": "ETH-USDT-19SEP26-2720-P",
+                        "price": 2626,
+                        "timestamp": 1789804800000,
+                        "datetime": "2026-09-19T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "option settlements with limit",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    null,
+                    100
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-23SEP26-2650-P",
+                            "type": "delivery",
+                            "price": "2743.9",
+                            "time": "1790150400000"
+                        },
+                        {
+                            "symbol": "ETH-USDT-22SEP26-2880-P",
+                            "type": "delivery",
+                            "price": "2724.9",
+                            "time": "1790064000000"
+                        }
+                    ],
+                    "ts": "1790184382935"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-22SEP26-2880-P",
+                            "type": "delivery",
+                            "price": "2724.9",
+                            "time": "1790064000000"
+                        },
+                        "symbol": "ETH-USDT-22SEP26-2880-P",
+                        "price": 2724.9,
+                        "timestamp": 1790064000000,
+                        "datetime": "2026-09-22T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-23SEP26-2650-P",
+                            "type": "delivery",
+                            "price": "2743.9",
+                            "time": "1790150400000"
+                        },
+                        "symbol": "ETH-USDT-23SEP26-2650-P",
+                        "price": 2743.9,
+                        "timestamp": 1790150400000,
+                        "datetime": "2026-09-23T08:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "option settlements",
+                "method": "fetchSettlementHistory",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT-23SEP26-2720-C",
+                            "type": "delivery",
+                            "price": "2743.9",
+                            "time": "1790150400000"
+                        },
+                        {
+                            "symbol": "ETH-USDT-22SEP26-2750-C",
+                            "type": "delivery",
+                            "price": "2724.9",
+                            "time": "1790064000000"
+                        }
+                    ],
+                    "ts": "1790184370922"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-22SEP26-2750-C",
+                            "type": "delivery",
+                            "price": "2724.9",
+                            "time": "1790064000000"
+                        },
+                        "symbol": "ETH-USDT-22SEP26-2750-C",
+                        "price": 2724.9,
+                        "timestamp": 1790064000000,
+                        "datetime": "2026-09-22T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ETH-USDT-23SEP26-2720-C",
+                            "type": "delivery",
+                            "price": "2743.9",
+                            "time": "1790150400000"
+                        },
+                        "symbol": "ETH-USDT-23SEP26-2720-C",
+                        "price": 2743.9,
+                        "timestamp": 1790150400000,
+                        "datetime": "2026-09-23T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "funding rate history",
