@@ -9129,6 +9129,51 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdrawWs': [0],
 };
 
+// Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
+// ast printer declares them `String` (JAVA_NATIVE_PARAMETER_TYPES), so the typed surface and the
+// uncast-argument sites treat them like the SS-05 positions.
+let _javaOrderStringPositions;
+function javaOrderStringPositions () {
+    if (_javaOrderStringPositions !== undefined) {
+        return _javaOrderStringPositions;
+    }
+    const table = {};
+    const root = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src', 'base');
+    for (const file of [ 'Exchange.ts', 'PredictionExchange.ts' ]) {
+        const full = path.join (root, file);
+        if (!fs.existsSync (full)) {
+            continue;
+        }
+        const sf = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true);
+        const visit = (node) => {
+            if (ts.isMethodDeclaration (node) && node.name !== undefined && ts.isIdentifier (node.name)) {
+                node.parameters.forEach ((p, i) => {
+                    const t = p.type;
+                    if (p.initializer === undefined && p.questionToken === undefined && p.dotDotDotToken === undefined
+                        && t !== undefined && ts.isTypeReferenceNode (t) && ts.isIdentifier (t.typeName)
+                        && (t.typeName.text === 'OrderType' || t.typeName.text === 'OrderSide')) {
+                        const list = table[node.name.text] ?? (table[node.name.text] = []);
+                        if (!list.includes (i)) {
+                            list.push (i);
+                        }
+                    }
+                });
+            }
+            ts.forEachChild (node, visit);
+        };
+        visit (sf);
+    }
+    _javaOrderStringPositions = table;
+    return table;
+}
+
+// every fixed position of `name` the printed signatures declare `String`
+export function javaStringParamPositions (name) {
+    const ss05 = JAVA_STRING_PARAM_POSITIONS[name] ?? [];
+    const order = javaOrderStringPositions ()[name] ?? [];
+    return order.length === 0 ? ss05 : Array.from (new Set ([ ...ss05, ...order ])).sort ((a, b) => a - b);
+}
+
 // the printed signature type of a parameter: the SS-05 positions are `String`, every other
 // printed parameter is the printer's DEFAULT_PARAMETER_TYPE (`Object`). A parameter with a
 // default / question token is NOT printed in the signature at all — the method takes

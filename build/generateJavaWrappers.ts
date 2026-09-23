@@ -16,7 +16,7 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
-import { JAVA_STRING_PARAM_POSITIONS } from './java-local-types.js';
+import { javaStringParamPositions } from './java-local-types.js';
 import { typedReturnTable } from './javaTypedCore.js';
 import type { JavaTier } from './javaTypedCore.js';
 import { applyJavaImports, nativeTypedList } from './javaUtilImports.js';
@@ -335,7 +335,7 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
         // NotImplemented override).  The uncast String argument still binds the venue's
         // WS implementation: it is the most specific applicable overload for that
         // position.
-        const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
+        const retyped = javaStringParamPositions(methodName);
         const args = allParams.map((p, k) => {
             const cast = retyped.includes(k) ? '' : '(Object) ';
             if (p.name === 'params') return `${cast}(${p.name} != null ? ${p.name} : new java.util.HashMap<String, Object>())`;
@@ -411,7 +411,7 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
             const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr);
             // (Object) casts bind the untyped front, never the same-arity typed core; String-retyped
             // leading positions keep their type because the front declares them String
-            const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
+            const retyped = javaStringParamPositions(methodName);
             const allArgs = [...presentArgs, ...trailingDefaults].map((a, i) => retyped.includes(i) ? a : `(Object) (${a})`).join(', ');
             const call = `Helpers.joinUnwrapped(this.${methodName}(${allArgs}))`;
             if (typedCore) {
@@ -491,7 +491,7 @@ function genMethod(m: MethodInfo, coreType: string, castToObject = false): strin
 // and the SS-05 `String` positions (JAVA_STRING_PARAM_POSITIONS); Java overrides are invariant.
 function genAbstractDecl(m: MethodInfo, coreType: string): string {
     const name = camelCase(m.name);
-    const retyped = JAVA_STRING_PARAM_POSITIONS[m.name] ?? [];
+    const retyped = javaStringParamPositions(m.name);
     for (const k of retyped) {
         if (k >= m.requiredParams.length) throw new Error(`${m.name}: String position ${k} falls into the Object... tail`);
     }
