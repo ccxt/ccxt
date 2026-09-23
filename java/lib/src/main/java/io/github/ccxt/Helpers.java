@@ -31,6 +31,42 @@ public class Helpers {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
+    public static HashMap<String, Object> newMap(Object... keysAndValues) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i + 1 < keysAndValues.length; i += 2) {
+            map.put((String) keysAndValues[i], keysAndValues[i + 1]);
+        }
+        return map;
+    }
+
+    // spawn tasks: the arguments are passed by value, so the call site captures no local
+    public interface Task1<A> { void run(A a) throws Exception; }
+    public interface Task2<A, B> { void run(A a, B b) throws Exception; }
+    public interface Task3<A, B, C> { void run(A a, B b, C c) throws Exception; }
+    public interface Task4<A, B, C, D> { void run(A a, B b, C c, D d) throws Exception; }
+    public interface Task5<A, B, C, D, E> { void run(A a, B b, C c, D d, E e) throws Exception; }
+    public interface Task6<A, B, C, D, E, F> { void run(A a, B b, C c, D d, E e, F f) throws Exception; }
+
+    private interface Body { void run() throws Exception; }
+
+    private static Runnable unchecked(Body body) {
+        return () -> {
+            try {
+                body.run();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static <A> Runnable task(Task1<A> f, A a) { return unchecked(() -> f.run(a)); }
+    public static <A, B> Runnable task(Task2<A, B> f, A a, B b) { return unchecked(() -> f.run(a, b)); }
+    public static <A, B, C> Runnable task(Task3<A, B, C> f, A a, B b, C c) { return unchecked(() -> f.run(a, b, c)); }
+    public static <A, B, C, D> Runnable task(Task4<A, B, C, D> f, A a, B b, C c, D d) { return unchecked(() -> f.run(a, b, c, d)); }
+    public static <A, B, C, D, E> Runnable task(Task5<A, B, C, D, E> f, A a, B b, C c, D d, E e) { return unchecked(() -> f.run(a, b, c, d, e)); }
+    public static <A, B, C, D, E, F> Runnable task(Task6<A, B, C, D, E, F> f, A a, B b, C c, D d, E e, F g) { return unchecked(() -> f.run(a, b, c, d, e, g)); }
+
     /**
      * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
      *
