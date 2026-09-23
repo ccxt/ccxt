@@ -2690,7 +2690,7 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var rawType *string = this.SafeString(order, "type")
-	var status any = this.ParseWsOrderStatus(rawType)
+	var status *string = this.ParseWsOrderStatus(rawType)
 	var timestamp *int64 = this.SafeInteger2(order, "orderTime", "createdAt")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -2700,8 +2700,8 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	var triggerPrice *string = this.SafeString(order, "stopPrice")
 	var triggerSuccess *bool = this.SafeBool(order, "triggerSuccess")
 	var triggerFail bool = (triggerSuccess == nil || *triggerSuccess != true) && (triggerSuccess != nil) // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
-	if (ccxt.IsEqual(status, "triggered")) && triggerFail {
-		status = "canceled"
+	if (status != nil && *status == "triggered") && triggerFail {
+		status = ccxt.SafeStringPtr("canceled")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,

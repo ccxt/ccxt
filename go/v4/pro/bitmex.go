@@ -1771,12 +1771,12 @@ func (this *Bitmex) HandleOHLCV(client any, message map[string]any) {
 	var candles []any = ccxt.SafeListTyped(message, "data")
 	var results map[string]any = map[string]any{}
 	for i := 0; i < len(candles); i++ {
-		var candle any = func() any {
+		var candle map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(candles) {
 				return ccxt.DerefScalar(candles[i])
 			}
 			return nil
-		}()
+		}())
 		var marketId *string = this.SafeString(candle, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var symbol any = market["symbol"]
@@ -1913,18 +1913,18 @@ func (this *Bitmex) HandleOrderBook(client any, message map[string]any) {
 				}
 				return nil
 			}(), "id")
-			var side any = this.SafeString(func() any {
+			var side *string = this.SafeString(func() any {
 				if i >= 0 && i < len(data) {
 					return ccxt.DerefScalar(data[i])
 				}
 				return nil
 			}(), "side")
-			side = func() string {
-				if ccxt.IsEqual(side, "Buy") {
+			side = ccxt.SafeStringPtr(func() string {
+				if side != nil && *side == "Buy" {
 					return "bids"
 				}
 				return "asks"
-			}()
+			}())
 			var bookside any = ccxt.GetValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, id})
 			var datetime *string = this.SafeString(func() any {
@@ -1991,18 +1991,18 @@ func (this *Bitmex) HandleOrderBook(client any, message map[string]any) {
 				}
 				return nil
 			}(), "id")
-			var side any = this.SafeString(func() any {
+			var side *string = this.SafeString(func() any {
 				if i >= 0 && i < len(data) {
 					return ccxt.DerefScalar(data[i])
 				}
 				return nil
 			}(), "side")
-			side = func() string {
-				if ccxt.IsEqual(side, "Buy") {
+			side = ccxt.SafeStringPtr(func() string {
+				if side != nil && *side == "Buy" {
 					return "bids"
 				}
 				return "asks"
-			}()
+			}())
 			var bookside any = ccxt.GetValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, id})
 			var datetime *string = this.SafeString(func() any {

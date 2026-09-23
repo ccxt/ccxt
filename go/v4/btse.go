@@ -3279,13 +3279,13 @@ func (this *Btse) ParseOrder(order any, optionalArgs ...any) any {
 	// is spelled timeInForce there (observed live), so both fall back
 	var rawStatus *string = this.SafeString2(order, "status", "orderState")
 	var rawType *string = this.SafeString2(order, "orderType", "type")
-	var status any = this.ParseOrderStatus(rawStatus)
+	var status *string = this.ParseOrderStatus(rawStatus)
 	var orderType *string = this.ParseOrderType(rawType)
-	if (orderType != nil && *orderType == "market") && (IsEqual(status, "open")) {
+	if (orderType != nil && *orderType == "market") && (status != nil && *status == "open") {
 		// market orders never rest on the book, the exchange reports the
 		// partially filled code on them when a residual quote dust amount
 		// cannot fill, observed live, such orders are finished
-		status = "closed"
+		status = SafeStringPtr("closed")
 	}
 	var rawTimeInForce *string = this.SafeString2(order, "time_in_force", "timeInForce")
 	return this.SafeOrder(map[string]any{

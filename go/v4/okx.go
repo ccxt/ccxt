@@ -2801,14 +2801,14 @@ func (this *Okx) ParseMarket(market any) any {
 	//         state: "preopen",
 	//
 	var id *string = this.SafeString(market, "instId", "")
-	var typeVar any = this.SafeStringLower(market, "instType")
-	if IsEqual(typeVar, "futures") {
-		typeVar = "future"
+	var typeVar *string = this.SafeStringLower(market, "instType")
+	if typeVar != nil && *typeVar == "futures" {
+		typeVar = SafeStringPtr("future")
 	}
-	var spot bool = (IsEqual(typeVar, "spot"))
-	var future bool = (IsEqual(typeVar, "future"))
-	var swap bool = (IsEqual(typeVar, "swap"))
-	var option bool = (IsEqual(typeVar, "option"))
+	var spot bool = (typeVar != nil && *typeVar == "spot")
+	var future bool = (typeVar != nil && *typeVar == "future")
+	var swap bool = (typeVar != nil && *typeVar == "swap")
+	var option bool = (typeVar != nil && *typeVar == "option")
 	var contract bool = swap || future || option
 	var baseId *string = this.SafeString(market, "baseCcy", "") // defaulting to '' because some weird preopen markets have empty baseId
 	var quoteId *string = this.SafeString(market, "quoteCcy", "")
@@ -2862,11 +2862,11 @@ func (this *Okx) ParseMarket(market any) any {
 			}
 		}
 	}
-	var feesType any = func() any {
-		if IsEqual(typeVar, nil) {
+	var feesType string = func() string {
+		if typeVar == nil {
 			return ""
 		}
-		return typeVar
+		return *typeVar
 	}()
 	var fees any = this.SafeDict2(this.Fees, feesType, "trading", map[string]any{})
 	var maxLeverage *string = this.SafeString(market, "lever", "1")
@@ -3696,11 +3696,11 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var takerOrMaker any = DerefScalar(this.SafeString(trade, "execType"))
-	if IsEqual(takerOrMaker, "T") {
-		takerOrMaker = "taker"
-	} else if IsEqual(takerOrMaker, "M") {
-		takerOrMaker = "maker"
+	var takerOrMaker *string = this.SafeString(trade, "execType")
+	if takerOrMaker != nil && *takerOrMaker == "T" {
+		takerOrMaker = SafeStringPtr("taker")
+	} else if takerOrMaker != nil && *takerOrMaker == "M" {
+		takerOrMaker = SafeStringPtr("maker")
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -4883,26 +4883,26 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	var method any = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
+	var method *string = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
 	var requestOrdType *string = this.SafeString(request, "ordType")
 	if (requestOrdType != nil && *requestOrdType == "trigger") || (requestOrdType != nil && *requestOrdType == "conditional") || (requestOrdType != nil && *requestOrdType == "move_order_stop") || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
-		method = "privatePostTradeOrderAlgo"
+		method = SafeStringPtr("privatePostTradeOrderAlgo")
 	}
-	if (!IsEqual(method, "privatePostTradeOrder")) && (!IsEqual(method, "privatePostTradeOrderAlgo")) && (!IsEqual(method, "privatePostTradeBatchOrders")) {
+	if (method == nil || *method != "privatePostTradeOrder") && (method == nil || *method != "privatePostTradeOrderAlgo") && (method == nil || *method != "privatePostTradeBatchOrders") {
 		panic(ExchangeError(this.Id + " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo"))
 	}
-	if IsEqual(method, "privatePostTradeBatchOrders") {
+	if method != nil && *method == "privatePostTradeBatchOrders" {
 		// keep the request body the same
 		// submit a single order in an array to the batch order endpoint
 		// because it has a lower ratelimit
 		request = []any{request}
 	}
 	var response any = nil
-	if IsEqual(method, "privatePostTradeOrder") {
+	if method != nil && *method == "privatePostTradeOrder" {
 
 		response = (<-this.PrivatePostTradeOrder(request))
 		PanicOnError(response)
-	} else if IsEqual(method, "privatePostTradeOrderAlgo") {
+	} else if method != nil && *method == "privatePostTradeOrderAlgo" {
 
 		response = (<-this.PrivatePostTradeOrderAlgo(request)).Raw
 		PanicOnError(response)
@@ -5329,14 +5329,14 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var request []any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "cancelOrders")
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
 	var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
 	if isTrigger || (trailing != nil && *trailing == true) {
-		method = "privatePostTradeCancelAlgos"
+		method = SafeStringPtr("privatePostTradeCancelAlgos")
 	}
 	if IsEqual(clientOrderIds, nil) {
 		ids = this.ParseIds(ids)
@@ -5377,7 +5377,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		}
 	}
 	var response any = nil
-	if IsEqual(method, "privatePostTradeCancelAlgos") {
+	if method != nil && *method == "privatePostTradeCancelAlgos" {
 
 		response = (<-this.PrivatePostTradeCancelAlgos(request)).Raw
 		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5453,12 +5453,12 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 	var request []any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "cancelOrders")
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isStopOrTrailing bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
 	if isStopOrTrailing == true {
-		method = "privatePostTradeCancelAlgos"
+		method = SafeStringPtr("privatePostTradeCancelAlgos")
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order map[string]any = MapTyped(GetValue(orders, i))
@@ -5487,7 +5487,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 		request = append(request, requestItem)
 	}
 	var response any = nil
-	if IsEqual(method, "privatePostTradeCancelAlgos") {
+	if method != nil && *method == "privatePostTradeCancelAlgos" {
 
 		response = (<-this.PrivatePostTradeCancelAlgos(request)).Raw
 		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5796,22 +5796,22 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "uTime")
 	var lastTradeTimestamp *int64 = this.SafeInteger(order, "fillTime")
 	var side *string = this.SafeString(order, "side")
-	var typeVar any = DerefScalar(this.SafeString(order, "ordType"))
+	var typeVar *string = this.SafeString(order, "ordType")
 	var postOnly any = nil
 	var timeInForce any = nil
-	if IsEqual(typeVar, "post_only") {
+	if typeVar != nil && *typeVar == "post_only" {
 		postOnly = true
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "fok") {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "fok" {
 		timeInForce = "FOK"
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "ioc") {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "ioc" {
 		timeInForce = "IOC"
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "rpi") {
+		typeVar = SafeStringPtr("limit")
+	} else if typeVar != nil && *typeVar == "rpi" {
 		// retail price improvement orders are maker-only limit orders
 		postOnly = true
-		typeVar = "limit"
+		typeVar = SafeStringPtr("limit")
 	}
 	var marketId *string = this.SafeString(order, "instId")
 	market = MapTyped(this.SafeMarket(marketId, market))
@@ -5828,7 +5828,7 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy *string = this.SafeString(order, "tgtCcy", defaultTgtCcy)
 	var instType *string = this.SafeString(order, "instType")
-	if (side != nil && *side == "buy") && (IsEqual(typeVar, "market")) && (instType != nil && *instType == "SPOT") && (tgtCcy != nil && *tgtCcy == "quote_ccy") {
+	if (side != nil && *side == "buy") && (typeVar != nil && *typeVar == "market") && (instType != nil && *instType == "SPOT") && (tgtCcy != nil && *tgtCcy == "quote_ccy") {
 		// "sz" refers to the cost
 		cost = this.SafeString(order, "sz")
 	} else {
@@ -5845,8 +5845,8 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var clientOrderId any = DerefScalar(this.SafeString(order, "clOrdId"))
-	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
+	var clientOrderId *string = this.SafeString(order, "clOrdId")
+	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil // fix empty clientOrderId string
 	}
 	var stopLossPrice *float64 = this.SafeNumber2(order, "slTriggerPx", "slOrdPx")
@@ -5923,11 +5923,11 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrder")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var isTrigger bool = (trigger != nil && *trigger == true)
 	if isTrigger {
-		method = "privateGetTradeOrderAlgo"
+		method = SafeStringPtr("privateGetTradeOrderAlgo")
 		if clientOrderId != nil {
 			request["algoClOrdId"] = clientOrderId
 		} else {
@@ -5942,7 +5942,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"})
 	var response any = nil
-	if IsEqual(method, "privateGetTradeOrderAlgo") {
+	if method != nil && *method == "privateGetTradeOrderAlgo" {
 
 		response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -6114,7 +6114,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOpenOrders")
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersPending")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
@@ -6126,7 +6126,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		_, ok := algoOrderTypes[*ordType]
 		return ok
 	}())) {
-		method = "privateGetTradeOrdersAlgoPending"
+		method = SafeStringPtr("privateGetTradeOrdersAlgoPending")
 	}
 	if trailing != nil && *trailing == true {
 		request["ordType"] = "move_order_stop"
@@ -6135,7 +6135,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, []any{"method", "stop", "trigger", "trailing"})
 	var response any = nil
-	if IsEqual(method, "privateGetTradeOrdersAlgoPending") {
+	if method != nil && *method == "privateGetTradeOrdersAlgoPending" {
 
 		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query))).Raw
 		PanicOnError(response)
@@ -6301,13 +6301,13 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchCanceledOrders")
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
 	if trailing != nil && *trailing == true {
-		method = "privateGetTradeOrdersAlgoHistory"
+		method = SafeStringPtr("privateGetTradeOrdersAlgoHistory")
 		request["ordType"] = "move_order_stop"
 	} else if isTrigger || ((ordType != nil) && (func() bool {
 		if ordType == nil {
@@ -6316,7 +6316,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 		_, ok := algoOrderTypes[*ordType]
 		return ok
 	}())) {
-		method = "privateGetTradeOrdersAlgoHistory"
+		method = SafeStringPtr("privateGetTradeOrdersAlgoHistory")
 		var algoId *string = this.SafeString(params, "algoId")
 		if algoId != nil {
 			request["algoId"] = algoId
@@ -6339,7 +6339,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
 	var response any = nil
-	if IsEqual(method, "privateGetTradeOrdersAlgoHistory") {
+	if method != nil && *method == "privateGetTradeOrdersAlgoHistory" {
 
 		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send))).Raw
 		PanicOnError(response)
@@ -6522,7 +6522,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchClosedOrders")
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-	var method any = this.SafeString(params, "method", defaultMethod)
+	var method *string = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
@@ -6533,7 +6533,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		_, ok := algoOrderTypes[*ordType]
 		return ok
 	}())) {
-		method = "privateGetTradeOrdersAlgoHistory"
+		method = SafeStringPtr("privateGetTradeOrdersAlgoHistory")
 		request["state"] = "effective"
 	}
 	if trailing != nil && *trailing == true {
@@ -6555,11 +6555,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
 	var response any = nil
-	if IsEqual(method, "privateGetTradeOrdersAlgoHistory") {
+	if method != nil && *method == "privateGetTradeOrdersAlgoHistory" {
 
 		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send))).Raw
 		PanicOnError(response)
-	} else if IsEqual(method, "privateGetTradeOrdersHistoryArchive") {
+	} else if method != nil && *method == "privateGetTradeOrdersHistoryArchive" {
 
 		response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, send))).Raw
 		PanicOnError(response)
@@ -8211,33 +8211,33 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var pos *string = this.SafeString(position, "pos") // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
 	var contractsAbs *string = Precise.StringAbs(pos)
-	var side any = DerefScalar(this.SafeString2(position, "posSide", "direction"))
-	var hedged bool = !IsEqual(side, "net")
+	var side *string = this.SafeString2(position, "posSide", "direction")
+	var hedged bool = (side == nil || *side != "net")
 	var contracts any = this.ParseNumber(contractsAbs)
 	if GetValue(market, "margin") == true {
 		// margin position
-		if IsEqual(side, "net") {
+		if side != nil && *side == "net" {
 			var posCcy *string = this.SafeString(position, "posCcy")
 			var parsedCurrency *string = this.SafeCurrencyCode(posCcy)
 			if parsedCurrency != nil {
-				side = func() string {
+				side = SafeStringPtr(func() string {
 					if IsEqual(GetValue(market, "base"), parsedCurrency) {
 						return "long"
 					}
 					return "short"
-				}()
+				}())
 			}
 		}
-		if IsEqual(side, nil) {
-			side = DerefScalar(this.SafeString(position, "direction"))
+		if side == nil {
+			side = this.SafeString(position, "direction")
 		}
 	} else {
 		if pos != nil {
-			if IsEqual(side, "net") {
+			if side != nil && *side == "net" {
 				if Precise.StringGt(pos, "0") {
-					side = "long"
+					side = SafeStringPtr("long")
 				} else if Precise.StringLt(pos, "0") {
-					side = "short"
+					side = SafeStringPtr("short")
 				} else {
 					side = nil
 				}

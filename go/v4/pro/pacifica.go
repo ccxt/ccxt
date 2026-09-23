@@ -369,12 +369,12 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	var results []any = ccxt.SafeListTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = func() any {
+		var order map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(results) {
 				return ccxt.DerefScalar(results[i])
 			}
 			return nil
-		}()
+		}())
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var marketId *string = this.SafeString(order, "symbol")
@@ -1272,15 +1272,15 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "h")
 	var fee *string = this.SafeString(trade, "f")
-	var side any = ccxt.DerefScalar(this.SafeString2(trade, "ts", "d"))
-	if ccxt.IsEqual(side, "open_long") {
-		side = "buy"
-	} else if ccxt.IsEqual(side, "close_long") {
-		side = "sell"
-	} else if ccxt.IsEqual(side, "open_short") {
-		side = "sell"
-	} else if ccxt.IsEqual(side, "close_short") {
-		side = "buy"
+	var side *string = this.SafeString2(trade, "ts", "d")
+	if side != nil && *side == "open_long" {
+		side = ccxt.SafeStringPtr("buy")
+	} else if side != nil && *side == "close_long" {
+		side = ccxt.SafeStringPtr("sell")
+	} else if side != nil && *side == "open_short" {
+		side = ccxt.SafeStringPtr("sell")
+	} else if side != nil && *side == "close_short" {
+		side = ccxt.SafeStringPtr("buy")
 	}
 	var eventType *string = this.SafeString(trade, "te")
 	var takerOrMaker any = nil

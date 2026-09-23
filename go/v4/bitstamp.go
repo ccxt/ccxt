@@ -3257,14 +3257,14 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(order, "id", "order_id")
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
-	var side any = DerefScalar(this.SafeString2(order, "type", "order_type"))
-	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "1") {
+	var side *string = this.SafeString2(order, "type", "order_type")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "1" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	// there is no timestamp from fetchOrder
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "datetime"))

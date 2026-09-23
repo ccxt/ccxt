@@ -681,9 +681,19 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var messageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolAndTimeframe, 0)))
-		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()))
+		var timeframeString any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {
@@ -788,9 +798,19 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	var subMessageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolAndTimeframe, 0)))
-		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
+		var symbolAndTimeframe []any = ccxt.ArrayTyped(ccxt.GetValue(symbolsAndTimeframes, i))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[0])
+			}
+			return nil
+		}()))
+		var timeframeString any = func() any {
+			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+				return ccxt.DerefScalar(symbolAndTimeframe[1])
+			}
+			return nil
+		}()
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
 		if !(func() bool {
 			if interval == nil {

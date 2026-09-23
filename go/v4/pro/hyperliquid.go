@@ -1114,14 +1114,14 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "tid")
-	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
-	if !ccxt.IsEqual(side, nil) {
-		side = func() string {
-			if ccxt.IsEqual(side, "A") {
+	var side *string = this.SafeString(trade, "side")
+	if side != nil {
+		side = ccxt.SafeStringPtr(func() string {
+			if side != nil && *side == "A" {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	return this.SafeTrade(map[string]any{

@@ -596,8 +596,8 @@ func (this *testMainClass) GetLastRequestUrl(exchange ccxt.ICoreExchange) any {
 	var fetchCache any = exchange.GetFetchCache()
 	var url any = ""
 	if GetArrayLength(fetchCache) > 0 {
-		var lastEntry any = GetValue(fetchCache, GetArrayLength(fetchCache)-1)
-		var lastRequest any = GetValue(lastEntry, "request")
+		var lastEntry map[string]any = MapTyped(GetValue(fetchCache, GetArrayLength(fetchCache)-1))
+		var lastRequest any = lastEntry["request"]
 		if !IsEqual(lastRequest, nil) {
 			url = exchange.SafeString(lastRequest, "url", "")
 		}
@@ -1769,8 +1769,8 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan any, exchange c
 
 	ticker := (<-exchange.FetchTickerAsync("BTC/USDT"))
 	PanicOnError(ticker)
-	var info any = GetValue(ticker, "info")
-	var headers any = GetValue(info, "responseHeaders")
+	var info map[string]any = MapTyped(GetValue(ticker, "info"))
+	var headers any = info["responseHeaders"]
 	var headersKeys []string = ObjectKeys(headers)
 	Assert((len(headersKeys) > 0), "Response headers should not be empty")
 	var headerValues []any = ObjectValues(headers)
@@ -3507,8 +3507,8 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 	}
 	var batchOrders any = GetValue(createOrdersRequest, "batchOrders")
 	for i := 0; i < GetArrayLength(batchOrders); i++ {
-		var current any = GetValue(batchOrders, i)
-		var currentClientOrderId any = GetValue(current, "newClientOrderId")
+		var current map[string]any = MapTyped(GetValue(batchOrders, i))
+		var currentClientOrderId any = current["newClientOrderId"]
 		Assert(IsEqual(StartsWith(currentClientOrderId, swapIdString), true), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString))
 	}
 	if !EvalTruthy(IsSync()) {

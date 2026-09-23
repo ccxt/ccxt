@@ -2073,9 +2073,9 @@ func (this *Htx) HandlePositions(client any, message any) {
 		var position any = this.ParsePosition(rawPosition)
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
-		var marginMode any = this.SafeStringLower(position, "marginMode", defaultMarginMode)
-		if (!ccxt.IsEqual(marginMode, "cross")) && (!ccxt.IsEqual(marginMode, "isolated")) {
-			marginMode = defaultMarginMode
+		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
+		if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
+			marginMode = ccxt.SafeStringPtr(defaultMarginMode)
 		}
 		var cache any = this.SafeValue(ccxt.GetValue(this.Positions, url), marginMode)
 		if ccxt.IsEqual(cache, nil) {
@@ -2084,7 +2084,12 @@ func (this *Htx) HandlePositions(client any, message any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes176812 := ccxt.GetValue(positionsByMarginMode, marginMode)
+		retRes176812 := func() any {
+			if marginMode == nil {
+				return nil
+			}
+			return positionsByMarginMode[*marginMode]
+		}()
 		ccxt.AppendToArray(&retRes176812, position)
 		cache.(ccxt.Appender).Append(position)
 	}
@@ -2392,12 +2397,12 @@ func (this *Htx) HandleBalance(client any, message any) {
 			var details []any = ccxt.SafeListTyped(accountData, "details")
 			var detailsLength int = len(details)
 			for i := 0; i < detailsLength; i++ {
-				var detail any = func() any {
+				var detail map[string]any = ccxt.MapTyped(func() any {
 					if i >= 0 && i < len(details) {
 						return ccxt.DerefScalar(details[i])
 					}
 					return nil
-				}()
+				}())
 				var currencyId *string = this.SafeString(detail, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code == nil {
@@ -2476,7 +2481,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 			} else {
 				// isolated margin
 				for i := 0; i < ccxt.GetArrayLength(data); i++ {
-					var isolatedBalance any = ccxt.GetValue(data, i)
+					var isolatedBalance map[string]any = ccxt.MapTyped(ccxt.GetValue(data, i))
 					var account map[string]any = this.Account()
 					account["free"] = this.SafeString(isolatedBalance, "margin_balance", "margin_available")
 					account["used"] = this.SafeString(isolatedBalance, "margin_frozen")
@@ -2491,7 +2496,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 		} else {
 			// inverse branch
 			for i := 0; i < ccxt.GetArrayLength(data); i++ {
-				var balance any = ccxt.GetValue(data, i)
+				var balance map[string]any = ccxt.MapTyped(ccxt.GetValue(data, i))
 				var currencyId *string = this.SafeString(balance, "symbol")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
@@ -3316,12 +3321,12 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 		}
 		url = this.ImplodeParams(hostnameURL, hostname)
 	} else {
-		var baseUrl any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), typeVar)
+		var baseUrl map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), typeVar))
 		var subTypeUrl any = func() any {
 			if isLinear == true {
-				return ccxt.GetValue(baseUrl, "linear")
+				return baseUrl["linear"]
 			}
-			return ccxt.GetValue(baseUrl, "inverse")
+			return baseUrl["inverse"]
 		}()
 		if isPrivate == true {
 			if (isV5 == true) && (isLinear == true) {

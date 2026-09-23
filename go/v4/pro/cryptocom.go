@@ -1503,12 +1503,12 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 	var positionBalances []any = ccxt.SafeListTyped(ccxt.GetValue(data, 0), "position_balances")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	for i := 0; i < len(positionBalances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(positionBalances) {
 				return ccxt.DerefScalar(positionBalances[i])
 			}
 			return nil
-		}()
+		}())
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

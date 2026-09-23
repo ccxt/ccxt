@@ -604,13 +604,13 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	side = func() string {
-		if IsEqual(side, "bid") {
+	var side *string = this.SafeString(trade, "trade_type")
+	side = SafeStringPtr(func() string {
+		if side != nil && *side == "bid" {
 			return "buy"
 		}
 		return "sell"
-	}()
+	}())
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	var id *string = this.SafeString2(trade, "id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
@@ -821,13 +821,13 @@ func (this *Zaif) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var side any = DerefScalar(this.SafeString(order, "action"))
-	side = func() string {
-		if IsEqual(side, "bid") {
+	var side *string = this.SafeString(order, "action")
+	side = SafeStringPtr(func() string {
+		if side != nil && *side == "bid" {
 			return "buy"
 		}
 		return "sell"
-	}()
+	}())
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var marketId *string = this.SafeString(order, "currency_pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")

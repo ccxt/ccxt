@@ -1913,15 +1913,15 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var symbol any = GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "history_id")
-	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if IsEqual(side, "open_long") {
-		side = "buy"
-	} else if IsEqual(side, "close_long") {
-		side = "sell"
-	} else if IsEqual(side, "open_short") {
-		side = "sell"
-	} else if IsEqual(side, "close_short") {
-		side = "buy"
+	var side *string = this.SafeString(trade, "side")
+	if side != nil && *side == "open_long" {
+		side = SafeStringPtr("buy")
+	} else if side != nil && *side == "close_long" {
+		side = SafeStringPtr("sell")
+	} else if side != nil && *side == "open_short" {
+		side = SafeStringPtr("sell")
+	} else if side != nil && *side == "close_short" {
+		side = SafeStringPtr("buy")
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	var orderId *string = this.SafeString(trade, "order_id")
@@ -3435,14 +3435,14 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
-	var side any = DerefScalar(this.SafeString(order, "side", "d"))
-	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "bid") {
+	var side *string = this.SafeString(order, "side", "d")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "bid" {
 				return "buy"
 			}
 			return "sell"
-		}()
+		}())
 	}
 	var totalAmount *string = this.SafeString2(order, "initial_amount", "a")
 	var filledAmount *string = this.SafeString2(order, "filled_amount", "f")
@@ -3603,14 +3603,14 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 		return "cross"
 	}()
 	var isIsolated bool = (marginMode == "isolated")
-	var side any = DerefScalar(this.SafeString(position, "side"))
-	if !IsEqual(side, nil) {
-		side = func() string {
-			if IsEqual(side, "bid") {
+	var side *string = this.SafeString(position, "side")
+	if side != nil {
+		side = SafeStringPtr(func() string {
+			if side != nil && *side == "bid" {
 				return "long"
 			}
 			return "short"
-		}()
+		}())
 	}
 	var createdAt *int64 = this.SafeInteger(position, "created_at")
 	return this.SafePosition(map[string]any{

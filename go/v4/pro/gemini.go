@@ -171,13 +171,13 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "event_id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "quantity", "amount")
-	var side any = this.SafeStringLower(trade, "side")
-	if ccxt.IsEqual(side, nil) {
+	var side *string = this.SafeStringLower(trade, "side")
+	if side == nil {
 		var marketSide *string = this.SafeStringLower(trade, "makerSide")
 		if marketSide != nil && *marketSide == "bid" {
-			side = "sell"
+			side = ccxt.SafeStringPtr("sell")
 		} else if marketSide != nil && *marketSide == "ask" {
-			side = "buy"
+			side = ccxt.SafeStringPtr("buy")
 		}
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
@@ -619,12 +619,12 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	var messageHash any = ccxt.Add("bidsasks:", symbol)
 	// last update always overwrites the previous state and is the latest state
 	for i := 0; i < len(rawBidAskChanges); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(rawBidAskChanges) {
 				return ccxt.DerefScalar(rawBidAskChanges[i])
 			}
 			return nil
-		}()
+		}())
 		var rawSide *string = this.SafeString(entry, "side")
 		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
@@ -729,12 +729,12 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	for i := 0; i < len(rawOrderBookChanges); i++ {
-		var entry any = func() any {
+		var entry map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(rawOrderBookChanges) {
 				return ccxt.DerefScalar(rawOrderBookChanges[i])
 			}
 			return nil
-		}()
+		}())
 		var price *float64 = this.SafeNumber(entry, "price")
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")

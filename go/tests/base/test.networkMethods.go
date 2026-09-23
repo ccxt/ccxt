@@ -139,9 +139,9 @@ func HelperBatchNetworkTests() {
 			var keys []string = ccxt.ObjectKeys(defaultNetworkCodeReplacements)
 			for k := 0; k < len(keys); k++ {
 				var chainBaseCoin string = ccxt.GetValue(keys, k).(string)
-				var chainMapping any = ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin)
-				var primaryNetworkCode any = ccxt.GetValue(chainMapping, "primary")
-				var secondaryNetworkCode any = ccxt.GetValue(chainMapping, "secondary")
+				var chainMapping map[string]any = ccxt.MapTyped(ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin))
+				var primaryNetworkCode any = chainMapping["primary"]
+				var secondaryNetworkCode any = chainMapping["secondary"]
 				var msg any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ")
 				if ccxt.IsEqual(randomNetworkCode, primaryNetworkCode) {
 					if randomCurrencyCode == chainBaseCoin {

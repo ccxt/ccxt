@@ -1107,22 +1107,22 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "quantity")
 	var costString *string = this.SafeString(trade, "cost")
 	var makerBuyer *bool = this.SafeBool(trade, "makerBuyer")
-	var side any = DerefScalar(this.SafeString(trade, "direction"))
-	if IsEqual(side, nil) {
-		side = func() string {
+	var side *string = this.SafeString(trade, "direction")
+	if side == nil {
+		side = SafeStringPtr(func() string {
 			if makerBuyer != nil && *makerBuyer == true {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	} else {
-		if IsEqual(side, "TRADE_DIRECTION_BUY") {
-			side = "buy"
-		} else if IsEqual(side, "TRADE_DIRECTION_SELL") {
-			side = "sell"
+		if side != nil && *side == "TRADE_DIRECTION_BUY" {
+			side = SafeStringPtr("buy")
+		} else if side != nil && *side == "TRADE_DIRECTION_SELL" {
+			side = SafeStringPtr("sell")
 		}
 	}
-	var isBuy bool = (IsEqual(side, "buy"))
+	var isBuy bool = (side != nil && *side == "buy")
 	var isMaker bool = (makerBuyer != nil && *makerBuyer == true) && isBuy
 	var takerOrMaker string = func() string {
 		if isMaker {
@@ -1504,7 +1504,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "filled")
 	var cost *string = this.SafeString(order, "cost")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var message *string = this.SafeString(order, "message")
 	if message != nil {
 		if func() int {
@@ -1513,14 +1513,14 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return strings.Index(*message, "cancel")
 		}() >= 0 {
-			status = "canceled"
+			status = SafeStringPtr("canceled")
 		} else if func() int {
 			if message == nil {
 				return -1
 			}
 			return strings.Index(*message, "accept")
 		}() >= 0 {
-			status = "open"
+			status = SafeStringPtr("open")
 		}
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")

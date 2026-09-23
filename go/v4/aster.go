@@ -1673,7 +1673,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "price", "p")
 	var costString *string = this.SafeString2(trade, "quoteQty", "baseQty")
 	var timestamp *int64 = this.SafeInteger2(trade, "time", "T")
-	var side any = this.SafeStringLower(trade, "side")
+	var side *string = this.SafeStringLower(trade, "side")
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
@@ -1683,26 +1683,26 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 			return "taker"
 		}()
-		if IsEqual(side, nil) {
+		if side == nil {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
-				side = func() string {
+				side = SafeStringPtr(func() string {
 					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
 					return "sell"
-				}()
+				}())
 			}
 		}
 	}
 	var isBuyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 	if isBuyerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -4601,14 +4601,14 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	var liquidationPrice any = this.ParseNumber(liquidationPriceString)
 	var collateralString any = nil
-	var marginMode any = DerefScalar(this.SafeString(position, "marginType"))
-	if IsEqual(marginMode, nil) && (isolatedMarginString != nil) {
-		marginMode = func() string {
+	var marginMode *string = this.SafeString(position, "marginType")
+	if (marginMode == nil) && (isolatedMarginString != nil) {
+		marginMode = SafeStringPtr(func() string {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
 			}
 			return "isolated"
-		}()
+		}())
 	}
 	var side any = nil
 	if Precise.StringGt(notionalString, "0") {
@@ -4622,7 +4622,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
 	var linear bool = (InOp(position, "notional"))
-	if IsEqual(marginMode, "cross") {
+	if marginMode != nil && *marginMode == "cross" {
 		// calculate collateral
 		var precision map[string]any = SafeMapTyped(market, "precision")
 		var basePrecisionValue *string = this.SafeString(precision, "base")
@@ -4674,8 +4674,8 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}()
 	var collateral any = this.ParseNumber(collateralString)
 	var markPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice")))
-	var timestamp any = DerefScalar(this.SafeInteger(position, "updateTime"))
-	if IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeInteger(position, "updateTime")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
 	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
@@ -4977,8 +4977,8 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
 	var unrealizedPnl any = this.ParseNumber(unrealizedPnlString)
-	var timestamp any = DerefScalar(this.SafeInteger(position, "updateTime"))
-	if IsEqual(timestamp, 0) {
+	var timestamp *int64 = this.SafeInteger(position, "updateTime")
+	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
 	var isolated any = this.SafeBool(position, "isolated")
@@ -5061,7 +5061,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
 		var rounderString string = ToString(rounder)
 		var liquidationPriceRoundedString *string = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
-		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
+		var truncatedLiquidationPrice *string = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if truncatedLiquidationPrice == nil {
 			panic(ExchangeError(this.Id + " method() missing truncatedLiquidationPrice"))
 		}
@@ -5493,11 +5493,11 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
 		var zeroAddress *string = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId *int64 = this.SafeInteger(this.Options, "v3ChainId", 1666)
-		var walletAddress any = DerefScalar(this.SafeString(this.Options, "cachedWalletAddress"))
+		var walletAddress *string = this.SafeString(this.Options, "cachedWalletAddress")
 		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
-		if (IsEqual(walletAddress, nil)) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
-			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
+			walletAddress = SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 			this.Options.Store("cachedWalletAddress", walletAddress)
 			this.Options.Store("privateKeyHashForCachedWalletAddress", privateKeyHash)
 		}

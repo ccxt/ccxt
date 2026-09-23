@@ -2701,9 +2701,9 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) any
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "created-at")
 	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if IsEqual(typeVar, "withdraw") {
-		typeVar = "withdrawal"
+	var typeVar *string = this.SafeString(transaction, "type")
+	if typeVar != nil && *typeVar == "withdraw" {
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {

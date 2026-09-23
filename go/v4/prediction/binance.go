@@ -507,18 +507,18 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		if l2Category != nil {
 			listingRequest["l2Category"] = l2Category
 		}
-		var sortBy any = this.SafeStringUpper2(params, "sortBy", "sort")
-		if !ccxt.IsEqual(sortBy, nil) {
+		var sortBy *string = this.SafeStringUpper2(params, "sortBy", "sort")
+		if sortBy != nil {
 			// map the unified sort values onto the server enum, one of RECOMMENDED,
 			// VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
 			// server-side equivalent and stays in params so the base
 			// applyEventFetchParams sorts it client-side instead
-			if ccxt.IsEqual(sortBy, "NEWEST") {
-				sortBy = "CREATED_TIME"
-			} else if ccxt.IsEqual(sortBy, "LIQUIDITY") {
+			if sortBy != nil && *sortBy == "NEWEST" {
+				sortBy = ccxt.SafeStringPtr("CREATED_TIME")
+			} else if sortBy != nil && *sortBy == "LIQUIDITY" {
 				sortBy = nil
 			}
-			if !ccxt.IsEqual(sortBy, nil) {
+			if sortBy != nil {
 				listingRequest["sortBy"] = sortBy
 				params = ccxt.MapTyped(this.Omit(params, []any{"sort", "sortBy"}))
 			}
@@ -814,12 +814,12 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolvedOutcomeRaw any = nil
 	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = func() any {
+		var rawOutcome map[string]any = ccxt.MapTyped(func() any {
 			if oi >= 0 && oi < len(rawOutcomes) {
 				return ccxt.DerefScalar(rawOutcomes[oi])
 			}
 			return nil
-		}()
+		}())
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
 		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
@@ -1186,12 +1186,12 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var balances []any = ccxt.SafeListTyped(response, "items")
 	for i := 0; i < len(balances); i++ {
-		var balance any = func() any {
+		var balance map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(balances) {
 				return ccxt.DerefScalar(balances[i])
 			}
 			return nil
-		}()
+		}())
 		var accountType *string = this.SafeString(balance, "accountType")
 		if ccxt.IsEqual(accountType, typeVar) {
 			var free *string = this.SafeString(balance, "availableBalanceDisplay")
@@ -2171,9 +2171,9 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 			amountStr = cost
 		} else {
 			// the amountIn represents USDT for buy order
-			var feeRateBps any = ccxt.DerefScalar(this.SafeString(params, "feeRateBps", "200"))
+			var feeRateBps *string = this.SafeString(params, "feeRateBps", "200")
 			if typeUpper == "LIMIT" {
-				feeRateBps = "0"
+				feeRateBps = ccxt.SafeStringPtr("0")
 			} else {
 				if price == nil {
 					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" createOrder requires price for ", side), " order")))
@@ -2355,12 +2355,12 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	if failedOrdersLength > 0 {
 		var failedDetails any = ""
 		for i := 0; i < failedOrdersLength; i++ {
-			var failedOrder any = func() any {
+			var failedOrder map[string]any = ccxt.MapTyped(func() any {
 				if i >= 0 && i < len(failedOrders) {
 					return ccxt.DerefScalar(failedOrders[i])
 				}
 				return nil
-			}()
+			}())
 			var failedOrderId *string = this.SafeString(failedOrder, "orderId")
 			var failedReason *string = this.SafeString(failedOrder, "reason")
 			if i > 0 {

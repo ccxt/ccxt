@@ -6381,9 +6381,9 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(order, "contract_code", "symbol")
 	market = this.SafeMarket(marketId, market)
 	var rejectedCreateOrders *string = this.SafeString2(order, "err_code", "err-code")
-	var status any = this.ParseOrderStatus(this.SafeString2(order, "state", "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString2(order, "state", "status"))
 	if rejectedCreateOrders != nil {
-		status = "rejected"
+		status = SafeStringPtr("rejected")
 	}
 	var id *string = this.SafeStringN(order, []any{"algo_id", "id", "order_id_str", "order-id", "order_id"})
 	var side any = DerefScalar(this.SafeString2(order, "direction", "side"))
@@ -8451,9 +8451,9 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "created-at")
 	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
-	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if IsEqual(typeVar, "withdraw") {
-		typeVar = "withdrawal"
+	var typeVar *string = this.SafeString(transaction, "type")
+	if typeVar != nil && *typeVar == "withdraw" {
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
@@ -8589,9 +8589,9 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 		params = MapTyped(this.Omit(params, "fee"))
 		var amountString *string = this.NumberToString(amount)
 		var amountSubtractedString *string = Precise.StringSub(amountString, feeString)
-		var amountSubtractedParsed any = amountSubtractedString
-		if IsEqual(amountSubtractedParsed, nil) {
-			amountSubtractedParsed = "0"
+		var amountSubtractedParsed *string = amountSubtractedString
+		if amountSubtractedParsed == nil {
+			amountSubtractedParsed = SafeStringPtr("0")
 		}
 		var amountSubtracted any = ParseFloat(amountSubtractedParsed)
 		var feeParsed any = feeString
@@ -10006,7 +10006,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 		side = rawPositionSide
 	}
 	var unrealizedProfit *float64 = this.SafeNumber(position, "profit_unreal")
-	var marginMode any = DerefScalar(this.SafeString(position, "margin_mode"))
+	var marginMode *string = this.SafeString(position, "margin_mode")
 	var leverage *string = this.SafeString(position, "lever_rate")
 	var percentage *string = Precise.StringMul(this.SafeString(position, "profit_rate"), "100")
 	var lastPrice *string = this.SafeString(position, "last_price")
@@ -10016,7 +10016,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 		notional = Precise.StringMul(faceValue, lastPrice)
 	} else {
 		notional = Precise.StringDiv(faceValue, lastPrice)
-		marginMode = "cross"
+		marginMode = SafeStringPtr("cross")
 	}
 	var intialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	var collateral *string = this.SafeString2(position, "margin_balance", "margin")

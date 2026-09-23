@@ -1553,7 +1553,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		var value any = balances[key]
+		var value map[string]any = ccxt.MapTyped(balances[key])
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {

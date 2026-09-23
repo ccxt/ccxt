@@ -1445,7 +1445,7 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = ccxt.GetValue(assetIds, i).(string)
-			var asset any = assets[assetId]
+			var asset map[string]any = ccxt.MapTyped(assets[assetId])
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
 			var account map[string]any = this.Account()

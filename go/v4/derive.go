@@ -2603,12 +2603,12 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var fee *string = this.SafeString(order, "order_fee")
 	var orderType *string = this.SafeStringLower(order, "order_type")
 	var isBid *bool = this.SafeBool(order, "is_bid")
-	var side any = DerefScalar(this.SafeString(order, "direction"))
-	if IsEqual(side, nil) {
+	var side *string = this.SafeString(order, "direction")
+	if side == nil {
 		if isBid != nil && *isBid == true {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		} else {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		}
 	}
 	var triggerType *string = this.SafeString(order, "trigger_type")
@@ -3439,8 +3439,8 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var code *string = this.SafeString(transaction, "asset")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
-	var txId any = DerefScalar(this.SafeString(transaction, "tx_hash"))
-	if IsEqual(txId, "0x0") {
+	var txId *string = this.SafeString(transaction, "tx_hash")
+	if txId != nil && *txId == "0x0" {
 		txId = nil
 	}
 	return map[string]any{

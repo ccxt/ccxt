@@ -40,14 +40,14 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	var collectedTypes []any = []any{}
 	var allMarkets []any = ObjectValues(exchange.GetMarkets())
 	for i := 0; i < len(allMarkets); i++ {
-		var market any = func() any {
+		var market map[string]any = MapTyped(func() any {
 			if i >= 0 && i < len(allMarkets) {
 				return DerefScalar(allMarkets[i])
 			}
 			return nil
-		}()
-		if !EvalTruthy(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
-			collectedTypes = append(collectedTypes, GetValue(market, "type"))
+		}())
+		if !EvalTruthy(exchange.InArray(market["type"], collectedTypes)) {
+			collectedTypes = append(collectedTypes, market["type"])
 		}
 	}
 	for i := 0; i < len(marketTypes); i++ {

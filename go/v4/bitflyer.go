@@ -742,15 +742,15 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var side any = this.SafeStringLower(trade, "side")
-	if !IsEqual(side, nil) {
+	var side *string = this.SafeStringLower(trade, "side")
+	if side != nil {
 		if GetLength(side) < 1 {
 			side = nil
 		}
 	}
 	var order any = nil
-	if !IsEqual(side, nil) {
-		var idInner any = Add(side, "_child_order_acceptance_id")
+	if side != nil {
+		var idInner string = *side + "_child_order_acceptance_id"
 		if InOp(trade, idInner) {
 			order = GetValue(trade, idInner)
 		}

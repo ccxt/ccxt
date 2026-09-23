@@ -2189,14 +2189,14 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	//   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
 	var cost *string = this.SafeString2(order, "cummulativeQuoteQty", "cumQuote")
 	var id *string = this.SafeString(order, "orderId")
-	var typeVar any = this.SafeStringLower(order, "type")
+	var typeVar *string = this.SafeStringLower(order, "type")
 	var side *string = this.SafeStringLower(order, "side")
 	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
-	var postOnly bool = (IsEqual(typeVar, "limit_maker")) || (timeInForce != nil && *timeInForce == "GTX") || (IsEqual(typeVar, "post_only"))
-	if IsEqual(typeVar, "limit_maker") {
-		typeVar = "limit"
+	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "GTX") || (typeVar != nil && *typeVar == "post_only")
+	if typeVar != nil && *typeVar == "limit_maker" {
+		typeVar = SafeStringPtr("limit")
 	}
 	var triggerPrice any = this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice")))
 	return this.SafeOrder(map[string]any{

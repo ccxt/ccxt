@@ -1889,11 +1889,11 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 	var firstWord *string = this.SafeString(words, 0)
 	var thirdWord *string = this.SafeString(words, 2)
 	var fourthWord *string = this.SafeString(words, 3)
-	var typeVar any = DerefScalar(this.SafeString(types, firstWord))
-	if (IsEqual(typeVar, nil)) && (thirdWord != nil && *thirdWord == "fee") {
-		typeVar = "fee"
+	var typeVar *string = this.SafeString(types, firstWord)
+	if (typeVar == nil) && (thirdWord != nil && *thirdWord == "fee") {
+		typeVar = SafeStringPtr("fee")
 	}
-	if (IsEqual(typeVar, "reserved")) && (fourthWord != nil && *fourthWord == "order") {
+	if (typeVar != nil && *typeVar == "reserved") && (fourthWord != nil && *fourthWord == "order") {
 		referenceId = this.SafeString(words, 4)
 	}
 	return map[string]any{

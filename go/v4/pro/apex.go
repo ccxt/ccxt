@@ -1040,9 +1040,14 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(promises); i++ {
-		var positions any = ccxt.GetValue(promises, i)
-		for ii := 0; ii < ccxt.GetArrayLength(positions); ii++ {
-			var position any = ccxt.GetValue(positions, ii)
+		var positions []any = ccxt.ArrayTyped(ccxt.GetValue(promises, i))
+		for ii := 0; ii < len(positions); ii++ {
+			var position any = func() any {
+				if ii >= 0 && ii < len(positions) {
+					return ccxt.DerefScalar(positions[ii])
+				}
+				return nil
+			}()
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

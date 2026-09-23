@@ -2190,7 +2190,7 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger2(order, "time", "transactTime")
 	var trades any = this.SafeValue(order, "fills")
-	var triggerPrice any = DerefScalar(this.SafeString(order, "stopPrice"))
+	var triggerPrice *string = this.SafeString(order, "stopPrice")
 	if Precise.StringEq(triggerPrice, "0") {
 		triggerPrice = nil
 	}
@@ -2685,8 +2685,8 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
 	var address *string = this.SafeString(transaction, "address")
-	var tag any = DerefScalar(this.SafeString(transaction, "addressTag"))
-	if !IsEqual(tag, nil) {
+	var tag *string = this.SafeString(transaction, "addressTag")
+	if tag != nil {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}

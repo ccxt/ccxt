@@ -2447,7 +2447,7 @@ func (this *Nado) HandleUnsubscription(client any, message any) {
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
 		var unsubscribeHash string = ccxt.GetValue(subscriptions, i).(string)
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash)
+		var subscription map[string]any = ccxt.MapTyped(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash))
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if subscriptionId != id && (subscriptionId == nil || id == nil || *subscriptionId != *id) {
 			continue

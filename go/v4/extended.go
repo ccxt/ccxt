@@ -701,15 +701,20 @@ func (this *Extended) ParseMarket(market any) any {
 	//
 	var tradingConfig map[string]any = SafeMapTyped(market, "tradingConfig")
 	var marketId *string = this.SafeString(market, "name")
-	var baseId any = DerefScalar(this.SafeString(market, "assetName", ""))
-	if GetIndexOf(baseId, "SPOT") >= 0 {
-		baseId = Replace(baseId, "SPOT", "")
+	var baseId *string = this.SafeString(market, "assetName", "")
+	if func() int {
+		if baseId == nil {
+			return -1
+		}
+		return strings.Index(*baseId, "SPOT")
+	}() >= 0 {
+		baseId = SafeStringPtr(Replace(baseId, "SPOT", ""))
 	}
 	var quoteId *string = this.SafeString(market, "collateralAssetName")
 	var base *string = this.SafeCurrencyCode(baseId)
-	var quote any = DerefScalar(this.SafeCurrencyCode(quoteId))
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	if quoteId != nil && *quoteId == "USD" {
-		quote = "USDC"
+		quote = SafeStringPtr("USDC")
 	}
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
@@ -723,17 +728,17 @@ func (this *Extended) ParseMarket(market any) any {
 	var settle any = nil
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = false
-	var typeVar any = this.SafeStringLower(market, "type")
+	var typeVar *string = this.SafeStringLower(market, "type")
 	var contractSize any = nil
 	var linear any = nil
 	var inverse any = nil
 	// SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
 	// only advertises the capability and gates the unified spot tests, it does not filter
 	// markets, so accounts still holding spot balances keep resolving their symbols
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		isSpot = true
 	} else {
-		typeVar = "swap"
+		typeVar = SafeStringPtr("swap")
 		settleId = quoteId
 		settle = quote
 		symbol = Add(symbol, Add(":", settle))
@@ -867,13 +872,18 @@ func (this *Extended) ParseCurrency(currency any) any {
 	//       "availableForTradeFactors": []
 	//     }
 	//
-	var currencyId any = DerefScalar(this.SafeString(currency, "symbol"))
-	if (!IsEqual(currencyId, nil)) && (GetIndexOf(currencyId, "SPOT") >= 0) {
-		currencyId = Replace(currencyId, "SPOT", "")
+	var currencyId *string = this.SafeString(currency, "symbol")
+	if (currencyId != nil) && (func() int {
+		if currencyId == nil {
+			return -1
+		}
+		return strings.Index(*currencyId, "SPOT")
+	}() >= 0) {
+		currencyId = SafeStringPtr(Replace(currencyId, "SPOT", ""))
 	}
-	var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
-	if IsEqual(currencyId, "USD") {
-		code = "USDC"
+	var code *string = this.SafeCurrencyCode(currencyId)
+	if currencyId != nil && *currencyId == "USD" {
+		code = SafeStringPtr("USDC")
 	}
 	var name *string = this.SafeString(currency, "name")
 	var precision *int64 = this.SafeInteger(currency, "precision", 0)
@@ -1600,14 +1610,14 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var price *string = this.SafeString(params, "price")
-	var candleType any = DerefScalar(this.SafeString(params, "candleType"))
-	if IsEqual(candleType, nil) {
+	var candleType *string = this.SafeString(params, "candleType")
+	if candleType == nil {
 		if price != nil && *price == "mark" {
-			candleType = "mark-prices"
+			candleType = SafeStringPtr("mark-prices")
 		} else if price != nil && *price == "index" {
-			candleType = "index-prices"
+			candleType = SafeStringPtr("index-prices")
 		} else {
-			candleType = "trades"
+			candleType = SafeStringPtr("trades")
 		}
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2687,9 +2697,9 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	if currency != nil {
 		return GetValue(currency, "code")
 	}
-	var code any = DerefScalar(this.SafeCurrencyCode(assetId))
-	if IsEqual(code, "USD") {
-		code = "USDC"
+	var code *string = this.SafeCurrencyCode(assetId)
+	if code != nil && *code == "USD" {
+		code = SafeStringPtr("USDC")
 	}
 	return code
 }
@@ -3442,14 +3452,14 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var priceString any = this.PriceToPrecision(symbol, price)
 	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
-	if IsEqual(timeInForce, nil) {
-		timeInForce = func() string {
+	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
+	if timeInForce == nil {
+		timeInForce = SafeStringPtr(func() string {
 			if uppercaseType == "MARKET" {
 				return "IOC"
 			}
 			return "GTT"
-		}()
+		}())
 	}
 	var fee *string = this.SafeString(params, "fee", "0.0005")
 	var builderFeeRate any = nil

@@ -1183,13 +1183,13 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": GetValue(market, "quote"),
 		}
 	}
-	var takerOrMaker any = DerefScalar(this.SafeString(trade, "feeType"))
-	takerOrMaker = func() string {
-		if IsEqual(takerOrMaker, "MAKER") {
+	var takerOrMaker *string = this.SafeString(trade, "feeType")
+	takerOrMaker = SafeStringPtr(func() string {
+		if takerOrMaker != nil && *takerOrMaker == "MAKER" {
 			return "maker"
 		}
 		return "taker"
-	}()
+	}())
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,

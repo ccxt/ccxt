@@ -778,8 +778,8 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var market map[string]any = MapTyped(this.Market(symbol))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetLatest(params)).Raw))
-	var id any = DerefScalar(this.SafeString(market, "id", ""))
-	id = ToLower(id)
+	var id *string = this.SafeString(market, "id", "")
+	id = SafeStringPtr(ToLower(id))
 	var prices map[string]any = SafeMapTyped(response, "prices")
 	//
 	//     {

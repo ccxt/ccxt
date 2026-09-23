@@ -186,7 +186,7 @@ func (this *Weex) Authenticate(url any) {
 	var timestamp any = this.Nonce()
 	var payload string = ccxt.ToString(timestamp) + "/v3/ws/private"
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
-	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
+	var originalHeaders map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers"))
 	var userAgent *string = this.SafeString(originalHeaders, "User-Agent", "ccxt")
 	var extendedOptions map[string]any = map[string]any{
 		"ws": map[string]any{

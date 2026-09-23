@@ -2639,7 +2639,7 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
 	}
 	// pnl is realized once the market has resolved, unrealized while it is still trading
 	var realizedPnl *string = nil
-	var unrealizedPnl any = pnl
+	var unrealizedPnl *string = pnl
 	if resolved {
 		realizedPnl = pnl
 		unrealizedPnl = nil
@@ -3351,9 +3351,9 @@ func (this *Predictfun) approveBody(ch chan any, optionalArgs ...any) any {
 	var chainKey *string = this.NumberToString(chainId)
 	var rpcUrls map[string]any = ccxt.SafeMapTyped(this.Options, "rpcUrls")
 	var rpcUrl *string = this.SafeString(params, "rpcUrl", this.SafeString(rpcUrls, chainKey))
-	var owner any = ccxt.DerefScalar(this.SafeString(params, "owner", this.WalletAddress))
-	if ccxt.IsEqual(owner, nil) {
-		owner = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
+	if owner == nil {
+		owner = ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	// which of the four exchanges settles a market is a property of the market, so an
@@ -4028,7 +4028,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel any, option
  * @returns {string} the url to connect to
  */
 func (this *Predictfun) SocketUrl() any {
-	var urls any = ccxt.GetValue(this.Urls, "api")
+	var urls map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Urls, "api"))
 	var base *string = this.SafeString(urls, "ws")
 	if base == nil {
 		panic(ccxt.NotSupported(this.Id + " does not have a sandbox websocket endpoint"))
@@ -4190,12 +4190,12 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
 	var outcomesLength int = len(outcomes)
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj any = func() any {
+		var outcomeObj map[string]any = ccxt.MapTyped(func() any {
 			if i >= 0 && i < len(outcomes) {
 				return ccxt.DerefScalar(outcomes[i])
 			}
 			return nil
-		}()
+		}())
 		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var isYesOutcome bool = ccxt.IsEqual(this.SafeInteger(outcomeInfo, "indexSet"), 1)
 		var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")

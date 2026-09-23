@@ -713,9 +713,9 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 				var existingId *string = this.SafeString(existing, "outcomeId")
 				if (existingId != nil) && (ocId != nil) && (existingId != ocId && (existingId == nil || ocId == nil || *existingId != *ocId)) {
 					var idLen int = GetLength(ocId)
-					var suffix any = ocId
+					var suffix *string = ocId
 					if idLen > 6 {
-						suffix = Slice(ocId, idLen-6, nil)
+						suffix = SafeStringPtr(Slice(ocId, idLen-6, nil))
 					}
 					ocSymbol = Add(Add(ocSymbol, "_"), ToUpper(suffix))
 				}
@@ -1772,9 +1772,9 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var amount any = this.OmitZero(this.SafeString(outcomeOrder, "amount"))
-	var filled any = this.SafeString(outcomeOrder, "filled")
+	var filled *string = this.SafeString(outcomeOrder, "filled")
 	var remaining *string = this.SafeString(outcomeOrder, "remaining")
-	var cost any = this.SafeString(outcomeOrder, "cost")
+	var cost *string = this.SafeString(outcomeOrder, "cost")
 	var average any = this.OmitZero(this.SafeString(outcomeOrder, "average"))
 	var price any = this.OmitZero(this.SafeString(outcomeOrder, "price"))
 	var side *string = this.SafeString(outcomeOrder, "side")
@@ -1786,14 +1786,14 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var tradesLength int = GetArrayLength(trades)
 	var feeList []any = []any{}
 	if tradesLength > 0 {
-		if IsEqual(filled, nil) {
-			filled = "0"
+		if filled == nil {
+			filled = SafeStringPtr("0")
 		}
-		if IsEqual(cost, nil) {
-			cost = "0"
+		if cost == nil {
+			cost = SafeStringPtr("0")
 		}
 		for i := 0; i < tradesLength; i++ {
-			var trade any = GetValue(trades, i)
+			var trade map[string]any = MapTyped(GetValue(trades, i))
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			if tradeAmount != nil {
 				filled = Precise.StringAdd(filled, tradeAmount)
@@ -1820,19 +1820,19 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		}
 	}
 	// fill any totals the venue left undefined (linear, contract size 1)
-	if (IsEqual(filled, nil)) && (amount != nil) && (remaining != nil) {
+	if (filled == nil) && (amount != nil) && (remaining != nil) {
 		filled = Precise.StringSub(amount, remaining)
 	}
-	if (remaining == nil) && (amount != nil) && (!IsEqual(filled, nil)) {
+	if (remaining == nil) && (amount != nil) && (filled != nil) {
 		remaining = Precise.StringSub(amount, filled)
 	}
-	if (amount == nil) && (!IsEqual(filled, nil)) && (remaining != nil) {
+	if (amount == nil) && (filled != nil) && (remaining != nil) {
 		amount = Precise.StringAdd(filled, remaining)
 	}
-	if (average == nil) && (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
+	if (average == nil) && (filled != nil) && (cost != nil) && Precise.StringGt(filled, "0") {
 		average = Precise.StringDiv(cost, filled)
 	}
-	if (IsEqual(cost, nil)) && (!IsEqual(filled, nil)) {
+	if (cost == nil) && (filled != nil) {
 		var multiplyPrice any = func() any {
 			if average != nil {
 				return average
@@ -1856,17 +1856,17 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	// derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
 	// trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
 	var orderType *string = this.SafeString(outcomeOrder, "type")
-	var timeInForce any = this.SafeString(outcomeOrder, "timeInForce")
+	var timeInForce *string = this.SafeString(outcomeOrder, "timeInForce")
 	var postOnly any = DerefScalar(this.SafeBool(outcomeOrder, "postOnly"))
-	if IsEqual(timeInForce, nil) {
+	if timeInForce == nil {
 		if orderType != nil && *orderType == "market" {
-			timeInForce = "IOC"
+			timeInForce = SafeStringPtr("IOC")
 		}
 		if IsEqual(postOnly, true) {
-			timeInForce = "PO"
+			timeInForce = SafeStringPtr("PO")
 		}
 	} else if IsEqual(postOnly, nil) {
-		postOnly = (IsEqual(timeInForce, "PO"))
+		postOnly = (timeInForce != nil && *timeInForce == "PO")
 	}
 	var timestamp *int64 = this.SafeInteger(outcomeOrder, "timestamp")
 	var datetime *string = this.SafeString(outcomeOrder, "datetime")
