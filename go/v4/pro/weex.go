@@ -1611,7 +1611,7 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	//         updatedTime: '1776174283564'
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "createdTime")
 	var marketId *string = this.SafeString(trade, "symbol")
@@ -1620,7 +1620,7 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved any = this.SafeMarket(marketId, nil, nil, marketType)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	market = marketResolved
 	var side *string = this.SafeStringLower(trade, "orderSide")
 	var fee map[string]any = nil
@@ -1630,9 +1630,9 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
-				feeCurrency = ccxt.GetValue(marketResolved, "base")
+				feeCurrency = marketResolved["base"]
 			} else {
-				feeCurrency = ccxt.GetValue(marketResolved, "quote")
+				feeCurrency = marketResolved["quote"]
 			}
 		}
 		fee = map[string]any{
@@ -1645,7 +1645,7 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		"id":           this.SafeString(trade, "id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       ccxt.GetValue(marketResolved, "symbol"),
+		"symbol":       marketResolved["symbol"],
 		"order":        this.SafeString(trade, "orderId"),
 		"type":         this.SafeString(trade, "type"),
 		"side":         side,
@@ -1934,7 +1934,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	//         "updatedTime": "1747203188148"
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "createdTime")
 	var marketId *string = this.SafeString(order, "symbol")
@@ -1943,7 +1943,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved any = this.SafeMarket(marketId, nil, nil, marketType)
+	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	market = marketResolved
 	var side *string = this.SafeStringLower(order, "orderSide")
 	var fee map[string]any = nil
@@ -1953,9 +1953,9 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
-				feeCurrency = ccxt.GetValue(marketResolved, "base")
+				feeCurrency = marketResolved["base"]
 			} else {
-				feeCurrency = ccxt.GetValue(marketResolved, "quote")
+				feeCurrency = marketResolved["quote"]
 			}
 		}
 		fee = map[string]any{
@@ -1976,7 +1976,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	return this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "id"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
-		"symbol":              ccxt.GetValue(marketResolved, "symbol"),
+		"symbol":              marketResolved["symbol"],
 		"type":                this.ParseOrderType(rawType),
 		"timeInForce":         this.SafeString(order, "timeInForce"),
 		"postOnly":            nil,
@@ -2403,7 +2403,7 @@ func (this *Weex) GetMarketFromClientAndMessage(client any, message any) any {
 		marketType = "swap"
 	}
 	var marketId *string = this.SafeString(message, "s")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	return market
 }
 func (this *Weex) PongAsync(client any, message any) <-chan any {

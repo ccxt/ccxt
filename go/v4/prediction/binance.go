@@ -199,7 +199,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var queries any = this.ParseSearchQueries(params)
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	if queriesLength > 0 {
-		var eventParams any = this.Omit(params, []any{"limit"})
+		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
 		events := (<-this.FetchEventsAsync(eventParams))
 		ccxt.PanicOnError(events)
@@ -222,7 +222,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
-	var rest any = this.Omit(params, []any{"query", "queries", "limit"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
 
 	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
 	var parsedEvents []any = []any{}
@@ -480,7 +480,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if userLimit != nil {
 		fetchCap = userLimit
 	}
-	var rest any = this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"})
+	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"}))
 	var eventId *string = this.SafeString(params, "eventId")
 	var l1Category *string = this.SafeString(params, "l1Category")
 	var l2Category *string = this.SafeString(params, "l2Category")
@@ -553,7 +553,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side: the tag filter needs an event-level tags field
 	// binance topics lack, and the query filter would drop semantic-search matches whose
 	// title uses different words than the query
-	var postParams any = this.Omit(params, []any{"tags", "l1Category", "l2Category"})
+	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"tags", "l1Category", "l2Category"}))
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -798,9 +798,9 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *int64 = this.SafeInteger(rawTopic, "endDate")
 	var feeRateBps *string = this.SafeString(rawTopic, "feeRateBps", "200")
-	var feeRate any = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
+	var feeRate *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision any = this.ParseNumber(this.ParsePrecision(decimalPrecision))
+	var pricePrecision *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.ParsePrecision(decimalPrecision)))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1713,7 +1713,7 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		outcomeObj = this.SafeOutcome(outcomeName)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createdTime")
-	var totalCost any = this.ParseNumber(this.SafeString(position, "totalCost"))
+	var totalCost *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.SafeString(position, "totalCost")))
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          this.SafeInteger(position, "positionId"),
 		"outcome":                     this.SafeString(outcomeObj, "outcome"),

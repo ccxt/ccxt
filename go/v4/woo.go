@@ -4323,7 +4323,7 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 			"x-api-timestamp": ts,
 		}
 		if IsEqual(version, "v3") {
-			auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
+			auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 			if (method == "POST") || (method == "PUT") {
 				body = this.Json(params)
 				auth = Add(auth, body)

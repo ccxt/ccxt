@@ -5264,7 +5264,7 @@ func (this *Okx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	} else {
 		request["ordId"] = id
 	}
-	var query any = this.Omit(params, []any{"clOrdId", "clientOrderId"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"clOrdId", "clientOrderId"}))
 
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
@@ -5415,7 +5415,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var ordersData []any = SafeListTypedDefault(response, "data", []any{})
 	// the request-only keys must not be merged onto every parsed order: a clientOrderId[]
 	// request would otherwise come back as a list under the unified string field
-	var orderParams any = this.Omit(params, []any{"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"})
+	var orderParams map[string]any = MapTyped(this.Omit(params, []any{"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"}))
 
 	ch <- this.ParseOrders(ordersData, market, nil, nil, orderParams)
 	return nil
@@ -5937,7 +5937,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["ordId"] = id
 		}
 	}
-	var query any = this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"}))
 	var response any = nil
 	if method != nil && *method == "privateGetTradeOrderAlgo" {
 
@@ -6130,7 +6130,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else if isTrigger && (ordType == nil) {
 		request["ordType"] = "trigger"
 	}
-	var query any = this.Omit(params, []any{"method", "stop", "trigger", "trailing"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "stop", "trigger", "trailing"}))
 	var response any = nil
 	if method != nil && *method == "privateGetTradeOrdersAlgoPending" {
 
@@ -7319,7 +7319,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		}
 	}
 	request["fee"] = this.NumberToString(fee) // withdrawals to OKCoin or OKX are fee-free, please set 0
-	var query any = this.Omit(params, []any{"fee"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"fee"}))
 
 	response := (<-this.PrivatePostAssetWithdrawal(this.Extend(request, query)))
 	PanicOnError(response)
@@ -8210,7 +8210,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString2(position, "posSide", "direction")
 	var hedged bool = (side == nil || *side != "net")
-	var contracts any = this.ParseNumber(contractsAbs)
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
 	if GetValue(market, "margin") == true {
 		// margin position
 		if side != nil && *side == "net" {
@@ -8248,7 +8248,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	if GetValue(market, "inverse") == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
-	var notional any = this.ParseNumber(notionalString)
+	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
 	var marginMode *string = this.SafeString(position, "mgnMode")
 	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "avgPx", "openAvgPx")
@@ -8264,7 +8264,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "mmr")
-	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
+	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
@@ -8277,12 +8277,12 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage any = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
+	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)))
 	var liquidationPrice *float64 = this.SafeNumber(position, "liqPx")
 	var percentageString *string = this.SafeString(position, "uplRatio")
-	var percentage any = this.ParseNumber(Precise.StringMul(percentageString, "100"))
+	var percentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
 	var timestamp *int64 = this.SafeInteger(position, "cTime")
-	var marginRatio any = this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4))
+	var marginRatio *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "posId"),

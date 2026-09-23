@@ -2267,7 +2267,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var takerPercent *string = this.SafeString(market, "fee")
 		var makerPercent *string = this.SafeString(market, "maker_fee_rate", takerPercent)
-		var amountPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision")))
+		var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amount_precision"))))
 		var tradeStatus *string = this.SafeString(market, "trade_status")
 		var marginStatus *int64 = this.SafeInteger(market, "status", 1) // 0 disabled, 1 enabled
 		var leverage *float64 = this.SafeNumber(market, "leverage")
@@ -9392,7 +9392,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 		var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 		var timestampString string = ToString(timestamp)
 		var signaturePath any = Add("/api/"+this.Version, entirePath)
-		var payloadArray []any = []any{ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
+		var payloadArray []any = []any{strings.ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
 		var payload string = Join(payloadArray, "\n")
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
@@ -10168,7 +10168,7 @@ func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var balanceString *string = this.SafeString(item, "balance")
 	var changeString *string = this.SafeString(item, "change")
-	var before any = this.ParseNumber(Precise.StringSub(balanceString, changeString))
+	var before *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringSub(balanceString, changeString)))
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),

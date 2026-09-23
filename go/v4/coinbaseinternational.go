@@ -3115,7 +3115,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var auth any = Add(Add(Add(nonce, method), savedPath), payload)
+		var auth any = Add(Add(nonce+method, savedPath), payload)
 		var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"CB-ACCESS-TIMESTAMP":  nonce,

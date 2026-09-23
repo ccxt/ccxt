@@ -3134,7 +3134,7 @@ func (this *Toobit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(item, "created")
 	var after *float64 = this.SafeNumber(item, "total")
 	var amountRaw *string = this.SafeString(item, "change", "")
-	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
 	var direction string = "in"
 	if StartsWith(amountRaw, "-") {
 		direction = "out"

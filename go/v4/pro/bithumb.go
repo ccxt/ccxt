@@ -909,7 +909,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 	if !ccxt.IsEqual(error, nil) {
 		var errorName *string = this.SafeString(error, "name", "Error")
 		var errorMessage *string = this.SafeString(error, "message", "")
-		var addedMessage any = nil
+		var addedMessage string
 		if ccxt.GetLength(errorMessage) > 0 {
 			addedMessage = (" " + *errorMessage)
 		} else {

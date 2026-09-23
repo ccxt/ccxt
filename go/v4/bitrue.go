@@ -2197,7 +2197,7 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "limit_maker" {
 		typeVar = SafeStringPtr("limit")
 	}
-	var triggerPrice any = this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice")))
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -3829,7 +3829,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 				signPath = "/dapi"
 			}
 			signPath = Add(Add(Add(Add(signPath, "/"), version), "/"), path)
-			var signMessage any = Add(Add(timestamp, method), signPath)
+			var signMessage any = Add(timestamp+method, signPath)
 			if method == "GET" {
 				var keys []string = ObjectKeys(params)
 				var keysLength int = len(keys)

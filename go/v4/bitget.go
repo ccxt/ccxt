@@ -6623,7 +6623,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 			if (entryMarketId == nil) || (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, entryMarketId)) {
 				continue
 			}
-			var entryMarket any = this.SafeMarket(entryMarketId, nil, nil, marketType)
+			var entryMarket map[string]any = MapTyped(this.SafeMarket(entryMarketId, nil, nil, marketType))
 			var entrySymbol *string = this.SafeString(entryMarket, "symbol")
 			if (entrySymbol == nil) || (entrySymbol == entryMarketId || (entrySymbol != nil && entryMarketId != nil && *entrySymbol == *entryMarketId)) {
 				continue
@@ -10915,14 +10915,14 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var timestamp *int64 = this.SafeInteger2(item, "cTime", "ts")
 	var balanceString *string = this.SafeString(item, "balance")
-	var after any = this.ParseNumber(balanceString)
+	var after *float64 = Float64PtrTyped(this.ParseNumber(balanceString))
 	var feeCostString *string = this.SafeString2(item, "fees", "fee")
 	var feeCost any = nil
 	if feeCostString != nil {
 		feeCost = this.ParseNumber(Precise.StringAbs(feeCostString)) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
 	}
 	var amountRaw *string = this.SafeString2(item, "size", "amount", "")
-	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
 	var before any = nil
 	if (balanceString != nil) && (amountRaw == nil || *amountRaw != "") {
 		before = this.ParseNumber(Precise.StringSub(balanceString, amountRaw)) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
@@ -11938,9 +11938,9 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	if initialMargin == nil {
 		initialMargin = Precise.StringDiv(openNotional, leverage)
 	}
-	var contracts any = this.ParseNumber(Precise.StringDiv(baseAmount, contractSize))
-	if IsEqual(contracts, nil) {
-		contracts = DerefScalar(this.SafeNumber(position, "closeTotalPos"))
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(baseAmount, contractSize)))
+	if contracts == nil {
+		contracts = this.SafeNumber(position, "closeTotalPos")
 	}
 	var markPrice *string = this.SafeString(position, "markPrice")
 	var notional *string = Precise.StringMul(baseAmount, markPrice)
@@ -15274,7 +15274,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 	if signed {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = Add(Add(timestamp, method), payload)
+		var auth any = Add(timestamp+method, payload)
 		if method == "POST" {
 			body = this.Json(params)
 			auth = Add(auth, body)

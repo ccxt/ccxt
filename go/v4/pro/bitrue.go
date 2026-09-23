@@ -701,7 +701,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
 	var interval *string = this.SafeString(futuresTimeframes, timeframe)
 	if interval == nil {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOHLCV does not support timeframe ", timeframe)))
+		panic(ccxt.NotSupported(this.Id + " watchOHLCV does not support timeframe " + timeframe))
 	}
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")

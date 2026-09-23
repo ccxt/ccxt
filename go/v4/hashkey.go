@@ -2902,13 +2902,13 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var amountString *string = this.SafeString(item, "change")
-	var amount any = this.ParseNumber(amountString)
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
 	var direction string = "in"
 	if GetIndexOf(amountString, "-") >= 0 {
 		direction = "out"
 	}
 	var afterString *string = this.SafeString(item, "total")
-	var after any = this.ParseNumber(afterString)
+	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,

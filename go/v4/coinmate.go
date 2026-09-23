@@ -1304,8 +1304,8 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var makerString *string = this.SafeString(data, "maker")
 	var takerString *string = this.SafeString(data, "taker")
-	var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
-	var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
+	var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
+	var taker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(takerString, "100")))
 
 	ch <- map[string]any{
 		"info":       data,

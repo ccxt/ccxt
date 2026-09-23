@@ -437,7 +437,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 		}
 		return "crypto"
 	}()
-	var currencyPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
+	var currencyPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))))
 	var networks map[string]any = map[string]any{}
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "blockchains")
 	var keys []string = ObjectKeys(rawNetworks)

@@ -2017,7 +2017,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchTickers", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var query any = this.Omit(params, "type")
+	var query map[string]any = MapTyped(this.Omit(params, "type"))
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
 
@@ -2868,7 +2868,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
-	var triggerPrice any = this.ParseNumber(this.OmitZero(this.FromEp(this.SafeString(order, "stopPxEp"), market)))
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.FromEp(this.SafeString(order, "stopPxEp"), market))))
 	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -4514,12 +4514,12 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar *string = this.SafeStringLower(transaction, "type")
-	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeInteger(currency, "valueScale")))
-	if IsEqual(feeCost, nil) {
-		feeCost = DerefScalar(this.SafeNumber(transaction, "feeRv"))
+	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeInteger(currency, "valueScale"))))
+	if feeCost == nil {
+		feeCost = this.SafeNumber(transaction, "feeRv")
 	}
 	var fee map[string]any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		typeVar = SafeStringPtr("withdrawal")
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -4527,9 +4527,9 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 	}
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), this.SafeInteger(currency, "valueScale")))
-	if IsEqual(amount, nil) {
-		amount = DerefScalar(this.SafeNumber(transaction, "amountRv"))
+	var amount *float64 = Float64PtrTyped(this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), this.SafeInteger(currency, "valueScale"))))
+	if amount == nil {
+		amount = this.SafeNumber(transaction, "amountRv")
 	}
 	return map[string]any{
 		"info":        transaction,
@@ -4917,7 +4917,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	var contracts *string = this.SafeStringN(position, []any{"size", "sizeRq", "closedSizeRq"})
 	var contractSize *float64 = this.SafeNumber(market, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
-	var leverage any = this.ParseNumber(Precise.StringAbs((this.SafeString2(position, "leverage", "leverageRr"))))
+	var leverage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs((this.SafeString2(position, "leverage", "leverageRr")))))
 	var entryPriceString *string = this.SafeStringN(position, []any{"avgEntryPrice", "avgEntryPriceRp", "openPrice"})
 	var rawSide *string = this.SafeString(position, "side")
 	var side any = nil

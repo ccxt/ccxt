@@ -611,7 +611,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...any)
 	var state *string = this.SafeString(marketInfo, "state")
 	var bidFee *string = this.SafeString(response, "bid_fee")
 	var askFee *string = this.SafeString(response, "ask_fee")
-	var fee any = this.ParseNumber(Precise.StringMax(bidFee, askFee))
+	var fee *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMax(bidFee, askFee)))
 
 	ch <- this.SafeMarketStructure(map[string]any{
 		"id":             marketId,

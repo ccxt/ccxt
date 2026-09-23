@@ -416,6 +416,10 @@ func Int64PtrTyped(v any) *int64 {
 	return ccxt.Int64PtrTyped(v)
 }
 
+func Float64PtrTyped(v any) *float64 {
+	return ccxt.Float64PtrTyped(v)
+}
+
 func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
 	return ccxt.GetArgFloat64Ptr(args, index, def)
 }

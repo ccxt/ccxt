@@ -818,7 +818,7 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
 	var margin bool = (isCollateral != nil && *isCollateral == true) && !swap
 	var contract bool = false
-	var amountPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec")))
+	var amountPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec"))))
 	var linear any = nil
 	var inverse any = nil
 	if swap {
@@ -2348,7 +2348,7 @@ func (this *Whitebit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
 			var marketId string = GetValue(keys, i).(string)
-			var marketNew any = this.SafeMarket(marketId, nil, "_")
+			var marketNew map[string]any = MapTyped(this.SafeMarket(marketId, nil, "_"))
 			var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
 			var parsed any = this.ParseTrades(rawTrades, marketNew, since, limit)
 			results = this.ArrayConcat(results, parsed)
@@ -3369,7 +3369,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var results any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var marketNew any = this.SafeMarket(marketId, nil, "_")
+		var marketNew map[string]any = MapTyped(this.SafeMarket(marketId, nil, "_"))
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
 			var order map[string]any = MapTyped(this.ParseOrder(func() any {

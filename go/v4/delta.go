@@ -4907,7 +4907,7 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
 		}
-		var auth any = Add(Add(method, timestamp), requestPath)
+		var auth any = Add(method+timestamp, requestPath)
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				var queryString string = "?" + this.Urlencode(query)

@@ -287,7 +287,7 @@ func (this *Upbit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if timeframe != "1s" {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV does not support", timeframe), " candle.")))
+		panic(ccxt.NotSupported(this.Id + " watchOHLCV does not support" + timeframe + " candle."))
 	}
 	var timeFrameOHLCV string = "candle." + timeframe
 

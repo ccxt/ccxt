@@ -5047,8 +5047,8 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 		if len(ObjectKeys(params)) > 0 {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
-		var requestData any = Add(Add(Add(Add(Add(method, "\n"), request), "\n"), requestBody), "\n") // eslint-disable-line quotes
-		var auth any = Add(timestamp+"\n"+nonce+"\n", requestData)                                    // eslint-disable-line quotes
+		var requestData any = Add(Add(Add(Add(method+"\n", request), "\n"), requestBody), "\n") // eslint-disable-line quotes
+		var auth any = Add(timestamp+"\n"+nonce+"\n", requestData)                              // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		headers = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),

@@ -280,7 +280,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var name string = "SubscribeTicker"
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name+":", timeframe), ":"), market["id"])
+	var messageHash any = ccxt.Add(name+":"+timeframe+":", market["id"])
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	var payload map[string]any = map[string]any{

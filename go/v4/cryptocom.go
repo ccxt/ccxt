@@ -4289,7 +4289,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "instrument_name")
-		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
 		result = append(result, this.ParsePosition(entry, marketInner))
 	}
 

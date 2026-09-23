@@ -3361,7 +3361,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var timestamp string = ToString(this.Milliseconds())
-		var auth any = Add(Add(Add(timestamp, method), url), payload)
+		var auth any = Add(Add(timestamp+method, url), payload)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow *string = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		headers = map[string]any{

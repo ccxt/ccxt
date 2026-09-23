@@ -1223,7 +1223,7 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if isSpot {
 		var spotSymbol any = Add(Add(GetValue(market, "base"), "/"), GetValue(market, "quote"))
-		var cost any = this.ParseNumber(Precise.StringMul(price, amount))
+		var cost *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(price, amount)))
 		var result map[string]any = map[string]any{
 			"info":         trade,
 			"timestamp":    timestamp,
@@ -2186,7 +2186,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			request["algoId"] = ToString(id)
 		}
 	}
-	var query any = this.Omit(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"}))
 	if isTpsl != nil && *isTpsl == true {
 
 		var tpslResponse []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
@@ -2318,7 +2318,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
 	method = GetValue(methodparamsVariable, 0)
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	var query any = this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
 	if (isTpSl != nil && *isTpSl == true) || (IsEqual(method, "privateGetTradeOrdersTpslPending")) {
 
@@ -3321,7 +3321,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString(position, "positionSide")
 	var hedged bool = (side == nil || *side != "net")
-	var contracts any = this.ParseNumber(contractsAbs)
+	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsAbs))
 	if pos != nil {
 		if side != nil && *side == "net" {
 			if Precise.StringGt(pos, "0") {
@@ -3340,7 +3340,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	if GetValue(market, "inverse") == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
-	var notional any = this.ParseNumber(notionalString)
+	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
@@ -3356,7 +3356,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "margin")
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
-	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
+	var maintenanceMargin *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginString))
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
@@ -3365,12 +3365,12 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage any = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
+	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)))
 	var liquidationPrice *float64 = this.SafeNumber(position, "liquidationPrice")
 	var percentageString *string = this.SafeString(position, "unrealizedPnlRatio")
-	var percentage any = this.ParseNumber(Precise.StringMul(percentageString, "100"))
+	var percentage *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
-	var marginRatio any = this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4))
+	var marginRatio *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(maintenanceMarginString, collateralString, 4)))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -3723,7 +3723,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
 	method = GetValue(methodparamsVariable, 0)
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	var query any = this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
+	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
 	if (isTrigger != nil && *isTrigger == true) || (IsEqual(method, "privateGetTradeOrdersTpslHistory")) {
 

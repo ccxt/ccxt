@@ -1322,7 +1322,7 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	_ = market
 	var outcomeObj any = this.SafeOutcome(nil, market)
 	var totalStr *string = this.SafeString(position, "total")
-	var total any = this.ParseNumber(totalStr)
+	var total *float64 = ccxt.Float64PtrTyped(this.ParseNumber(totalStr))
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
 	var entryPrice any = nil
 	if (entryNtlStr != nil) && (totalStr != nil) && !ccxt.Precise.StringEq(totalStr, "0") {
@@ -1462,7 +1462,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 		}
 	}
 	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
-		var market any = this.SafeMarket(outcomeInput)
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(outcomeInput))
 		var sideHintOrDefault any = func() any {
 			if sideHint != nil {
 				return sideHint

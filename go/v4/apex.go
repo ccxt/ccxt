@@ -795,8 +795,8 @@ func (this *Apex) ParseMarket(market any) any {
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
 	var expiry int = 0
-	var takerFee any = this.ParseNumber("0.0002")
-	var makerFee any = this.ParseNumber("0.0005")
+	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0002"))
+	var makerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0005"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1873,7 +1873,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 		PanicOnError(response)
 		var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount any = this.ParseNumber(amount)
+		var parsedAmount *float64 = Float64PtrTyped(this.ParseNumber(amount))
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
@@ -2538,7 +2538,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	}
 	var signPath any = Add("/api/", path)
 	var signBody any = body
-	if ToUpper(method) != "POST" {
+	if strings.ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
 			signPath = Add(signPath, "?"+this.Rawencode(params))
 			url = Add(url, "?"+this.Rawencode(params))
@@ -2550,7 +2550,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
-		var messageString any = Add(timestamp+ToUpper(method), signPath)
+		var messageString any = Add(timestamp+strings.ToUpper(method), signPath)
 		if signBody != nil {
 			messageString = Add(messageString, signBody)
 		}

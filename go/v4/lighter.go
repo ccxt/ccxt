@@ -3048,9 +3048,9 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		var typeAsInteger *int64 = this.SafeInteger(order, "order_type")
 		typeVar = this.ParseOrderTypeInteger(typeAsInteger)
 	}
-	var triggerPrice any = this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price")))
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price"))))
+	var stopLossPrice *float64 = nil
+	var takeProfitPrice *float64 = nil
 	if typeVar != nil {
 		if func() int {
 			if typeVar == nil {

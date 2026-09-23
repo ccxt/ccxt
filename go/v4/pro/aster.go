@@ -552,11 +552,11 @@ func (this *Aster) ParseWsTicker(message map[string]any, marketType any) any {
 	var event *string = this.SafeString(message, "e")
 	var marketId *string = this.SafeString(message, "s")
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var last *string = this.SafeString(message, "c")
 	if event != nil && *event == "markPriceUpdate" {
 		return this.SafeTicker(map[string]any{
-			"symbol":     ccxt.GetValue(market, "symbol"),
+			"symbol":     market["symbol"],
 			"timestamp":  timestamp,
 			"datetime":   this.Iso8601(timestamp),
 			"info":       message,
@@ -565,7 +565,7 @@ func (this *Aster) ParseWsTicker(message map[string]any, marketType any) any {
 		})
 	}
 	return this.SafeTicker(map[string]any{
-		"symbol":        ccxt.GetValue(market, "symbol"),
+		"symbol":        market["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(message, "h"),
@@ -726,7 +726,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var ticker any = this.ParseWsBidAsk(data, market)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
 	if symbol != nil {
@@ -959,7 +959,7 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var trade map[string]any = message
 	var marketId *string = this.SafeString(trade, "s")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 	var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	if symbol == nil {

@@ -1364,7 +1364,7 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 				"max": nil,
 			},
 		}
-		var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision")))
+		var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision"))))
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawNetwork,

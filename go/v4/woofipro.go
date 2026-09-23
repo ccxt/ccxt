@@ -4709,7 +4709,7 @@ func (this *Woofipro) Sign(path any, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
+		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 		if (method == "POST") || (method == "PUT") {
 			body = this.Json(params)
 			auth = Add(auth, body)

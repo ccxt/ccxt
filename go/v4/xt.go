@@ -2497,7 +2497,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			}
 			return "spot"
 		}()
-		var marketInner any = this.SafeMarket(marketId, market, "_", marketType)
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId, market, "_", marketType))
 		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker, marketInner))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
@@ -5919,7 +5919,7 @@ func (this *Xt) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 		var marketId *string = this.SafeString(entry, "symbol")
-		var market any = this.SafeMarket(marketId, nil, "_", "contract")
+		var market map[string]any = MapTyped(this.SafeMarket(marketId, nil, "_", "contract"))
 		var symbol *string = this.SafeSymbol(marketId, market)
 		if symbols != nil {
 			if this.InArray(symbol, symbols) {
@@ -6783,7 +6783,7 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "symbol")
-		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
 		var positionSize *string = this.SafeString(entry, "positionSize")
 		if positionSize == nil || *positionSize != "0" {
 			var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
@@ -6889,7 +6889,7 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var marketId *string = this.SafeString(entry, "symbol")
-		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
+		var marketInner map[string]any = MapTyped(this.SafeMarket(marketId, nil, nil, "contract"))
 		var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
 		result = append(result, this.ParsePosition(merged, marketInner))
 	}
@@ -7494,12 +7494,12 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 			if isUndefinedBody {
 				if urlencoded != "" {
 					url = Add(url, "?"+urlencoded)
-					payloadString = Add(payloadString, Add(Add(Add(Add(Add("#", method), "#"), payload), "#"), this.Rawencode(this.Keysort(query))))
+					payloadString = Add(payloadString, Add(Add(Add("#"+method+"#", payload), "#"), this.Rawencode(this.Keysort(query))))
 				} else {
-					payloadString = Add(payloadString, Add(Add(Add("#", method), "#"), payload))
+					payloadString = Add(payloadString, Add("#"+method+"#", payload))
 				}
 			} else {
-				payloadString = Add(payloadString, Add(Add(Add(Add(Add("#", method), "#"), payload), "#"), body))
+				payloadString = Add(payloadString, Add(Add(Add("#"+method+"#", payload), "#"), body))
 			}
 			AddElementToObject(headers, "xt-validate-algorithms", "HmacSHA256")
 			AddElementToObject(headers, "xt-validate-recvwindow", recvWindow)
