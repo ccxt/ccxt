@@ -209,12 +209,10 @@ export default class toobit extends toobitRest {
             'event': 'sub',
         };
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -325,10 +323,8 @@ export default class toobit extends toobitRest {
             'event': 'sub',
         };
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
-        if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const limitResolved = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -826,10 +822,8 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const orders = await this.watch (url, messageHash, params, messageHash);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limit, true);
+        const limitResolved = (this.newUpdates) ? orders.getLimit (symbolValue, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -949,10 +943,8 @@ export default class toobit extends toobitRest {
         }
         const url = this.getUserStreamUrl ();
         const trades = await this.watch (url, messageHash, params, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -1025,27 +1017,27 @@ export default class toobit extends toobitRest {
         await this.authenticate ();
         const type = 'swap'; // the only account type that carries positions here
         let messageHash = '';
+        const symbolsNormalized = (!this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            if (symbols === undefined) {
+            if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + symbolsNormalized.join (',');
         }
         messageHash = type + ':positions' + messageHash;
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
-        this.setPositionsCache (client, type, symbols);
+        this.setPositionsCache (client, type, symbolsNormalized);
         const cache = this.safeValue (this.positions, type);
         if (cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, messageHash);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: Bool = false) {
