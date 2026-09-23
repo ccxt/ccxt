@@ -663,11 +663,23 @@ export default class blofin extends blofinRest {
                 countSymbol = unifiedSymbols[0];
             }
         }
+        let newest = orders;
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (countSymbol, limit);
+            if (countSymbol !== undefined) {
+                limitResolved = orders.getLimit (countSymbol, limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                const newCount = orders.getLimit (undefined, undefined);
+                if (newCount === 0) {
+                    newest = [];
+                } else {
+                    newest = this.filterBySinceLimit (orders, undefined, newCount, 'timestamp', true);
+                }
+            }
         }
-        return this.filterBySymbolsSinceLimit (orders, requestedSymbols, since, limitResolved, true);
+        return this.filterBySymbolsSinceLimit (newest, requestedSymbols, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {
