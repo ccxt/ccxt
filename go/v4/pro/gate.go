@@ -3207,11 +3207,11 @@ func (this *Gate) CreateOrderWs(symbol string, typeVar string, side string, amou
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -3230,11 +3230,11 @@ func (this *Gate) CreateOrdersWs(orders []ccxt.OrderRequest, options ...ccxt.Cre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrdersWsAsync(orders, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CreateOrdersWsAsync(orders, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -3255,11 +3255,11 @@ func (this *Gate) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -3281,11 +3281,11 @@ func (this *Gate) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -3310,11 +3310,11 @@ func (this *Gate) EditOrderWs(id string, symbol string, typeVar string, side str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -3339,11 +3339,11 @@ func (this *Gate) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.FetchOrderWsAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -3364,11 +3364,11 @@ func (this *Gate) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.FetchOpenOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -3389,11 +3389,11 @@ func (this *Gate) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.FetchClosedOrdersWsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 func (this *Gate) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {
 
@@ -3402,11 +3402,11 @@ func (this *Gate) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrdersByStatusWsAsync(status, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.FetchOrdersByStatusWsAsync(status, opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -3431,11 +3431,11 @@ func (this *Gate) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	return ccxt.NewOrderBookFromWs(res.Value), nil
 }
 
 /**
@@ -3453,11 +3453,11 @@ func (this *Gate) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchOrderBookAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -3478,11 +3478,11 @@ func (this *Gate) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res), nil
+	return ccxt.NewTicker(res.Value), nil
 }
 
 /**
@@ -3503,11 +3503,11 @@ func (this *Gate) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticker
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res), nil
+	return ccxt.NewTickers(res.Value), nil
 }
 
 /**
@@ -3528,11 +3528,11 @@ func (this *Gate) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res), nil
+	return ccxt.NewTickers(res.Value), nil
 }
 
 /**
@@ -3556,11 +3556,11 @@ func (this *Gate) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -3584,11 +3584,11 @@ func (this *Gate) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchT
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -3606,11 +3606,11 @@ func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchTradesForSymbolsAsync(symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -3628,11 +3628,11 @@ func (this *Gate) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchTradesAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -3656,11 +3656,11 @@ func (this *Gate) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res), nil
+	return ccxt.NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -3684,11 +3684,11 @@ func (this *Gate) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -3703,11 +3703,11 @@ func (this *Gate) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Gate) WatchBalance(params ...any) (ccxt.Balances, error) {
-	res := <-this.WatchBalanceAsync(params...)
-	if ccxt.IsError(res) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchBalanceAsync(params...))
+	if res.Err != nil {
+		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res), nil
+	return ccxt.NewBalances(res.Value), nil
 }
 
 /**
@@ -3730,11 +3730,11 @@ func (this *Gate) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewPositionArray(res), nil
+	return ccxt.NewPositionArray(res.Value), nil
 }
 
 /**
@@ -3762,11 +3762,11 @@ func (this *Gate) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -3789,11 +3789,11 @@ func (this *Gate) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiqu
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchMyLiquidationsAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchMyLiquidationsAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewLiquidationArray(res), nil
+	return ccxt.NewLiquidationArray(res.Value), nil
 }
 
 /**
@@ -3816,9 +3816,9 @@ func (this *Gate) WatchMyLiquidationsForSymbols(symbols []string, options ...ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchMyLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchMyLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewLiquidationArray(res), nil
+	return ccxt.NewLiquidationArray(res.Value), nil
 }

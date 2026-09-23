@@ -844,9 +844,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 marketIds = new ArrayList<Object>(Arrays.asList());
                 ((List<Object>)messageHashes).add("tickers");
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList("all@ticker"));
@@ -965,9 +965,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 ((List<Object>)messageHashes).add("trades");
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             // const subscriptionHashes = [ 'trades' ];
@@ -1031,7 +1031,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Map<String, Object> watchOrderBookSubscriptions = new HashMap<String, Object>() {{}};
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> market = null;
-            Object type = null;
+            String type = null;
             String callerMethodName = null;
             List<Object> callerMethodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             callerMethodName = (String) ((List<Object>) callerMethodNameparametersVariable).get(0);
@@ -1067,7 +1067,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 ((Map<String, Object>)watchOrderBookSubscriptions).put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1653,9 +1653,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 ((List<Object>)messageHashes).add("bidsasks");
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList("all@bidsasks"));

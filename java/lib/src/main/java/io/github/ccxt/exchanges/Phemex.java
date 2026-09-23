@@ -2138,13 +2138,13 @@ public class Phemex extends PhemexApi
                 String first = this.safeString(symbols, 0);
                 market = (Map<String, Object>) this.market(first);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
             Map<String, Object> response = null;
@@ -2717,9 +2717,9 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String code = this.safeString(parameters, "code");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
@@ -4387,9 +4387,9 @@ public class Phemex extends PhemexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -4948,7 +4948,7 @@ public class Phemex extends PhemexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object subType = null;
+            String subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object settle = null;
@@ -4966,7 +4966,7 @@ public class Phemex extends PhemexApi
                 parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))
@@ -7177,7 +7177,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object subType = null;
+            String subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "code")));
             Object settle = null;
@@ -7195,7 +7195,7 @@ final Object finalI = i;
                 parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))

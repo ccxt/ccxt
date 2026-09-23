@@ -642,9 +642,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
@@ -2705,9 +2705,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-                Object marketType = null;
+                String marketType = null;
                 List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
-                marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+                marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
                 parameters = ((List<Object>) marketTypeparametersVariable).get(1);
                 Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
                 Object url = (this.negotiate(true, isFuturesMethod)).join();
@@ -3183,9 +3183,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
             Object uta = (this.isUTAEnabled()).join();

@@ -2089,9 +2089,9 @@ public class Kucoin extends KucoinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
@@ -2154,9 +2154,9 @@ public class Kucoin extends KucoinApi
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchStatus", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(uta))
@@ -3754,16 +3754,16 @@ public class Kucoin extends KucoinApi
                     firstMarket = (Map<String, Object>) this.market(firstSymbol);
                 }
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", firstMarket, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(tradeType, null)) || Boolean.TRUE.equals(uta))
             {
                 if (java.util.Objects.equals(tradeType, null))
                 {
-                    ((Map<String, Object>)request).put("tradeType", this.typeToTradeType((String) (type)));
+                    ((Map<String, Object>)request).put("tradeType", this.typeToTradeType(type));
                 }
                 response = (this.utaGetMarketTicker(this.extend(request, parameters))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
@@ -3970,13 +3970,13 @@ public class Kucoin extends KucoinApi
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Map<String, Object> response = null;
             Object result = null;
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
-                ((Map<String, Object>)request).put("tradeType", this.typeToTradeType((String) (type)));
+                ((Map<String, Object>)request).put("tradeType", this.typeToTradeType(type));
                 response = (this.utaGetMarketTicker(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -4292,9 +4292,9 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, denominator)))))));
             }
             ((Map<String, Object>)request).put("endAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(endAt, denominator)))))));
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOHLCV", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
             {
@@ -4954,9 +4954,9 @@ public class Kucoin extends KucoinApi
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Map<String, Object> response = null;
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
@@ -6621,14 +6621,14 @@ public class Kucoin extends KucoinApi
             {
                 return (this.cancelUtaOrder(id, symbol, parameters)).join();
             }
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
@@ -7073,14 +7073,14 @@ public class Kucoin extends KucoinApi
             {
                 return (this.cancelAllUtaOrders(symbol, parameters)).join();
             }
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
@@ -9248,14 +9248,14 @@ public class Kucoin extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object uta = (this.isUTAEnabled()).join();
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "uta", uta);
@@ -9263,7 +9263,7 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
             {
-                final Object finalMarketType = marketType;
+                final String finalMarketType = marketType;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "marketType", finalMarketType );
                 }});
@@ -9789,9 +9789,9 @@ public class Kucoin extends KucoinApi
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Map<String, Object> response = null;
             Object trades = null;
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
@@ -11166,9 +11166,9 @@ public class Kucoin extends KucoinApi
             {
                 currency = (Map<String, Object>) this.currency(code);
             }
-            Object requestedType = "spot";
+            String requestedType = "spot";
             List<Object> requestedTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            requestedType = ((List<Object>) requestedTypeparametersVariable).get(0);
+            requestedType = (String) ((List<Object>) requestedTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestedTypeparametersVariable).get(1);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String type = this.safeString(accountsByType, requestedType, requestedType);
@@ -13516,9 +13516,9 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("setLeverage", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((!java.util.Objects.equals(symbol, null)) || ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"))))
             {

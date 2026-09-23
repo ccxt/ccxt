@@ -2589,9 +2589,9 @@ public class Blofin extends BlofinApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
             }
-            Object type = "swap";
+            String type = "swap";
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))

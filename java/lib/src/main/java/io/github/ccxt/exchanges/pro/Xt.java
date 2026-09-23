@@ -252,9 +252,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
             String id = (this.numberToString(this.milliseconds()) + name); // call back ID
@@ -346,9 +346,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object parameters = parameters3;
             Object subscriptionParams = subscriptionParams3;
             Boolean privateAccess = java.util.Objects.equals(access, "private");
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
             String id = (this.numberToString(this.milliseconds()) + name); // call back ID

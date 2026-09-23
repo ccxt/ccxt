@@ -2199,9 +2199,9 @@ public class Htx extends HtxApi
             // the former statuspage endpoints (status*.huobigroup.com) were
             // decommissioned after the huobi -> htx rebrand and no longer resolve,
             // so this method uses the live native endpoints instead
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             String status = null;
             Long eta = null;
@@ -2226,9 +2226,9 @@ public class Htx extends HtxApi
                 eta = this.safeInteger(data, "haltEndTime");
             } else
             {
-                Object subType = null;
+                String subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchStatus", null, parameters);
-                subType = ((List<Object>) subTypeparametersVariable).get(0);
+                subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
                 response = (this.contractPublicGetHeartbeat(parameters)).join();
                 //
@@ -3320,13 +3320,13 @@ public class Htx extends HtxApi
                 market = (Map<String, Object>) this.market(first);
             }
             Boolean isSubTypeRequested = (((Map<?, ?>)parameters).containsKey("subType")) || (((Map<?, ?>)parameters).containsKey("business_type"));
-            Object type = null;
-            Object subType = null;
+            String type = null;
+            String subType = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -3468,13 +3468,13 @@ public class Htx extends HtxApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
-            Object subType = null;
+            String type = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchLastPrices", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"))) && (java.util.Objects.equals(subType, "linear")))
@@ -3877,9 +3877,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(marketType, "spot"))
             {
@@ -3997,9 +3997,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -4929,9 +4929,9 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             Object isMultiAssetMode = null;
@@ -5271,9 +5271,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -5856,9 +5856,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean contract = (java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future"));
             if (Boolean.TRUE.equals(contract) && (java.util.Objects.equals(symbol, null)))
@@ -5944,9 +5944,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -6047,9 +6047,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -6121,13 +6121,13 @@ public class Htx extends HtxApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Map<String, Object> response = null;
@@ -7223,9 +7223,9 @@ public class Htx extends HtxApi
         {
             type = "post_only";
         }
-        Object subType = null;
+        String subType = null;
         List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("createOrder", market, parameters);
-        subType = ((List<Object>) subTypeparametersVariable).get(0);
+        subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
         Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
@@ -7951,13 +7951,13 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -8187,9 +8187,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
@@ -8518,9 +8518,9 @@ public class Htx extends HtxApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -9418,9 +9418,9 @@ public class Htx extends HtxApi
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Helpers.parseFloat(finalTransferAmount) );
             }};
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("transfer", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object fromAccountId = this.convertTypeToAccount(fromAccount);
             Object toAccountId = this.convertTypeToAccount(toAccount);
@@ -10547,9 +10547,9 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "30,31" );
@@ -10668,7 +10668,7 @@ public class Htx extends HtxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("setLeverage", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "lever_rate", leverage );
@@ -10970,13 +10970,13 @@ public class Htx extends HtxApi
                     market = (Map<String, Object>) this.market(first);
                 }
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -11061,7 +11061,7 @@ public class Htx extends HtxApi
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
+            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
@@ -11614,13 +11614,13 @@ public class Htx extends HtxApi
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenInterests", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "future"))
@@ -12968,13 +12968,13 @@ public class Htx extends HtxApi
                     market = (Map<String, Object>) this.market(first);
                 }
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositionsADLRank", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {

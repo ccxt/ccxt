@@ -2143,13 +2143,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             String productType = this.safeString(parameters, "productType");
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object subType = null;
+            String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")) && (java.util.Objects.equals(symbol, null)))
             {
@@ -2765,9 +2765,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object instType = null;
             Object uta = null;
@@ -3004,9 +3004,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchBalance", parameters);

@@ -941,9 +941,9 @@ public class Weex extends WeexApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(type, "spot"))
@@ -1426,9 +1426,9 @@ public class Weex extends WeexApi
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
@@ -1537,9 +1537,9 @@ public class Weex extends WeexApi
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -1708,9 +1708,9 @@ public class Weex extends WeexApi
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "spot"))
             {
@@ -2709,9 +2709,9 @@ public class Weex extends WeexApi
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
             String requestedType = this.safeString(parameters, "type");
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if ((java.util.Objects.equals(sandboxMode, true)) && (java.util.Objects.equals(requestedType, null)))
@@ -3465,9 +3465,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             if ((java.util.Objects.equals(trigger, true)) && java.util.Objects.equals(id, null))
@@ -3570,9 +3570,9 @@ public class Weex extends WeexApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             parameters = (Map<String, Object>) this.omit(parameters, "trigger");
@@ -3648,9 +3648,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds");
@@ -3742,9 +3742,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3851,9 +3851,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             Boolean paginate = false;
@@ -4034,9 +4034,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4105,9 +4105,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Object orders = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4283,9 +4283,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4686,9 +4686,9 @@ public class Weex extends WeexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             if (Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(symbol, null)))
@@ -4831,9 +4831,9 @@ public class Weex extends WeexApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit)).join();
             }
-            Object accountType = null;
+            String accountType = null;
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            accountType = ((List<Object>) accountTypeparametersVariable).get(0);
+            accountType = (String) ((List<Object>) accountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             accountType = this.safeString(accountsByType, accountType, accountType);

@@ -337,7 +337,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -391,7 +391,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -1758,8 +1758,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object subType = null;
-            Object type = null;
+            String subType = null;
+            String type = null;
             Object marketId = ("!" + "all");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1768,10 +1768,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 marketId = ((Map<String, Object>)market).get("id");
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Object messageType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
@@ -1787,7 +1787,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 messageHash = (messageHash + (":" + symbol));
             }
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
@@ -1896,16 +1896,16 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
-            Object subType = null;
+            String type = null;
+            String subType = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
-            subType = ((List<Object>) subTypeparametersVariable).get(0);
+            subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
             Object channelType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
@@ -2064,10 +2064,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             }
-            Object type = null;
+            String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters);
-            type = ((List<Object>) typequeryVariable).get(0);
+            type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
@@ -2088,12 +2088,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
             }
             Object channel = Helpers.add(typeId, ".positions");
-            Object subType = null;
+            String subType = null;
             List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", market, query);
-            subType = ((List<Object>) subTypequeryVariable).get(0);
+            subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -2317,10 +2317,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = marketResolved;
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
-            Object type = null;
+            String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
-            type = ((List<Object>) typequeryVariable).get(0);
+            type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
@@ -2356,12 +2356,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     payload = new ArrayList<Object>(Arrays.asList(mid));
                 }
             }
-            Object subType = null;
+            String subType = null;
             List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", market, query);
-            subType = ((List<Object>) subTypequeryVariable).get(0);
+            subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
             Object orders = (this.subscribePrivate((String) (url), messageHash, payload, (String) (channel), (Map<String, Object>) (query), requiresUid)).join();
@@ -2552,22 +2552,22 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-            Object type = null;
+            String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
-            type = ((List<Object>) typequeryVariable).get(0);
+            type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "future", "futures" );
                 put( "swap", "futures" );
                 put( "option", "options" );
             }});
-            Object subType = null;
+            String subType = null;
             List<Object> subTypequeryVariable = (List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query);
-            subType = ((List<Object>) subTypequeryVariable).get(0);
+            subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = ((List<Object>) subTypequeryVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType((String) (type), isInverse);
+            Object url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList());
             String messageHash = "";
             if (this.isEmpty(symbols))

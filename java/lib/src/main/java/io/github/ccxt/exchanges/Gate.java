@@ -3965,7 +3965,7 @@ public class Gate extends GateApi
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -4471,7 +4471,7 @@ public class Gate extends GateApi
                 market = (Map<String, Object>) this.market(first);
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -4567,7 +4567,7 @@ public class Gate extends GateApi
             isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -5461,14 +5461,14 @@ public class Gate extends GateApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
-            Object type = null;
+            String type = null;
             Object marginMode = null;
             Object request = new HashMap<String, Object>() {{}};
             Object market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
             if (Boolean.TRUE.equals(contract))
@@ -6859,9 +6859,9 @@ final Object finalPointFee = pointFee;
     public Object editOrderRequest(Object id, String symbol, Object type, Object side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object marketType = null;
+        String marketType = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
-        marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+        marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         Object account = this.convertTypeToAccount(marketType);
         Boolean isUnifiedAccount = false;
@@ -7443,7 +7443,7 @@ final Object finalRebate = rebate;
             orderId = clientOrderId;
         }
         List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-        var type = ((List<Object>) typequeryVariable).get(0);
+        String type = (String) ((List<Object>) typequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
         Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
         var requestrequestParamsVariable = ((Boolean.TRUE.equals(contract))) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
@@ -7734,9 +7734,9 @@ final Object finalRebate = rebate;
         List<Object> triggerparametersVariable = (List<Object>) this.handleParamBool2(parameters, "trigger", "stop");
         trigger = (Boolean) ((List<Object>) triggerparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) triggerparametersVariable).get(1);
-        Object type = null;
+        String type = null;
         List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
-        type = ((List<Object>) typeparametersVariable).get(0);
+        type = (String) ((List<Object>) typeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
         Boolean spot = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
         Object request = new HashMap<String, Object>() {{}};
@@ -8054,7 +8054,7 @@ final Object finalRebate = rebate;
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -8232,11 +8232,11 @@ final Object finalRebate = rebate;
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object type = null;
+            String type = null;
             Object defaultSettle = (((java.util.Objects.equals(market, null)))) ? "usdt" : ((Map<String, Object>)market).get("settle");
             String settle = this.safeStringLower(parameters, "settle", defaultSettle);
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             if (Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(symbol, null)))
@@ -8387,7 +8387,7 @@ final Object finalRebate = rebate;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -9033,10 +9033,10 @@ final Object finalRebate = rebate;
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
-            Object type = null;
+            String type = null;
             Object request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(type, "spot")))
             {
@@ -9174,7 +9174,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -9326,7 +9326,7 @@ final Object finalRebate = rebate;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters);
-            var type = ((List<Object>) typequeryVariable).get(0);
+            String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
@@ -10349,9 +10349,9 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (!java.util.Objects.equals(type, "option"))
             {
@@ -10438,9 +10438,9 @@ final Object finalI = i;
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isOption = java.util.Objects.equals(type, "option");
             Boolean isFuture = java.util.Objects.equals(type, "future");
@@ -10675,12 +10675,12 @@ final Object finalI = i;
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
             }
-            Object type = null;
+            String type = null;
             Map<String, Object> currency = null;
             List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
             {
@@ -11004,9 +11004,9 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if ((java.util.Objects.equals(marketType, null)) || (java.util.Objects.equals(marketType, "spot")))
             {
@@ -11942,9 +11942,9 @@ final Object finalI = i;
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
-            Object marketType = null;
+            String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+            marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");

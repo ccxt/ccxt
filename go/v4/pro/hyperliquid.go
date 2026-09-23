@@ -2315,11 +2315,11 @@ func (this *Hyperliquid) CreateOrdersWs(orders []ccxt.OrderRequest, options ...c
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrdersWsAsync(orders, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CreateOrdersWsAsync(orders, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2349,11 +2349,11 @@ func (this *Hyperliquid) CreateOrderWs(symbol string, typeVar string, side strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -2383,11 +2383,11 @@ func (this *Hyperliquid) EditOrderWs(id string, symbol string, typeVar string, s
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -2409,11 +2409,11 @@ func (this *Hyperliquid) CancelOrdersWs(ids []string, options ...ccxt.CancelOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2435,11 +2435,11 @@ func (this *Hyperliquid) CancelOrderWs(id string, options ...ccxt.CancelOrderWsO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Order{}, res.Err
 	}
-	return ccxt.NewOrder(res), nil
+	return ccxt.NewOrder(res.Value), nil
 }
 
 /**
@@ -2459,11 +2459,11 @@ func (this *Hyperliquid) WatchOrderBook(symbol string, options ...ccxt.WatchOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return ccxt.OrderBook{}, res.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	return ccxt.NewOrderBookFromWs(res.Value), nil
 }
 
 /**
@@ -2482,11 +2482,11 @@ func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchOrderBookAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2505,11 +2505,11 @@ func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return ccxt.Ticker{}, res.Err
 	}
-	return ccxt.NewTicker(res), nil
+	return ccxt.NewTicker(res.Value), nil
 }
 
 /**
@@ -2528,11 +2528,11 @@ func (this *Hyperliquid) UnWatchTicker(symbol string, options ...ccxt.UnWatchTic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchTickerAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchTickerAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2552,11 +2552,11 @@ func (this *Hyperliquid) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return ccxt.Tickers{}, res.Err
 	}
-	return ccxt.NewTickers(res), nil
+	return ccxt.NewTickers(res.Value), nil
 }
 
 /**
@@ -2575,11 +2575,11 @@ func (this *Hyperliquid) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchTickersAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2601,11 +2601,11 @@ func (this *Hyperliquid) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -2625,11 +2625,11 @@ func (this *Hyperliquid) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchMyTradesAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2650,11 +2650,11 @@ func (this *Hyperliquid) WatchTrades(symbol string, options ...ccxt.WatchTradesO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	return ccxt.NewTradeArray(res.Value), nil
 }
 
 /**
@@ -2673,11 +2673,11 @@ func (this *Hyperliquid) UnWatchTrades(symbol string, options ...ccxt.UnWatchTra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchTradesAsync(symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2699,11 +2699,11 @@ func (this *Hyperliquid) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOHLCVArray(res), nil
+	return ccxt.NewOHLCVArray(res.Value), nil
 }
 
 /**
@@ -2723,11 +2723,11 @@ func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLC
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2740,11 +2740,11 @@ func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLC
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Hyperliquid) WatchBalance(params ...any) (ccxt.Balances, error) {
-	res := <-this.WatchBalanceAsync(params...)
-	if ccxt.IsError(res) {
-		return ccxt.Balances{}, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchBalanceAsync(params...))
+	if res.Err != nil {
+		return ccxt.Balances{}, res.Err
 	}
-	return ccxt.NewBalances(res), nil
+	return ccxt.NewBalances(res.Value), nil
 }
 
 /**
@@ -2756,11 +2756,11 @@ func (this *Hyperliquid) WatchBalance(params ...any) (ccxt.Balances, error) {
  * @returns {object} status of the unwatch request
  */
 func (this *Hyperliquid) UnWatchBalance(params ...any) (any, error) {
-	res := <-this.UnWatchBalanceAsync(params...)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchBalanceAsync(params...))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2782,11 +2782,11 @@ func (this *Hyperliquid) WatchPositions(options ...ccxt.WatchPositionsOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewPositionArray(res), nil
+	return ccxt.NewPositionArray(res.Value), nil
 }
 
 /**
@@ -2805,11 +2805,11 @@ func (this *Hyperliquid) UnWatchPositions(options ...ccxt.UnWatchPositionsOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchPositionsAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchPositionsAsync(opts.Symbols, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
 
 /**
@@ -2831,11 +2831,11 @@ func (this *Hyperliquid) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	return ccxt.NewOrderArray(res.Value), nil
 }
 
 /**
@@ -2855,9 +2855,9 @@ func (this *Hyperliquid) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (an
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	res := ccxt.AwaitResult(this.UnWatchOrdersAsync(opts.Symbol, opts.Params))
+	if res.Err != nil {
+		return nil, res.Err
 	}
-	return res, nil
+	return res.Value, nil
 }
