@@ -2038,6 +2038,120 @@ function messageHashValueNeedsCast (printer, node) {
     }
 }
 
+// ===== structure-key element reads =====
+// `market['id']` on a local a structure producer built prints `((Map<String, Object>) market).get("id")`,
+// which is statically Object although the DTO declares the key's own box.
+const STRUCTURE_PRODUCER_DTO = {
+    'safeMarket': 'MarketInterface', 'safeMarketStructure': 'MarketInterface',
+    'market': 'MarketInterface', 'getMarketFromSymbols': 'MarketInterface',
+    'safeCurrency': 'CurrencyInterface', 'safeCurrencyStructure': 'CurrencyInterface',
+    'currency': 'CurrencyInterface',
+    'parseTicker': 'Ticker', 'parseOrder': 'Order', 'parseTrade': 'Trade',
+    'parseOrderBook': 'OrderBook', 'parsePosition': 'Position',
+    'parseFundingRate': 'FundingRate', 'parseTransaction': 'Transaction',
+    'parseBalance': 'Balance', 'parseDepositAddress': 'DepositAddress',
+    'parseMarginMode': 'MarginMode', 'parseLeverage': 'Leverage',
+};
+// a key field is only used when its Java box is a reference check: the DTO classes
+// themselves (Precision, Limits, ..) are never cast targets, because the stored value is
+// the raw row the producer wrote, not the DTO instance
+const STRUCTURE_KEY_CAST_TYPES = new Set ([ 'String', 'Boolean' ]);
+const JAVA_TYPES_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..',
+    'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
+const structureKeyTables = new Map ();
+
+// key -> Java box for one DTO, read from the generated file the typed surface ships
+function structureKeyTable (dtoName) {
+    if (structureKeyTables.has (dtoName)) {
+        return structureKeyTables.get (dtoName);
+    }
+    const table = {};
+    try {
+        const text = fs.readFileSync (path.join (JAVA_TYPES_FOLDER, dtoName + '.java'), 'utf8');
+        for (const line of text.split ('\n')) {
+            const field = line.match (/^\s*public\s+([\w.<>, ]+?)\s+(\w+)\s*;\s*$/);
+            if (field !== null && STRUCTURE_KEY_CAST_TYPES.has (field[1])) {
+                table[field[2]] = field[1];
+            }
+        }
+    } catch (e) {
+        // no DTO on disk — every structure-key read declines
+    }
+    structureKeyTables.set (dtoName, table);
+    return table;
+}
+
+// the DTO of the row a `this.<producer> (...)` call builds
+function structureProducerDto (node) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call)) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    return STRUCTURE_PRODUCER_DTO[String (callee.name.escapedText)];
+}
+
+// the DTO of the structure an identifier receiver holds: its declaration is initialised by
+// a structure producer, and no later write of the same name hands it another row
+function structureReceiverDto (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return undefined;
+    }
+    const dtoName = structureProducerDto (declaration.initializer);
+    if (dtoName === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const uses = identifierIndex (scope).get (declaration.name.escapedText) ?? [];
+    for (const use of uses) {
+        const parent = use.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent)
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && parent.left === use
+            && structureProducerDto (parent.right) !== dtoName) {
+            return undefined;
+        }
+    }
+    return dtoName;
+}
+
+// `market['id']` on a structure local: the DTO names the key's Java box, so the read is
+// declared with it and carries the matching checkcast
+function structureKeyReadLocalType (printer, initializer) {
+    if (!ts.isElementAccessExpression (initializer)) {
+        return undefined;
+    }
+    const key = initializer.argumentExpression;
+    if (key === undefined || !ts.isStringLiteral (key)) {
+        return undefined;
+    }
+    const dtoName = structureReceiverDto (printer, initializer.expression);
+    if (dtoName === undefined) {
+        return undefined;
+    }
+    const javaType = structureKeyTable (dtoName)[key.text];
+    if (javaType === undefined) {
+        return undefined;
+    }
+    return { type: javaType, cast: '(' + javaType + ')', valuePrefixes: [
+        '((Map<String, Object>)', '((java.util.Map<String, Object>)',
+        '((Map<?, ?>)', '((java.util.Map<?, ?>)', 'Helpers.GetValue(' ] };
+}
+
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
@@ -2052,6 +2166,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact
     if (elementAccessHasStringElements (initializer)) {
         return { type: 'String', cast: '(String)', valuePrefix: 'Helpers.GetValue(', strictPlus: true };
+    }
+    // structure-key read: `market['id']` on a row a structure producer built — the DTO
+    // field names the Java box, emitted with its checkcast
+    const structureKeyRead = structureKeyReadLocalType (printer, initializer);
+    if (structureKeyRead !== undefined) {
+        return structureKeyRead;
     }
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
