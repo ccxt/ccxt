@@ -190,7 +190,6 @@ impl crate::exchange_generated::ExchangeBase for OkxCore {
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "request_id" => self.request_id(),
                 "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -272,7 +271,6 @@ impl OkxCore {
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "request_id" => self.request_id(),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -3069,13 +3067,11 @@ impl OkxCore {
         }
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&self) -> Option<String> {
         let mut ts: Value = to_string_val(&self.milliseconds());
         let mut randomNumber: Value = self.rand_number(Value::Int(4));
         let mut randomPart: Value = to_string_val(&randomNumber);
-        return Value::Str(format!("{}{}", ts, randomPart).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", ts, randomPart).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -3103,7 +3099,7 @@ impl OkxCore {
         }
         self.authenticate(&[]).await;
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut op: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrderWs".into()), Value::Str("op".into()), &[Value::Str("batch-orders".into())]); op = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut args: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side, amount, &[price, params]);
@@ -3207,7 +3203,7 @@ impl OkxCore {
         }
         self.authenticate(&[]).await;
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut op: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]); op = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut args: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, &[amount, price, params.clone()]);
@@ -3255,7 +3251,7 @@ impl OkxCore {
         }
         self.authenticate(&[]).await;
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
         let mut market: Value = self.market(symbol);
@@ -3310,7 +3306,7 @@ impl OkxCore {
         }
         self.authenticate(&[]).await;
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut args: Value = Value::from(vec![]);
         let mut market: Value = self.market(symbol);
         let mut instIdCode: Value = self.safe_integer_k(market, "instIdCode", &[]);
@@ -3371,7 +3367,7 @@ impl OkxCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.".into()))));
         }
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut messageHash: Value = self.request_id();
+        let mut messageHash: Value = self.request_id().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());

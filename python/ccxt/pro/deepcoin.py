@@ -105,7 +105,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         client.lastPong = self.milliseconds()
         return message
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         previousValue = self.safe_integer(self.options, 'lastRequestId', 0)
         newValue = self.sum(previousValue, 1)

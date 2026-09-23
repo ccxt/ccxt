@@ -82,33 +82,33 @@ class revolutx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': {'cost': 1},
+                        '1.0/public/tickers': {'cost': 1},
+                        '1.0/public/candles/{symbol}': {'cost': 1},
+                        '1.0/public/trades/all': {'cost': 1},
+                        '1.0/public/configuration/currencies': {'cost': 1},
+                        '1.0/public/configuration/pairs': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': {'cost': 1},
+                        '1.0/orders/historical': {'cost': 1},
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': {'cost': 1},
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': {'cost': 1},
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                 },
             },

@@ -1694,7 +1694,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }
 
-    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
+    public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null): string {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         $withSymbol = $symbol !== null;

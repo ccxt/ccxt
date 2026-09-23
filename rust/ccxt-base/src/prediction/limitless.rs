@@ -1439,7 +1439,7 @@ impl LimitlessCore {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
+        let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("addressOrSlug".to_string(), slug.clone());
@@ -1742,7 +1742,7 @@ impl LimitlessCore {
             let mut __for_first_1270: bool = true;
             while { if !__for_first_1270 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1270 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             let mut outcomeObj: Value = self.outcome(outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
+            let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
             if (slug == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".into()))));
             }
@@ -1835,7 +1835,7 @@ impl LimitlessCore {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
+        let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1906,7 +1906,7 @@ impl LimitlessCore {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
+        let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("slug".to_string(), slug);
@@ -1937,7 +1937,7 @@ impl LimitlessCore {
         let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         let mut scaleStr: Value = self.parse_precision(&[self.number_to_string(negate(&decimals))]);
-        let mut outcomeLabel: Option<String> = self.safe_string_lower_k(crate::value::get_value_k(&outcomeObj, "info"), "outcomeLabel", &[Value::Str("yes".into())]).as_str().map(str::to_owned);
+        let mut outcomeLabel: Option<String> = self.safe_string_lower(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())]).as_str().map(str::to_owned);
         let mut isYes: bool = outcomeLabel.as_deref() != Some("no");
         let mut rawBids: Value = self.safe_list_k(response.clone(), "bids", &[Value::from(vec![])]);
         let mut rawAsks: Value = self.safe_list_k(response, "asks", &[Value::from(vec![])]);
@@ -2013,8 +2013,8 @@ impl LimitlessCore {
 }));
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
-        let mut outcomeLabel: Value = self.safe_string_upper_k(crate::value::get_value_k(&outcomeObj, "info"), "outcomeLabel", &[]);
+        let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
+        let mut outcomeLabel: Value = self.safe_string_upper(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("1d".into())]);
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2859,7 +2859,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("maker".to_string(), maker.clone());
                 m.insert("signer".to_string(), signer.clone());
                 m.insert("taker".to_string(), taker.clone());
-                m.insert("tokenId".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId"));
+                m.insert("tokenId".to_string(), outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), Value::Int(0));
                 m.insert("feeRateBps".to_string(), self.safe_integer_k(rank, "feeRateBps", &[Value::Int(0)]));
                 m.insert("side".to_string(), sideValue);
@@ -2924,7 +2924,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(matches!(&isMarket, Value::Bool(true))) && (price != Value::Null) {
             if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("price".into(), self.parse_number(priceString, &[])); }
         }
-        let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
+        let mut slug: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ownerId".to_string(), self.safe_integer_k(account, "id", &[]));
@@ -3107,22 +3107,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         self.check_required_credentials(&[]);
         if (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires a privateKey to sign the on-chain transaction".into()))));
         }
-        let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(self.options.clone(), Value::Str("rpcUrl".into()), &[])]);
+        let mut rpcUrl: Value = (match params.get("rpcUrl") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "rpcUrl", &[]) });
         let mut chainId: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(8453)]);
-        let mut token: Value = self.safe_string_k(params.clone(), "token", &[self.safe_string(self.options.clone(), Value::Str("collateralAddress".into()), &[])]);
-        let mut spender: Value = self.safe_string_k(params.clone(), "spender", &[self.safe_string(self.options.clone(), Value::Str("exchangeAddress".into()), &[])]);
-        let mut owner: Value = self.safe_string_k(params.clone(), "owner", &[self.walletAddress.clone()]);
+        let mut token: Value = (match params.get("token") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "collateralAddress", &[]) });
+        let mut spender: Value = (match params.get("spender") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "exchangeAddress", &[]) });
+        let mut owner: Value = (match params.get("owner") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.walletAddress.clone() });
         if (owner == Value::Null) {
             owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         }
-        let mut gasLimit: Value = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0x186a0".into())]);
+        let mut gasLimit: Value = (match params.get("gasLimit") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0x186a0".into()) });
         let mut maxUint: Value = Value::Str("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".into());
         let mut amountHex: Value = maxUint;
-        let mut amount: Value = self.safe_string_k(params, "amount", &[]);
+        let mut amount: Value = (match params.get("amount") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (amount != Value::Null) {
             let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
             // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
@@ -3297,7 +3299,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slug".into(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slug".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[])); }
         }  else if (slug.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders requires either an outcome argument or a slug parameter".into()))));
         }

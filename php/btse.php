@@ -205,7 +205,7 @@ class btse extends Exchange {
                         'spot/api/v3.3/orderbook' => 5, // not used
                         'spot/api/v3.3/orderbook/L2' => 5, // done
                         'spot/api/v3.3/trades' => array( 'cost' => 5 ), // done
-                        'spot/api/v3.3/time' => 5, // done
+                        'spot/api/v3.3/time' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/market_summary' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/ohlcv' => array( 'cost' => 5 ), // done
                         'futures/api/v2.3/price' => 5, // not used

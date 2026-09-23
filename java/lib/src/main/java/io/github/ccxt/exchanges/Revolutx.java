@@ -93,33 +93,59 @@ public class Revolutx extends RevolutxApi
             put( "api", new HashMap<String, Object>() {{
                 put( "public", new HashMap<String, Object>() {{
                     put( "get", new HashMap<String, Object>() {{
-                        put( "2.0/public/order-book/{symbol}", 1 );
-                        put( "1.0/public/tickers", 1 );
-                        put( "1.0/public/candles/{symbol}", 1 );
-                        put( "1.0/public/trades/all", 1 );
-                        put( "1.0/public/configuration/currencies", 1 );
-                        put( "1.0/public/configuration/pairs", 1 );
+                        put( "2.0/public/order-book/{symbol}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/tickers", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/candles/{symbol}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/trades/all", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/configuration/currencies", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/configuration/pairs", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new HashMap<String, Object>() {{
                     put( "get", new HashMap<String, Object>() {{
                         put( "1.0/balances", 1 );
-                        put( "1.0/orders/active", 1 );
-                        put( "1.0/orders/historical", 1 );
-                        put( "1.0/orders/{venue_order_id}", 1 );
+                        put( "1.0/orders/active", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/orders/historical", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/orders/{venue_order_id}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "1.0/orders/fills/{venue_order_id}", 1 );
-                        put( "1.0/trades/private/{symbol}", 1 );
+                        put( "1.0/trades/private/{symbol}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "1.0/transactions", 1 );
                     }} );
                     put( "post", new HashMap<String, Object>() {{
-                        put( "1.0/orders", 1 );
+                        put( "1.0/orders", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new HashMap<String, Object>() {{
-                        put( "1.0/orders/{venue_order_id}", 1 );
+                        put( "1.0/orders/{venue_order_id}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new HashMap<String, Object>() {{
                         put( "1.0/orders", 1 );
-                        put( "1.0/orders/{venue_order_id}", 1 );
+                        put( "1.0/orders/{venue_order_id}", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );
@@ -412,7 +438,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("region", region);
             }
-            Object response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTC/USD": {
@@ -524,7 +550,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("region", region);
             }
-            Object response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
@@ -676,7 +702,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("region", region);
             }
-            Object response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -812,7 +838,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("region", region);
             }
-            Object response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -923,7 +949,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("region", region);
             }
-            Object response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1071,7 +1097,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("cursor", cursor);
             }
-            Object response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1379,7 +1405,7 @@ public class Revolutx extends RevolutxApi
                 put( "side", side );
                 put( "order_configuration", orderConfiguration );
             }};
-            Object response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [
@@ -1447,7 +1473,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "venue_order_id", id );
             }};
-            Object response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
             return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
@@ -1530,7 +1556,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "venue_order_id", id );
             }};
-            Object response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -1625,7 +1651,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("side", side);
             }
-            Object response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
+            Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
             //
             //     {
             //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1734,7 +1760,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("order_types", String.join(",", (List<String>)orderTypes));
             }
-            Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
+            Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1926,7 +1952,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("cursor", cursor);
             }
-            Object response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
+            Map<String, Object> response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
             //
             //     {
             //         "data": [
@@ -2024,7 +2050,7 @@ public class Revolutx extends RevolutxApi
             {
                 ((Map<String, Object>)request).put("execution_instructions", executionInstructions);
             }
-            Object response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            Map<String, Object> response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [

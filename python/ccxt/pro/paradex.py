@@ -43,7 +43,7 @@ class paradex(ccxt.async_support.paradex):
             'streaming': {},
         })
 
-    def request_id(self):
+    def request_id(self) -> float:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

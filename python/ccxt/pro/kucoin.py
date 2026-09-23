@@ -161,7 +161,7 @@ class kucoin(ccxt.async_support.kucoin):
             del self.options['urls'][connectId]
         return None
 
-    def request_id(self):
+    def request_id(self) -> float:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
@@ -2291,7 +2291,7 @@ class kucoin(ccxt.async_support.kucoin):
         client.resolve(self.myTrades, messageHash)
         client.resolve(cache, symbolMessageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #
         # /spotMarket/tradeOrders
         #
@@ -3235,7 +3235,7 @@ class kucoin(ccxt.async_support.kucoin):
                 self.handle_error_message(client, message)
             self.handle_subscription_status(client, message)
 
-    def get_message_hash(self, elementName: str, symbol: Str = None):
+    def get_message_hash(self, elementName: str, symbol: Str = None) -> str:
         # method from kucoinfutures
         # elementName can be 'ticker', 'bidask', ...
         if symbol is not None:

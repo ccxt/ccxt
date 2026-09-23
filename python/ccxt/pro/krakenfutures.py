@@ -1525,7 +1525,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         client = self.client(url)
         return(hash in client.subscriptions)
 
-    def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
+    def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None) -> str:
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...
         # subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         withSymbol = symbol is not None

@@ -174,7 +174,6 @@ impl crate::exchange_generated::ExchangeBase for BingxCore {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -213,7 +212,6 @@ impl BingxCore {
         let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -471,7 +469,7 @@ impl BingxCore {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone(), &[]);
         }
         let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@ticker".into())).into());
-        let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -515,7 +513,7 @@ impl BingxCore {
         }
         let mut market: Value = self.market(symbol);
         let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@ticker".into())).into());
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
         let mut topic: Value = Value::Str("ticker".into());
         let mut methodName: Value = Value::Str("unWatchTicker".into());
@@ -597,9 +595,9 @@ impl BingxCore {
         let mut isInverse: Value = Value::Bool((inverseUrl != Value::Null) && (get_index_of(&get_value(&client, &Value::Str("url".into())), &inverseUrl).as_f64() == Some(0.0)));
         let mut ticker: Value = self.parse_ws_ticker(data, &[market, isInverse]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".into()), &[symbol])]);
+        client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)]);
         if ((match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("all@ticker")) {
-            client.resolve(&[ticker, self.get_message_hash(Value::Str("ticker".into()), &[])]);
+            client.resolve(&[ticker, self.get_message_hash(Value::Str("ticker".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)]);
         }
 }
 
@@ -681,7 +679,7 @@ impl BingxCore {
     Value::Null
 }
 
-    pub fn get_message_hash(&self, mut unifiedChannel: Value, optional_args: &[Value]) -> Value {
+    pub fn get_message_hash(&self, mut unifiedChannel: Value, optional_args: &[Value]) -> Option<String> {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut extra = get_arg(optional_args, 1, Value::Null);
         let mut hash: Value = unifiedChannel;
@@ -693,9 +691,7 @@ impl BingxCore {
         if (extra != Value::Null) {
             hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", Value::Str("::".into()), extra).into())).into());
         }
-        return hash;
-
-    Value::Null
+        return hash.as_str().map(str::to_owned);
 }
 
 /*
@@ -789,7 +785,7 @@ impl BingxCore {
         }
         let mut market: Value = self.market(symbol);
         let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".into())).into());
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+        let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), subMessageHash).into());
         let mut topic: Value = Value::Str("trades".into());
         let mut methodName: Value = Value::Str("unWatchTrades".into());
@@ -950,7 +946,7 @@ impl BingxCore {
         })]);
         let mut depth: Value = self.safe_integer_k(options, "depth", &[Value::Int(100)]);
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), Value::Str("depth".into())).into()), self.number_to_string(depth)).into());
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1139,11 +1135,11 @@ impl BingxCore {
         let mut nonce: Value = self.safe_integer_k(data, "lastUpdateId", &[]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), nonce);
         orderbook.reset(snapshot);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbol]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbol]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         client.resolve(&[orderbook.clone(), messageHash]);
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Value = self.get_message_hash(Value::Str("orderbook".into()), &[]);
+            let mut messageHashForAll: Value = self.get_message_hash(Value::Str("orderbook".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             client.resolve(&[orderbook, messageHashForAll]);
         }
 }
@@ -1303,11 +1299,11 @@ impl BingxCore {
         }
         }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), stored]);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[symbol, unifiedTimeframe.clone()]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[symbol, unifiedTimeframe.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         client.resolve(&[resolveData.clone(), messageHash]);
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, unifiedTimeframe]);
+            let mut messageHashForAll: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, unifiedTimeframe]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             client.resolve(&[resolveData, messageHashForAll]);
         }
 }
@@ -1360,7 +1356,7 @@ impl BingxCore {
             m
         })]);
         let mut rawTimeframe: Value = self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe]);
+        let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".into()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), rawTimeframe).into());
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({

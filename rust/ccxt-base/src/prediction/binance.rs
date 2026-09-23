@@ -1538,7 +1538,7 @@ impl BinanceCore {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
-            let mut market: Value = self.market(crate::value::get_value_k(&outcomeObj, "market"));
+            let mut market: Value = self.market(outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
@@ -1827,7 +1827,7 @@ impl BinanceCore {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
-            let mut market: Value = self.market(crate::value::get_value_k(&outcomeObj, "market"));
+            let mut market: Value = self.market(outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketTopicId".into(), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "marketTopicId")); }
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOrders".into()), &[params.clone()]).await;
@@ -2297,7 +2297,7 @@ impl BinanceCore {
         let __ws_arg_14 = self.amount_to_precision(marketSymbol, amountStr);
         let mut quoteRequest: Value = self.extend(commonRequest.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tokenId".to_string(), crate::value::get_value_k(&outcomeObj, "id"));
+                m.insert("tokenId".to_string(), outcomeObj.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), sideUpper);
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
             m

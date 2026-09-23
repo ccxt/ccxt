@@ -2300,11 +2300,11 @@ class kalshi extends Exchange {
         return $this->apply_event_fetch_params($result, $postParams, array());
     }
 
-    public function fetch_events_by_query(array $queries, ?int $limit, $rest = array()): PromiseInterface {
+    public function fetch_events_by_query(array $queries, ?int $limit, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_events_by_query(...))($queries, $limit, $rest);
     }
 
-    private function do_fetch_events_by_query(array $queries, ?int $limit, $rest = array()) {
+    private function do_fetch_events_by_query(array $queries, ?int $limit, array $rest = array()) {
         /**
          * @ignore
          * resolves free-text $queries to ranked event tickers via kalshi's search endpoint, then fetches the top `$limit` events canonically (with nested markets)
@@ -2442,11 +2442,11 @@ class kalshi extends Exchange {
         return $ordered;
     }
 
-    public function fetch_series_events(array $seriesTickers, ?string $status, ?int $limit, $rest = array()): PromiseInterface {
+    public function fetch_series_events(array $seriesTickers, ?string $status, ?int $limit, array $rest = array()): PromiseInterface {
         return Async\async(self::do_fetch_series_events(...))($seriesTickers, $status, $limit, $rest);
     }
 
-    private function do_fetch_series_events(array $seriesTickers, ?string $status, ?int $limit, $rest = array()) {
+    private function do_fetch_series_events(array $seriesTickers, ?string $status, ?int $limit, array $rest = array()) {
         /**
          * @ignore
          * fetches the canonical events (with nested markets) of the given kalshi series, $cursor-paginated per series and stopping once `$limit` events are gathered

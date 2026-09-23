@@ -439,7 +439,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        outcomeObj = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        return outcomeObj;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
         outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);

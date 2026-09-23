@@ -250,7 +250,9 @@ public class Btse extends BtseApi
                         put( "spot/api/v3.3/trades", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
-                        put( "spot/api/v3.3/time", 5 );
+                        put( "spot/api/v3.3/time", new HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "futures/api/v2.3/market_summary", new HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -734,7 +736,7 @@ public class Btse extends BtseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.publicGetSpotApiV33Time(parameters)).join();
+            Map<String, Object> response = (this.publicGetSpotApiV33Time(parameters)).join();
             //
             //     {
             //         "iso": "2026-02-06T11:48:37.976Z",

@@ -612,7 +612,7 @@ class kraken(ccxt.async_support.kraken):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def request_id(self):
+    def request_id(self) -> float:
         # their support said that reqid must be an int32, not documented
         self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
@@ -1440,7 +1440,7 @@ class kraken(ccxt.async_support.kraken):
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 
-    def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
+    def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None) -> str:
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...
         # subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         withSymbol = symbol is not None

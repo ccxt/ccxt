@@ -305,7 +305,7 @@ class poloniex extends \ccxt\async\poloniex {
          */
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
-            $clientOrderIds = $this->safe_value($params, 'clientOrderId', array());
+            $clientOrderIds = $this->safe_list($params, 'clientOrderId', array());
             $params['clientOrderIds'] = $this->array_concat($clientOrderIds, array( $clientOrderId ));
         }
         $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
@@ -517,7 +517,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -750,7 +750,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // handleTrade
         //

@@ -2037,7 +2037,7 @@ class okx(ccxt.async_support.okx):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
             client.resolve(self.myTrades, symbolMessageHash)
 
-    def request_id(self):
+    def request_id(self) -> str:
         ts = str(self.milliseconds())
         randomNumber = self.rand_number(4)
         randomPart = str(randomNumber)

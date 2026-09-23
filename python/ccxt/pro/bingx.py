@@ -336,7 +336,7 @@ class bingx(ccxt.async_support.bingx):
                 limit = self.find_nearest_ceiling([20, 100], limit)
         return limit
 
-    def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None):
+    def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None) -> str:
         hash = unifiedChannel
         if symbol is not None:
             hash += '::' + symbol

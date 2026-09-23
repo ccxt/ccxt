@@ -92,7 +92,7 @@ class bydfi extends \ccxt\async\bydfi {
         );
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;

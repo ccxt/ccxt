@@ -73,34 +73,72 @@ func (this *Opinion) Describe() any {
 			"opinion": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"market":                        1,
-						"market/{marketId}":             1,
-						"market/categorical/{marketId}": 1,
-						"market/slug/{slug}":            1,
-						"label":                         1,
-						"token/latest-price":            1,
-						"token/orderbook":               1,
-						"token/price-history":           1,
-						"quoteToken":                    1,
+						"market": map[string]any{
+							"cost": 1,
+						},
+						"market/{marketId}": map[string]any{
+							"cost": 1,
+						},
+						"market/categorical/{marketId}": map[string]any{
+							"cost": 1,
+						},
+						"market/slug/{slug}": map[string]any{
+							"cost": 1,
+						},
+						"label": 1,
+						"token/latest-price": map[string]any{
+							"cost": 1,
+						},
+						"token/orderbook": map[string]any{
+							"cost": 1,
+						},
+						"token/price-history": map[string]any{
+							"cost": 1,
+						},
+						"quoteToken": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"order":                          1,
-						"order/{orderId}":                1,
-						"positions/user/{walletAddress}": 1,
-						"trade/user/{walletAddress}":     1,
-						"auth/api-key":                   1,
-						"user/auth":                      1,
-						"user/balance":                   1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/{orderId}": map[string]any{
+							"cost": 1,
+						},
+						"positions/user/{walletAddress}": map[string]any{
+							"cost": 1,
+						},
+						"trade/user/{walletAddress}": map[string]any{
+							"cost": 1,
+						},
+						"auth/api-key": map[string]any{
+							"cost": 1,
+						},
+						"user/auth": map[string]any{
+							"cost": 1,
+						},
+						"user/balance": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"auth/api-key": 1,
-						"order":        1,
-						"order/cancel": 1,
+						"auth/api-key": map[string]any{
+							"cost": 1,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"order/cancel": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"auth/api-key": 1,
+						"auth/api-key": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -196,8 +234,7 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"page":       page,
 		}
 
-		response := (<-this.OpinionPublicGetMarket(this.Extend(request, rest)))
-		ccxt.PanicOnError(response)
+		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarket(this.Extend(request, rest))).Raw))
 		var result map[string]any = ccxt.SafeMapTyped(response, "result")
 		var rawMarkets []any = ccxt.SafeListTyped(result, "list")
 		var rawMarketsLength int = len(rawMarkets)
@@ -480,13 +517,13 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 
 			singleResponse = (<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
 				"slug": slug,
-			}, singleRest)))
+			}, singleRest))).Raw
 			ccxt.PanicOnError(singleResponse)
 		} else {
 
 			singleResponse = (<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
 				"marketId": eventId,
-			}, singleRest)))
+			}, singleRest))).Raw
 			ccxt.PanicOnError(singleResponse)
 		}
 		var singleResult map[string]any = ccxt.SafeMapTyped(singleResponse, "result")
@@ -526,8 +563,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			"page":       page,
 		}
 
-		response := (<-this.OpinionPublicGetMarket(this.Extend(request, rest)))
-		ccxt.PanicOnError(response)
+		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarket(this.Extend(request, rest))).Raw))
 		var result map[string]any = ccxt.SafeMapTyped(response, "result")
 		var pageEvents []any = ccxt.SafeListTyped(result, "list")
 		var pageEventsLength int = len(pageEvents)
@@ -603,13 +639,13 @@ func (this *Opinion) fetchEventBody(ch chan any, id any, optionalArgs ...any) an
 
 		response = (<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
 			"slug": id,
-		}, params)))
+		}, params))).Raw
 		ccxt.PanicOnError(response)
 	} else {
 
 		response = (<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
 			"marketId": id,
-		}, params)))
+		}, params))).Raw
 		ccxt.PanicOnError(response)
 	}
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
@@ -791,11 +827,11 @@ func (this *Opinion) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
-	var promises []any = []any{this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
+	var promises []any = []any{ccxt.EndpointRaw(this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 		"token_id": tokenId,
-	}, params)), this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
+	}, params))), ccxt.EndpointRaw(this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
 		"token_id": tokenId,
-	}, params))}
+	}, params)))}
 	var priceResponsebookResponseVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	priceResponse := ccxt.GetValue(priceResponsebookResponseVariable, 0)
 	bookResponse := ccxt.GetValue(priceResponsebookResponseVariable, 1)
@@ -904,12 +940,12 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
-		promises = append(promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
+		promises = append(promises, ccxt.EndpointRaw(this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
-		}, params)))
-		promises = append(promises, this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
+		}, params))))
+		promises = append(promises, ccxt.EndpointRaw(this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
 			"token_id": tokenId,
-		}, params)))
+		}, params))))
 	}
 
 	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
@@ -964,8 +1000,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 		"token_id": tokenId,
 	}
 
-	response := (<-this.OpinionPublicGetTokenOrderbook(this.Extend(request, params)))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetTokenOrderbook(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "errmsg": "",
@@ -1026,11 +1061,10 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 
-	response := (<-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{
 		"token_id": tokenId,
 		"interval": interval,
-	}, params)))
-	ccxt.PanicOnError(response)
+	}, params))).Raw))
 	//
 	//     {
 	//         "errmsg": "",
@@ -1112,8 +1146,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
 		return nil
 	}
 
-	response := (<-this.OpinionPublicGetQuoteToken(map[string]any{}))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetQuoteToken(map[string]any{})).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var list []any = ccxt.SafeListTyped(result, "list")
 	var listLength int = len(list)
@@ -1162,8 +1195,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan any) any {
 		return nil
 	}
 
-	response := (<-this.OpinionPrivateGetUserAuth(map[string]any{}))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetUserAuth(map[string]any{})).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var walletUsers map[string]any = ccxt.SafeMapTyped(result, "walletUsers")
 	var multiSignAddress *string = this.SafeString(walletUsers, "56", this.WalletAddress)
@@ -1398,8 +1430,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 		"postOnly":     postOnly,
 	}, rest)
 
-	response := (<-this.OpinionPrivatePostOrder(orderBody))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivatePostOrder(orderBody)).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var orderData any = this.SafeDict(result, "orderData", map[string]any{})
 
@@ -1435,7 +1466,7 @@ func (this *Opinion) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"orderId": id,
 	}
 
-	response := (<-this.OpinionPrivatePostOrderCancel(this.Extend(request, params)))
+	response := (<-this.OpinionPrivatePostOrderCancel(this.Extend(request, params))).Raw
 	ccxt.PanicOnError(response)
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var canceled *bool = this.SafeBool(result, "result", false)
@@ -1577,8 +1608,7 @@ func (this *Opinion) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
-	response := (<-this.OpinionPrivateGetOrder(this.Extend(request, params)))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetOrder(this.Extend(request, params))).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var orders any = this.SafeList(result, "list", []any{})
 
@@ -1617,10 +1647,9 @@ func (this *Opinion) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		ccxt.PanicOnError(outcomeObj)
 	}
 
-	response := (<-this.OpinionPrivateGetOrderOrderId(this.Extend(map[string]any{
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetOrderOrderId(this.Extend(map[string]any{
 		"orderId": id,
-	}, params)))
-	ccxt.PanicOnError(response)
+	}, params))).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var orderData any = this.SafeDict(result, "orderData", map[string]any{})
 
@@ -1746,8 +1775,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
-	response := (<-this.OpinionPrivateGetTradeUserWalletAddress(this.Extend(request, params)))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetTradeUserWalletAddress(this.Extend(request, params))).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var trades any = this.SafeList(result, "list", []any{})
 	var tradesLength int = ccxt.GetArrayLength(trades)
@@ -1802,10 +1830,9 @@ func (this *Opinion) loadTradeMarketBody(ch chan any, marketId any) any {
 		return nil
 	}
 
-	response := (<-this.OpinionPublicGetMarketMarketId(map[string]any{
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarketMarketId(map[string]any{
 		"marketId": marketId,
-	}))
-	ccxt.PanicOnError(response)
+	})).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var data any = this.SafeDict(result, "data", map[string]any{})
 	var market any = this.ParseOpinionMarket(data)
@@ -1883,8 +1910,7 @@ func (this *Opinion) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"chain_id": "56",
 	}
 
-	response := (<-this.OpinionPrivateGetUserBalance(this.Extend(request, params)))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetUserBalance(this.Extend(request, params))).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var rawBalances []any = ccxt.SafeListTyped(result, "balances")
 	var rawBalancesLength int = len(rawBalances)
@@ -1973,8 +1999,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"walletAddress": this.WalletAddress,
 	}
 
-	response := (<-this.OpinionPrivateGetPositionsUserWalletAddress(this.Extend(request, params)))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetPositionsUserWalletAddress(this.Extend(request, params))).Raw))
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var positions any = this.SafeList(result, "list", []any{})
 	var parsed any = this.ParsePredictionPositions(positions)
@@ -2114,8 +2139,7 @@ func (this *Opinion) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.OpinionPrivatePostAuthApiKey(params))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivatePostAuthApiKey(params)).Raw))
 	var result any = this.SafeDict(response, "result", map[string]any{})
 
 	ch <- this.SetApiCredentials(result)
@@ -2141,8 +2165,7 @@ func (this *Opinion) fetchApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.OpinionPrivateGetAuthApiKey(params))
-	ccxt.PanicOnError(response)
+	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPrivateGetAuthApiKey(params)).Raw))
 	var result any = this.SafeDict(response, "result", map[string]any{})
 
 	ch <- this.SetApiCredentials(result)
@@ -2168,7 +2191,7 @@ func (this *Opinion) deleteApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	response := (<-this.OpinionPrivateDeleteAuthApiKey(params))
+	response := (<-this.OpinionPrivateDeleteAuthApiKey(params)).Raw
 	ccxt.PanicOnError(response)
 	this.Options.Store("apiKey", nil)
 	// sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set

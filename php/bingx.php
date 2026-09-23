@@ -6280,7 +6280,7 @@ class bingx extends Exchange {
         }
         $params = $this->omit($params, array( 'walletType', 'network' ));
         $response = $this->walletsV1PrivatePostCapitalWithdrawApply($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         //    {
         //        "code":0,
         //        "timestamp":1689258953651,

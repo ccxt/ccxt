@@ -9,23 +9,23 @@ import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGet20PublicOrderBookSymbol (params?: {}): Promise<Dict | List>;
-    publicGet10PublicTickers (params?: {}): Promise<Dict | List>;
-    publicGet10PublicCandlesSymbol (params?: {}): Promise<Dict | List>;
-    publicGet10PublicTradesAll (params?: {}): Promise<Dict | List>;
-    publicGet10PublicConfigurationCurrencies (params?: {}): Promise<Dict | List>;
-    publicGet10PublicConfigurationPairs (params?: {}): Promise<Dict | List>;
+    publicGet20PublicOrderBookSymbol (params?: {}): Promise<Dict>;
+    publicGet10PublicTickers (params?: {}): Promise<Dict>;
+    publicGet10PublicCandlesSymbol (params?: {}): Promise<Dict>;
+    publicGet10PublicTradesAll (params?: {}): Promise<Dict>;
+    publicGet10PublicConfigurationCurrencies (params?: {}): Promise<Dict>;
+    publicGet10PublicConfigurationPairs (params?: {}): Promise<Dict>;
     privateGet10Balances (params?: {}): Promise<Dict | List>;
-    privateGet10OrdersActive (params?: {}): Promise<Dict | List>;
-    privateGet10OrdersHistorical (params?: {}): Promise<Dict | List>;
-    privateGet10OrdersVenueOrderId (params?: {}): Promise<Dict | List>;
+    privateGet10OrdersActive (params?: {}): Promise<Dict>;
+    privateGet10OrdersHistorical (params?: {}): Promise<Dict>;
+    privateGet10OrdersVenueOrderId (params?: {}): Promise<Dict>;
     privateGet10OrdersFillsVenueOrderId (params?: {}): Promise<Dict | List>;
-    privateGet10TradesPrivateSymbol (params?: {}): Promise<Dict | List>;
+    privateGet10TradesPrivateSymbol (params?: {}): Promise<Dict>;
     privateGet10Transactions (params?: {}): Promise<Dict | List>;
-    privatePost10Orders (params?: {}): Promise<Dict | List>;
-    privatePut10OrdersVenueOrderId (params?: {}): Promise<Dict | List>;
+    privatePost10Orders (params?: {}): Promise<Dict>;
+    privatePut10OrdersVenueOrderId (params?: {}): Promise<Dict>;
     privateDelete10Orders (params?: {}): Promise<Dict | List>;
-    privateDelete10OrdersVenueOrderId (params?: {}): Promise<Dict | List>;
+    privateDelete10OrdersVenueOrderId (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

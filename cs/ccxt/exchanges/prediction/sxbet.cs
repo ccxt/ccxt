@@ -67,10 +67,18 @@ public partial class sxbet : PredictionExchange
                 { "sxbet", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "metadata/obv3", 1 },
-                            { "orderbook-v3/snapshot", 1 },
-                            { "trades-v3/public", 1 },
-                            { "markets/active", 1 },
+                            { "metadata/obv3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orderbook-v3/snapshot", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades-v3/public", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "markets/active", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "markets/find", 1 },
                             { "markets/popular", 1 },
                             { "trades/consolidated", 1 },
@@ -87,27 +95,55 @@ public partial class sxbet : PredictionExchange
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "user/realtime-token-v3/api-key", 1 },
-                            { "user/proxy", 1 },
-                            { "user/balance-v3", 1 },
+                            { "user/realtime-token-v3/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/proxy", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/balance-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "user/transfer-to-proxy/pending", 1 },
                             { "user/transfer-to-proxy/status", 1 },
-                            { "orders-v3", 1 },
-                            { "orders-v3/{orderId}", 1 },
-                            { "orders-v3/odds/best", 1 },
-                            { "trades-v3", 1 },
-                            { "fills-v3", 1 },
-                            { "positions-v3", 1 },
+                            { "orders-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders-v3/{orderId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders-v3/odds/best", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trades-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fills-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "positions-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "orders-v3", 1 },
-                            { "orders-v3/event", 1 },
-                            { "orders-v3/all", 1 },
+                            { "orders-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders-v3/event", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "orders-v3/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "orders-v3", 1 },
+                            { "orders-v3", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "user/deploy-proxy", 1 },
-                            { "user/transfer-to-proxy", 1 },
+                            { "user/transfer-to-proxy", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "heartbeat/v3", 1 },
                         } },
                     } },
@@ -241,7 +277,7 @@ public partial class sxbet : PredictionExchange
             {
                 request["paginationKey"] = paginationKey;
             }
-            object response = await this.sxbetPublicGetMarketsActive(this.extend(request, extra));
+            Dictionary<string, object> response = await this.sxbetPublicGetMarketsActive(this.extend(request, extra));
             IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             List<object> pageMarkets = this.safeList(result, "markets", new List<object>() {});
             int pageMarketsLength = pageMarkets.Count;
@@ -699,7 +735,7 @@ public partial class sxbet : PredictionExchange
         {
             return cached;
         }
-        object response = await this.sxbetPublicGetMetadataObv3();
+        Dictionary<string, object> response = await this.sxbetPublicGetMetadataObv3();
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         this.options["sxObv3Metadata"] = data;
         return data;
@@ -813,7 +849,7 @@ public partial class sxbet : PredictionExchange
      */
     public async virtual Task<object> fetchSxbetProxy()
     {
-        object response = await this.sxbetPrivateGetUserProxy();
+        Dictionary<string, object> response = await this.sxbetPrivateGetUserProxy();
         return this.safeDict(response, "data", new Dictionary<string, object>() {});
     }
 
@@ -937,7 +973,7 @@ public partial class sxbet : PredictionExchange
             { "signature", signature },
         };
         object rest = this.omit(parameters, new List<object>() {"amount", "tokenAddress", "deadline", "rpcUrl"});
-        object response = await this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest));
+        Dictionary<string, object> response = await this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", response },
@@ -1106,7 +1142,7 @@ public partial class sxbet : PredictionExchange
             { "orders", new List<object>() {orderItem} },
             { "waitForOutcome", waitForOutcome },
         };
-        object response = await this.sxbetPrivatePostOrdersV3(this.extend(request, rest));
+        Dictionary<string, object> response = await this.sxbetPrivatePostOrdersV3(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> results = this.safeList(data, "orders", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(results, 0, new Dictionary<string, object>() {});
@@ -1228,7 +1264,7 @@ public partial class sxbet : PredictionExchange
     { "orderId", id },
 }} },
         };
-        object response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters));
         List<object> orders = ((List<object>)this.parseSxbetCancelResponse(response));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
@@ -1275,7 +1311,7 @@ public partial class sxbet : PredictionExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "orders", orderItems },
             };
-            object response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters));
             result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
@@ -1299,7 +1335,7 @@ public partial class sxbet : PredictionExchange
         string? eventId = this.safeString2(parameters, "eventId", "sportXeventId");
         object rest = this.omit(parameters, new List<object>() {"eventId", "sportXeventId"});
         bool isEventScoped = ((eventId != null));
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isEventScoped)
         {
             // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
@@ -1318,7 +1354,7 @@ public partial class sxbet : PredictionExchange
         object guard = 0;
         while (((hasMore == true)) && (isLessThan(guard, 50)))
         {
-            object nextResponse = null;
+            Dictionary<string, object> nextResponse = null;
             if (isEventScoped)
             {
                 Dictionary<string, object> nextRequest = new Dictionary<string, object>() {
@@ -1471,7 +1507,7 @@ public partial class sxbet : PredictionExchange
         {
             request["perPage"] = this.clampSxbetPerPage(limit);
         }
-        object response = await this.sxbetPrivateGetOrdersV3(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateGetOrdersV3(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawOrders = this.safeList(data, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(rawOrders, outcomeObj, since, limit));
@@ -1521,7 +1557,7 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        object response = await this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> row = this.safeDict(data, "order", data);
         return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(row, outcomeObj));
@@ -1554,7 +1590,7 @@ public partial class sxbet : PredictionExchange
         {
             request["perPage"] = this.clampSxbetPerPage(limit);
         }
-        object response = await this.sxbetPublicGetTradesV3Public(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPublicGetTradesV3Public(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
         List<object> trades = new List<object>() {};
@@ -1601,7 +1637,7 @@ public partial class sxbet : PredictionExchange
             // size would truncate the page before the filter and under-fill the result
             request["perPage"] = this.clampSxbetPerPage(limit);
         }
-        object response = await this.sxbetPrivateGetFillsV3(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateGetFillsV3(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawFills = this.safeList(data, "fills", new List<object>() {});
         List<object> trades = new List<object>() {};
@@ -1692,7 +1728,7 @@ public partial class sxbet : PredictionExchange
         object obv3 = await this.loadSxObv3Metadata();
         IDictionary<string, object> activeAsset = this.safeDict(obv3, "activeAsset", new Dictionary<string, object>() {});
         string? usdcAddress = this.safeStringLower(activeAsset, "baseToken", "");
-        object response = await this.sxbetPrivateGetUserBalanceV3(parameters);
+        Dictionary<string, object> response = await this.sxbetPrivateGetUserBalanceV3(parameters);
         //
         //     { "status": "success", "data": { "balances": [ {
         //         "userAddress": "0xC3f4...", "wallet": "0x19D1...",
@@ -1762,7 +1798,7 @@ public partial class sxbet : PredictionExchange
             { "status", this.safeString(parameters, "status", "MATCHED,LOCKED") },
         };
         object rest = this.omit(parameters, new List<object>() {"status"});
-        object response = await this.sxbetPrivateGetPositionsV3(this.extend(request, rest));
+        Dictionary<string, object> response = await this.sxbetPrivateGetPositionsV3(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
@@ -1869,7 +1905,7 @@ public partial class sxbet : PredictionExchange
             // per side) - a server-side page size would under-fill the filtered result
             request["perPage"] = this.clampSxbetPerPage(limit);
         }
-        object response = await this.sxbetPrivateGetTradesV3(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateGetTradesV3(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
         List<object> result = new List<object>() {};
@@ -1975,7 +2011,7 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marketHash", marketHash },
         };
-        object response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
+        Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
         return this.safeDict(response, "data", new Dictionary<string, object>() {});
     }
 
@@ -2017,7 +2053,7 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marketHashes", String.Join(",", ((IList<object>)marketHashes).ToArray()) },
         };
-        object response = await this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeList(data, "bestOdds", new List<object>() {});
     }
@@ -2242,7 +2278,7 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marketHash", marketHash },
         };
-        object response = await this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters));
         IDictionary<string, object> snapshot = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
         object sortedBids = this.safeList(sides, "bids", new List<object>() {});
@@ -2369,7 +2405,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")) ;
         }
-        object response = await this.sxbetPrivateGetUserRealtimeTokenV3ApiKey();
+        Dictionary<string, object> response = await this.sxbetPrivateGetUserRealtimeTokenV3ApiKey();
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
     }

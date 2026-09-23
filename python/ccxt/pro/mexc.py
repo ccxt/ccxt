@@ -1112,7 +1112,7 @@ class mexc(ccxt.async_support.mexc):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(trades, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
         #
         # public trade (protobuf)
         #    {

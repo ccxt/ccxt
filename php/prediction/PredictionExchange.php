@@ -464,7 +464,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($outcomeObj !== null) {
             return $outcomeObj;
         }
-        return array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        $outcomeObj = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
+        return $outcomeObj;
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {

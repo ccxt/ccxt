@@ -2315,7 +2315,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function request_id() {
+    public function request_id(): string {
         $ts = (string) $this->milliseconds();
         $randomNumber = $this->rand_number(4);
         $randomPart = (string) $randomNumber;

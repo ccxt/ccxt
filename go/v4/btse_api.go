@@ -37,9 +37,9 @@ func (this *Btse) PublicGetSpotApiV33Trades(args ...any) <-chan EndpointResult[[
 	return Fetch2Result[[]any](this, "spot/api/v3.3/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
-// PublicGetSpotApiV33Time returns a channel that yields a JSON object or a JSON array.
-func (this *Btse) PublicGetSpotApiV33Time(args ...any) <-chan any {
-	return this.Fetch2Async("spot/api/v3.3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+// PublicGetSpotApiV33Time returns a channel that yields a JSON object.
+func (this *Btse) PublicGetSpotApiV33Time(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "spot/api/v3.3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetFuturesApiV23MarketSummary returns a channel that yields a JSON array.
