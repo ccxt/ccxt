@@ -114,11 +114,11 @@ export default class woo extends wooRest {
             'unsubMessageHashes': [ unsubHash ],
         };
         const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        const paramsOmitted = (symbolsAndTimeframes !== undefined) ? this.omit (params, 'symbolsAndTimeframes') : params;
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
-            params = this.omit (params, 'symbolsAndTimeframes');
         }
-        return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
+        return await this.watch (url, unsubHash, this.extend (message, paramsOmitted), unsubHash, subscription);
     }
 
     /**
@@ -664,10 +664,8 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -765,10 +763,8 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
-        if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (market['symbol'], limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
     /**
@@ -980,10 +976,9 @@ export default class woo extends wooRest {
         const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -991,10 +986,8 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1018,10 +1011,9 @@ export default class woo extends wooRest {
         const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1029,10 +1021,8 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, paramsOmitted);
         const trades = await this.watchPrivate (messageHash, message);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {

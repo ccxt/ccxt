@@ -118,10 +118,8 @@ export default class paradex extends paradexRest {
             },
         };
         const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict): Dict {
@@ -335,11 +333,11 @@ export default class paradex extends paradexRest {
         await this.authenticate ();
         let messageHash = 'orders';
         let channel = 'orders.';
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
             channel += market['id'];
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         } else {
             channel += 'ALL';
         }
@@ -352,10 +350,8 @@ export default class paradex extends paradexRest {
             },
         };
         const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
