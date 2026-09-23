@@ -10863,7 +10863,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const copyEdges = (copyType !== undefined && copyType === csharpType && (copyType === 'Dictionary<string, object>' || copyType === 'IDictionary<string, object>')) ? COPY_WIDENING_EDGES : undefined;
         // a read of a retyped ws cache member: the later cache-setup writes store an
         // ArrayCache constructor, which needs an edge to the declaration's own type to join
-        const cacheElementType = wsCacheMemberReadType (csharp, declaration.initializer);
+        const cacheElementType = wsCacheMemberReadType (csharp, declaration.initializer) ?? wsCacheBucketReadType (csharp, declaration.initializer);
         const cacheMemberEdges = (csharpType === 'ccxt.pro.ArrayCache' && wsCacheMemberRead (declaration.initializer)) ? CACHE_MEMBER_WIDENING_EDGES
             : (cacheElementType !== undefined && cacheElementType !== 'IDictionary<string, object>') ? cacheElementWideningEdges (cacheElementType) : undefined;
         // a read of the ws orderbook map (this.safeOrderBook -> ccxt.pro.IOrderBook): the
