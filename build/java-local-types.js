@@ -4285,7 +4285,12 @@ export function installJavaLocalTypes (transpiler) {
         }
         const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
         const declaration = symbol?.valueDeclaration;
-        const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
+        // the tables' decisions live in `narrowed`; a dataflow-typed structure local (a null
+        // accumulator fed by market ()/currency ()) is registered in the shared WeakSet
+        const javaType = (declaration !== undefined)
+            ? (narrowed.get (declaration)
+                ?? (javaDataflowStructureDeclarations.has (declaration) ? JAVA_STRUCTURE_TYPE : undefined))
+            : undefined;
         if (javaType === undefined) {
             return printed;
         }
@@ -4476,6 +4481,10 @@ const DATAFLOW_STRING_BASE_METHODS = new Set ([ 'iso8601', 'numberToString' ]);
 const DATAFLOW_SINGLE_BOX_ACCESSORS = new Map ([
     [ 'safeNumber', 'Double' ], [ 'safeNumber2', 'Double' ], [ 'safeNumberN', 'Double' ],
     [ 'safeFloat', 'Double' ], [ 'safeFloat2', 'Double' ], [ 'safeFloatN', 'Double' ],
+    // BaseExchange.java:1562/1566 `public static Double parseNumber (Object[, Object])`; the ts
+    // declaration is Exchange.ts:1617, so the base-tier gate below admits it and no venue can
+    // override a static (retyping the local needs NO checkcast, exactly like parse8601)
+    [ 'parseNumber', 'Double' ],
     [ 'safeInteger', 'Long' ], [ 'safeInteger2', 'Long' ], [ 'safeIntegerN', 'Long' ],
     [ 'parseToInt', 'Long' ], [ 'parse8601', 'Long' ], [ 'milliseconds', 'Long' ],
     [ 'seconds', 'Long' ],
@@ -4504,6 +4513,12 @@ function resolvesToSingleBoxBaseAccessor (printer, node) {
 
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
+
+// JAVA_STRUCTURE_TYPE declarations typed by the DATAFLOW engine (not by the surviving tables).
+// The write-cast hook in installJavaLocalTypes only knows its own `narrowed` WeakMap, so a
+// dataflow-typed null accumulator would print `Map<String, Object> x = null; x = this.market (...);`
+// -- an incompatible-types error. This set hands the write-cast hook the same decision.
+const javaDataflowStructureDeclarations = new WeakSet ();
 
 // the pre-mutation name of an identifier. finalVarMutations records (node, previous
 // escapedText) for every in-place rewrite made while a body prints, so the FIRST record
@@ -4671,6 +4686,19 @@ function dataflowThisCallType (printer, node) {
     if (singleBox !== undefined && resolvesToSingleBoxBaseAccessor (printer, node)) {
         return singleBox;
     }
+    // ---- structure locals (section 3, STRUCTURE_THIS_RETURN_TYPES) ----
+    // market () / currency () / safeMarket () / safeCurrency () / safeMarketStructure () /
+    // safeCurrencyStructure () / account () / getMarketFromSymbols () print `Object` in the
+    // generated BaseExchange (the printer erases every non-boolean return annotation) but box a
+    // market/currency row -- a java.util.Map<String, Object> -- on every return path (or throw):
+    // the same contract the initializer hook (localInitializerType) already names. A null
+    // accumulator written ONLY by these calls takes the same type. The write keeps the
+    // `(java.util.Map<String, Object>)` checkcast the write-cast hook injects; see
+    // javaDataflowStructureDeclarations below.
+    const structure = STRUCTURE_THIS_RETURN_TYPES[name];
+    if (structure !== undefined && resolvesToMethodNamed (printer, node, name)) {
+        return structure;
+    }
     return undefined;
 }
 
@@ -4688,6 +4716,14 @@ function dataflowValueType (printer, node, context) {
             return JAVA_DATAFLOW_STRING;
         case ts.SyntaxKind.NullKeyword:
             return 'null';
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            // prints `new java.util.HashMap<String, Object>() {{...}}` (or `{{}}`) -- already a
+            // java.util.Map<String, Object>, so a local named by it needs NO checkcast
+            return JAVA_STRUCTURE_TYPE;
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            // `x = true` autoboxes into a `Boolean` local (same family as isProvablyOfType)
+            return 'Boolean';
         case ts.SyntaxKind.Identifier:
             if (node.escapedText === 'undefined') {
                 return 'null';
@@ -5230,6 +5266,9 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     const info = dataflowLocalTypeOf (printer, declaration, undefined);
     if (info === undefined) {
         return printed;
+    }
+    if (info.type === JAVA_STRUCTURE_TYPE) {
+        javaDataflowStructureDeclarations.add (declaration);
     }
     const iden = printer.getIden (identation);
     const printedName = printer.printNode (declaration.name, 0);
