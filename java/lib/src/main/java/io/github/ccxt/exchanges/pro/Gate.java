@@ -1700,7 +1700,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String subscription = this.safeString(ohlcv, "n", "");
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)subscription).split(java.util.regex.Pattern.quote("_"))));
             String timeframeId = this.safeString(parts, 0);
-            Object timeframe = this.findTimeframe(timeframeId);
+            String timeframe = this.findTimeframe(timeframeId);
             String prefix = (timeframe + "_");
             String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
@@ -1724,7 +1724,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
-            Object interval = this.findTimeframe(timeframe);
+            String interval = this.findTimeframe(timeframe);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), interval);
             client.resolve(stored, hash);

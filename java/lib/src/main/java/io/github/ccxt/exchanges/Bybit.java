@@ -2881,10 +2881,10 @@ public class Bybit extends BybitApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -5540,10 +5540,10 @@ public class Bybit extends BybitApi
         {
             clientOrderId = null;
         }
-        Object avgPrice = this.omitZero(this.safeString(order, "avgPrice"));
+        String avgPrice = this.omitZero(this.safeString(order, "avgPrice"));
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String timeInForce = this.parseTimeInForce(rawTimeInForce);
-        Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
+        String triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         Object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         Object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
@@ -5581,7 +5581,7 @@ public class Bybit extends BybitApi
         final String finalClientOrderId = clientOrderId;
         final String finalType = type;
         final String finalSide = side;
-        final Object finalTriggerPrice = triggerPrice;
+        final String finalTriggerPrice = triggerPrice;
         final Object finalTakeProfitPrice = takeProfitPrice;
         final Object finalStopLossPrice = stopLossPrice;
         final String finalAmount = amount;
@@ -9583,7 +9583,7 @@ public class Bybit extends BybitApi
         {
             notional = this.safeString2(position, "positionValue", "cumExitValue");
         }
-        Object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
+        String unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         String initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         String maintenanceMarginString = this.safeString(position, "positionMM");
         Long timestamp = (Long) this.safeInteger2(position, "createdTime", "createdAt");
@@ -9593,8 +9593,8 @@ public class Bybit extends BybitApi
             lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         String collateralString = this.safeString(position, "positionBalance");
-        Object entryPrice = this.omitZero(this.safeStringN(position, new ArrayList<Object>(Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
-        Object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
+        String entryPrice = this.omitZero(this.safeStringN(position, new ArrayList<Object>(Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
+        String liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         String leverage = this.safeString(position, "leverage");
         if (!java.util.Objects.equals(liquidationPrice, null))
         {
@@ -9602,7 +9602,7 @@ public class Bybit extends BybitApi
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 Boolean useMarkPrice = (Boolean) this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
-                Object price = ((Boolean.TRUE.equals(useMarkPrice))) ? markPrice : entryPrice;
+                String price = ((Boolean.TRUE.equals(useMarkPrice))) ? markPrice : entryPrice;
                 Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
@@ -9645,8 +9645,8 @@ public class Bybit extends BybitApi
         final String finalInitialMarginString = initialMarginString;
         final String finalNotional = notional;
         final String finalMaintenanceMarginString = maintenanceMarginString;
-        final Object finalEntryPrice = entryPrice;
-        final Object finalLiquidationPrice = liquidationPrice;
+        final String finalEntryPrice = entryPrice;
+        final String finalLiquidationPrice = liquidationPrice;
         final String finalCollateralString = collateralString;
         final String finalSide = side;
         final Object finalHedged = hedged;
@@ -11320,7 +11320,7 @@ public class Bybit extends BybitApi
                 Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
                 String networkId = this.safeString(chain, "chain");
                 String currencyCode = this.safeString(currency, "code");
-                Object networkCode = this.networkIdToCode(networkId, currencyCode);
+                String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{

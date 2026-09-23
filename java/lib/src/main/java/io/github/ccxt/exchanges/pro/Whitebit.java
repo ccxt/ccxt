@@ -292,7 +292,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
-        Object timestamp = this.safeTimestamp(data, "timestamp");
+        Long timestamp = this.safeTimestamp(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
@@ -691,7 +691,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //    ]
         //
         String orderId = this.safeString(trade, 3);
-        Object timestamp = this.safeTimestamp(trade, 1);
+        Long timestamp = this.safeTimestamp(trade, 1);
         String id = this.safeString(trade, 0);
         String price = this.safeString(trade, 4);
         String amount = this.safeString(trade, 5);
@@ -886,7 +886,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String marketId = this.safeString(order, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String id = this.safeString(order, "id");
-        Object clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
+        String clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
         String price = this.safeString(order, "price");
         String filled = this.safeString(order, "deal_stock");
         String cost = this.safeString(order, "deal_money");
@@ -904,8 +904,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             remaining = this.safeString(order, "left");
             amount = this.safeString(order, "amount");
         }
-        Object timestamp = this.safeTimestamp(order, "ctime");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
+        Long timestamp = this.safeTimestamp(order, "ctime");
+        Long lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long rawSide = this.safeInteger(order, "side");
         String side = ((((rawSide != null && rawSide == 1)))) ? "sell" : "buy";

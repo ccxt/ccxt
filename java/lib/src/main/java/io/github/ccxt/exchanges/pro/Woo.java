@@ -1057,7 +1057,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(data, "type");
-        Object timeframe = this.findTimeframe(interval);
+        String timeframe = this.findTimeframe(interval);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
@@ -1696,7 +1696,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
-                Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                String tradeId = this.omitZero(this.safeString(data, "tradeId"));
                 if (!java.util.Objects.equals(tradeId, null))
                 {
                     this.handleMyTrade(client, (Map<String, Object>) (order));
@@ -1706,7 +1706,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         } else
         {
             // executionreport
-            Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+            String tradeId = this.omitZero(this.safeString(data, "tradeId"));
             if (!java.util.Objects.equals(tradeId, null))
             {
                 this.handleMyTrade(client, (Map<String, Object>) (data));

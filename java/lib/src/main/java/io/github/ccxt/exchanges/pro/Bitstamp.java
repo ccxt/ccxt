@@ -281,7 +281,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.safeTimestamp(delta, "timestamp");
+        Long timestamp = this.safeTimestamp(delta, "timestamp");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
@@ -1049,7 +1049,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             status = "canceled";
         }
         String triggerPrice = this.safeString(order, "stop_price");
-        Object timestamp = this.safeTimestamp(order, "datetime");
+        Long timestamp = this.safeTimestamp(order, "datetime");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         final String finalOrderType = orderType;

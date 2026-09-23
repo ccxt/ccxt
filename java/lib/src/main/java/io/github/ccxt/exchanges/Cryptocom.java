@@ -937,10 +937,10 @@ public class Cryptocom extends CryptocomApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "network_id");
-            Object network = this.networkIdToCode(networkId, code);
+            String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                final Object finalNetwork = network;
+                final String finalNetwork = network;
                 ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
@@ -1102,7 +1102,7 @@ public class Cryptocom extends CryptocomApi
                 String strike = this.safeString(market, "strike");
                 Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled");
                 Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled");
-                Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+                String expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = (((!java.util.Objects.equals(expiryString, null)))) ? Helpers.parseInt(expiryString) : null;
                 String symbol = ((base + "/") + quote);
                 String type = null;
@@ -3064,10 +3064,10 @@ public class Cryptocom extends CryptocomApi
                 var tag = ((List<Object>) addresstagVariable).get(1);
                 this.checkAddress(address);
                 String networkId = this.safeString(value, "network");
-                Object network = this.networkIdToCode(networkId, responseCode);
+                String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    final Object finalNetwork = network;
+                    final String finalNetwork = network;
                     ((Map<String, Object>)result).put((String)network, new HashMap<String, Object>() {{
         put( "info", value );
         put( "currency", responseCode );
@@ -3816,7 +3816,7 @@ public class Cryptocom extends CryptocomApi
                 Object networkInfo = (networkList == null || i < 0 || i >= networkList.size() ? null : networkList.get(i));
                 String networkId = this.safeString(networkInfo, "network_id");
                 String currencyCode = this.safeString(currency, "code");
-                Object networkCode = this.networkIdToCode(networkId, currencyCode);
+                String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{

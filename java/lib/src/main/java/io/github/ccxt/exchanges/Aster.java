@@ -5037,7 +5037,7 @@ public class Aster extends AsterApi
         Double contracts = this.parseNumber(contractsAbs);
         String unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        String liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         Double liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         String marginMode = this.safeString(position, "marginType");

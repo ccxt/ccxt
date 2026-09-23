@@ -786,10 +786,10 @@ final String finalBase = base;
         for (var j = 0; j < ((List<?>)networksArray).size(); j++)
         {
             Object networkId = (networksArray == null || j < 0 || j >= networksArray.size() ? null : networksArray.get(j));
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 final Boolean finalDeposit = deposit;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
@@ -3623,7 +3623,7 @@ final String finalBase = base;
         {
             networkId = currencyCode;
         }
-        Object networkCode = this.networkIdToCode(networkId, currencyCode);
+        String networkCode = this.networkIdToCode(networkId, currencyCode);
         if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{

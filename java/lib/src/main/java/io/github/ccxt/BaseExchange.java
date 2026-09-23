@@ -4528,7 +4528,7 @@ public Object describe()
         return result;
     }
 
-    public Object findTimeframe(Object timeframe, Object timeframes)
+    public String findTimeframe(Object timeframe, Object timeframes)
     {
         if (java.util.Objects.equals(timeframes, null))
         {
@@ -4540,12 +4540,12 @@ public Object describe()
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual(Helpers.GetValue(timeframes, key), timeframe))
             {
-                return key;
+                return (String) (key);
             }
         }
         return null;
     }
-    public Object findTimeframe(Object timeframe, Object... optionalArgs)
+    public String findTimeframe(Object timeframe, Object... optionalArgs)
     {
         return this.findTimeframe(timeframe, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -8389,7 +8389,7 @@ public Object describe()
         return this.networkCodeToId(networkCode, Helpers.getArgString(optionalArgs, 0, null));
     }
 
-    public Object networkIdToCode(String networkId, String currencyCode)
+    public String networkIdToCode(String networkId, String currencyCode)
     {
         /**
          * @ignore
@@ -8409,7 +8409,7 @@ public Object describe()
         Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
         if (java.util.Objects.equals(chainPair, null))
         {
-            return networkCode;
+            return (String) (networkCode);
         }
         Object preferredChain = (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
         Object alternativeChain = (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
@@ -8420,12 +8420,12 @@ public Object describe()
             Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             if ((networkIdsByCodes.containsKey(preferredChain)) && (networkIdsByCodes.containsKey(alternativeChain)))
             {
-                return networkCode;
+                return (String) (networkCode);
             }
         }
-        return preferredChain;
+        return (String) (preferredChain);
     }
-    public Object networkIdToCode(Object... optionalArgs)
+    public String networkIdToCode(Object... optionalArgs)
     {
         return this.networkIdToCode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }

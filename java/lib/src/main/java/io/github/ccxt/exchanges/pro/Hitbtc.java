@@ -1061,7 +1061,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String channel = this.safeString(message, "ch", "");
         List<Object> splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String period = this.safeString(splitChannel, 1);
-        Object timeframe = this.findTimeframe(period);
+        String timeframe = this.findTimeframe(period);
         if (java.util.Objects.equals(timeframe, null))
         {
             return message;

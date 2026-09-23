@@ -3036,7 +3036,7 @@ public class Hibachi extends HibachiApi
         //         "timestampNsPartial": 0
         //     }
         //
-        Object timestamp = this.safeTimestamp(settlement, "timestamp");
+        Long timestamp = this.safeTimestamp(settlement, "timestamp");
         String marketId = this.safeString(settlement, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", settlement );

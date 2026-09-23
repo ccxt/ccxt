@@ -1821,7 +1821,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = Helpers.replace(channel, (String)"candle", (String)"");
         // use a reverse lookup in a static map instead
-        Object timeframe = this.findTimeframe(interval);
+        String timeframe = this.findTimeframe(interval);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
@@ -3781,7 +3781,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public void handleUnsubscriptionOHLCV(Client client, String symbol, Object channel)
     {
         String tf = Helpers.replace(((String)channel), "candle", "");
-        Object timeframe = this.findTimeframe(tf);
+        String timeframe = this.findTimeframe(tf);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;

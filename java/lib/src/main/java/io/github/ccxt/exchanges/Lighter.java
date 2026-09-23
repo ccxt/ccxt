@@ -3207,7 +3207,7 @@ public class Lighter extends LighterApi
         //
         String marketId = this.safeString(order, "market_index");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        Long timestamp = this.safeTimestamp(order, "timestamp");
         Object isAsk = this.safeBool(order, "is_ask");
         if (java.util.Objects.equals(isAsk, null))
         {

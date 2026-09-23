@@ -628,7 +628,7 @@ public class Bigone extends BigoneApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "gateway_name");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Boolean deposit = (Boolean) this.safeBool(chain, "is_deposit_enabled");
             Boolean withdraw = (Boolean) this.safeBool(chain, "is_withdrawal_enabled");
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
@@ -637,7 +637,7 @@ public class Bigone extends BigoneApi
             Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );

@@ -3009,10 +3009,10 @@ public class Kucoin extends KucoinApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String chainId = this.safeString(chain, "chainId");
-            Object networkCode = this.networkIdToCode(chainId, code);
+            String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", chainId );
@@ -3331,7 +3331,7 @@ public class Kucoin extends KucoinApi
             {
                 Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
                 String chainId = this.safeString(chain, "chainId");
-                Object networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
+                String networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(networkCodeNew, null))
                 {
                     Helpers.addElementToObject(resultNew.get("networks"), networkCodeNew, new HashMap<String, Object>() {{
@@ -3364,7 +3364,7 @@ public class Kucoin extends KucoinApi
         String networkId = this.safeString(fee, "chain");
         String currencyId = this.safeString(fee, "currency");
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
-        Object networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
+        String networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
         if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
@@ -12339,10 +12339,10 @@ public class Kucoin extends KucoinApi
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
                 requestedType = marginMode;
             }
-            Object accountsByType = this.safeDict(this.options, "accountsByType");
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType");
             if (Helpers.isTrue(uta))
             {
-                accountsByType = this.safeDict(this.options, "utaAccountsByType");
+                accountsByType = (Map<String, Object>) this.safeDict(this.options, "utaAccountsByType");
             }
             String type = null;
             type = this.safeString(accountsByType, requestedType, requestedType);

@@ -1646,10 +1646,10 @@ public class Poloniex extends PoloniexApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String chainId = this.safeString(chain, "blockchain");
-            Object networkCode = this.networkIdToCode(chainId, code);
+            String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", chainId );
@@ -2645,14 +2645,14 @@ public class Poloniex extends PoloniexApi
             var requestparametersVariable = this.orderRequest(symbol, (String) (type), (String) (side), amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Object response = new HashMap<String, Object>() {{}};
+            Map<String, Object> response = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
                 Map<String, Object> responseInitial = (this.swapPrivatePostV3TradeOrder(this.extend(request, parameters))).join();
                 //
                 // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
                 //
-                response = this.safeDict(responseInitial, "data", new HashMap<String, Object>() {{}});
+                response = (Map<String, Object>) this.safeDict(responseInitial, "data", new HashMap<String, Object>() {{}});
             } else if (!java.util.Objects.equals(triggerPrice, null))
             {
                 response = (this.privatePostSmartorders(this.extend(request, parameters))).join();
@@ -4163,7 +4163,7 @@ public class Poloniex extends PoloniexApi
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace(((String)networkId), code, "");
-                        Object networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
+                        String networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
                         Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(response, networkId);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
@@ -4211,7 +4211,7 @@ public class Poloniex extends PoloniexApi
         }};
         Helpers.addElementToObject(depositWithdrawFee, "withdraw", withdrawResult);
         Helpers.addElementToObject(depositWithdrawFee, "deposit", depositResult);
-        Object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+        String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
         if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "networks"), networkCode, new HashMap<String, Object>() {{
@@ -4327,7 +4327,7 @@ public class Poloniex extends PoloniexApi
         {
             transaction = (Map<String, Object>) (((Map<String, Object>)transaction).get("response"));
         }
-        Object timestamp = this.safeTimestamp(transaction, "timestamp");
+        Long timestamp = this.safeTimestamp(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId);
         String status = this.safeString(transaction, "status", "pending");

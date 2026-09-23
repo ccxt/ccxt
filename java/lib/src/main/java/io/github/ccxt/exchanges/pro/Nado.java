@@ -2300,7 +2300,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long granularity = this.safeInteger(message, "granularity");
-        Object timeframe = this.findTimeframe(granularity);
+        String timeframe = this.findTimeframe(granularity);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;

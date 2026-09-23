@@ -1387,10 +1387,10 @@ public class Coinone extends CoinoneApi
             symbol = ((base + "/") + quote);
             market = (Map<String, Object>) (this.safeMarket(symbol, market, "/"));
         }
-        Object timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
+        Long timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (java.util.Objects.equals(timestamp, null))
         {
-            timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
+            timestamp = (Long) this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
         String side = this.safeStringLower2(order, "type", "side");
         if ((java.util.Objects.equals(side, "limit")) || (java.util.Objects.equals(side, "market")) || (java.util.Objects.equals(side, "stop_limit")))
@@ -1432,7 +1432,7 @@ public class Coinone extends CoinoneApi
                 put( "currency", feeCurrencyCode );
             }};
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalSymbol = symbol;
         final String finalSide = side;
         final String finalAmountString = amountString;

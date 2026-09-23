@@ -569,10 +569,10 @@ public class Luno extends LunoApi
         {
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
             String networkId = this.safeString(networkEntry, "name");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );

@@ -910,7 +910,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             isUta = true;
         }
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
-        Object timeframe = this.findTimeframe(interval, timeframes);
+        String timeframe = this.findTimeframe(interval, timeframes);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;
@@ -2631,13 +2631,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Object avgPrice = (((java.util.Objects.equals(avgPriceString, null)))) ? null : this.omitZero(avgPriceString);
         String side = this.safeString(order, "side");
         String type = this.safeString(order, "orderType");
-        Object accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
-        Object newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
+        String accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
+        String newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-        Object totalAmount = null;
+        String totalAmount = null;
         String filledAmount = null;
-        Object cost = null;
+        String cost = null;
         String remaining = null;
         String totalFilled = this.safeString2(order, "accBaseVolume", "cumExecQty");
         if (Boolean.TRUE.equals(isSpot))
@@ -2684,8 +2684,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         final String finalSide = side;
         final Double finalPrice = price;
         final Double finalTriggerPrice = triggerPrice;
-        final Object finalTotalAmount = totalAmount;
-        final Object finalCost = cost;
+        final String finalTotalAmount = totalAmount;
+        final String finalCost = cost;
         final String finalFilledAmount = filledAmount;
         final String finalRemaining = remaining;
         final Map<String, Object> finalFeeObject = feeObject;
@@ -3762,7 +3762,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             isUta = true;
         }
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes");
-        Object timeframe = this.findTimeframe(interval, timeframes);
+        String timeframe = this.findTimeframe(interval, timeframes);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = null;

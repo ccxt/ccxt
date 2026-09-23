@@ -1621,7 +1621,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String price = this.safeString(order, 16);
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         String average = this.safeString(order, 17);
-        Object stopPrice = this.omitZero(this.safeString(order, 18));
+        String stopPrice = this.omitZero(this.safeString(order, 18));
         final String finalType = type;
         final String finalSide = side;
         final String finalAmount = amount;

@@ -1890,7 +1890,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(subscription, "interval");
-        Object timeframe = this.findTimeframe(interval);
+        String timeframe = this.findTimeframe(interval);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;

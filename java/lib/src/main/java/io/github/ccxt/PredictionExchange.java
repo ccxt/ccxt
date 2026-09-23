@@ -569,7 +569,7 @@ public Object describe()
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
 
-    public Object outcome(String outcomeSymbol)
+    public Map<String, Object> outcome(String outcomeSymbol)
     {
         if (java.util.Objects.equals(outcomeSymbol, null))
         {
@@ -581,11 +581,11 @@ public Object describe()
         }
         if (((Map<?, ?>)this.outcomes).containsKey(outcomeSymbol))
         {
-            return Helpers.GetValue(this.outcomes, outcomeSymbol);
+            return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeSymbol));
         }
         if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeSymbol)))
         {
-            return Helpers.GetValue(this.outcomes_by_id, outcomeSymbol);
+            return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeSymbol));
         }
         throw new BadSymbol((((this.id + " does not have outcome ") + outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
@@ -610,25 +610,26 @@ public Object describe()
         return false;
     }
 
-    public Object safeOutcome(String outcomeIdOrSymbol, Object outcomeObj)
+    public Map<String, Object> safeOutcome(String outcomeIdOrSymbol, Object outcomeObj)
     {
         if (!java.util.Objects.equals(outcomeIdOrSymbol, null))
         {
             if ((!java.util.Objects.equals(this.outcomes, null)) && (((Map<?, ?>)this.outcomes).containsKey(outcomeIdOrSymbol)))
             {
-                return Helpers.GetValue(this.outcomes, outcomeIdOrSymbol);
+                return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeIdOrSymbol));
             }
             if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeIdOrSymbol)))
             {
-                return Helpers.GetValue(this.outcomes_by_id, outcomeIdOrSymbol);
+                return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeIdOrSymbol));
             }
         }
         if (!java.util.Objects.equals(outcomeObj, null))
         {
-            return outcomeObj;
+            return (Map<String, Object>) (outcomeObj);
         }
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
         final Object finalOutcomeIdOrSymbol = outcomeIdOrSymbol;
-        return new HashMap<String, Object>() {{
+        outcomeObj = new HashMap<String, Object>() {{
             put( "outcome", finalOutcomeIdOrSymbol );
             put( "outcomeId", finalOutcomeIdOrSymbol );
             put( "market", null );
@@ -636,8 +637,9 @@ public Object describe()
             put( "event", null );
             put( "info", new HashMap<String, Object>() {{}} );
         }};
+        return (Map<String, Object>) (outcomeObj);
     }
-    public Object safeOutcome(String outcomeIdOrSymbol, Object... optionalArgs)
+    public Map<String, Object> safeOutcome(String outcomeIdOrSymbol, Object... optionalArgs)
     {
         return this.safeOutcome(outcomeIdOrSymbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -2102,7 +2104,7 @@ public Object describe()
         String remaining = this.safeString(outcomeOrder, "remaining");
         String cost = this.safeString(outcomeOrder, "cost");
         Object average = this.omitZero(this.safeString(outcomeOrder, "average"));
-        Object price = this.omitZero(this.safeString(outcomeOrder, "price"));
+        String price = this.omitZero(this.safeString(outcomeOrder, "price"));
         String side = this.safeString(outcomeOrder, "side");
         String status = this.safeString(outcomeOrder, "status");
         Long lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
@@ -2316,9 +2318,9 @@ public Object describe()
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —
         // prediction venues report those directly, so the crypto back-derivation from percentage is moot.
-        Object open = this.omitZero(this.safeString(ticker, "open"));
-        Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
-        Object last = this.omitZero(this.safeString2(ticker, "last", "close"));
+        String open = this.omitZero(this.safeString(ticker, "open"));
+        String close = this.omitZero(this.safeString2(ticker, "close", "last"));
+        String last = this.omitZero(this.safeString2(ticker, "last", "close"));
         String change = this.safeString(ticker, "change");
         Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         Object average = this.omitZero(this.safeString(ticker, "average"));
@@ -2631,21 +2633,21 @@ public Object describe()
 
     public Object amountToPredictionPrecision(String outcome, Object amount)
     {
-        Object outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.amountToPrecision(marketSymbol, amount);
     }
 
     public Object priceToPredictionPrecision(String outcome, Object price)
     {
-        Object outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.priceToPrecision(marketSymbol, price);
     }
 
     public String costToPredictionPrecision(String outcome, Object cost)
     {
-        Object outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
     }

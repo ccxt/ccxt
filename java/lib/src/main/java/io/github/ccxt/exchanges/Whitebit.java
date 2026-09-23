@@ -1048,12 +1048,12 @@ public class Whitebit extends WhitebitApi
         for (var j = 0; j < ((List<?>)allNetworks).size(); j++)
         {
             Object networkId = (allNetworks == null || j < 0 || j >= allNetworks.size() ? null : allNetworks.get(j));
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkDepositLimits = (Map<String, Object>) this.safeDict(depositLimits, networkId, new HashMap<String, Object>() {{}});
             Map<String, Object> networkWithdrawLimits = (Map<String, Object>) this.safeDict(withdrawLimits, networkId, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
+                final String finalNetworkCode = networkCode;
                 ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1353,7 +1353,7 @@ public class Whitebit extends WhitebitApi
                 {
                     Integer networkLength = networkId.length();
                     networkId = Helpers.slice(networkId, 1, (((long) networkLength) - 1L));
-                    Object networkCode = this.networkIdToCode(networkId, code);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new HashMap<String, Object>() {{
@@ -2291,7 +2291,7 @@ public class Whitebit extends WhitebitApi
             //          ]
             //      }
             //
-            Object timestamp = this.safeTimestamp(response, "timestamp");
+            Long timestamp = this.safeTimestamp(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
         }).thenApply(OrderBook::new);
 
@@ -2516,7 +2516,7 @@ public class Whitebit extends WhitebitApi
         //      }
         //
         market = (Map<String, Object>) (this.safeMarket(null, market));
-        Object timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
+        Long timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
         String orderId = this.safeString2(trade, "dealOrderId", "orderId");
         String cost = this.safeString(trade, "deal");
         String price = this.safeString(trade, "price");
@@ -3751,8 +3751,8 @@ public class Whitebit extends WhitebitApi
                 put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
             }};
         }
-        Object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
+        Long timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
+        Long lastTradeTimestamp = this.safeTimestamp(order, "ftime");
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         Boolean ioc = (Boolean) this.safeBool(order, "ioc");
         String timeInForce = null;
@@ -4571,7 +4571,7 @@ public class Whitebit extends WhitebitApi
         //
         currency = (Map<String, Object>) (this.safeCurrency((String) (null), currency));
         String address = this.safeString(transaction, "address");
-        Object timestamp = this.safeTimestamp(transaction, "createdAt");
+        Long timestamp = this.safeTimestamp(transaction, "createdAt");
         String currencyId = this.safeString(transaction, "ticker");
         String status = this.safeString(transaction, "status");
         String method = this.safeString(transaction, "method");
@@ -4917,7 +4917,7 @@ public class Whitebit extends WhitebitApi
         //
         String marketId = this.safeString(info, "market");
         String symbol = this.safeSymbol(marketId, market, "_");
-        Object timestamp = this.safeTimestamp(info, "modifyDate");
+        Long timestamp = this.safeTimestamp(info, "modifyDate");
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -5621,7 +5621,7 @@ public class Whitebit extends WhitebitApi
         Map<String, Object> first = (Map<String, Object>) this.safeDict(path, 0, new HashMap<String, Object>() {{}});
         String fromPath = this.safeString(first, "from");
         String toPath = this.safeString(first, "to");
-        Object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
+        Long timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
         String fromCoin = this.safeString(conversion, "from", fromPath);
         String fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "to", toPath);
@@ -5898,7 +5898,7 @@ public class Whitebit extends WhitebitApi
         //     }
         //
         String marketId = this.safeString(position, "market");
-        Object timestamp = this.safeTimestamp(position, "openDate");
+        Long timestamp = this.safeTimestamp(position, "openDate");
         Map<String, Object> tpsl = (Map<String, Object>) this.safeDict(position, "tpsl", new HashMap<String, Object>() {{}});
         Map<String, Object> orderDetail = (Map<String, Object>) this.safeDict(position, "orderDetail", new HashMap<String, Object>() {{}});
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -6035,7 +6035,7 @@ public class Whitebit extends WhitebitApi
     {
         String marketId = this.safeString(info, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = this.safeTimestamp(info, "fundingTime");
+        Long timestamp = this.safeTimestamp(info, "fundingTime");
         final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", info );

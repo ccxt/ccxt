@@ -2620,7 +2620,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         String interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
-        Object unifiedTimeframe = this.findTimeframe(interval);
+        String unifiedTimeframe = this.findTimeframe(interval);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")));
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market

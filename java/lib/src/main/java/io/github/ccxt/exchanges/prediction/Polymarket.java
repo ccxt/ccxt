@@ -1443,7 +1443,7 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
+            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}), this.clobPublicGetBook(new HashMap<String, Object>() {{
@@ -1544,7 +1544,7 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> tokenIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)targets).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if ((!java.util.Objects.equals(tokenId, null)) && !(outcomesByTokenId.containsKey(tokenId)))
                 {
@@ -1766,7 +1766,7 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
+            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -1840,7 +1840,7 @@ final Object finalClobTokenId = clobTokenId;
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
+            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
             Long nowS = this.seconds();
             Object startS = null;
@@ -2200,12 +2200,12 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
 
             Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
-            Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
+            Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
             {
-                throw new BadRequest((String)Helpers.add((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
+                throw new BadRequest(((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome ") + tokenId)) ;
             }
             // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
             // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2545,8 +2545,8 @@ final Object finalClobTokenId = clobTokenId;
             }
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Helpers.addElementToObject(wantedIds, Helpers.GetValue(outcomeObj, "outcomeId"), true);
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                ((Map<String, Object>)wantedIds).put((String)((Map<String, Object>)outcomeObj).get("outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
@@ -2622,7 +2622,7 @@ final Object finalClobTokenId = clobTokenId;
     public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "asset");
-        Object marketData = this.safeOutcome((String) (tokenId), market);
+        Map<String, Object> marketData = this.safeOutcome((String) (tokenId), market);
         Double size = this.safeNumber(position, "size");
         Double entryPrice = this.safeNumber(position, "avgPrice");
         Double curPrice = this.safeNumber(position, "currentPrice");
@@ -2790,7 +2790,7 @@ final Object finalClobTokenId = clobTokenId;
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
         String id = this.safeString2(order, "id", "orderID");
         String tokenId = this.safeString(order, "asset_id");
-        Object mkt = this.safeOutcome((String) (tokenId), market);
+        Map<String, Object> mkt = this.safeOutcome((String) (tokenId), market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         String status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
         String side = this.safeStringLower(order, "side");
@@ -2806,7 +2806,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "datetime", Polymarket.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "status", status );
-            put( "outcome", Helpers.GetValue(mkt, "outcome") );
+            put( "outcome", ((Map<String, Object>)mkt).get("outcome") );
             put( "outcomeId", Polymarket.this.safeString(mkt, "outcomeId") );
             put( "label", Polymarket.this.safeString(mkt, "label") );
             put( "market", Polymarket.this.safeString(mkt, "market") );
@@ -3029,8 +3029,8 @@ final Object finalClobTokenId = clobTokenId;
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
-        Object outcomeObj = this.outcome((String) (outcome));
-        Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
         String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -3552,7 +3552,7 @@ final Object finalClobTokenId = clobTokenId;
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_id", Helpers.GetValue(outcomeObj, "outcomeId") );
+                    put( "asset_id", ((Map<String, Object>)outcomeObj).get("outcomeId") );
                 }};
                 response = (this.clobPrivateDeleteCancelMarketOrders(this.extend(request, parameters))).join();
             } else
@@ -4441,7 +4441,7 @@ final Object finalClobTokenId = clobTokenId;
             Object a = (rawAsks == null || j < 0 || j >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(j));
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price"), this.safeNumber(a, "size"))));
         }
-        Object outcomeObj = this.safeOutcome((String) (outcome));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcome));
 final String finalOutcome = outcome;
                 Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{
             put( "bids", bids );
@@ -4503,7 +4503,7 @@ final String finalOutcome = outcome;
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Double price = this.safeNumber(eventVar, "price");
         Double amount = this.safeNumber(eventVar, "size");
-        Object market = this.safeOutcome((String) (tokenId));
+        Map<String, Object> market = this.safeOutcome((String) (tokenId));
         final String finalOutcome = outcome;
         Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(eventVar, "transaction_hash") );
@@ -4700,7 +4700,7 @@ final String finalOutcome = outcome;
             {
                 mid = bestAsk;
             }
-            Object market = this.safeOutcome((String) (outcome));
+            Map<String, Object> market = this.safeOutcome((String) (outcome));
             final Object finalOutcome = outcome;
             final Object finalBestBid = bestBid;
             final Object finalBestBidVolume = bestBidVolume;

@@ -1914,7 +1914,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k");
         String timeframeId = this.safeString(kline, "i");
-        Object timeframe = this.findTimeframe(timeframeId);
+        String timeframe = this.findTimeframe(timeframeId);
         if (java.util.Objects.equals(timeframe, null))
         {
             return;

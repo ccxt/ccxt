@@ -1300,13 +1300,13 @@ public class Coinex extends CoinexApi
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 continue;
             }
             final String finalNetworkId = networkId;
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> network = new HashMap<String, Object>() {{
                 put( "id", finalNetworkId );
                 put( "network", finalNetworkCode );
@@ -6957,7 +6957,7 @@ final Object finalI = i;
                 {
                     String currencyId = this.safeString(asset, "ccy");
                     String feeCode = this.safeCurrencyCode(currencyId, currency);
-                    Object networkCode = this.networkIdToCode(networkId, feeCode);
+                    String networkCode = this.networkIdToCode(networkId, feeCode);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
