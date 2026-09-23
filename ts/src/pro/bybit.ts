@@ -184,9 +184,7 @@ export default class bybit extends bybitRest {
 
     async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}): Promise<string> {
         const accessibility = isPrivate ? 'private' : 'public';
-        if (method === undefined) {
-            method = '';
-        }
+        const methodValue: Str = (method === undefined) ? '' : method;
         let isUsdcSettled: Bool = undefined;
         let isSpot: Bool = undefined;
         let type: Str = undefined;
@@ -197,9 +195,10 @@ export default class bybit extends bybitRest {
             isUsdcSettled = market['settle'] === 'USDC';
             type = market['type'];
         } else {
-            [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
+            const [ marketType, paramsMarketType ]: [ Str, Dict ] = this.handleMarketTypeAndParams (methodValue, undefined, params);
+            type = marketType;
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
-            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
+            defaultSettle = this.safeString2 (paramsMarketType, 'settle', 'defaultSettle', defaultSettle);
             isUsdcSettled = (defaultSettle === 'USDC');
         }
         isSpot = (type === 'spot');
@@ -216,8 +215,8 @@ export default class bybit extends bybitRest {
             if (isSpot) {
                 url = url[accessibility]['spot'];
             } else if ((type === 'swap') || (type === 'future')) {
-                let subType: Str = undefined;
-                [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
+                const subTypeAndParams = this.handleSubTypeAndParams (methodValue, market, params, 'linear');
+                const subType: Str = subTypeAndParams[0];
                 url = url[accessibility][subType as string];
             } else {
                 // option
@@ -734,10 +733,8 @@ export default class bybit extends bybitRest {
             messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
-        if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -913,12 +910,9 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue: Dict = this.cleanParams (params);
         const market = this.market (symbolsNormalized[0]);
-        if (limit === undefined) {
-            limit = 50;
-            if (market['option'] === true) {
-                limit = 100;
-            }
-        } else {
+        const defaultLimit = (market['option'] === true) ? 100 : 50;
+        const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
+        if (limit !== undefined) {
             const limits = {
                 'spot': [ 1, 50, 200, 1000 ],
                 'option': [ 25, 100 ],
@@ -934,7 +928,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
-            const topic = 'orderbook.' + limit.toString () + '.' + marketId;
+            const topic = 'orderbook.' + limitResolved.toString () + '.' + marketId;
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -960,9 +954,8 @@ export default class bybit extends bybitRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let channel = 'orderbook.';
         let limit = this.safeInteger (params, 'limit');
-        if (limit !== undefined) {
-            params = this.omit (params, 'limit');
-        } else {
+        const paramsOmitted: Dict = (limit !== undefined) ? this.omit (params, 'limit') : params;
+        if (limit === undefined) {
             const firstMarket = this.market (symbolsNormalized[0]);
             limit = (firstMarket['spot'] === true) ? 50 : 500;
         }
@@ -979,8 +972,8 @@ export default class bybit extends bybitRest {
             subMessageHashes.push ('orderbook:' + symbol);
             topics.push (topic);
         }
-        const url = await this.getUrlByMarketType (symbolsNormalized[0], false, 'watchOrderBook', params);
-        return await this.unWatchTopics (url, 'orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, params);
+        const url = await this.getUrlByMarketType (symbolsNormalized[0], false, 'watchOrderBook', paramsOmitted);
+        return await this.unWatchTopics (url, 'orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted);
     }
 
     /**
@@ -1129,12 +1122,10 @@ export default class bybit extends bybitRest {
             messageHashes.push (messageHash);
         }
         const trades = await this.watchTopics (url, messageHashes, topics, paramsValue);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -1324,11 +1315,11 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
-        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        const url = await this.getUrlByMarketType (symbolResolved, true, method, params);
         await this.authenticate (url);
         const topicByMarket: Dict = {
             'spot': 'ticketInfo',
@@ -1341,10 +1332,8 @@ export default class bybit extends bybitRest {
             topic = 'execution.fast';
         }
         const trades = await this.watchTopics (url, [ messageHash ], [ topic ], paramsExecutionFast);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1548,29 +1537,29 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchPositions';
         let messageHash = '';
+        const symbolsNormalized: Strings = ((symbols !== undefined) && !this.isEmpty (symbols)) ? this.marketSymbols (symbols) : symbols;
         if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            messageHash = '::' + symbols.join (',');
+            messageHash = '::' + symbolsNormalized.join (',');
         }
-        const firstSymbol = this.safeString (symbols, 0);
+        const firstSymbol = this.safeString (symbolsNormalized, 0);
         const url = await this.getUrlByMarketType (firstSymbol, true, method, params);
         messageHash = 'positions' + messageHash;
         const client = this.client (url);
         await this.authenticate (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const topics = [ 'position' ];
         const newPositions = await this.watchTopics (url, [ messageHash ], topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
@@ -1864,11 +1853,11 @@ export default class bybit extends bybitRest {
         }
         const method = 'watchOrders';
         let messageHash = 'orders';
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            messageHash += ':' + symbolResolved;
         }
-        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        const url = await this.getUrlByMarketType (symbolResolved, true, method, params);
         await this.authenticate (url);
         const topicsByMarket: Dict = {
             'spot': [ 'order', 'stopOrder' ],
@@ -1877,10 +1866,8 @@ export default class bybit extends bybitRest {
         };
         const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbolResolved, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**

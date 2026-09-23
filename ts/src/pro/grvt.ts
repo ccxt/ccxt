@@ -330,12 +330,10 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
-        if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -436,10 +434,8 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const [ symbol, timeframe, stored ] = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
-        if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? stored.getLimit (symbol, limit) : limit;
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -525,20 +521,18 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
+        const [ channel, paramsChannel ]: [ Str, Dict ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        if (limit === undefined) {
-            [ limit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'limit', 100);
-        }
-        let interval = 500;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
+        const [ limitOption, paramsLimitOption ] = this.handleOptionAndParams (paramsChannel, 'watchOrderBook', 'limit', 100);
+        const limitResolved: Int = (limit === undefined) ? limitOption : limit;
+        const paramsLimit: Dict = (limit === undefined) ? paramsLimitOption : paramsChannel;
+        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsLimit, 'watchOrderBook', 'interval', 500);
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
+        const extraPart = isSnapshot ? (interval.toString () + '-' + limitResolved.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -552,7 +546,7 @@ export default class grvt extends grvtRest {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes);
+        const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
         return orderbook.limit ();
     }
 
@@ -682,10 +676,8 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -860,10 +852,8 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const orders = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {

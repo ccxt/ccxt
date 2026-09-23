@@ -142,10 +142,8 @@ export default class bitopro extends bitoproRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbolValue;
         const trades = await this.watchPublic ('trades', messageHash, market['id']);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -211,10 +209,8 @@ export default class bitopro extends bitoproRest {
         const url = this.urls['ws']['private'] + '/' + 'user-trades';
         this.authenticate (url);
         const trades = await this.watch (url, messageHash, undefined, messageHash);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {

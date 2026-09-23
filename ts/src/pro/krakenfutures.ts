@@ -126,14 +126,12 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds: Str[] = [];
         let messageHash = name;
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const symbolsValue: string[] = (symbols === undefined) ? [] : symbols;
+        for (let i = 0; i < symbolsValue.length; i++) {
+            const symbol = symbolsValue[i];
             marketIds.push (this.marketId (symbol));
         }
-        const length = symbols.length;
+        const length = symbolsValue.length;
         if (length === 1) {
             const market = this.market (marketIds[0]);
             messageHash = messageHash + ':' + market['symbol'];
@@ -257,12 +255,10 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
-        if (this.newUpdates) {
-            const first = this.safeList (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const first = this.safeList (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (tradeSymbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -464,10 +460,8 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const orders = await this.subscribePrivate (name, messageHash, paramsVerbose);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? orders.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -492,10 +486,8 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash += ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate (name, messageHash, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const limitResolved: Int = (this.newUpdates) ? trades.getLimit (symbol, limit) : limit;
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
