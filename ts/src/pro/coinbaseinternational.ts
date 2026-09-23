@@ -87,13 +87,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Strings = undefined;
-        if (symbols === undefined) {
-            symbols = this.getActiveSymbols ();
-        }
-        const symbolsLength = symbols.length;
+        const symbolsResolved: string[] = (symbols === undefined) ? this.getActiveSymbols () : symbols;
+        const symbolsLength = symbolsResolved.length;
         const messageHashes: string[] = [];
         if (symbolsLength > 1) {
-            const parsedSymbols = this.marketSymbols (symbols);
+            const parsedSymbols = this.marketSymbols (symbolsResolved);
             const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
             for (let i = 0; i < parsedSymbols.length; i++) {
@@ -101,7 +99,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
             // messageHash = messageHash + '::' + parsedSymbols.join (',');
         } else if (symbolsLength === 1) {
-            market = this.market (symbols[0]);
+            market = this.market (symbolsResolved[0]);
             messageHash = name + '::' + market['symbol'];
             productIds = [ (market['id'] as string) ];
         }
@@ -145,15 +143,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         this.checkRequiredCredentials ();
-        if (this.isEmpty (symbols)) {
-            symbols = this.symbols;
-        } else {
-            symbols = this.marketSymbols (symbols);
-        }
+        const symbolsResolved: Strings = (this.isEmpty (symbols)) ? this.symbols : this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const productIds: any[] = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const marketId = this.marketId ((symbols as string[])[i]);
+        for (let i = 0; i < (symbolsResolved as string[]).length; i++) {
+            const marketId = this.marketId ((symbolsResolved as string[])[i]);
             const symbol = this.symbol (marketId);
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
@@ -475,10 +469,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const options = this.safeDict (this.options, 'timeframes', {});
         const interval = this.safeString (options, timeframe, timeframe);
         const ohlcv = await this.subscribe (interval, [ symbolValue ], params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const limitResolved: Int = (this.newUpdates) ? ohlcv.getLimit (symbolValue, limit) : limit;
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -551,12 +543,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const trades = await this.subscribeMultiple ('MATCH', symbolsNormalized, params);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict): Dict {

@@ -1331,20 +1331,16 @@ export default class extended extends Exchange {
         }
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger (paramsPaginate, 'until', this.milliseconds ());
         const endTime = this.safeInteger (paramsPaginate, 'endTime', until);
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'endTime', 'until' ]);
-        if (since === undefined) {
-            since = endTime - (limit * 60 * 60 * 1000);
-        }
+        const sinceResolved: Int = (since === undefined) ? endTime - (limitResolved * 60 * 60 * 1000) : since;
         const request: Dict = {
             'market': market['id'],
-            'startTime': since,
+            'startTime': sinceResolved,
             'endTime': endTime,
-            'limit': limit,
+            'limit': limitResolved,
         };
         const response = await this.v1PublicGetInfoMarketFunding (this.extend (request, paramsOmitted));
         //
@@ -1376,7 +1372,7 @@ export default class extended extends Exchange {
             result.push (this.parseFundingRateHistory (entry, market));
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbolValue, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, symbolValue, sinceResolved, limitResolved) as FundingRateHistory[];
     }
 
     override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
@@ -1419,21 +1415,17 @@ export default class extended extends Exchange {
         if (!this.inArray (interval, [ 'PT1H', 'P1D' ])) {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory() supports 1h and 1d timeframes only');
         }
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         const endTime = this.safeInteger (params, 'endTime', until);
         const paramsOmitted: Dict = this.omit (params, [ 'endTime', 'until' ]);
-        if (since === undefined) {
-            since = endTime - (limit * this.parseTimeframe (timeframe) * 1000);
-        }
+        const sinceResolved: Int = (since === undefined) ? endTime - (limitResolved * this.parseTimeframe (timeframe) * 1000) : since;
         const request: Dict = {
             'market': market['id'],
             'interval': interval,
-            'startTime': since,
+            'startTime': sinceResolved,
             'endTime': endTime,
-            'limit': limit,
+            'limit': limitResolved,
         };
         const response = await this.v1PublicGetInfoMarketOpenInterests (this.extend (request, paramsOmitted));
         //
@@ -1449,7 +1441,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseOpenInterestsHistory (data, market, since, limit);
+        return this.parseOpenInterestsHistory (data, market, sinceResolved, limitResolved);
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
@@ -1939,9 +1931,8 @@ export default class extended extends Exchange {
         const currency = this.currency (code);
         const account = await this.fetchExtendedAccount ();
         const currentAccountId = this.safeString (account, 'accountId', '');
-        if (fromAccount === undefined) {
-            fromAccount = currentAccountId;
-        } else if (fromAccount !== currentAccountId) {
+        const fromAccountResolved: string = (fromAccount === undefined) ? currentAccountId : fromAccount;
+        if (fromAccountResolved !== currentAccountId) {
             throw new BadRequest (this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2 (params, 'toVault', 'receiverPositionId');
@@ -1952,7 +1943,7 @@ export default class extended extends Exchange {
         const amountString = this.currencyToPrecision (code, amount);
         const settlement = this.createTransferSettlementData (amountString as string, currency, account, toVault, toL2Key, params);
         const request: Dict = {
-            'fromAccount': fromAccount,
+            'fromAccount': fromAccountResolved,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1983,7 +1974,7 @@ export default class extended extends Exchange {
             'datetime': this.iso8601 (now),
             'currency': currency['code'],
             'amount': this.parseNumber (amountString),
-            'fromAccount': fromAccount,
+            'fromAccount': fromAccountResolved,
             'toAccount': toAccount,
             'status': status,
         };
@@ -2370,16 +2361,14 @@ export default class extended extends Exchange {
      */
     override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        if (typeof symbols === 'string') {
-            symbols = [ symbols ];
-        }
+        const symbolsList: Strings = (typeof symbols === 'string') ? [ symbols ] : symbols;
         const [ paginate, paramsPaginate ]: [ boolean, Dict ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as Position[];
         }
         const request: Dict = {};
-        if (symbols !== undefined) {
-            const marketIds = this.marketIds (symbols);
+        if (symbolsList !== undefined) {
+            const marketIds = this.marketIds (symbolsList);
             request['market'] = marketIds;
         }
         const response = await this.v1PrivateGetUserPositionsHistory (this.extend (request, paramsPaginate));
@@ -2421,7 +2410,7 @@ export default class extended extends Exchange {
             }
             result.push (entry);
         }
-        const positions = this.parsePositions (result, symbols);
+        const positions = this.parsePositions (result, symbolsList);
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
@@ -2649,21 +2638,23 @@ export default class extended extends Exchange {
         const fee = this.safeString (params, 'fee', '0.0005');
         let builderFeeRate: Str = undefined;
         let builderId: Str = undefined;
+        let paramsBuilder: Dict = undefined;
         if (this.isSandboxModeEnabled) {
             builderFeeRate = this.safeString2 (params, 'builderFeeRate', 'defaultBuilderFeeRate');
             builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
-            params = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
+            paramsBuilder = this.omit (params, [ 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ]);
         } else {
-            [ builderFeeRate, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
-            [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId');
+            let paramsBuilderFeeRate: Dict = undefined;
+            [ builderFeeRate, paramsBuilderFeeRate ] = this.handleOptionAndParams (params, 'createOrder', 'builderFeeRate', '0.0001');
+            [ builderId, paramsBuilder ] = this.handleOptionAndParams (paramsBuilderFeeRate, 'createOrder', 'builderId');
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
             totalFee = Precise.stringAdd (fee, builderFeeRate) as string;
         }
         const now = this.milliseconds ();
-        const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
-        const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
+        const expiryEpochMillis = this.safeInteger (paramsBuilder, 'expiryEpochMillis', now + 3600000);
+        const settlementExpiration = this.safeInteger (paramsBuilder, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
         const nonce = this.numberToString (this.nonce ());
         const account = await this.fetchExtendedAccount ();
         const starkKey = this.safeString (account, 'l2Key');
@@ -2689,7 +2680,7 @@ export default class extended extends Exchange {
             'collateralPosition': collateralPosition,
         };
         const isBuy = (uppercaseSide === 'BUY');
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id', this.uuid ());
+        const clientOrderId = this.safeString2 (paramsBuilder, 'clientOrderId', 'client_id', this.uuid ());
         const request: Dict = {
             'id': clientOrderId,
             'market': market['id'],
@@ -2711,7 +2702,7 @@ export default class extended extends Exchange {
         if (builderId !== undefined) {
             request['builderId'] = builderId;
         }
-        const cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
+        const cancelId = this.safeString2 (paramsBuilder, 'cancelId', 'previousOrderId');
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
@@ -2721,13 +2712,13 @@ export default class extended extends Exchange {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
         };
-        let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
+        let triggerPriceStr = this.safeString2 (paramsBuilder, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString (paramsBuilder, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (paramsBuilder, 'takeProfitPrice');
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
+        const stopLoss = this.safeDict (paramsBuilder, 'stopLoss');
+        const takeProfit = this.safeDict (paramsBuilder, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (hasStopLoss || hasTakeProfit) {
@@ -2780,7 +2771,7 @@ export default class extended extends Exchange {
             }
         } else {
             if (triggerPriceStr !== undefined) {
-                const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
+                const triggerDirection = this.safeStringUpper (paramsBuilder, 'triggerDirection');
                 if (triggerDirection === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
                 }
@@ -2804,7 +2795,7 @@ export default class extended extends Exchange {
                 request['trigger'] = trigger;
             }
         }
-        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
+        const paramsOmitted: Dict = this.omit (paramsBuilder, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         return {
             'request': this.extend (request, paramsOmitted),
             'market': market,
@@ -2886,18 +2877,20 @@ export default class extended extends Exchange {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
+        let amountValue: Num = amount;
+        let priceValue: Num = price;
         let expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis');
         let postOnly = this.safeBool (params, 'postOnly');
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         let cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
-        if ((amount === undefined) || (price === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined) || (cancelId === undefined)) {
+        if ((amountValue === undefined) || (priceValue === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined) || (cancelId === undefined)) {
             const response = await this.v1PrivateGetUserOrdersId ({ 'id': id });
             const order = this.safeDict (response, 'data', {});
-            if (amount === undefined) {
-                amount = this.safeNumber (order, 'qty');
+            if (amountValue === undefined) {
+                amountValue = this.safeNumber (order, 'qty');
             }
-            if (price === undefined) {
-                price = this.safeNumber (order, 'price');
+            if (priceValue === undefined) {
+                priceValue = this.safeNumber (order, 'price');
             }
             if (expiryEpochMillis === undefined) {
                 expiryEpochMillis = this.safeInteger (order, 'expireTime');
@@ -2912,10 +2905,10 @@ export default class extended extends Exchange {
                 cancelId = this.safeString (order, 'externalId');
             }
         }
-        if (amount === undefined) {
+        if (amountValue === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument or an existing order with qty');
         }
-        if (price === undefined) {
+        if (priceValue === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument or an existing order with price');
         }
         const paramsExtended: Dict = this.extend ({
@@ -2926,7 +2919,7 @@ export default class extended extends Exchange {
             'cancelId': cancelId,
             'expiryEpochMillis': expiryEpochMillis,
         });
-        const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, requestParams);
+        const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amountValue, priceValue, requestParams);
         const request = this.safeDict (extendedOrderRequest, 'request', {});
         const editResponse = await this.v1PrivatePostUserOrder (request);
         //
@@ -3571,6 +3564,8 @@ export default class extended extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
@@ -3582,18 +3577,18 @@ export default class extended extends Exchange {
             if (this.apiKey === undefined) {
                 throw new AuthenticationError (this.id + ' sign() requires an apiKey for private endpoints');
             }
-            headers = {
+            requestHeaders = {
                 'X-Api-Key': this.apiKey,
             };
             if (((method === 'POST') || (method === 'PATCH')) && !queryPost) {
-                body = this.json (query);
-                headers['Content-Type'] = 'application/json';
+                requestBody = this.json (query);
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
         url = url + '/api/' + version + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }
