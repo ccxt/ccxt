@@ -274,11 +274,11 @@ func (this *Htx) HandleTicker(client any, message map[string]any) any {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market any = this.SafeMarket(marketId)
-	var ticker any = this.ParseTicker(tick, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(ticker, "timestamp", timestamp)
-	ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	ticker["timestamp"] = timestamp
+	ticker["datetime"] = this.Iso8601(timestamp)
+	var symbol any = ticker["symbol"]
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
@@ -408,12 +408,12 @@ func (this *Htx) HandleTrades(client any, message map[string]any) any {
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade any = this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -536,7 +536,7 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(parts, 3)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -2070,9 +2070,9 @@ func (this *Htx) HandlePositions(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
-		var position any = this.ParsePosition(rawPosition)
-		ccxt.AddElementToObject(position, "timestamp", timestamp)
-		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
+		position["timestamp"] = timestamp
+		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode any = this.SafeStringLower(position, "marginMode", defaultMarginMode)
 		if (!ccxt.IsEqual(marginMode, "cross")) && (!ccxt.IsEqual(marginMode, "isolated")) {
 			marginMode = defaultMarginMode

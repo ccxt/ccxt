@@ -1587,7 +1587,7 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 		var networkId string = GetValue(keys, j).(string)
 		var tokenEntry map[string]any = MapTyped(this.SafeDict(tokensByNetworkId, networkId, map[string]any{}))
 		var networkEntry map[string]any = MapTyped(this.SafeDict(chainsByNetworkId, networkId, map[string]any{}))
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var specialNetworkId *string = this.SafeString(tokenEntry, "token")
 		if networkCode != nil {
 			AddElementToObject(resultingNetworks, networkCode, map[string]any{
@@ -3512,7 +3512,7 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	networkCode = this.NetworkIdToCode(networkCode, GetValue(currency, "code"))
+	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, GetValue(currency, "code")))
 	var networkEntry any = func() any {
 		if networkCode == nil {
 			return nil

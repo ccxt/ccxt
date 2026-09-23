@@ -1585,7 +1585,7 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var chainId *string = this.SafeString(chain, "blockchain")
-		var networkCode any = this.NetworkIdToCode(chainId, code)
+		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -3005,8 +3005,8 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         "updateTime": 1646196019020
 	//     }
 	//
-	var order any = this.ParseOrder(response)
-	AddElementToObject(order, "id", id)
+	var order map[string]any = MapTyped(this.ParseOrder(response))
+	order["id"] = id
 
 	ch <- order
 	return nil
@@ -3369,14 +3369,14 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var asksResult []any = []any{}
 	var bidsResult []any = []any{}
 	for i := 0; i < GetArrayLength(asks); i++ {
-		if IsLessThan((i % 2), 1) {
+		if (i % 2) < 1 {
 			var price *float64 = this.SafeNumber(asks, i)
 			var amount *float64 = this.SafeNumber(asks, this.Sum(i, 1))
 			asksResult = append(asksResult, []any{price, amount})
 		}
 	}
 	for i := 0; i < GetArrayLength(bids); i++ {
-		if IsLessThan((i % 2), 1) {
+		if (i % 2) < 1 {
 			var price *float64 = this.SafeNumber(bids, i)
 			var amount *float64 = this.SafeNumber(bids, this.Sum(i, 1))
 			bidsResult = append(bidsResult, []any{price, amount})
@@ -3493,7 +3493,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...
 		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress requires a network parameter for ", code), ".")))
 	}
 	var exchangeNetworkId any = nil
-	networkCode = this.NetworkIdToCode(networkCode, code)
+	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))
 	var networkEntry any = func() any {
 		if networkCode == nil {
 			return nil
@@ -3963,7 +3963,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode any = this.NetworkIdToCode(networkId, currency["code"])
+					var networkCode *string = this.NetworkIdToCode(networkId, currency["code"])
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
@@ -4019,7 +4019,7 @@ func (this *Poloniex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
 	}
 	AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
 	AddElementToObject(depositWithdrawFee, "deposit", depositResult)
-	var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 	if networkCode != nil {
 		AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
 			"withdraw": withdrawResult,

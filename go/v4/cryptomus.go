@@ -524,7 +524,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 			code = DerefScalar(this.SafeCurrencyCode(id))
 		}
 		var networkId *string = this.SafeString(networkEntry, "network_code")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":      networkId,

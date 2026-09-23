@@ -443,7 +443,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	}
 	var subscriptionHashes []any = []any{}
 	var messageHashes []any = []any{}
-	var streamHash any = "liquidations"
+	var streamHash string = "liquidations"
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	if this.IsEmpty(symbols) {
 		subscriptionHashes = append(subscriptionHashes, "!"+"forceOrder@arr")
@@ -454,7 +454,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 			subscriptionHashes = append(subscriptionHashes, ccxt.Add(market["lowercaseId"], "@forceOrder"))
 			messageHashes = append(messageHashes, ccxt.Add("liquidations::", ccxt.GetValue(symbols, i)))
 		}
-		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
+		streamHash += "::"+ccxt.Join(symbols, ",")
 	}
 	var firstMarket any = nil
 	if !this.IsEmpty(symbols) {
@@ -897,13 +897,13 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		}()
 	}
 	var name string = "depth"
-	var streamHash any = "multipleOrderbook"
+	var streamHash string = "multipleOrderbook"
 	if !ccxt.IsEqual(symbols, nil) {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times"))
 		}
-		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
+		streamHash += "::"+ccxt.Join(symbols, ",")
 	}
 	var watchOrderBookRate any = nil
 	var watchOrderBookRateparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
@@ -997,9 +997,9 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		}()
 	}
 	var name string = "depth"
-	var streamHash any = "multipleOrderbook"
+	var streamHash string = "multipleOrderbook"
 	if !ccxt.IsEqual(symbols, nil) {
-		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
+		streamHash += "::"+ccxt.Join(symbols, ",")
 	}
 	var watchOrderBookRate *string = this.SafeString(this.Options, "watchOrderBookRate", "100")
 	var subParams []any = []any{}
@@ -1500,13 +1500,13 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var streamHash any = "multipleTrades"
+	var streamHash string = "multipleTrades"
 	if !ccxt.IsEqual(symbols, nil) {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times"))
 		}
-		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
+		streamHash += "::"+ccxt.Join(symbols, ",")
 	}
 	var name any = nil
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
@@ -1539,9 +1539,9 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 			var underlying string = *baseIdLower + "" + *quoteIdLower
-			if !(ccxt.InOp(seenUnderlyings, underlying)) {
-				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-				subParams = append(subParams, ccxt.Add(underlying, "@optionTrade"))
+			if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+				seenUnderlyings[underlying] = true
+				subParams = append(subParams, underlying+"@optionTrade")
 			}
 		}
 	} else {
@@ -1606,13 +1606,13 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var streamHash any = "multipleTrades"
+	var streamHash string = "multipleTrades"
 	if !ccxt.IsEqual(symbols, nil) {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times"))
 		}
-		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
+		streamHash += "::"+ccxt.Join(symbols, ",")
 	}
 	var name any = nil
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
@@ -1647,9 +1647,9 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 			var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 			var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
 			var underlying string = *baseIdLower + "" + *quoteIdLower
-			if !(ccxt.InOp(seenUnderlyings, underlying)) {
-				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-				subParams = append(subParams, ccxt.Add(underlying, "@optionTrade"))
+			if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+				seenUnderlyings[underlying] = true
+				subParams = append(subParams, underlying+"@optionTrade")
 			}
 		}
 	} else {
@@ -1953,7 +1953,7 @@ func (this *Binance) HandleTrade(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade::", symbol)
-	var trade any = this.ParseWsTrade(message, market)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2362,7 +2362,7 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	}
 	var interval *string = this.SafeString(kline, "i")
 	// use a reverse lookup in a static map instead
-	var unifiedTimeframe any = this.FindTimeframe(interval)
+	var unifiedTimeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, "v")}
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
@@ -3087,10 +3087,10 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				// subscribe per underlying, not per contract
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = *baseIdLower + "" + *quoteIdLower
-				if !(ccxt.InOp(seenUnderlyings, underlying)) {
-					ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-					subscriptionArgs = append(subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
+				var underlying string = *baseIdLower + "" + *quoteIdLower
+				if !(func() bool { _, ok := seenUnderlyings[underlying]; return ok }()) {
+					seenUnderlyings[underlying] = true
+					subscriptionArgs = append(subscriptionArgs, underlying+"@optionMarkPrice")
 				}
 			} else if isOptionTicker {
 				// eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
@@ -3100,8 +3100,8 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				var expiryDate *string = this.SafeString(parts, 1)
 				var baseIdLower *string = this.SafeStringLower(market, "baseId", "")
 				var quoteIdLower *string = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = *baseIdLower + "" + *quoteIdLower
-				var subscriptionArg any = ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expiryDate)
+				var underlying string = *baseIdLower + "" + *quoteIdLower
+				var subscriptionArg any = ccxt.Add(underlying+"@optionTicker@", expiryDate)
 				if !(ccxt.InOp(seenUnderlyings, subscriptionArg)) {
 					ccxt.AddElementToObject(seenUnderlyings, subscriptionArg, true)
 					subscriptionArgs = append(subscriptionArgs, subscriptionArg)
@@ -3372,7 +3372,7 @@ func (this *Binance) HandleTickerWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result any = this.SafeDict(message, "result", map[string]any{})
-	var ticker any = this.ParseWsTicker(result, "future")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(result, "future"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Binance) HandleBidsAsks(client any, message any) {
@@ -3485,8 +3485,8 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			}
 			return tickerFallbackType
 		}()
-		var parsedTicker any = this.ParseWsTicker(ticker, tickerMarketType)
-		var symbol any = ccxt.GetValue(parsedTicker, "symbol")
+		var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, tickerMarketType))
+		var symbol any = parsedTicker["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(newTickers, symbol, parsedTicker)
 		}
@@ -4845,7 +4845,7 @@ func (this *Binance) HandleOrderWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result any = this.SafeDict(message, "result", map[string]any{})
-	var order any = this.ParseOrder(result)
+	var order map[string]any = ccxt.MapTyped(this.ParseOrder(result))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
 func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
@@ -6803,7 +6803,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 	var messageHash string = "myTrades"
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {
-		var trade any = this.ParseWsTrade(message)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
 		var orderId *string = this.SafeString(trade, "order")
 		var tradeFee any = this.SafeDict(trade, "fee", map[string]any{})
 		tradeFee = this.Extend(map[string]any{}, tradeFee)
@@ -6879,7 +6879,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 	}
 }
 func (this *Binance) HandleOrder(client any, message any) {
-	var parsed any = this.ParseWsOrder(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if symbol != nil {
@@ -6893,17 +6893,17 @@ func (this *Binance) HandleOrder(client any, message any) {
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
-				ccxt.AddElementToObject(parsed, "fee", fee)
+				parsed["fee"] = fee
 			}
 			var fees any = this.SafeValue(order, "fees")
 			if !ccxt.IsEqual(fees, nil) {
 				ccxt.AddElementToObject(parsed, "fees", fees)
 			}
-			ccxt.AddElementToObject(parsed, "trades", this.SafeValue(order, "trades"))
+			parsed["trades"] = this.SafeValue(order, "trades")
 			var timestamp *int64 = this.SafeInteger(parsed, "timestamp")
 			if timestamp == nil {
-				ccxt.AddElementToObject(parsed, "timestamp", this.SafeInteger(order, "timestamp"))
-				ccxt.AddElementToObject(parsed, "datetime", this.SafeString(order, "datetime"))
+				parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+				parsed["datetime"] = this.SafeString(order, "datetime")
 			}
 		}
 		cachedOrders.(ccxt.Appender).Append(parsed)

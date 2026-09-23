@@ -1028,7 +1028,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var startTime any = since
 	if since == nil {
-		var tf any = this.ParseTimeframe(timeframe)
+		var tf int64 = this.ParseTimeframe(timeframe)
 		var candleCount any = func() any {
 			if limit != nil {
 				return limit
@@ -2451,7 +2451,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			var symLower string = ccxt.ToLower(parentSymbolOrEmpty)
 			// the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
 			// and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-			var haystack any = description + " " + symLower
+			var haystack string = description + " " + symLower
 			var matches bool = false
 			for qi := 0; qi < len(lowerQueries); qi++ {
 				var words []string = ccxt.Split(func() any {

@@ -295,12 +295,12 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 }
 func (this *testMainClass) AddPadding(message any, size any) any {
 	// has to be transpilable
-	var res any = ""
+	var res string = ""
 	var messageLength int = GetLength(message)                        // avoid php transpilation issue
 	var missingSpace any = Subtract(Subtract(size, messageLength), 0) // - 0 is added just to trick transpile to treat the .length as a string for php
 	if IsGreaterThan(missingSpace, 0) {
 		for i := 0; IsLessThan(i, missingSpace); i++ {
-			res = Add(res, " ")
+			res += " "
 		}
 	}
 	return Add(message, res)

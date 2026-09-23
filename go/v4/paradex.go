@@ -1207,7 +1207,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":     market["id"],
 	}
 	var now int64 = this.Milliseconds()
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger2(params, "until", "till", now)
 	var price *string = this.SafeString(params, "price")
 	if price != nil {
@@ -1226,7 +1226,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if limit != nil {
 			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
 		} else {
-			request["start_at"] = Add(Subtract(until, Multiply(Multiply(duration, 101), 1000)), 1)
+			request["start_at"] = Add(Subtract(until, (duration*101)*1000), 1)
 		}
 	}
 
@@ -2508,7 +2508,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	//     "type": "MARKET"
 	// }
 	//
-	var order any = this.ParseOrder(response, market)
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 
 	ch <- order
 	return nil

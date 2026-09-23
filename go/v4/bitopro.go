@@ -1056,13 +1056,13 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else {
 		limit = mathMin(limit, 75000) // supports slightly more than 75k candles atm, but limit here to avoid errors
 	}
-	var timeframeInSeconds any = this.ParseTimeframe(timeframe)
+	var timeframeInSeconds int64 = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
 	if since == nil {
 		request["to"] = this.Seconds()
 		request["from"] = Subtract(request["to"], (Multiply(limit, timeframeInSeconds)))
 	} else {
-		var timeframeInMilliseconds any = Multiply(timeframeInSeconds, 1000)
+		var timeframeInMilliseconds int64 = timeframeInSeconds * 1000
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
 		request["from"] = MathFloor(Divide(since, 1000))
 		request["to"] = this.Sum(request["from"], Multiply(limit, timeframeInSeconds))

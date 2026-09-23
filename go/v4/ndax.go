@@ -1333,7 +1333,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"InstrumentId": market["id"],
 		"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit != nil {
@@ -2392,7 +2392,7 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
 	PanicOnError(response)
-	var order any = this.ParseOrder(response, market)
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 
 	ch <- this.Extend(order, map[string]any{
 		"id":            id,

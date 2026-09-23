@@ -2936,7 +2936,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var chainId *string = this.SafeString(chain, "chainId")
-		var networkCode any = this.NetworkIdToCode(chainId, code)
+		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -3241,7 +3241,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				return nil
 			}())
 			var chainId *string = this.SafeString(chain, "chainId")
-			var networkCodeNew any = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
+			var networkCodeNew *string = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
 			if networkCodeNew != nil {
 				AddElementToObject(resultNew["networks"], networkCodeNew, map[string]any{
 					"withdraw": map[string]any{
@@ -3273,7 +3273,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(fee, "chain")
 	var currencyId *string = this.SafeString(fee, "currency")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
-	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	if networkCode != nil {
 		AddElementToObject(result["networks"], networkCode, map[string]any{
 			"withdraw": minWithdrawFee,
@@ -4130,7 +4130,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
 	if since != nil {
@@ -4244,7 +4244,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	var denominator int = 1000
 	if since != nil {
@@ -4335,7 +4335,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	} else {
 		request["granularity"] = timeframe
 	}
-	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var endAt any = this.Milliseconds() // required param
 	if since != nil {
 		request["from"] = since

@@ -787,7 +787,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var network *string = this.SafeString(networkItem, "network")
-		var networkCode any = this.NetworkIdToCode(network, code)
+		var networkCode *string = this.NetworkIdToCode(network, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      networkItem,
@@ -1382,7 +1382,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if until != nil {
 			request["endTime"] = until
 		} else {
-			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var endTimeByLimit any = this.Sum(since, Multiply(duration, (Subtract(limit, 1))))
 			var now int64 = this.Milliseconds()
 			request["endTime"] = mathMin(endTimeByLimit, now)
@@ -1390,7 +1390,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else if until != nil {
 		request["endTime"] = until
 		// since work properly only when it is "younger" than last "limit" candle
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["startTime"] = Subtract(until, (Multiply(duration, (Subtract(limit, 1)))))
 	}
 	request["limit"] = limit

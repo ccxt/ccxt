@@ -450,7 +450,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 			return nil
 		}())
 		var networkId *string = this.SafeString(network, "code")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
 		var networkDepositInfo map[string]any = SafeMapTyped(network, "deposit_info")
 		var isWithdrawEnabled bool = (this.SafeString(networkWithdrawInfo, "status") != nil && *this.SafeString(networkWithdrawInfo, "status") == "ENABLED")
@@ -2412,7 +2412,7 @@ func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var network map[string]any = SafeMapTyped(depositAddress, "network")
 	var networkId *string = this.SafeString(network, "code")
 	var currencyCode *string = this.SafeCurrencyCode(nil, currency)
-	var unifiedNetwork any = this.NetworkIdToCode(networkId, currencyCode)
+	var unifiedNetwork *string = this.NetworkIdToCode(networkId, currencyCode)
 	return map[string]any{
 		"address":  this.SafeString(depositAddress, "address"),
 		"tag":      this.SafeString(depositAddress, "tag"),
@@ -2589,7 +2589,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 	params = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
-	var signatureQuery any = ""
+	var signatureQuery string = ""
 	if method == "GET" {
 		var paramKeys []string = ObjectKeys(params)
 		var paramKeysLength int = len(paramKeys)
@@ -2601,10 +2601,10 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 			var key string = GetValue(paramKeys, i).(string)
 			var value *string = this.SafeString(params, key)
 			if value != nil {
-				signatureQuery = Add(signatureQuery, key+"="+*value)
+				signatureQuery += key+"="+*value
 			}
 			if IsLessThan(i, paramKeysLength-1) {
-				signatureQuery = Add(signatureQuery, "&")
+				signatureQuery += "&"
 			}
 		}
 	}

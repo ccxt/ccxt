@@ -1111,7 +1111,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
 		var networkRow any = this.SafeDict(indexedChains, networkId)
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
-		var networkCode any = this.NetworkIdToCode(networkName, code)
+		var networkCode *string = this.NetworkIdToCode(networkName, code)
 		if networkCode != nil {
 			AddElementToObject(resultingNetworks, networkCode, map[string]any{
 				"id":      networkId,
@@ -2607,8 +2607,8 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	var order any = this.ParseOrder(data, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil

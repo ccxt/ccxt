@@ -765,7 +765,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = GetValue(networkIds, j).(string)
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkFee *float64 = this.SafeNumber(feesByNetworkId, networkId)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
@@ -1722,7 +1722,7 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	for i := 0; i < GetArrayLength(rawTickers); i++ {
 		var rawTicker any = GetValue(rawTickers, i)
-		var ticker any = this.ParseTicker(rawTicker)
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
 		tickers = append(tickers, ticker)
 	}
 
@@ -2507,7 +2507,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
-	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
+	var balanceByCurrencies map[string]any = MapTyped(this.Omit(result, []any{"free", "used", "total"}))
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
 		var rawCurrencyId string = GetValue(rawCurrencyIds, i).(string)

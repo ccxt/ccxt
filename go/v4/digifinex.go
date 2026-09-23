@@ -717,7 +717,7 @@ func (this *Digifinex) ParseCurrency(rawCurrency any) any {
 	for j := 0; j < GetArrayLength(networkEntries); j++ {
 		var networkEntry any = GetValue(networkEntries, j)
 		var networkId *string = this.SafeString2(networkEntry, "chain", "currency")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -1424,8 +1424,8 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}())
-		var ticker any = this.ParseTicker(rawTicker)
-		var symbol any = GetValue(ticker, "symbol")
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -2021,7 +2021,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["symbol"] = market["id"]
 		request["period"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var startTime any = since
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		if IsEqual(startTime, nil) {
 			if (limit != nil) || (until != nil) {
 				var endTime any = func() any {
@@ -2176,12 +2176,12 @@ func (this *Digifinex) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
-	var order any = this.ParseOrder(response, market)
-	AddElementToObject(order, "symbol", market["symbol"])
-	AddElementToObject(order, "type", typeVar)
-	AddElementToObject(order, "side", side)
-	AddElementToObject(order, "amount", amount)
-	AddElementToObject(order, "price", price)
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	order["symbol"] = market["symbol"]
+	order["type"] = typeVar
+	order["side"] = side
+	order["amount"] = amount
+	order["price"] = price
 
 	ch <- order
 	return nil
@@ -4851,19 +4851,19 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 		return "positions"
 	}()
 	var data []any = SafeListTyped(response, dataRequest)
-	var position any = this.ParsePosition(func() any {
+	var position map[string]any = MapTyped(this.ParsePosition(func() any {
 		if 0 >= 0 && 0 < len(data) {
 			return DerefScalar(data[0])
 		}
 		return nil
-	}(), market)
+	}(), market))
 	if IsEqual(marketType, "swap") {
 
 		ch <- position
 		return nil
 	} else {
-		AddElementToObject(position, "collateral", this.SafeNumber(response, "margin"))
-		AddElementToObject(position, "marginRatio", this.SafeNumber(response, "margin_rate"))
+		position["collateral"] = this.SafeNumber(response, "margin")
+		position["marginRatio"] = this.SafeNumber(response, "margin_rate")
 
 		ch <- position
 		return nil
@@ -5429,7 +5429,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 				"percentage": nil,
 			}
 			if networkId != nil {
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 						"withdraw": withdrawResult,

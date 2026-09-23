@@ -2230,8 +2230,8 @@ func (this *Modetrade) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	var order any = this.ParseOrder(data, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(data, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil

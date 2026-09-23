@@ -2779,7 +2779,7 @@ func (this *Bybit) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "chain")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -3904,10 +3904,10 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// https://github.com/ccxt/ccxt/issues/26736 - align the requested
 		// start up to the interval boundary so that the exchange returns
 		// candles from the first bucket at or after `since`
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
-		var rounded any = Multiply(this.ParseToInt(Divide(since, duration)), duration)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
+		var rounded int64 = this.ParseToInt(Divide(since, duration)) * duration
 		AddElementToObject(request, "start", func() any {
-			if IsEqual(rounded, since) {
+			if rounded == since {
 				return since
 			}
 			return this.Sum(rounded, duration)
@@ -8648,9 +8648,9 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	var positions []any = SafeList2Typed(result, "list", "dataList", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var first map[string]any = MapTyped(this.SafeDict(positions, 0, map[string]any{}))
-	var position any = this.ParsePosition(first, market)
-	AddElementToObject(position, "timestamp", timestamp)
-	AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+	var position map[string]any = MapTyped(this.ParsePosition(first, market))
+	position["timestamp"] = timestamp
+	position["datetime"] = this.Iso8601(timestamp)
 
 	ch <- position
 	return nil
@@ -9409,7 +9409,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		request["endTime"] = until
 	} else if since != nil {
 		// the endpoint walks backwards from endTime and ignores a lone startTime
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		var requestedLimit any = func() any {
 			if limit == nil {
 				return 50
@@ -10536,7 +10536,7 @@ func (this *Bybit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}())
 			var networkId *string = this.SafeString(chain, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
-			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{

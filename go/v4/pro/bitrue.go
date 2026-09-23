@@ -295,7 +295,7 @@ func (this *Bitrue) HandleOrder(client any, message map[string]any) {
 	//        "Y": "0"
 	//    }
 	//
-	var parsed any = this.ParseWsOrder(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -625,12 +625,12 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 			stored = ccxt.NewArrayCache(limit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
-		var trade any = this.ParseWsTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}(), market)
+		}(), market))
 		stored.(ccxt.Appender).Append(trade)
 		appended = true
 	}
@@ -760,7 +760,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var wsInterval *string = this.SafeString(parts, 4)
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
-	var timeframe any = this.FindTimeframe(wsInterval, futuresTimeframes)
+	var timeframe *string = this.FindTimeframe(wsInterval, futuresTimeframes)
 	var tick any = this.SafeDict(message, "tick")
 	if ccxt.IsEqual(tick, nil) {
 		return
@@ -876,7 +876,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var parsed any = this.ParseWsTicker(tick, market, timestamp)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(tick, market, timestamp))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)

@@ -382,7 +382,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	var marketId *string = this.SafeString(ticker, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var parsedTicker any = this.ParseWsTicker(ticker, market)
+	var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, market))
 	var messageHash string = "ticker" + ":" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
@@ -989,7 +989,7 @@ func (this *Backpack) HandleTrades(client any, message any) {
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var cache any = ccxt.GetValue(this.Trades, symbol)
-	var trade any = this.ParseWsTrade(data, market)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	cache.(ccxt.Appender).Append(trade)
 	var messageHash any = ccxt.Add("trades:", symbol)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
@@ -1413,7 +1413,7 @@ func (this *Backpack) HandleOrder(client any, message any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var parsed any = this.ParseWsOrder(data, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data, market))
 	var orders any = this.Orders
 	if ccxt.IsEqual(orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)

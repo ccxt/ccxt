@@ -381,8 +381,8 @@ func (this *Bydfi) HandleTicker(client any, message any) {
 	//         "o": 0.04657
 	//     }
 	//
-	var ticker any = this.ParseTicker(message)
-	var symbol any = ccxt.GetValue(ticker, "symbol")
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(message))
+	var symbol any = ticker["symbol"]
 	var messageHash any = ccxt.Add("ticker::", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -578,7 +578,7 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
 	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(message, "i")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var timeframe any = this.FindTimeframe(interval, timeframes)
+	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -915,9 +915,9 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var order any = this.ParseWsOrder(rawOrder, market)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(rawOrder, market))
 	var lastUpdateTimestamp *int64 = this.SafeInteger(message, "T")
-	ccxt.AddElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp)
+	order["lastUpdateTimestamp"] = lastUpdateTimestamp
 	orders.(ccxt.Appender).Append(order)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)

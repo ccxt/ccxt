@@ -1055,13 +1055,13 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if since != nil {
 		request["start"] = since
 		if limit != nil {
-			var duration any = this.ParseTimeframe(timeframe)
+			var duration int64 = this.ParseTimeframe(timeframe)
 			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		}
 	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
-		request["start"] = Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
+		request["start"] = Subtract(now, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))
@@ -1602,12 +1602,12 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order any = this.ParseOrder(func() any {
+		var order map[string]any = MapTyped(this.ParseOrder(func() any {
 			if i >= 0 && i < len(payload) {
 				return DerefScalar(payload[i])
 			}
 			return nil
-		}())
+		}()))
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -2412,7 +2412,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString2(transaction, "network", "method")
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
-	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+	var networkCode *string = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	var networkCodeUpper any = func() any {
 		if networkCode != nil {
 			return ToUpper(networkCode)

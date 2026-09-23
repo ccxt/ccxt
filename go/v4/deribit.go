@@ -1932,13 +1932,13 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}())
-		var symbol any = GetValue(ticker, "symbol")
+		}()))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(tickers, symbol, ticker)
 		}
@@ -1998,7 +1998,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"instrument_name": market["id"],
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit == nil {
@@ -4249,7 +4249,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		ch <- retRes332819
 		return nil
 	}
-	var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
+	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000
 	var time any = this.Milliseconds()
 	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
 	if since == nil {

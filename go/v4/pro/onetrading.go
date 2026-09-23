@@ -839,12 +839,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	}
 	var orders any = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
-		var order any = this.ParseOrder(func() any {
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(func() any {
 			if i >= 0 && i < len(rawOrders) {
 				return ccxt.DerefScalar(rawOrders[i])
 			}
 			return nil
-		}())
+		}()))
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
@@ -855,12 +855,12 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 			return nil
 		}(), "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
-			var trade any = this.ParseTrade(func() any {
+			var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 				if ii >= 0 && ii < len(rawTrades) {
 					return ccxt.DerefScalar(rawTrades[ii])
 				}
 				return nil
-			}())
+			}()))
 			symbol = this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
@@ -1319,7 +1319,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var dateTime *string = this.SafeString(message, "time")
 	var timeframeId any = this.SafeDict(message, "granularity")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var timeframe any = this.FindTimeframe(timeframeId, timeframes)
+	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel any = ccxt.Add("ohlcv."+*symbol+".", timeframe)
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1334,7 +1334,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
-func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
+func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *string {
 	timeframes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timeframes
 	if ccxt.IsEqual(timeframes, nil) {
@@ -1347,10 +1347,10 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "unit"), ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "period"), ccxt.GetValue(timeframe, "period")) {
-			return key
+			return ccxt.SafeStringPtr(key)
 		}
 	}
-	return nil
+	return ccxt.SafeStringPtr(nil)
 }
 func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) any {
 	//

@@ -531,9 +531,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	var candles any = this.SafeList2(message, "kline", "kline_p", []any{})
 	var first any = this.SafeList(candles, 0, []any{})
 	var interval *string = this.SafeString(first, 1)
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe != nil {
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
+		var messageHash any = ccxt.Add("kline:"+*timeframe+":", symbol)
 		var ohlcvs any = this.ParseOHLCVs(candles, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
@@ -1125,9 +1125,9 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 		var rawTrade any = ccxt.GetValue(message, i)
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market any = this.SafeMarket(marketId)
-		var parsed any = this.ParseTrade(rawTrade)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade))
 		cachedTrades.(ccxt.Appender).Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol any = parsed["symbol"]
 		if typeVar == nil {
 			typeVar = func() any {
 				if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {

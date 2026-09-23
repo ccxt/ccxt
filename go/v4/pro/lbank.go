@@ -255,7 +255,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var rawOHLCV any = this.SafeList(records, 0, []any{})
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar")
-		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
+		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
@@ -271,7 +271,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var timeframeId *string = this.SafeString(rawOHLCV, "slot")
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
-		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
+		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsEqual(stored, nil) {
@@ -390,9 +390,9 @@ func (this *Lbank) HandleTicker(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
-	var parsedTicker any = this.ParseWsTicker(message, market)
+	var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
-	var messageHash any = "ticker:" + *symbol
+	var messageHash string = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 	messageHash = "fetchTicker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
@@ -586,17 +586,17 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 	var rawTrade any = this.SafeValue(message, "trade")
 	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
 	for i := 0; i < len(rawTrades); i++ {
-		var trade any = this.ParseWsTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {
 			if i >= 0 && i < len(rawTrades) {
 				return ccxt.DerefScalar(rawTrades[i])
 			}
 			return nil
-		}(), market)
-		ccxt.AddElementToObject(trade, "symbol", symbol)
+		}(), market))
+		trade["symbol"] = symbol
 		stored.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
-	var messageHash any = "trades:" + *symbol
+	var messageHash string = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 	messageHash = "fetchTrades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
@@ -742,7 +742,7 @@ func (this *Lbank) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		myOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var order any = this.ParseWsOrder(message)
+	var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	if ccxt.IsEqual(myOrders, nil) {
 		return
 	}
@@ -1092,7 +1092,7 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = "orderbook:" + *symbol
+	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	messageHash = "fetchOrderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

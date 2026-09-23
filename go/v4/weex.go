@@ -1074,7 +1074,7 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
 	for j := 0; j < len(chains); j++ {
 		var chain any = this.SafeDict(chains, j)
 		var networkId *string = this.SafeString(chain, "network")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      chain,
@@ -2013,7 +2013,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 		var endTime any = until
 		if (since == nil) || (until == nil) {
 			var now int64 = this.Milliseconds()
-			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var numberOfCandles any = func() any {
 				if (limit != nil) && (!IsEqual(limit, 0)) {
 					return limit
@@ -3175,8 +3175,8 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
-	var order any = this.ParseOrder(response, market)
-	AddElementToObject(order, "status", "canceled")
+	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	order["status"] = "canceled"
 
 	ch <- order
 	return nil

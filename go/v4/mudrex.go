@@ -386,7 +386,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	// the endpoint requires an explicit time window (in seconds)
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var requestLimit any = limit
 	if IsEqual(requestLimit, nil) {
 		requestLimit = 500
@@ -1023,8 +1023,8 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"order_type":   request["order_type"],
 		"trigger_type": request["trigger_type"],
 	})
-	var order any = this.ParseOrder(merged, market)
-	AddElementToObject(order, "info", data)
+	var order map[string]any = MapTyped(this.ParseOrder(merged, market))
+	order["info"] = data
 
 	ch <- order
 	return nil
@@ -1467,7 +1467,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m any = this.SafeMarket(symRaw)
-		var pos any = this.ParsePosition(p, m)
+		var pos map[string]any = MapTyped(this.ParsePosition(p, m))
 		outPos = append(outPos, pos)
 	}
 

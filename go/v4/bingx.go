@@ -1353,7 +1353,7 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var network *string = this.SafeString(rawNetwork, "network")
-		var networkCode any = this.NetworkIdToCode(network, code)
+		var networkCode *string = this.NetworkIdToCode(network, code)
 		var limits map[string]any = map[string]any{
 			"withdraw": map[string]any{
 				"min": this.SafeNumber(rawNetwork, "withdrawMin"),
@@ -1760,7 +1760,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["endTime"] = until
 	} else if (GetValue(market, "inverse") == true) && (since != nil) {
-		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		request["endTime"] = this.Sum(since, Multiply(duration, requestLimit))
 	}
 	var response any = nil
@@ -6270,7 +6270,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var code any = GetValue(currency, "code")
 	var address any = DerefScalar(this.SafeString2(depositAddress, "addressWithPrefix", "address"))
 	var networkId *string = this.SafeString(depositAddress, "network")
-	var networkCode any = this.NetworkIdToCode(networkId, code)
+	var networkCode *string = this.NetworkIdToCode(networkId, code)
 	// despite its name the addressWithPrefix field sometimes arrives without
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
 	if !IsEqual(address, nil) {
@@ -7169,15 +7169,15 @@ func (this *Bingx) ParseParams(params any) any {
 		}()
 		var value any = GetValue(params, key)
 		if IsArray(value) {
-			var arrStr any = "["
+			var arrStr string = "["
 			for j := 0; j < GetArrayLength(value); j++ {
 				var arrayElement any = GetValue(value, j)
 				if j > 0 {
-					arrStr = Add(arrStr, ",")
+					arrStr += ","
 				}
-				arrStr = Add(arrStr, ToString(arrayElement))
+				arrStr += ToString(arrayElement)
 			}
-			arrStr = Add(arrStr, "]")
+			arrStr += "]"
 			AddElementToObject(copied, key, arrStr)
 		}
 	}
@@ -7468,14 +7468,14 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	var success []any = SafeListTyped(data, "success")
 	var positions []any = []any{}
 	for i := 0; i < len(success); i++ {
-		var position any = this.ParsePosition(map[string]any{
+		var position map[string]any = MapTyped(this.ParsePosition(map[string]any{
 			"positionId": func() any {
 				if i >= 0 && i < len(success) {
 					return DerefScalar(success[i])
 				}
 				return nil
 			}(),
-		})
+		}))
 		positions = append(positions, position)
 	}
 

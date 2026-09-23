@@ -930,7 +930,7 @@ func (this *Cryptocom) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "network_id")
-		var network any = this.NetworkIdToCode(networkId, code)
+		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      chain,
@@ -1569,11 +1569,11 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["count"] = limit
 	}
 	var now int64 = this.Microseconds()
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until", now)
 	params = MapTyped(this.Omit(params, []any{"until"}))
 	if since != nil {
-		request["start_ts"] = Subtract(since, Multiply(duration, 1000))
+		request["start_ts"] = Subtract(since, duration*1000)
 		if limit != nil {
 			request["end_ts"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		} else {
@@ -2842,7 +2842,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 		tag := GetValue(addresstagVariable, 1)
 		this.CheckAddress(address)
 		var networkId *string = this.SafeString(value, "network")
-		var network any = this.NetworkIdToCode(networkId, responseCode)
+		var network *string = this.NetworkIdToCode(networkId, responseCode)
 		if network != nil {
 			AddElementToObject(result, network, map[string]any{
 				"info":     value,
@@ -3506,7 +3506,7 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 			}())
 			var networkId *string = this.SafeString(networkInfo, "network_id")
 			var currencyCode *string = this.SafeString(currency, "code")
-			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{

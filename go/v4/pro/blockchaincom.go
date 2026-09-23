@@ -237,7 +237,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 		var messageHash string = "ohlcv:" + *symbol
 		var request map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
-		var timeframe any = this.FindTimeframe(timeframeId)
+		var timeframe *string = this.FindTimeframe(timeframeId)
 		var ohlcv any = this.SafeList(message, "price", []any{})
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -461,7 +461,7 @@ func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed any = this.ParseWsTrade(message, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)

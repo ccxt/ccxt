@@ -293,7 +293,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	}
 	var parts []string = ccxt.Split(stream, "@")
 	var interval any = ccxt.GetValue(parts, 1)
-	var tf any = this.FindTimeframe(interval)
+	var tf *string = this.FindTimeframe(interval)
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var s *string = this.SafeString(data, "s")
 	if s == nil {

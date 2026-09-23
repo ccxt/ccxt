@@ -409,7 +409,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(data, 7)
 	var market any = this.SafeMarket(marketId)
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var timeframe any = this.FindTimeframe(channel, timeframes)
+	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
 	var parsed any = this.ParseOHLCV(data, market)
@@ -459,7 +459,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		var item any = ccxt.GetValue(trades, i)
-		var trade any = this.ParseTrade(item, market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(item, market))
 		tradesArray.(ccxt.Appender).Append(trade)
 	}
 	var messageHash any = ccxt.Add("deals::", symbol)

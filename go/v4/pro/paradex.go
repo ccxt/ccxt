@@ -184,8 +184,8 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
-	var parsedTrade any = this.ParseTrade(data)
-	var symbol any = ccxt.GetValue(parsedTrade, "symbol")
+	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
+	var symbol any = parsedTrade["symbol"]
 	var messageHash *string = this.SafeString(params, "channel")
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -496,7 +496,7 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
-	var parsed any = this.ParseOrder(data)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -542,7 +542,7 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel *string = this.SafeString(params, "channel")
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "."), symbol)
-	var ticker any = this.ParseTicker(data, market)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)

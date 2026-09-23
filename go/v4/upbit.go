@@ -1496,7 +1496,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var timeframePeriod any = this.ParseTimeframe(timeframe)
+	var timeframePeriod int64 = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if limit == nil {
 		limit = Int64PtrTyped(200)
@@ -1512,7 +1512,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000)))
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
-		var numMinutes float64 = MathRound(Divide(timeframePeriod, 60))
+		var numMinutes float64 = MathRound(timeframePeriod / 60)
 		request["unit"] = numMinutes
 
 		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw

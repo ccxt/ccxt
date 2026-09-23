@@ -1114,10 +1114,10 @@ func (this *Bittrade) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var tick map[string]any = MapTyped(this.SafeDict(response, "tick", map[string]any{}))
-	var ticker any = this.ParseTicker(tick, market)
+	var ticker map[string]any = MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(response, "ts")
-	AddElementToObject(ticker, "timestamp", timestamp)
-	AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
+	ticker["timestamp"] = timestamp
+	ticker["datetime"] = this.Iso8601(timestamp)
 
 	ch <- ticker
 	return nil
@@ -1162,14 +1162,14 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}(), "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market)
-		AddElementToObject(ticker, "timestamp", timestamp)
-		AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
+		}(), market))
+		ticker["timestamp"] = timestamp
+		ticker["datetime"] = this.Iso8601(timestamp)
 		AddElementToObject(result, symbol, ticker)
 	}
 
@@ -1425,12 +1425,12 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 			return nil
 		}(), "data")
 		for j := 0; j < len(trades); j++ {
-			var trade any = this.ParseTrade(func() any {
+			var trade map[string]any = MapTyped(this.ParseTrade(func() any {
 				if j >= 0 && j < len(trades) {
 					return DerefScalar(trades[j])
 				}
 				return nil
-			}(), market)
+			}(), market))
 			result = append(result, trade)
 		}
 	}

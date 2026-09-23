@@ -381,7 +381,7 @@ func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
 	//     }
 	//
 	var result any = this.SafeDict(message, "result", map[string]any{})
-	var order any = this.ParseOrder(result)
+	var order map[string]any = ccxt.MapTyped(this.ParseOrder(result))
 	var messageHash *string = this.SafeString2(message, "reqid", "req_id")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
@@ -749,7 +749,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	var interval *int64 = this.SafeInteger(first, "interval")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -1572,9 +1572,9 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < ccxt.GetArrayLength(allTrades); i++ {
 			var trade any = this.SafeDict(allTrades, i, map[string]any{})
-			var parsed any = this.ParseWsTrade(trade)
+			var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade))
 			stored.(ccxt.Appender).Append(parsed)
-			var symbol any = ccxt.GetValue(parsed, "symbol")
+			var symbol any = parsed["symbol"]
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
 		var name string = "myTrades"
@@ -1728,7 +1728,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		for i := 0; i < ccxt.GetArrayLength(allOrders); i++ {
 			var order any = this.SafeDict(allOrders, i, map[string]any{})
 			var id *string = this.SafeString(order, "order_id")
-			var parsed any = this.ParseWsOrder(order)
+			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
 			var symbol *string = this.SafeString(order, "symbol")
 			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
 			var previousOrder any = this.SafeDict(previousOrders, id)

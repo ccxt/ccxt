@@ -736,7 +736,7 @@ func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(network, "id")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,

@@ -418,7 +418,7 @@ func (this *Deepcoin) HandleTicker(client any, message any) {
 	var marketId *string = this.SafeString(data, "I")
 	var market any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var parsedTicker any = this.ParseWsTicker(data, market)
+	var parsedTicker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
 	var messageHash string = "ticker" + "::" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
@@ -595,7 +595,7 @@ func (this *Deepcoin) HandleTrades(client any, message any) {
 	}
 	var strored any = ccxt.GetValue(this.Trades, symbol)
 	if !ccxt.IsEqual(data, nil) {
-		var trade any = this.ParseWsTrade(data, market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 		strored.(ccxt.Appender).Append(trade)
 	}
 	var messageHash string = "trades" + "::" + *symbol
@@ -801,7 +801,7 @@ func (this *Deepcoin) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var interval *string = this.SafeString(data, "P")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -1158,7 +1158,7 @@ func (this *Deepcoin) HandleMyTrade(client any, message any) {
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var stored any = this.MyTrades
-		var parsed any = this.ParseWsTrade(data, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 		stored.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		client.(ccxt.ClientInterface).Resolve(stored, symbolMessageHash)
@@ -1255,7 +1255,7 @@ func (this *Deepcoin) HandleOrder(client any, message any) {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var parsed any = this.ParseWsOrder(data, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(data, market))
 		this.Orders.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)

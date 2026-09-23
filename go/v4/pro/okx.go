@@ -449,12 +449,12 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade any = this.ParseTrade(func() any {
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -870,12 +870,12 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseTicker(func() any {
+		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
+		}()))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AddElementToObject(newTickers, symbol, ticker)
 	}
@@ -1501,7 +1501,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), sym))
+		messageHashes = append(messageHashes, ccxt.Add("multi:"+channel+":", sym))
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1562,7 +1562,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:multi:", channel), ":"), sym))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:multi:"+channel+":", sym))
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
@@ -1603,7 +1603,7 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval string = ccxt.Replace(channel, "candle", "")
 	// use a reverse lookup in a static map instead
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(data) {
@@ -2534,9 +2534,9 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var position any = this.ParsePosition(rawPosition)
-		if ccxt.IsEqual(ccxt.GetValue(position, "contracts"), 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
-			ccxt.AddElementToObject(position, "side", "long")
+		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
+		if ccxt.IsEqual(position["contracts"], 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
+			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
 			cache.(ccxt.Appender).Append(shortPosition)
@@ -2811,7 +2811,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		}()
 		var tradeId *string = this.SafeString(rawOrder, "tradeId", "")
 		if ccxt.GetLength(tradeId) > 0 {
-			var order any = this.ParseOrder(rawOrder)
+			var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 			filteredOrders = append(filteredOrders, order)
 		}
 	}
@@ -3424,7 +3424,7 @@ func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol any, channel a
 }
 func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) {
 	var tf string = ccxt.Replace(channel, "candle", "")
-	var timeframe any = this.FindTimeframe(tf)
+	var timeframe *string = this.FindTimeframe(tf)
 	if timeframe == nil {
 		return
 	}

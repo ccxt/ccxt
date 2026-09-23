@@ -726,7 +726,7 @@ func (this *Delta) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "network")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":       networkId,
@@ -1648,8 +1648,8 @@ func (this *Delta) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker any = this.ParseTicker(rawTicker)
-		var symbol any = GetValue(ticker, "symbol")
+		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
+		var symbol any = ticker["symbol"]
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
 		}
@@ -1921,7 +1921,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	limit = func() any {
 		if (limit != nil) && (!IsEqual(limit, 0)) {
 			return limit
@@ -4194,7 +4194,7 @@ func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	// {"result":{},"success":true}
 	//
-	var position any = this.ParsePosition(this.SafeDict(response, "result", map[string]any{}))
+	var position map[string]any = MapTyped(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
 
 	ch <- []any{position}
 	return nil

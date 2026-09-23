@@ -717,7 +717,7 @@ func (this *Backpack) ParseCurrency(rawCurrency any) any {
 		}()
 		var networkId *string = this.SafeString(network, "blockchain")
 		var networkIdLowerCase *string = this.SafeStringLower(network, "blockchain")
-		var networkCode any = this.NetworkIdToCode(networkIdLowerCase, code)
+		var networkCode *string = this.NetworkIdToCode(networkIdLowerCase, code)
 		if networkCode != nil {
 			AddElementToObject(parsedNetworks, networkCode, map[string]any{
 				"id":      networkId,
@@ -1226,7 +1226,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		if limit == nil {
 			limit = defaultLimit
 		}
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		var endTime any = func() any {
 			if !IsEqual(until, nil) && !IsEqual(until, nil) && (!IsEqual(until, 0)) {
 				return this.ParseToInt(Divide(until, 1000))
@@ -2070,7 +2070,7 @@ func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "createdAt"))
 	var amount *float64 = this.SafeNumber(transaction, "quantity")
 	var networkId *string = this.SafeStringLower2(transaction, "source", "blockchain")
-	var network any = this.NetworkIdToCode(networkId, code)
+	var network *string = this.NetworkIdToCode(networkId, code)
 	var addressTo *string = this.SafeString(transaction, "toAddress")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var tag *string = this.SafeString(transaction, "platformMemo")

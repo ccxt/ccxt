@@ -1423,7 +1423,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
 			continue
 		}
-		var parsed any = this.ParseTrade(rawTrade, market)
+		var parsed map[string]any = MapTyped(this.ParseTrade(rawTrade, market))
 		var trade map[string]any = this.Extend(parsed, params)
 		result = append(result, trade)
 	}
@@ -1883,8 +1883,8 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if IsEqual(rawOrder, nil) {
 		rawOrder = this.SafeDict(result, "order", map[string]any{})
 	}
-	var order any = this.ParseOrder(rawOrder, market)
-	AddElementToObject(order, "type", typeVar)
+	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
+	order["type"] = typeVar
 
 	ch <- order
 	return nil
@@ -2062,7 +2062,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var rawOrder map[string]any = MapTyped(this.SafeDict(result, "order", map[string]any{}))
-	var order any = this.ParseOrder(rawOrder, market)
+	var order map[string]any = MapTyped(this.ParseOrder(rawOrder, market))
 
 	ch <- order
 	return nil

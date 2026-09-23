@@ -520,10 +520,10 @@ func (this *Coinbaseinternational) HandleTicker(client any, message map[string]a
 	//       "type": "UPDATE"
 	//    }
 	//
-	var ticker any = this.ParseWsTicker(message)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(message))
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(ticker, "symbol")))
+	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add(ccxt.Add(channel, "::"), ticker["symbol"]))
 }
 func (this *Coinbaseinternational) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -636,7 +636,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var timeframe any = this.FindTimeframe(messageHash)
+	var timeframe *string = this.FindTimeframe(messageHash)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), timeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -744,8 +744,8 @@ func (this *Coinbaseinternational) HandleTrade(client any, message map[string]an
 	//       "type": "UPDATE"
 	//    }
 	//
-	var trade any = this.ParseWsTrade(message)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message))
+	var symbol any = trade["symbol"]
 	var channel *string = this.SafeString(message, "channel")
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -756,7 +756,7 @@ func (this *Coinbaseinternational) HandleTrade(client any, message map[string]an
 	tradesArray.(ccxt.Appender).Append(trade)
 	ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, channel)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(trade, "symbol")))
+	client.(ccxt.ClientInterface).Resolve(tradesArray, ccxt.Add(ccxt.Add(channel, "::"), trade["symbol"]))
 	return message
 }
 func (this *Coinbaseinternational) ParseWsTrade(trade any, optionalArgs ...any) any {

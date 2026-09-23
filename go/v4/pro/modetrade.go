@@ -286,8 +286,8 @@ func (this *Modetrade) HandleTicker(client any, message map[string]any) any {
 	var market any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(data, "date", timestamp)
-	var ticker any = this.ParseWsTicker(data, market)
-	ccxt.AddElementToObject(ticker, "symbol", ccxt.GetValue(market, "symbol"))
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	ticker["symbol"] = ccxt.GetValue(market, "symbol")
 	ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
 	return message
@@ -365,14 +365,14 @@ func (this *Modetrade) HandleTickers(client any, message map[string]any) {
 			return nil
 		}(), "symbol")
 		var market any = this.SafeMarket(marketId)
-		var ticker any = this.ParseWsTicker(this.Extend(func() any {
+		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
 		}(), map[string]any{
 			"date": timestamp,
-		}), market)
+		}), market))
 		ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
 		result = append(result, ticker)
 	}
@@ -554,7 +554,7 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(data, "type")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
 		return
 	}
@@ -637,9 +637,9 @@ func (this *Modetrade) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var trade any = this.ParseWsTrade(this.Extend(data, map[string]any{
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
-	}), market)
+	}), market))
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -1156,7 +1156,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	}
 }
 func (this *Modetrade) HandleOrder(client any, message any, topic any) {
-	var parsed any = this.ParseWsOrder(message)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
 	if symbol != nil {
@@ -1175,15 +1175,15 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
-				ccxt.AddElementToObject(parsed, "fee", fee)
+				parsed["fee"] = fee
 			}
 			var fees any = this.SafeList(order, "fees")
 			if !ccxt.IsEqual(fees, nil) {
 				ccxt.AddElementToObject(parsed, "fees", fees)
 			}
-			ccxt.AddElementToObject(parsed, "trades", this.SafeList(order, "trades", []any{}))
-			ccxt.AddElementToObject(parsed, "timestamp", this.SafeInteger(order, "timestamp"))
-			ccxt.AddElementToObject(parsed, "datetime", this.SafeString(order, "datetime"))
+			parsed["trades"] = this.SafeList(order, "trades", []any{})
+			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
+			parsed["datetime"] = this.SafeString(order, "datetime")
 		}
 		cachedOrders.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, topic)
@@ -1224,7 +1224,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var trade any = this.ParseWsTrade(message, market)
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, market))
 	var trades any = this.MyTrades
 	if ccxt.IsEqual(trades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

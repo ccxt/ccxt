@@ -135,7 +135,7 @@ func HelperBatchNetworkTests() {
 				}
 				return nil
 			}()
-			var result any = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
+			var result *string = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
 			var keys []string = ccxt.ObjectKeys(defaultNetworkCodeReplacements)
 			for k := 0; k < len(keys); k++ {
 				var chainBaseCoin string = ccxt.GetValue(keys, k).(string)

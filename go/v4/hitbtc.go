@@ -1067,7 +1067,7 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)
@@ -4704,7 +4704,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}())
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode any = DerefScalar(this.NetworkIdToCode(networkId, code))
 		networkCode = func() any {
 			if networkCode != nil {
 				return ToUpper(networkCode)

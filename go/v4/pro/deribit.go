@@ -339,7 +339,7 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
-	var ticker any = this.ParseTicker(data)
+	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data))
 	var messageHash *string = this.SafeString(params, "channel")
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -566,7 +566,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseTrade(trade, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -1005,7 +1005,7 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	if ccxt.IsArray(data) {
 		orders = this.ParseOrders(data)
 	} else {
-		var order any = this.ParseOrder(data)
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 		orders = []any{order}
 	}
 	var cachedOrders any = this.Orders
@@ -1124,7 +1124,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
-	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
+	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(this.SafeDict(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)

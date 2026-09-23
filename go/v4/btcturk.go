@@ -879,7 +879,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
-		var seconds any = this.ParseTimeframe(timeframe)
+		var seconds int64 = this.ParseTimeframe(timeframe)
 		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
 		if since != nil {
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)

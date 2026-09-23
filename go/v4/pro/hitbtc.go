@@ -536,7 +536,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var ticker any = this.ParseWsTicker(data[marketId], market)
+		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
 		var messageHash any = ccxt.Add(topic+"::", symbol)
@@ -965,7 +965,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	var channel *string = this.SafeString(message, "ch", "")
 	var splitChannel []string = ccxt.Split(channel, "/")
 	var period *string = this.SafeString(splitChannel, 1)
-	var timeframe any = this.FindTimeframe(period)
+	var timeframe *string = this.FindTimeframe(period)
 	if timeframe == nil {
 		return message
 	}
@@ -1150,7 +1150,7 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 	var splitMethod []string = ccxt.Split(method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
 	var symbol *string = this.SafeSymbol(marketId)
-	var parsed any = this.ParseOrder(order)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(ccxt.Add(messageHash, "::"), symbol))

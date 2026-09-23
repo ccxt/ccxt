@@ -178,8 +178,8 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var rawTrade any = ccxt.GetValue(data, i)
-		var trade any = this.ParseWsTrade(rawTrade)
-		var symbol any = ccxt.GetValue(trade, "symbol")
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var symbol any = trade["symbol"]
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -405,13 +405,13 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsTicker(func() any {
+		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
-		var symbol any = ccxt.GetValue(ticker, "symbol")
+		}()))
+		var symbol any = ticker["symbol"]
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
@@ -617,7 +617,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval string = ccxt.Replace(channelName, "candle", "")
-	var unifiedTimeframe any = this.FindTimeframe(interval)
+	var unifiedTimeframe *string = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -819,13 +819,13 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var order any = this.ParseWsOrder(func() any {
+		var order map[string]any = ccxt.MapTyped(this.ParseWsOrder(func() any {
 			if i >= 0 && i < len(data) {
 				return ccxt.DerefScalar(data[i])
 			}
 			return nil
-		}())
-		var symbol any = ccxt.GetValue(order, "symbol")
+		}()))
+		var symbol any = order["symbol"]
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), symbol)
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -1150,7 +1150,7 @@ func (this *Blofin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "authenticate_hash"
 	var timestamp string = ccxt.ToString(milliseconds)
 	var nonce string = "n_" + timestamp
-	var auth any = ccxt.Add("/users/self/verify"+"GET"+timestamp+"", nonce)
+	var auth string = "/users/self/verify" + "GET" + timestamp + "" + nonce
 	var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
 	var request map[string]any = map[string]any{
 		"op": "login",

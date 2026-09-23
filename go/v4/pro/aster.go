@@ -548,8 +548,8 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var ticker map[string]any = message
-	var parsed any = this.ParseWsTicker(ticker, marketType)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker, marketType))
+	var symbol any = parsed["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Tickers, symbol, parsed)
@@ -976,8 +976,8 @@ func (this *Aster) HandleTrade(client any, message map[string]any) {
 	var trade map[string]any = message
 	var marketId *string = this.SafeString(trade, "s")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var parsed any = this.ParseWsTrade(trade, market)
-	var symbol any = ccxt.GetValue(parsed, "symbol")
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
+	var symbol any = parsed["symbol"]
 	if symbol == nil {
 		return
 	}
@@ -1644,7 +1644,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	var symbol any = market["symbol"]
 	var kline any = this.SafeDict(data, "k")
 	var timeframeId *string = this.SafeString(kline, "i")
-	var timeframe any = this.FindTimeframe(timeframeId)
+	var timeframe *string = this.FindTimeframe(timeframeId)
 	if timeframe == nil {
 		return
 	}
@@ -2390,7 +2390,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		var fakeMarket any = this.SafeMarketStructure(map[string]any{
 			"type": typeVar,
 		})
-		var trade any = this.ParseWsTrade(message, fakeMarket)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(message, fakeMarket))
 		var orderId *string = this.SafeString(trade, "order")
 		var tradeFee any = this.SafeDict(trade, "fee", map[string]any{})
 		tradeFee = this.Extend(map[string]any{}, tradeFee)
@@ -2544,7 +2544,7 @@ func (this *Aster) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var cache any = this.Orders
-	var parsed any = this.ParseWsOrder(message, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message, market))
 	var symbol any = ccxt.GetValue(market, "symbol")
 	cache.(ccxt.Appender).Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)

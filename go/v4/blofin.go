@@ -2066,9 +2066,9 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first any = this.SafeDict(data, 0)
-	var order any = this.ParseOrder(first, market)
-	AddElementToObject(order, "type", typeVar)
-	AddElementToObject(order, "side", side)
+	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	order["type"] = typeVar
+	order["side"] = side
 
 	ch <- order
 	return nil

@@ -135,7 +135,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 			}
 			return nil
 		}()
-		var trade any = this.ParseTrade(rawTrade, market)
+		var trade map[string]any = ccxt.MapTyped(this.ParseTrade(rawTrade, market))
 		stored.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)

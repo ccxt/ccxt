@@ -303,11 +303,11 @@ func (this *Coinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(currencies, nil) {
 		currencies = []any{}
 	}
-	var messageHash any = "balances"
+	var messageHash string = "balances"
 	if ccxt.IsEqual(typeVar, "spot") {
-		messageHash = ccxt.Add(messageHash, ":spot")
+		messageHash += ":spot"
 	} else {
-		messageHash = ccxt.Add(messageHash, ":swap")
+		messageHash += ":swap"
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": "balance.subscribe",
@@ -568,7 +568,7 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var parsed any = this.ParseWsTrade(data, market)
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageWithType)
@@ -640,7 +640,7 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseWsTrade(trade, market)
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -1325,8 +1325,8 @@ func (this *Coinex) HandleOrders(client any, message map[string]any) {
 	var order map[string]any = this.Extend(map[string]any{
 		"status": this.SafeString(data, "event"),
 	}, this.SafeDict2(data, "order", "stop", map[string]any{}))
-	var parsedOrder any = this.ParseWsOrder(order)
-	var symbol any = ccxt.GetValue(parsedOrder, "symbol")
+	var parsedOrder map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
+	var symbol any = parsedOrder["symbol"]
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)

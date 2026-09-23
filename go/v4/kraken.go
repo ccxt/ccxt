@@ -3091,9 +3091,9 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
 		var item any = result[id]
-		var order any = this.ParseOrder(this.Extend(map[string]any{
+		var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
-		}, item))
+		}, item)))
 		orders = append(orders, order)
 	}
 
@@ -3761,9 +3761,9 @@ func (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, optio
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(transactions); i++ {
-		var transaction any = this.ParseTransaction(this.Extend(map[string]any{
+		var transaction map[string]any = MapTyped(this.ParseTransaction(this.Extend(map[string]any{
 			"type": typeVar,
-		}, GetValue(transactions, i)))
+		}, GetValue(transactions, i))))
 		result = append(result, transaction)
 	}
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)

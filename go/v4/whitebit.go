@@ -1006,7 +1006,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 			}
 			return nil
 		}()
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
 		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
 		if networkCode != nil {
@@ -1306,7 +1306,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 			if !IsEqual(networkId, nil) {
 				var networkLength int = GetLength(networkId)
 				networkId = Slice(networkId, 1, networkLength-1)
-				var networkCode any = this.NetworkIdToCode(networkId, code)
+				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
 					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
 						"withdraw": withdrawResult,
@@ -2139,8 +2139,8 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var ticker any = this.ParseTicker(GetValue(response, marketId), market)
-		var symbol any = GetValue(ticker, "symbol")
+		var ticker map[string]any = MapTyped(this.ParseTicker(GetValue(response, marketId), market))
+		var symbol any = ticker["symbol"]
 		AddElementToObject(result, symbol, ticker)
 	}
 
@@ -3374,12 +3374,12 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		var marketNew any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order any = this.ParseOrder(func() any {
+			var order map[string]any = MapTyped(this.ParseOrder(func() any {
 				if j >= 0 && j < len(orders) {
 					return DerefScalar(orders[j])
 				}
 				return nil
-			}(), marketNew)
+			}(), marketNew))
 			AppendToArray(&results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))

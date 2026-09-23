@@ -740,7 +740,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 			}
 			return nil
 		}()
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -1335,7 +1335,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 	}
 	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		AddElementToObject(request, "start", since)
 		if limit == nil {
 			limit = Int64PtrTyped(1440)
@@ -3272,7 +3272,7 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	if networkId != nil && *networkId == "Mainnet" {
 		networkId = currencyCode
 	}
-	var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+	var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
 	if networkCode != nil {
 		AddElementToObject(result["networks"], networkCode, map[string]any{
 			"deposit":  result["deposit"],

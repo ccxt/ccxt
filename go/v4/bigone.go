@@ -605,7 +605,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(chain, "gateway_name")
-		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit *bool = this.SafeBool(chain, "is_deposit_enabled")
 		var withdraw *bool = this.SafeBool(chain, "is_withdrawal_enabled")
 		var minDepositAmount *string = this.SafeString(chain, "min_deposit_amount")
@@ -1570,7 +1570,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	if sinceIsDefined {
 		// const start = this.parseToInt (since / 1000);
-		var duration any = this.ParseTimeframe(timeframe)
+		var duration int64 = this.ParseTimeframe(timeframe)
 		var endByLimit any = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
 		if untilIsDefined {
 			request["time"] = this.Iso8601(mathMin(endByLimit, Add(until, 1)))

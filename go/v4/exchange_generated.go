@@ -541,7 +541,7 @@ func (this *BaseExchange) ArraysConcat(arraysOfArrays any) any {
 	}
 	return result
 }
-func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) any {
+func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) *string {
 	timeframes := GetArg(optionalArgs, 0, nil)
 	_ = timeframes
 	if timeframes == nil {
@@ -551,10 +551,10 @@ func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) any 
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		if IsEqual(GetValue(timeframes, key), timeframe) {
-			return key
+			return SafeStringPtr(key)
 		}
 	}
-	return nil
+	return SafeStringPtr(nil)
 }
 func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	url := GetArg(optionalArgs, 0, nil)
@@ -2569,7 +2569,7 @@ func (this *BaseExchange) GetDescribeForExtendedWsExchange(currentRestInstance D
 	return superWithRestDescribe
 }
 func (this *BaseExchange) SafeBalance(balance any) any {
-	var balances any = this.Omit(balance, []any{"info", "timestamp", "datetime", "free", "used", "total"})
+	var balances map[string]any = MapTyped(this.Omit(balance, []any{"info", "timestamp", "datetime", "free", "used", "total"}))
 	var codes []string = ObjectKeys(balances)
 	AddElementToObject(balance, "free", map[string]any{})
 	AddElementToObject(balance, "used", map[string]any{})
@@ -2923,7 +2923,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 	if IsArray(orders) {
 		for i := 0; i < GetArrayLength(orders); i++ {
 
-			var parsed any = this.DerivedExchange.ParseOrder(GetValue(orders, i), market)
+			var parsed map[string]any = MapTyped(this.DerivedExchange.ParseOrder(GetValue(orders, i), market))
 			PanicOnError(parsed) // don't inline this call
 			var order map[string]any = this.Extend(parsed, params)
 			results = append(results, order)
@@ -2936,7 +2936,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 				"id": id,
 			}, GetValue(orders, id))
 
-			var parsedOrder any = this.DerivedExchange.ParseOrder(idExtended, market)
+			var parsedOrder map[string]any = MapTyped(this.DerivedExchange.ParseOrder(idExtended, market))
 			PanicOnError(parsedOrder) // don't  inline these calls
 			var order map[string]any = this.Extend(parsedOrder, params)
 			results = append(results, order)
@@ -4087,7 +4087,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	}
 	return networkCode
 }
-func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
+func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	/**
 	 * @ignore
 	 * @method
@@ -4102,13 +4102,13 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyCode
 	if networkId == nil {
-		return nil
+		return SafeStringPtr(nil)
 	}
 	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
 	var networkCode *string = this.SafeString(networkCodesByIds, networkId, networkId)
 	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, true)
 	if IsEqual(chainPair, nil) {
-		return networkCode
+		return SafeStringPtr(networkCode)
 	}
 	var preferredChain any = GetValue(chainPair, 0)
 	var alternativeChain any = GetValue(chainPair, 1)
@@ -4117,10 +4117,10 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	if currencyCode == nil {
 		var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 		if (InOp(networkIdsByCodes, preferredChain)) && (InOp(networkIdsByCodes, alternativeChain)) {
-			return networkCode
+			return SafeStringPtr(networkCode)
 		}
 	}
-	return preferredChain
+	return SafeStringPtr(preferredChain)
 }
 func (this *BaseExchange) HandleNetworkCodeAndParams(params any) []any {
 	var networkCodeInParams *string = this.SafeString2(params, "networkCode", "network")
@@ -4881,7 +4881,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 							if IsInstance(e, OperationFailed) {
 								if IsLessThan(i, retries) {
 									if this.Verbose {
-										var index any = i + 1
+										var index int = i + 1
 										this.Log("Request failed with the error: " + ToString(e) + ", retrying " + ToString(index) + " of " + ToString(retries) + "...")
 									}
 									if (!IsEqual(retryDelay, nil)) && (retryDelay != 0) {
@@ -4996,7 +4996,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, 2147483647)
 	_ = limit
-	var ms any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var ms int64 = this.ParseTimeframe(timeframe) * 1000
 	var ohlcvs []any = []any{}
 	var i_timestamp int = 0
 	// const open = 1;
@@ -6833,7 +6833,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 	if IsArray(tickers) {
 		for i := 0; i < GetArrayLength(tickers); i++ {
 
-			var parsedTicker any = this.DerivedExchange.ParseTicker(GetValue(tickers, i))
+			var parsedTicker map[string]any = MapTyped(this.DerivedExchange.ParseTicker(GetValue(tickers, i)))
 			PanicOnError(parsedTicker)
 			var ticker map[string]any = this.Extend(parsedTicker, params)
 			results = append(results, ticker)
@@ -6846,7 +6846,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
 
-			var parsed any = this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)
+			var parsed map[string]any = MapTyped(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market))
 			PanicOnError(parsed)
 			var ticker map[string]any = this.Extend(parsed, params)
 			results = append(results, ticker)
@@ -8006,7 +8006,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	params = this.Omit(params, "paginationDirection")
 	var current int64 = this.Milliseconds()
 	var tasks []any = []any{}
-	var time any = Multiply(this.ParseTimeframe(timeframe), 1000)
+	var time int64 = this.ParseTimeframe(timeframe) * 1000
 	maxEntriesPerRequest = this.RequireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required")
 	var step any = Multiply(time, maxEntriesPerRequest)
 	var until *int64 = this.SafeInteger2(params, "until", "till") // do not omit it here
@@ -9017,9 +9017,9 @@ func (this *BaseExchange) TimeframeFromMilliseconds(ms any) any {
 	}
 	var second int = 1000
 	var minute int64 = Multiply(60, second).(int64)
-	var hour any = 60 * minute
-	var day any = Multiply(24, hour)
-	var week any = Multiply(7, day)
+	var hour int64 = 60 * minute
+	var day int64 = 24 * hour
+	var week int64 = 7 * day
 	if Mod(ms, week) == 0 {
 		return Add((Divide(ms, week)), "w")
 	}

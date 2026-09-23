@@ -1009,7 +1009,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
 		var marketId *string = this.SafeString(info, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var ticker any = this.ParseWsTicker(info, market)
+		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(info, market))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}
@@ -1065,8 +1065,8 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var parsed any = this.ParseWsTrade(rawTrade)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
+		var symbol any = parsed["symbol"]
 		if symbol != nil {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
@@ -1221,7 +1221,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var trades any = ccxt.GetValue(this.Trades, symbol)
 	for i := 0; i < ccxt.GetArrayLength(entry); i++ {
 		var data any = this.SafeDict(entry, i, map[string]any{})
-		var trade any = this.ParseWsTrade(data)
+		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		trades.(ccxt.Appender).Append(trade)
 	}
 	var messageHash any = ccxt.Add("trade:", symbol)
@@ -1649,7 +1649,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 			}
 			return nil
 		}()
-		var order any = this.ParseOrder(rawOrder)
+		var order map[string]any = ccxt.MapTyped(this.ParseOrder(rawOrder))
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
@@ -1736,11 +1736,11 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
 	var interval *string = this.SafeString(subscription, "interval")
-	var timeframe any = this.FindTimeframe(interval)
+	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
 		return
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	var subMessageHash any = ccxt.Add("candles:"+*timeframe+":", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if (symbol != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
